@@ -7,7 +7,7 @@
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
-
+!**/src/main/**/resources/views/
 # Package Files #
 *.jar
 *.war
@@ -18,7 +18,13 @@ hs_err_pid*
 ### Sass template
 .sass-cache/
 *.css.map
-
+/yarn-error.log
+application-debug.log
+/node_modules
+/target
+/node
+!**/src/main/**/build/
+!**/src/test/**/build/
 ### Custom ignores
 target
 .idea
