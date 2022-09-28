@@ -1,0 +1,16 @@
+basePackage: org.lamisplus.modules.hiv
+name: HivModule
+dependencies: {PatientModule: 1.0.0, TriageModule: 1.0.0 }
+store: true
+menus:
+  - icon: fa-solid fa-shield-virus
+    disabled: false
+    name: HIV
+    state: hiv
+    url: /across/resources/static/hiv/index.html
+umdLocation: /across/resources/static/hiv/index.html
+webModules:
+  - breadcrumb: HIV
+    name: HivModule
+    path: hiv
+    position: 99
