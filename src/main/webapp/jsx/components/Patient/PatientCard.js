@@ -19,6 +19,8 @@ import { Col, Row } from "reactstrap";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
 import moment from "moment";
+import ClinicEvaluationFrom from '../InitailClinicEvaluation/AdultClinicEvaluationFrom';
+import ArtCommencement from './../ArtCommencement/ArtCommencement';
 import axios from "axios";
 import { url as baseUrl, token } from "./../../../api";
 import Typography from '@material-ui/core/Typography';
@@ -370,7 +372,9 @@ function PatientCard(props) {
                 
                 </ExpansionPanelActions>
             </ExpansionPanel>
-    
+     
+      <ArtCommencement  toggle={Arttoggle} showModal={artModal} patientObj={patientObj} PatientCurrentStatus={PatientCurrentStatus} setArt={props.setArt}/>
+      {/* <CaptureBiometric modalstatus={biometricModal} togglestatus={BiometricModalToggle} patientId={patientObj.id} biometricDevices={devices} setPatientBiometricStatus={setPatientBiometricStatus} /> */}
     </div>
   );
 }

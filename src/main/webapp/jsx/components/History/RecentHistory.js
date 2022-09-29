@@ -501,10 +501,10 @@ const redirectLink=()=>{
             </div>
           </div>
       </div>
-      <div className="col-xl-8 col-xxl-8 col-lg-8">
+      <div className="col-xl-4 col-xxl-4 col-lg-4">
         <div className="card">
           <div className="card-header border-0 pb-0">
-            <h4 className="card-title">Visit Chart</h4>
+            <h4 className="card-title">Laboratory Orders</h4>
           </div>
           <div className="card-body">
             <PerfectScrollbar
@@ -557,7 +557,7 @@ const redirectLink=()=>{
                     variant="info"
                     className="alert-dismissible solid fade show"
                   >
-                    <p>No visit yet</p>
+                    <p>No Laboratory Test Order Yet</p>
                   </Alert>
                 }
               </ul>
@@ -565,7 +565,67 @@ const redirectLink=()=>{
           </div>
         </div>
       </div>
-     
+      <div className="col-xl-4 col-xxl-4 col-lg-4">
+        <div className="card">
+          <div className="card-header border-0 pb-0">
+            <h4 className="card-title">Refill Summary</h4>
+          </div>
+          <div className="card-body">
+            <PerfectScrollbar
+              style={{ height: "370px" }}
+              id="DZ_W_TimeLine1"
+              className="widget-timeline dz-scroll style-1 height370 ps ps--active-y"
+            >
+              <ul className="timeline">
+              {refillList && refillList.length >0 ? (
+                  <>
+                    {refillList.map((regimen,index) => ( 
+                    <>
+                      <li key={index}>
+                        <div className={index % 2 == 0 ? "timeline-badge info" : "timeline-badge success"}></div>
+                        <span
+                          className="timeline-panel text-muted"
+                          onClick={()=>redirectLink()}
+                          //to=""
+                        >
+                          <h6 className="mb-0">
+                            Regimen
+                            {regimenName(regimen.extra.regimens)}
+                            
+                          </h6>
+                          <strong className="text-teal">
+                            Refill Duration<br/>
+                              {regimen.refillPeriod}
+                          </strong><br/> 
+                          <strong className="text-warning">
+                              Next Appointment<br/>
+                              {regimen.nextAppointment}
+                          </strong>                    
+
+                        </span>
+                      </li>
+                    </>
+
+                    ))}
+                  
+                  </>
+                  ) 
+                  :
+                  <Alert
+                    variant="info"
+                    className="alert-dismissible solid fade show"
+                  >
+                    <p>No Pharmacy Drug Refill</p>
+                  </Alert>
+                }
+
+              </ul>
+            </PerfectScrollbar>
+          </div>
+        </div>
+      </div>
+       
+
  </div>
       
     </Fragment>

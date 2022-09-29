@@ -22,8 +22,7 @@ import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
 import  './patient.css'
 import {  Modal } from "react-bootstrap";
-import "react-widgets/dist/css/react-widgets.css";
-import { DateTimePicker } from "react-widgets";
+
 
 
 library.add(faCheckSquare, faCoffee, faEdit, faTrash);
@@ -192,7 +191,7 @@ const UserRegistration = (props) => {
             alert('Date of registration can not be earlier than date of birth')
         }
           
-    }, [basicInfo.dateOfRegistration]);
+    }, [basicInfo.dateOfRegistration ]);
 
     const loadGenders = useCallback(async () => {
         try {
@@ -725,7 +724,7 @@ const UserRegistration = (props) => {
         <ToastContainer autoClose={3000} hideProgressBar />
         <div className="row page-titles mx-0" style={{marginTop:"0px", marginBottom:"-10px"}}>
 			<ol className="breadcrumb">
-				<li className="breadcrumb-item active"><h4> <Link to={"/"} >Prep /</Link> Patient Registration</h4></li>
+				<li className="breadcrumb-item active"><h4> <Link to={"/"} >HIV /</Link> Patient Registration</h4></li>
 			</ol>
 		  </div>
           <Link
@@ -1481,160 +1480,412 @@ const UserRegistration = (props) => {
                             {/* Adding HIV ENROLLEMENT FORM HERE */}
                             <div className="card">
                                 <div className="card-header" style={{backgroundColor:"#014d88",color:'#fff',fontWeight:'bolder', borderRadius:"0.2rem"}}>
-                                    <h5 className="card-title"  style={{color:'#fff'}}>Prep  Enrollment</h5>
+                                    <h5 className="card-title"  style={{color:'#fff'}}>HIV Enrollment</h5>
                                 </div>
 
-                            <div className="card-body">
-                            <div className="row">
-                    <h2>PrEP Registration Form</h2>
-                    <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                        <Label for="uniqueId">Unique Client's ID  * </Label>
-                        <Input
-                            type="text"
-                            name="uniqueId"
-                            id="uniqueId"
-                            onChange={handleInputChange}
-                            value={objValues.uniqueId}
-                            required
-                        />
-                        {errors.uniqueId !=="" ? (
-                            <span className={classes.error}>{errors.uniqueId}</span>
-                        ) : "" }
-                        </FormGroup>
-                    </div>
-                    <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                        <Label >Date enrolled in PrEP *</Label>
-                        <DateTimePicker
-                            time={false}
-                            name="dateConfirmedHiv"
-                            id="dateConfirmedHiv"
-                            value={objValues.regDate}
-                            onChange={value1 =>
-                                setObjValues({ ...objValues, dateConfirmedHiv: moment(value1).format("YYYY-MM-DD") })
-                            }
-                            
-                                max={new Date()}
-                        />
-                            
-                        </FormGroup>
-                    </div>
-                    
+                                <div className="card-body">
+                                <div className="row">
+                                
+                                <div className="form-group mb-3 col-md-6">
+                                    <FormGroup>
+                                    <Label for="uniqueId">Unique ID No  * </Label>
+                                    <Input
+                                        type="text"
+                                        name="uniqueId"
+                                        id="uniqueId"
+                                        onChange={handleInputChange}
+                                        value={objValues.uniqueId}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled
+                                        
+                                    />
+                                    {errors.uniqueId !=="" ? (
+                                    <span className={classes.error}>{errors.uniqueId}</span>
+                                    ) : "" }
+                                    </FormGroup>
+                                </div>
+                                <div className="form-group mb-3 col-md-6">
+                                    <FormGroup>
+                                    <Label for="dateOfRegistration">Date of Enrollment * </Label>
+                                    <Input
+                                        type="date"
+                                        name="dateOfRegistration"
+                                        id="dateOfRegistration"
+                                        min={basicInfo.dateOfRegistration}
+                                        max= {moment(new Date()).format("YYYY-MM-DD") }
+                                        onChange={handleInputChange}
+                                        value={objValues.dateOfRegistration}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        
+                                    />
+                                    {errors.dateOfRegistration !=="" ? (
+                                    <span className={classes.error}>{errors.dateOfRegistration}</span>
+                                    ) : "" }
+                                    </FormGroup>
+                                </div>
                             </div>
                             <div className="row">
                                 <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                <Label for="entryPointId">Population Type *</Label>
+                                <Label for="entryPointId">Care Entry Point * </Label>
                                 <Input
                                     type="select"
                                     name="entryPointId"
                                     id="entryPointId"
                                     onChange={handleInputChange}
                                     value={objValues.entryPointId}
-                                    required
+                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                    
                                 >
-                                <option value=""> </option>
-                    
+                                <option value=""> </option>                  
                                 {carePoints.map((value) => (
                                     <option key={value.id} value={value.id}>
                                         {value.display}
                                     </option>
                                 ))}
-                                {errors.entryPointId !=="" ? (
-                                        <span className={classes.error}>{errors.entryPointId}</span>
-                                    ) : "" }
                                 </Input>
+                                {errors.entryPointId !=="" ? (
+                                    <span className={classes.error}>{errors.entryPointId}</span>
+                                    ) : "" }
                                 </FormGroup>
                                 
                                 </div>
+
                                 <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label for="entryPointId">Partner Type *</Label>
-                                <Input
-                                    type="select"
-                                    name="entryPointId"
-                                    id="entryPointId"
-                                    onChange={handleInputChange}
-                                    value={objValues.entryPointId}
-                                    required
-                                >
-                                <option value=""> </option>
-                    
-                                {carePoints.map((value) => (
-                                    <option key={value.id} value={value.id}>
-                                        {value.display}
-                                    </option>
-                                ))}
-                                {errors.entryPointId !=="" ? (
-                                        <span className={classes.error}>{errors.entryPointId}</span>
-                                    ) : "" }
-                                </Input>
-                                </FormGroup>
-                                
+                                {transferIn===true ? 
+                                    (
+                                        <FormGroup>
+                                        <Label >Facility Name</Label>
+                                        <Input
+                                            type="text"
+                                            name="facilityName"
+                                            id="facilityName"
+                                            onChange={handleInputChange}
+                                            value={objValues.facilityName}  
+                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        />
+                                        </FormGroup>
+                                    ):""}
+                                    {objValues.entryPointId==="24" ? 
+                                    (
+                                        <FormGroup>
+                                        <Label >Care Entry Point (Others)</Label>
+                                        <Input
+                                            type="text"
+                                            name="careEntryPointOther"
+                                            id="careEntryPointOther"
+                                            onChange={handleInputChange}
+                                            value={objValues.careEntryPointOther}  
+                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        />
+                                        </FormGroup>
+                                    ):""}
                                 </div>
+                                
                                 <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                <Label >HIV Testing Point </Label>
+                                <Label >HIV Status at Registration *</Label>
                                 <Input
                                     type="select"
                                     name="statusAtRegistrationId"
                                     id="statusAtRegistrationId"
                                     onChange={handleInputChange}
                                     value={objValues.statusAtRegistrationId}
-                                    required
+                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                    
                                 >
-                                <option value="Select"> </option>
-                    
+                                <option value=""> Select</option>                  
                                 {hivStatus.map((value) => (
                                     <option key={value.id} value={value.id}>
                                         {value.display}
                                     </option>
                                 ))}
-                                {errors.statusAtRegistrationId !=="" ? (
-                                        <span className={classes.error}>{errors.statusAtRegistrationId}</span>
-                                    ) : "" }
                                 </Input>
+                                {errors.statusAtRegistrationId !=="" ? (
+                                    <span className={classes.error}>{errors.statusAtRegistrationId}</span>
+                                    ) : "" }
                                 </FormGroup>
                                 </div>
-                            
+                                {basicInfo.dob!=="" && (
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
-                                    <Label >Date of last HIV Negative test*</Label>
-                                    <DateTimePicker
-                                        time={false}
+                                    <Label >Date of Confirmed HIV Test *</Label>
+                                    <Input
+                                        type="date"
                                         name="dateConfirmedHiv"
                                         id="dateConfirmedHiv"
-                                        value={objValues.regDate}
-                                        onChange={value1 =>
-                                            setObjValues({ ...objValues, dateConfirmedHiv: moment(value1).format("YYYY-MM-DD") })
-                                        }
+                                        min={basicInfo.dob}
+                                        max={objValues.dateOfRegistration }
+                                        onChange={handleInputChange}
+                                        value={objValues.dateConfirmedHiv}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         
-                                            max={new Date()}
-                                    />
-                                        
+                                    /> 
+                                    {errors.dateConfirmedHiv !=="" ? (
+                                        <span className={classes.error}>{errors.dateConfirmedHiv}</span>
+                                        ) : "" } 
                                     </FormGroup>
                                 </div>
+                                )}
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
-                                    <Label >Date Referred for PrEP * </Label>
-                                    <DateTimePicker
-                                        time={false}
-                                        name="dateConfirmedHiv"
-                                        id="dateConfirmedHiv"
-                                        value={objValues.regDate}
-                                        onChange={value1 =>
-                                            setObjValues({ ...objValues, dateConfirmedHiv: moment(value1).format("YYYY-MM-DD") })
-                                        }
-                                        
-                                            max={new Date()}
-                                    />
-                                    {errors.sourceOfReferrer !=="" ? (
-                                        <span className={classes.error}>{errors.sourceOfReferrer}</span>
-                                    ) : "" }
+                                    <Label >Source of Referral *</Label>
+                                    <Input
+                                        type="select"
+                                        name="sourceOfReferrerId"
+                                        id="sourceOfReferrerId"
+                                        value={objValues.sourceOfReferrerId}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        required
+                                    >
+                                        <option value="">Select </option>                 
+                                            {sourceReferral.map((value) => (
+                                                <option key={value.id} value={value.id}>
+                                                    {value.display}
+                                                </option>
+                                            ))}
+                                    </Input>
+                                    {errors.sourceOfReferrerId !=="" ? (
+                                        <span className={classes.error}>{errors.sourceOfReferrerId}</span>
+                                        ) : "" }
+                                    </FormGroup>
+                                </div>
+                                
+                                <div className="form-group mb-3 col-md-6">
+                                    <FormGroup>
+                                    <Label >Enrollment Setting *</Label>
+                                    <Input
+                                        type="select"
+                                        name="enrollmentSettingId"
+                                        id="enrollmentSettingId"
+                                        value={objValues.enrollmentSettingId}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        onChange={handleInputChange}
+                                        required
+                                        >
+                                        <option value=""> Select</option>
+
+                                            {enrollSetting.map((value) => (
+                                                <option key={value.id} value={value.id}>
+                                                    {value.display}
+                                                </option>
+                                            ))}
+                                    </Input>
+                                    {errors.enrollmentSettingId !=="" ? (
+                                        <span className={classes.error}>{errors.enrollmentSettingId}</span>
+                                        ) : "" }
                                     </FormGroup>
                                 </div>
 
+                                <div className="form-group mb-3 col-md-6">
+                                    <FormGroup>
+                                    <Label >TB Status * </Label>
+                                    <Input
+                                        type="select"
+                                        name="tbStatusId"
+                                        id="tbStatusId"
+                                        value={objValues.tbStatusId}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        required
+                                        >
+                                        <option value=""> Select</option>
+                                            {tbStatus.map((value) => (
+                                                <option key={value.id} value={value.id}>
+                                                    {value.display}
+                                                </option>
+                                            ))}
+
+                                    </Input>
+                                    {errors.tbStatusId !=="" ? (
+                                        <span className={classes.error}>{errors.tbStatusId}</span>
+                                        ) : "" }
+                                    </FormGroup>
+                                </div>
+                                {hideTargetGroup==="false" ? (
+                                <div className="form-group mb-3 col-md-6">
+                                    <FormGroup>
+                                    <Label >Target Group *</Label>
+                                    <Input
+                                        type="select"
+                                        name="targetGroupId"
+                                        id="targetGroupId"
+                                        value={objValues.targetGroupId}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        >
+                                        <option value=""> Select</option>                    
+                                                {kP.map((value) => (
+                                                    <option key={value.id} value={value.id}>
+                                                        {value.display}
+                                                    </option>
+                                                ))}
+                                    </Input>
+                                    {errors.targetGroupId !=="" ? (
+                                        <span className={classes.error}>{errors.targetGroupId}</span>
+                                        ) : "" }
+                                    </FormGroup>
+                                </div>
+                                ) : ""}
+                                {(femaleStatus && basicInfo.age > 9) && (
+                                    <>
+                                   
+                                    <div className = "form-group mb-3 col-md-6" >
+                                        <FormGroup>
+                                        <Label> Pregnancy </Label>
+                                        <Input
+                                            type = "select"
+                                            name = "pregnancyStatusId"
+                                            id = "pregnancyStatusId"
+                                            value = {objValues.pregnancyStatusId}
+                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                            onChange = {handleInputChange}                                        
+                                        >
+                                        < option value = "" >Select </option>
+                                        {pregnancyStatus.map((value) => (
+                                                    <option key={value.id} value={value.id}>
+                                                        {value.display}
+                                                    </option>
+                                                ))}
+                                        </Input>                                                                        
+                                    </FormGroup>  
+                                    </div>
+                                    {objValues.pregnancyStatusId!=='72' && (
+                                    <>
+                                        <div className="form-group mb-3 col-md-6">
+                                            <FormGroup>
+                                            <Label >Date of LMP </Label>                                    
+                                            <Input
+                                                type="date"
+                                                name="dateOfLpm"
+                                                id="dateOfLpm"
+                                                max={today}
+                                                onChange={handleInputChange}
+                                                value={objValues.dateOfLpm}
+                                                style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                                required
+                                            />  
+                                                
+                                            </FormGroup>
+                                        </div>
+                                    </>
+                                    )}
+                                    </>
+                                )}
+                                {(basicInfo.age !=='' && basicInfo.age <= 14) && (
+                                <div className="form-group mb-3 col-md-3">
+                                    
+                                    <div className="form-check custom-checkbox ml-1 ">
+                                        <input
+                                        type="checkbox"
+                                        className="form-check-input"
+                                        name="ovc_enrolled"
+                                        id="ovc_enrolled"                                        
+                                        onChange={handleCheckBox}
+                                        />
+                                        <label
+                                        className="form-check-label"
+                                        htmlFor="basic_checkbox_1"
+                                        >
+                                        Enrolled into OVC?
+                                        </label>
+                                    </div>
+                                </div>
+                                )}
+                                
+                                {ovcEnrolled===true && 
+                                (
+                                <>        
+                                <div className="row">
+                                    <div className="form-group mb-3 col-md-6">
+                                        <FormGroup>
+                                        <Label >Household Unique Number</Label>
+                                        <Input
+                                            type="text"
+                                            name="householdNumber"
+                                            id="householdNumber"
+                                            required={ovcEnrolled}
+                                            onChange={handleInputChange}
+                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                            value={objValues.householdNumber}
+                                            
+                                        />
+                                        </FormGroup>
+                                    </div>
+                                    <div className="form-group mb-3 col-md-6"></div>
+                                    <div className="form-group mb-3 col-md-6">
+                                        <FormGroup>
+                                        <Label >Referred To OVC Partner</Label>
+                                        <Input
+                                            type="text"
+                                            name="referredToOVCPartner"
+                                            id="referredToOVCPartner"
+                                            required={ovcEnrolled}
+                                            onChange={handleInputChange}
+                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                            value={objValues.referredToOVCPartner}
+                                            
+                                        />
+                                        </FormGroup>
+                                    </div>
+                                    <div className="form-group mb-3 col-md-6">
+                                        <FormGroup>
+                                        <Label >Date Referred To OVC Partner</Label>
+                                        <Input
+                                            type="date"
+                                            name="dateReferredToOVCPartner"
+                                            id="dateReferredToOVCPartner"
+                                            min={basicInfo.dob}
+                                            max={objValues.dateOfRegistration }
+                                            onChange={handleInputChange}
+                                            value={objValues.dateReferredToOVCPartner}
+                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                            
+                                        /> 
+                                        {/* {errors.dateConfirmedHiv !=="" ? (
+                                            <span className={classes.error}>{errors.dateConfirmedHiv}</span>
+                                            ) : "" }  */}
+                                        </FormGroup>
+                                    </div>
+                                    <div className="form-group mb-3 col-md-6">
+                                        <FormGroup>
+                                        <Label >Referred From OVC Partner</Label>
+                                        <Input
+                                            type="text"
+                                            name="referredFromOVCPartner"
+                                            id="referredFromOVCPartner"
+                                            required={ovcEnrolled}
+                                            onChange={handleInputChange}
+                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                            value={objValues.referredFromOVCPartner}
+                                            
+                                        />
+                                        </FormGroup>
+                                    </div>
+                                    <div className="form-group mb-3 col-md-6">
+                                        <FormGroup>
+                                        <Label >Date Referred From OVC Partner</Label>
+                                        <Input
+                                            type="date"
+                                            name="dateReferredFromOVCPartner"
+                                            id="dateReferredFromOVCPartner"
+                                            min={basicInfo.dob}
+                                            max={objValues.dateOfRegistration }
+                                            onChange={handleInputChange}
+                                            value={objValues.dateReferredFromOVCPartner}
+                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                            
+                                        /> 
+                                        {/* {errors.dateConfirmedHiv !=="" ? (
+                                            <span className={classes.error}>{errors.dateConfirmedHiv}</span>
+                                            ) : "" }  */}
+                                        </FormGroup>
+                                    </div>
+                                </div>
+                                </>
+                                )}
+                                
                             </div>
                             </div>
                             </div>
