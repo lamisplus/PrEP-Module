@@ -33,15 +33,15 @@
                     ON UPDATE NO ACTION
                     ON DELETE NO ACTION,
                 CONSTRAINT population_type_fk FOREIGN KEY (population_type)
-                    REFERENCES base_application_codeset (id) MATCH SIMPLE
+                    REFERENCES base_application_codeset (code) MATCH SIMPLE
                     ON UPDATE NO ACTION
                     ON DELETE NO ACTION,
                 CONSTRAINT partner_type_fk FOREIGN KEY (partner_type)
-                    REFERENCES base_application_codeset (id) MATCH SIMPLE
+                    REFERENCES base_application_codeset (code) MATCH SIMPLE
                     ON UPDATE NO ACTION
                     ON DELETE NO ACTION,
                 CONSTRAINT hiv_testing_point_fk FOREIGN KEY (hiv_testing_point)
-                    REFERENCES base_application_codeset (id) MATCH SIMPLE
+                    REFERENCES base_application_codeset (code) MATCH SIMPLE
                     ON UPDATE NO ACTION
                     ON DELETE NO ACTION
             )
