@@ -18,14 +18,6 @@ public class PrepClientCommencementDto implements Serializable {
     @NotNull(message = "personId is mandatory")
     private  Long personId;
 
-    /*prep_commencement
-- commencement_date_initial_adherence_counseling - date
-- commencement_date_prep_start - date
-- commencement_prep_regimen - bigint
-- commencement_transfer_in - codeset
-- commencement_weight - double
-- commencement_height - double*/
-
     //prep Commencement
     @NotNull(message = "dateInitialAdherenceCounseling is mandatory")
     private LocalDate dateInitialAdherenceCounseling;

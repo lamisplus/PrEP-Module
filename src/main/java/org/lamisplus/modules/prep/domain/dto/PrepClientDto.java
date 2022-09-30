@@ -3,6 +3,8 @@ package org.lamisplus.modules.prep.domain.dto;
 import lombok.*;
 import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
 
+import javax.persistence.Basic;
+import javax.persistence.Column;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -45,4 +47,22 @@ public class PrepClientDto implements Serializable {
     private Double weight;
 
     private Double height;
+
+    //prep Discontinuations Interruptions
+    private String interruptionType;
+
+    private LocalDate dateInterruption;
+
+    private String why;
+
+    private LocalDate dateRestartPlacedBackMedication;
+
+    //Prep Client Eligibility Screening
+    private String eligibilityScreeningClientName;
+
+    private LocalDate eligibilityScreeningDob;
+
+    private String eligibilityScreeningDateVisit;
+
+    private LocalDate eligibilityScreeningOccupation;
 }

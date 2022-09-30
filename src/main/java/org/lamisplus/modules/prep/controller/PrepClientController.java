@@ -1,10 +1,7 @@
 package org.lamisplus.modules.prep.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.lamisplus.modules.prep.domain.dto.PrepClientCommencementDto;
-import org.lamisplus.modules.prep.domain.dto.PrepClientDto;
-import org.lamisplus.modules.prep.domain.dto.PrepClientDtos;
-import org.lamisplus.modules.prep.domain.dto.PrepClientRequestDto;
+import org.lamisplus.modules.prep.domain.dto.*;
 import org.lamisplus.modules.prep.domain.entity.PrepClient;
 import org.lamisplus.modules.prep.service.PrepClientService;
 import org.lamisplus.modules.prep.util.PaginationUtil;
@@ -62,6 +59,16 @@ public class PrepClientController {
     @PutMapping(PREP_URL_VERSION_ONE +"/{id}/commencement")
     public ResponseEntity<PrepClientDto> updatePrepCommencement(@PathVariable Long id, @Valid @RequestBody PrepClientCommencementDto prepClientCommencementDto) {
         return ResponseEntity.ok(this.prepClientService.updatePrepCommencement(id, prepClientCommencementDto));
+    }
+
+    @PutMapping(PREP_URL_VERSION_ONE +"/{id}/discontinuation-interruption")
+    public ResponseEntity<PrepClientDto> updatePrepDiscontinuationInterruption(@PathVariable Long id, @Valid @RequestBody PrepClientDiscontinuationInterruptionDto prepClientDiscontinuationInterruptionDto) {
+        return ResponseEntity.ok(this.prepClientService.updatePrepDiscontinuationInterruption(id, prepClientDiscontinuationInterruptionDto));
+    }
+
+    @PutMapping(PREP_URL_VERSION_ONE +"/{id}/eligibility-screening")
+    public ResponseEntity<PrepClientDto> updatePrepEligibilityScreening(@PathVariable Long id, @Valid @RequestBody PrepClientEligibilityScreeningDto prepClientEligibilityScreeningDto) {
+        return ResponseEntity.ok(this.prepClientService.updatePrepEligibilityScreening(id, prepClientEligibilityScreeningDto));
     }
 
     @DeleteMapping(PREP_URL_VERSION_ONE + "/{id}")

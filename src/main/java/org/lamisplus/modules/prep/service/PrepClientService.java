@@ -9,10 +9,7 @@ import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.patient.service.PersonService;
-import org.lamisplus.modules.prep.domain.dto.PrepClientCommencementDto;
-import org.lamisplus.modules.prep.domain.dto.PrepClientDto;
-import org.lamisplus.modules.prep.domain.dto.PrepClientDtos;
-import org.lamisplus.modules.prep.domain.dto.PrepClientRequestDto;
+import org.lamisplus.modules.prep.domain.dto.*;
 import org.lamisplus.modules.prep.domain.entity.PrepClient;
 import org.lamisplus.modules.prep.repository.PrepClientRepository;
 import org.springframework.beans.BeanUtils;
@@ -231,13 +228,67 @@ public class PrepClientService {
         return prepClient;
     }
 
+    private PrepClient prepClientDiscontinuationInterruptionDtoToPrepClient(@NotNull PrepClient prepClient, PrepClientDiscontinuationInterruptionDto prepClientDiscontinuationInterruptionDto) {
+        if ( prepClientDiscontinuationInterruptionDto == null ) {
+            return null;
+        }
+
+        prepClient.setInterruptionType(prepClientDiscontinuationInterruptionDto.getInterruptionType());
+        prepClient.setDateInterruption(prepClientDiscontinuationInterruptionDto.getDateInterruption());
+        prepClient.setWhy(prepClientDiscontinuationInterruptionDto.getWhy());
+        prepClient.setDateRestartPlacedBackMedication(prepClientDiscontinuationInterruptionDto.getDateRestartPlacedBackMedication());
+
+        return prepClient;
+    }
+
+    private PrepClient PrepClientEligibilityScreeningDtoToPrepClient(@NotNull PrepClient prepClient, PrepClientEligibilityScreeningDto eligibilityScreeningDto) {
+        if ( eligibilityScreeningDto == null ) {
+            return null;
+        }
+
+        prepClient.setEligibilityScreeningClientName(eligibilityScreeningDto.getEligibilityScreeningClientName());
+        prepClient.setEligibilityScreeningDob(eligibilityScreeningDto.getEligibilityScreeningDob());
+        prepClient.setEligibilityScreeningDateVisit(eligibilityScreeningDto.getEligibilityScreeningDateVisit());
+        prepClient.setEligibilityScreeningEducationLevel(prepClient.getEligibilityScreeningEducationLevel());
+        prepClient.setEligibilityScreeningOccupation(eligibilityScreeningDto.getEligibilityScreeningOccupation());
+
+        return prepClient;
+    }
+
     private Long getPersonId(PrepClient prepClient){
         return prepClient.getPerson().getId();
     }
-
     public void delete(Long id) {
         PrepClient prepClient = this.getById(id);
         prepClient.setArchived(ARCHIVED);
         prepClientRepository.save(prepClient);
+    }
+    public PrepClientDto updatePrepDiscontinuationInterruption(Long id, PrepClientDiscontinuationInterruptionDto discontinuationInterruptionDto) {
+        PrepClient prepClient = this.getById(id);
+        if(!this.getPersonId(prepClient).equals(discontinuationInterruptionDto.getPersonId())) {
+            throw new IllegalTypeException(Person.class, "Person", "id does not match with supplied personId");
+        }
+        prepClient = this.prepClientDiscontinuationInterruptionDtoToPrepClient(prepClient, discontinuationInterruptionDto);
+        prepClient = prepClientRepository.save(prepClient);
+        PrepClientDto prepClientDto = new PrepClientDto();
+
+        BeanUtils.copyProperties(prepClient, prepClientDto);
+        if(prepClientDto.getDatePrepStart() != null)prepClientDto.setPrepCommenced(TRUE);
+
+        return prepClientDto;
+    }
+    public PrepClientDto updatePrepEligibilityScreening(Long id, PrepClientEligibilityScreeningDto eligibilityScreeningDto) {
+        PrepClient prepClient = this.getById(id);
+        if(!this.getPersonId(prepClient).equals(eligibilityScreeningDto.getPersonId())) {
+            throw new IllegalTypeException(Person.class, "Person", "id does not match with supplied personId");
+        }
+        prepClient = this.PrepClientEligibilityScreeningDtoToPrepClient(prepClient, eligibilityScreeningDto);
+        prepClient = prepClientRepository.save(prepClient);
+        PrepClientDto prepClientDto = new PrepClientDto();
+
+        BeanUtils.copyProperties(prepClient, prepClientDto);
+        if(prepClientDto.getDatePrepStart() != null)prepClientDto.setPrepCommenced(TRUE);
+
+        return prepClientDto;
     }
 }
