@@ -10,10 +10,7 @@ import java.util.Optional;
 
 public interface PrepClientRepository extends JpaRepository<PrepClient, Long>, JpaSpecificationExecutor<PrepClient> {
     List<PrepClient> findAllByPersonOrderByIdDesc(Person person);
-
     List<PrepClient> findAllByUniqueClientId(String code);
-
     List<PrepClient> findAllByPerson(Person person);
-
     Optional<PrepClient> findByIdAndArchivedAndFacilityId(Long id, int archived, Long currentUserOrganization);
 }

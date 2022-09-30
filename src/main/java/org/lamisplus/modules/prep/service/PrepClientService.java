@@ -258,13 +258,11 @@ public class PrepClientService {
     private Long getPersonId(PrepClient prepClient){
         return prepClient.getPerson().getId();
     }
-
     public void delete(Long id) {
         PrepClient prepClient = this.getById(id);
         prepClient.setArchived(ARCHIVED);
         prepClientRepository.save(prepClient);
     }
-
     public PrepClientDto updatePrepDiscontinuationInterruption(Long id, PrepClientDiscontinuationInterruptionDto discontinuationInterruptionDto) {
         PrepClient prepClient = this.getById(id);
         if(!this.getPersonId(prepClient).equals(discontinuationInterruptionDto.getPersonId())) {
@@ -279,7 +277,6 @@ public class PrepClientService {
 
         return prepClientDto;
     }
-
     public PrepClientDto updatePrepEligibilityScreening(Long id, PrepClientEligibilityScreeningDto eligibilityScreeningDto) {
         PrepClient prepClient = this.getById(id);
         if(!this.getPersonId(prepClient).equals(eligibilityScreeningDto.getPersonId())) {
