@@ -3,20 +3,24 @@ package org.lamisplus.modules.prep.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
+import org.lamisplus.modules.base.controller.apierror.IllegalTypeException;
 import org.lamisplus.modules.patient.domain.dto.PersonDto;
 import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.patient.service.PersonService;
+import org.lamisplus.modules.prep.domain.dto.PrepClientCommencementDto;
 import org.lamisplus.modules.prep.domain.dto.PrepClientDto;
 import org.lamisplus.modules.prep.domain.dto.PrepClientDtos;
 import org.lamisplus.modules.prep.domain.dto.PrepClientRequestDto;
 import org.lamisplus.modules.prep.domain.entity.PrepClient;
 import org.lamisplus.modules.prep.repository.PrepClientRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +36,7 @@ public class PrepClientService {
     private final PersonService personService;
     private final CurrentUserOrganizationService currentUserOrganizationService;
     private final PrepClientRepository prepClientRepository;
+    private boolean TRUE = true;
 
     public Person getPerson(Long personId) {
         return personRepository.findById (personId)
@@ -99,6 +104,16 @@ public class PrepClientService {
         prepClientDto.setExtra( prepClient.getExtra() );
         PersonResponseDto personResponseDto = personService.getDtoFromPerson(prepClient.getPerson());
         prepClientDto.setPersonResponseDto(personResponseDto);
+
+        //Prep Commencement
+        prepClientDto.setDateInitialAdherenceCounseling(prepClient.getDateInitialAdherenceCounseling());
+        prepClientDto.setDatePrepStart(prepClient.getDatePrepStart());
+
+        if(prepClient.getDatePrepStart() != null)prepClientDto.setPrepCommenced(TRUE);
+        prepClientDto.setPrepRegimen(prepClient.getPrepRegimen());
+        prepClientDto.setTransferIn(prepClient.getTransferIn());
+        prepClientDto.setWeight(prepClient.getWeight());
+        prepClientDto.setHeight(prepClient.getHeight());
 
         return prepClientDto;
     }
@@ -185,6 +200,39 @@ public class PrepClientService {
         List<PrepClient> prepClients = new ArrayList<>();
         prepClients.add(this.getById(id));
         return this.prepClientToPrepClientDtos(prepClients);
+    }
+
+    public PrepClientDto updatePrepCommencement(Long id, PrepClientCommencementDto prepClientCommencementDto){
+        PrepClient prepClient = this.getById(id);
+        if(!this.getPersonId(prepClient).equals(prepClientCommencementDto.getPersonId())) {
+            throw new IllegalTypeException(Person.class, "Person", "id does not match with supplied personId");
+        }
+        prepClient = this.prepClientCommencementDtoToPrepClient(prepClient, prepClientCommencementDto);
+        prepClient = prepClientRepository.save(prepClient);
+        PrepClientDto prepClientDto = new PrepClientDto();
+
+        BeanUtils.copyProperties(prepClient, prepClientDto);
+        prepClientDto.setPrepCommenced(TRUE);
+
+        return prepClientDto;
+    }
+
+    private PrepClient prepClientCommencementDtoToPrepClient(@NotNull PrepClient prepClient, PrepClientCommencementDto prepClientCommencementDto) {
+        if ( prepClientCommencementDto == null ) {
+            return null;
+        }
+
+        prepClient.setDateInitialAdherenceCounseling(prepClientCommencementDto.getDateInitialAdherenceCounseling());
+        prepClient.setDatePrepStart(prepClientCommencementDto.getDatePrepStart());
+        prepClient.setPrepRegimen(prepClientCommencementDto.getPrepRegimen());
+        prepClient.setTransferIn(prepClientCommencementDto.getTransferIn());
+        prepClient.setWeight(prepClientCommencementDto.getWeight());
+        prepClient.setHeight(prepClientCommencementDto.getHeight());
+        return prepClient;
+    }
+
+    private Long getPersonId(PrepClient prepClient){
+        return prepClient.getPerson().getId();
     }
 
     public void delete(Long id) {

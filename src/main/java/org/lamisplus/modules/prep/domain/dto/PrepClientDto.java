@@ -31,4 +31,18 @@ public class PrepClientDto implements Serializable {
     @NotNull(message = "personResponseDto is mandatory")
     private PersonResponseDto personResponseDto;
     private Object extra;
+
+    //prep Commencement
+    private Boolean prepCommenced; //-- checking is prep has commenced
+    private LocalDate dateInitialAdherenceCounseling;
+
+    private LocalDate datePrepStart;
+
+    private Long prepRegimen;
+
+    private String transferIn;
+
+    private Double weight;
+
+    private Double height;
 }

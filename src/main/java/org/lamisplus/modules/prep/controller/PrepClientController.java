@@ -1,6 +1,7 @@
 package org.lamisplus.modules.prep.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.lamisplus.modules.prep.domain.dto.PrepClientCommencementDto;
 import org.lamisplus.modules.prep.domain.dto.PrepClientDto;
 import org.lamisplus.modules.prep.domain.dto.PrepClientDtos;
 import org.lamisplus.modules.prep.domain.dto.PrepClientRequestDto;
@@ -56,6 +57,11 @@ public class PrepClientController {
     @GetMapping(PREP_URL_VERSION_ONE + "/persons")
     public ResponseEntity<List<PrepClientDtos>> getAllPerson() {
         return ResponseEntity.ok(this.prepClientService.getAllPatients());
+    }
+
+    @PutMapping(PREP_URL_VERSION_ONE +"/{id}/commencement")
+    public ResponseEntity<PrepClientDto> updatePrepCommencement(@PathVariable Long id, @Valid @RequestBody PrepClientCommencementDto prepClientCommencementDto) {
+        return ResponseEntity.ok(this.prepClientService.updatePrepCommencement(id, prepClientCommencementDto));
     }
 
     @DeleteMapping(PREP_URL_VERSION_ONE + "/{id}")
