@@ -117,6 +117,23 @@ public class PrepClient extends Audit implements Serializable {
     @Column(name = "height")
     private Double height;
 
+    //prep Discontinuations Interruptions
+    @Basic
+    @Column(name = "interruption_type")
+    private String interruptionType;
+
+    @Basic
+    @Column(name = "date_interruption")
+    private LocalDate dateInterruption;
+
+    @Basic
+    @Column(name = "why")
+    private String why;
+
+    @Basic
+    @Column(name = "date_restart_placed_back_medication")
+    private LocalDate dateRestartPlacedBackMedication;
+
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){
