@@ -66,6 +66,11 @@ public class PrepClientController {
         return ResponseEntity.ok(this.prepClientService.updatePrepDiscontinuationInterruption(id, prepClientDiscontinuationInterruptionDto));
     }
 
+    @PutMapping(PREP_URL_VERSION_ONE +"/{id}/eligibility-screening")
+    public ResponseEntity<PrepClientDto> updatePrepEligibilityScreening(@PathVariable Long id, @Valid @RequestBody PrepClientEligibilityScreeningDto prepClientEligibilityScreeningDto) {
+        return ResponseEntity.ok(this.prepClientService.updatePrepEligibilityScreening(id, prepClientEligibilityScreeningDto));
+    }
+
     @DeleteMapping(PREP_URL_VERSION_ONE + "/{id}")
     public void delete(@PathVariable Long id) {
         this.prepClientService.delete(id);

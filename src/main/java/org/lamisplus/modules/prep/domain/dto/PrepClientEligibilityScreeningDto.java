@@ -11,21 +11,18 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class PrepClientDiscontinuationInterruptionDto implements Serializable {
+public class PrepClientEligibilityScreeningDto implements Serializable {
     @NotNull(message = "prepClientId is mandatory")
     private Long prepClientId;
     @NotNull(message = "personId is mandatory")
     private  Long personId;
 
-    //Prep Discontinuations & Interruptions
-    @NotNull(message = "interruptionType is mandatory")
-    private String interruptionType;
+    //Prep Client Eligibility Screening
+    private String eligibilityScreeningClientName;
 
-    @NotNull(message = "dateInterruption is mandatory")
-    private LocalDate dateInterruption;
+    private LocalDate eligibilityScreeningDob;
 
-    @NotNull(message = "why is mandatory")
-    private String why;
+    private LocalDate eligibilityScreeningDateVisit;
 
-    private LocalDate dateRestartPlacedBackMedication;
+    private String eligibilityScreeningOccupation;
 }

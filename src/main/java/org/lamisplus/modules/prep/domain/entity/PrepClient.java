@@ -134,6 +134,27 @@ public class PrepClient extends Audit implements Serializable {
     @Column(name = "date_restart_placed_back_medication")
     private LocalDate dateRestartPlacedBackMedication;
 
+    //Prep Eligibility Screening
+    @Basic
+    @Column(name = "eligibility_screening_client_name")
+    private String eligibilityScreeningClientName;
+
+    @Basic
+    @Column(name = "eligibility_screening_dob")
+    private LocalDate eligibilityScreeningDob;
+
+    @Basic
+    @Column(name = "eligibility_screening_date_visit")
+    private LocalDate eligibilityScreeningDateVisit;
+
+    @Basic
+    @Column(name = "eligibility_screening_education_level")
+    private String eligibilityScreeningEducationLevel;
+
+    @Basic
+    @Column(name = "eligibility_screening_occupation")
+    private String eligibilityScreeningOccupation;
+
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){

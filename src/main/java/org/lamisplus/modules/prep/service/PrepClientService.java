@@ -241,6 +241,20 @@ public class PrepClientService {
         return prepClient;
     }
 
+    private PrepClient PrepClientEligibilityScreeningDtoToPrepClient(@NotNull PrepClient prepClient, PrepClientEligibilityScreeningDto eligibilityScreeningDto) {
+        if ( eligibilityScreeningDto == null ) {
+            return null;
+        }
+
+        prepClient.setEligibilityScreeningClientName(eligibilityScreeningDto.getEligibilityScreeningClientName());
+        prepClient.setEligibilityScreeningDob(eligibilityScreeningDto.getEligibilityScreeningDob());
+        prepClient.setEligibilityScreeningDateVisit(eligibilityScreeningDto.getEligibilityScreeningDateVisit());
+        prepClient.setEligibilityScreeningEducationLevel(prepClient.getEligibilityScreeningEducationLevel());
+        prepClient.setEligibilityScreeningOccupation(eligibilityScreeningDto.getEligibilityScreeningOccupation());
+
+        return prepClient;
+    }
+
     private Long getPersonId(PrepClient prepClient){
         return prepClient.getPerson().getId();
     }
@@ -257,6 +271,21 @@ public class PrepClientService {
             throw new IllegalTypeException(Person.class, "Person", "id does not match with supplied personId");
         }
         prepClient = this.prepClientDiscontinuationInterruptionDtoToPrepClient(prepClient, discontinuationInterruptionDto);
+        prepClient = prepClientRepository.save(prepClient);
+        PrepClientDto prepClientDto = new PrepClientDto();
+
+        BeanUtils.copyProperties(prepClient, prepClientDto);
+        if(prepClientDto.getDatePrepStart() != null)prepClientDto.setPrepCommenced(TRUE);
+
+        return prepClientDto;
+    }
+
+    public PrepClientDto updatePrepEligibilityScreening(Long id, PrepClientEligibilityScreeningDto eligibilityScreeningDto) {
+        PrepClient prepClient = this.getById(id);
+        if(!this.getPersonId(prepClient).equals(eligibilityScreeningDto.getPersonId())) {
+            throw new IllegalTypeException(Person.class, "Person", "id does not match with supplied personId");
+        }
+        prepClient = this.PrepClientEligibilityScreeningDtoToPrepClient(prepClient, eligibilityScreeningDto);
         prepClient = prepClientRepository.save(prepClient);
         PrepClientDto prepClientDto = new PrepClientDto();
 

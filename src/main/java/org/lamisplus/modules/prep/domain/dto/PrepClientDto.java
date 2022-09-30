@@ -56,4 +56,13 @@ public class PrepClientDto implements Serializable {
     private String why;
 
     private LocalDate dateRestartPlacedBackMedication;
+
+    //Prep Client Eligibility Screening
+    private String eligibilityScreeningClientName;
+
+    private LocalDate eligibilityScreeningDob;
+
+    private String eligibilityScreeningDateVisit;
+
+    private LocalDate eligibilityScreeningOccupation;
 }
