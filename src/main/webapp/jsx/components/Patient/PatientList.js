@@ -32,7 +32,7 @@ import { Label } from 'semantic-ui-react'
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
 import moment from "moment";
-//import { FaUserPlus } from "react-icons/fa";
+import { FaUserPlus } from "react-icons/fa";
 import {TiArrowForward} from 'react-icons/ti'
 
 
@@ -115,7 +115,7 @@ const Patients = (props) => {
         async function patients() {
             setLoading(true)
             axios
-                .get(`${baseUrl}hiv/patients`,
+                .get(`${baseUrl}prep/persons`,
                 { headers: {"Authorization" : `Bearer ${token}`} }
                 )
                 .then((response) => {
@@ -148,317 +148,102 @@ const Patients = (props) => {
         const hospitalNumber = identifiers.identifier.find(obj => obj.type == 'HospitalNumber');       
         return hospitalNumber ? hospitalNumber.value : '';
     };
-    const sampleObj =[
-        {
-          "id": 3,
-          "visitId": null,
-          "facilityId": 1616,
-          "active": true,
-          "surname": "Eeka",
-          "ninNumber": "34444444444",
-          "emrId": null,
-          "firstName": "Emeka",
-          "otherName": null,
-          "sex": "Female",
-          "gender": {
-            "id": 377,
-            "display": "Female"
-          },
-          "deceased": false,
-          "maritalStatus": {
-            "id": 5,
-            "display": "Single"
-          },
-          "employmentStatus": {
-            "id": 88,
-            "display": "Unemployed"
-          },
-          "education": {
-            "id": 10,
-            "display": "None"
-          },
-          "organization": null,
-          "biometricStatus": false,
-          "dateOfBirth": "1979-06-15",
-          "deceasedDateTime": null,
-          "identifier": {
-            "identifier": [
-              {
-                "type": "HospitalNumber",
-                "value": "344",
-                "assignerId": 1
-              }
-            ]
-          },
-          "contact": null,
-          "contactPoint": {
-            "contactPoint": [
-              {
-                "type": "email",
-                "value": "guest@lamisplus.org"
-              },
-              {
-                "type": "altphone",
-                "value": "2344444444"
-              },
-              {
-                "type": "phone",
-                "value": "2344444444"
-              }
-            ]
-          },
-          "address": {
-            "address": [
-              {
-                "city": "abuha",
-                "line": [
-                  "abuja"
-                ],
-                "stateId": 2,
-                "district": "39",
-                "countryId": 1,
-                "postalCode": "",
-                "organisationUnitId": 0
-              }
-            ]
-          },
-          "dateOfRegistration": "2022-09-02",
-          "checkInDate": null,
-          "encounterDate": null,
-          "currentStatus": "ACTIVE ON ART",
-          "enrollment": {
-            "facilityId": 1616,
-            "id": 2,
-            "uniqueId": "344",
-            "entryPointId": 16,
-            "targetGroupId": 151,
-            "dateConfirmedHiv": "2022-09-02",
-            "dateEnrolledPMTCT": null,
-            "sourceOfReferrerId": 43,
-            "timeHivDiagnosis": null,
-            "pregnant": null,
-            "breastfeeding": null,
-            "dateOfRegistration": "2022-09-02",
-            "statusAtRegistrationId": 54,
-            "enrollmentSettingId": 51,
-            "dateStarted": null,
-            "personId": 3,
-            "facilityName": "",
-            "ovcNumber": "",
-            "dateOfLpm": null,
-            "pregnancyStatusId": 72,
-            "tbStatusId": 67,
-            "visitId": 4,
-            "houseHoldNumber": null,
-            "careEntryPointOther": "",
-            "referredToOVCPartner": "",
-            "referredFromOVCPartner": "",
-            "dateReferredToOVCPartner": null,
-            "dateReferredFromOVCPartner": null
-          },
-          "artCommence": {
-            "id": 5,
-            "visitDate": "2022-09-16",
-            "cd4": 34,
-            "cd4Percentage": 34,
-            "isCommencement": true,
-            "functionalStatusId": 123,
-            "clinicalNote": "test",
-            "uuid": "7176ec2d-c929-4ced-9349-7ddf5ebf5697",
-            "hivEnrollmentId": null,
-            "whoStagingId": 119,
-            "regimenId": 1,
-            "regimenTypeId": 1,
-            "vitalSignId": 3,
-            "facilityId": 1616,
-            "personId": 3,
-            "clinicalStageId": 119,
-            "lmpDate": null,
-            "visitId": 4,
-            "vitalSignDto": {
-              "id": 3,
-              "bodyWeight": 33,
-              "diastolic": 90,
-              "captureDate": null,
-              "height": 90,
-              "personId": 3,
-              "visitId": 4,
-              "systolic": 90,
-              "temperature": 36,
-              "pulse": 45,
-              "respiratoryRate": 44,
-              "archived": 0,
-              "facilityId": 1616
-            },
-            "isViralLoadAtStartOfArt": false,
-            "viralLoadAtStartOfArt": null,
-            "dateOfViralLoadAtStartOfArt": null
-          },
-          "artClinicVisits": [],
-          "artPharmacyRefills": null,
-          "mentalHealth": true,
-          "commenced": true,
-          "enrolled": true,
-          "clinicalEvaluation": true,
-          "isDateOfBirthEstimated": true
-        },
-      
-      ]
 
   return (
     <div>
-
-            <MaterialTable
-            icons={tableIcons}
-              title="Find Patient "
-              columns={[
-              // { title: " ID", field: "Id" },
-                {
-                  title: "Patient Name",
-                  field: "name",
-                },
-                { title: "Hospital Number", field: "hospital_number", filtering: false },
-                { title: "Sex", field: "gender", filtering: false },
-                { title: "Age", field: "age", filtering: false },
-                //{ title: "Enrollment Status", field: "v_status", filtering: false },
-                //{ title: "ART Number", field: "v_status", filtering: false },
-                // { title: "ART Status", field: "status", filtering: false },
-                { title: "Actions", field: "actions", filtering: false }, 
-              ]}
-              isLoading={loading}
-              data={ sampleObj.map((row) => ({
-                  //Id: manager.id,
-                    name:row.currentStatus!== "Not Enrolled" ?
-                        (
-                           <>
-                            <Link
-                            to ={{
+        <MaterialTable
+        icons={tableIcons}
+            title="Find Patient "
+            columns={[
+            // { title: " ID", field: "Id" },
+            {
+                title: "Patient Name",
+                field: "name",
+            },
+            { title: "Hospital Number", field: "hospital_number", filtering: false },
+            { title: "PrEP Code", field: "clientCode", filtering: false },
+            { title: "Sex", field: "gender", filtering: false },
+            { title: "Age", field: "age", filtering: false },
+            
+            //{ title: "ART Number", field: "v_status", filtering: false },
+            { title: "PrEP Count", field: "count", filtering: false },
+            { title: "Actions", field: "actions", filtering: false }, 
+            ]}
+            isLoading={loading}
+            data={ patientList.map((row) => ({
+                //Id: manager.id,
+                name:row.personResponseDto.firstName + " " + row.personResponseDto.surname,
+                hospital_number: getHospitalNumber(row.personResponseDto.identifier),
+                clientCode: row.uniqueClientId,
+                //phone_number:  row.phone,
+                gender:row && row.personResponseDto.sex ? row.personResponseDto.sex : "",
+                age: (row.personResponseDto.dateOfBirth === 0 ||
+                    row.personResponseDto.dateOfBirth === undefined ||
+                    row.personResponseDto.dateOfBirth === null ||
+                    row.personResponseDto.dateOfBirth === "" )
+                        ? 0
+                        : calculate_age(moment(row.personResponseDto.dateOfBirth).format("DD-MM-YYYY")),
+                
+                count: (<Label color="blue" size="mini">{row.prepCount}</Label>),
+                
+                actions:
+        
+                <div>
+                    {row.prepCount >=0 && (
+                    <>
+                        <Link
+                            to={{
                                 pathname: "/patient-history",
-                                state: { patientObj: row  }
+                                state: {patientObj: row.personResponseDto, clientCode:row.clientCode}
                             }}
-
-                            title={"Click to view patient dashboard"}
-                            > {row.firstName + " " + row.surname}
-                            </Link>
-                            </>
-                        ):
-                        (
-                            <>
-                             <Link
-                                to={{
-                                    pathname: "/enroll-patient",
-                                    state: { patientId : row.id, patientObj: row }
-                                }}
- 
-                             title={"Enroll Patient"}
-                             > {row.firstName + " " + row.surname}
-                             </Link>
-                             </>
-                         ),
-                    hospital_number: getHospitalNumber(row.identifier),
-                    gender:row && row.sex ? row.sex : "",
-                    age: (row.dateOfBirth === 0 ||
-                        row.dateOfBirth === undefined ||
-                        row.dateOfBirth === null ||
-                        row.dateOfBirth === "" )
-                          ? 0
-                          : calculate_age(moment(row.dateOfBirth).format("DD-MM-YYYY")),
-                    
-                    //status: (<Label color="blue" size="mini">{row.currentStatus}</Label>),
-                 
-                    actions:
-            
-                    <div>
-
-                                {row.currentStatus!== "Not Enrolled" ?
-                                    (
-                                        <>
-                                            <Link
-                                                to={{
-                                                    pathname: "/patient-history",
-                                                    state: { patientObj: row  }
-                                                }}
-                                            >
-                                                <ButtonGroup variant="contained" 
-                                                    aria-label="split button"
-                                                    style={{backgroundColor:'rgb(153, 46, 98)', height:'30px',width:'215px'}}
-                                                    size="large"
-                                                >
-                                                <Button
-                                                color="primary"
-                                                size="small"
-                                                aria-label="select merge strategy"
-                                                aria-haspopup="menu"
-                                                style={{backgroundColor:'rgb(153, 46, 98)'}}
-                                                >
-                                                    <MdDashboard />
-                                                </Button>
-                                                <Button 
-                                                style={{backgroundColor:'rgb(153, 46, 98)'}}
-                                                >
-                                                    <span style={{fontSize:'12px', color:'#fff', fontWeight:'bolder'}}>Patient Dashboard</span>
-                                                </Button>
-                                                
-                                                </ButtonGroup>
-                                            </Link>
-                                        </>
-                                    )
-                                    :
-                                    (
-                                        <>
-                                            <Link
-                                                to={{
-                                                    pathname: "/enroll-patient",
-                                                    state: { patientId : row.id, patientObj: row }
-                                                }}
-                                            >
-                                                <ButtonGroup variant="contained" 
-                                                    aria-label="split button"
-                                                    style={{backgroundColor:'rgb(153, 46, 98)', height:'30px',width:'215px'}}
-                                                    size="large"
-                                                >
-                                                <Button
-                                                color="primary"
-                                                size="small"
-                                                aria-label="select merge strategy"
-                                                aria-haspopup="menu"
-                                                style={{backgroundColor:'rgb(153, 46, 98)'}}
-                                                >
-                                                    <TiArrowForward />
-                                                </Button>
-                                                <Button 
-                                                style={{backgroundColor:'rgb(153, 46, 98)'}}
-                                                >
-                                                    <span style={{fontSize:'12px', color:'#fff', fontWeight:'bolder'}}>Enroll Patient</span>
-                                                </Button>
-                                                
-                                                </ButtonGroup>
-                                            </Link>
-                                        </>
-                                    )
-
-                                }
-                  </div>
-                  
-                  }))}
-            
-                        options={{
-                          headerStyle: {
-                              backgroundColor: "#014d88",
-                              color: "#fff",
-                          },
-                          searchFieldStyle: {
-                              width : '200%',
-                              margingLeft: '250px',
-                          },
-                          filtering: false,
-                          exportButton: false,
-                          searchFieldAlignment: 'left',
-                          pageSizeOptions:[10,20,100],
-                          pageSize:10,
-                          debounceInterval: 400
-                      }}
-            />
+                            
+                        >
+                            <ButtonGroup variant="contained" 
+                                aria-label="split button"
+                                style={{backgroundColor:'rgb(153, 46, 98)', height:'30px',width:'215px'}}
+                                size="large"
+                            >
+                            <Button
+                            color="primary"
+                            size="small"
+                            aria-label="select merge strategy"
+                            aria-haspopup="menu"
+                            style={{backgroundColor:'rgb(153, 46, 98)'}}
+                            >
+                                <MdDashboard />
+                            </Button>
+                            <Button 
+                            style={{backgroundColor:'rgb(153, 46, 98)'}}
+                            >
+                                <span style={{fontSize:'12px', color:'#fff', fontWeight:'bolder'}}>Patient Dashboard</span>
+                            </Button>
+                            
+                            </ButtonGroup>
+                        </Link> 
+                    </>
+                    )} 
+                                    
+                </div>
+                
+                }))}
+        
+                options={{
+                    headerStyle: {
+                        backgroundColor: "#014d88",
+                        color: "#fff",
+                    },
+                    searchFieldStyle: {
+                        width : '200%',
+                        margingLeft: '250px',
+                    },
+                    filtering: false,
+                    exportButton: false,
+                    searchFieldAlignment: 'left',
+                    pageSizeOptions:[10,20,100],
+                    pageSize:10,
+                    debounceInterval: 400
+                }}
+        />
        
     </div>
   );

@@ -134,7 +134,7 @@ const UserRegistration = (props) => {
     const [provinces, setProvinces] = useState([]);
     const [errors, setErrors] = useState({})
     const [topLevelUnitCountryOptions, settopLevelUnitCountryOptions]= useState([]);
-    const [patientDTO, setPatientDTO]= useState({"person":"", "hivEnrollment":""})
+    //const [patientDTO, setPatientDTO]= useState({"person":"", "hivEnrollment":""})
     const userDetail = props.location && props.location.state ? props.location.state.user : null;
     const classes = useStyles();
     const history = useHistory();
@@ -142,14 +142,18 @@ const UserRegistration = (props) => {
      //HIV INFORMATION
      const [femaleStatus, setfemaleStatus]= useState(false)
      //const [values, setValues] = useState([]);
-     const [objValues, setObjValues] = useState(
-        {id:"", uniqueId: "",dateOfRegistration:"",entryPointId:"", facilityName:"",statusAtRegistrationId:"",
-        dateConfirmedHiv:"",sourceOfReferrerId:"",enrollmentSettingId:"",pregnancyStatusId:"",dateOfLpm:"",
-        tbStatusId:"",targetGroupId:"",ovc_enrolled:"",ovcNumber:"",
-        householdNumber:"", referredToOVCPartner:"", dateReferredToOVCPartner:"",
-        referredFromOVCPartner:"", dateReferredFromOVCPartner:"",
-        careEntryPointOther:""
-        });
+     const [objValues, setObjValues] = useState({
+                                    dateEnrolled: "",
+                                    dateOfLastHivNegativeTest: "",
+                                    dateReferredForPrep: "",
+                                    extra: {},
+                                    hivTestingPoint: "",
+                                    partnerType: "",
+                                    personDto:{},
+                                    personId: 0,
+                                    populationType: "",
+                                    uniqueClientId: ""
+                                });
      const [carePoints, setCarePoints] = useState([]);
      const [sourceReferral, setSourceReferral] = useState([]);
      const [hivStatus, setHivStatus] = useState([]);
@@ -459,20 +463,12 @@ const UserRegistration = (props) => {
             temp.stateId = basicInfo.stateId ? "" : "State is required."  
             temp.district = basicInfo.district ? "" : "Province/LGA is required." 
             //HIV FORM VALIDATION
-            temp.targetGroupId = objValues.targetGroupId ? "" : "Target group is required."
-            {objValues.statusAtRegistrationId!=='55' &&( temp.dateConfirmedHiv = objValues.dateConfirmedHiv ? "" : "date confirm HIV is required.")}
-            temp.sourceOfReferrerId = objValues.sourceOfReferrerId ? "" : "Source of referrer is required."
-            temp.enrollmentSettingId = objValues.enrollmentSettingId ? "" : "Enrollment Setting Number  is required."
-            temp.tbStatusId = objValues.tbStatusId ? "" : "TB status is required."    
-            temp.statusAtRegistrationId = objValues.statusAtRegistrationId ? "" : "Status at Registration is required."  
-            temp.entryPointId = objValues.entryPointId ? "" : "Care Entry Point is required." 
-            temp.dateOfRegistration = objValues.dateOfRegistration ? "" : "Date of Registration is required."  
             temp.uniqueId = objValues.uniqueId ? "" : "Unique ID is required."
             
                 setErrors({ ...temp })
         return Object.values(temp).every(x => x == "")
     }
-
+    console.log(errors)
     const handleSubmit = async (e) => {
         e.preventDefault(); 
          if(validate()){
@@ -559,10 +555,10 @@ const UserRegistration = (props) => {
                 }
                 patientForm.contactPoint.push(phone);
                 patientForm.id = patientId;
-                patientDTO.person=patientForm;
-                patientDTO.hivEnrollment=objValues;
-                const response = await axios.post(`${baseUrl}hiv/patient`, patientDTO, { headers: {"Authorization" : `Bearer ${token}`} });
-                toast.success("Patient Register successful");
+                objValues.personDto=patientForm;
+                objValues.personId=patientId;
+                const response = await axios.post(`${baseUrl}prep`, objValues, { headers: {"Authorization" : `Bearer ${token}`} });
+                toast.success("Registeration save successful");
                 history.push('/');
             } catch (error) {                
                 if(error.response && error.response.data){
@@ -677,21 +673,7 @@ const UserRegistration = (props) => {
     }
     const handleInputChange = e => {        
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
-        if(e.target.name ==="entryPointId" ){
-            if(e.target.value==="21"){
-                setTransferIn(true)
-            }else{
-                setTransferIn(false)
-            }
-        }
-        if(e.target.name ==="pregnancyStatusId" ){
-            console.log(e.target.value)
-            if(e.target.value==="72"){
-                setTransferIn(true)
-            }else{
-                setTransferIn(false)
-            }
-        }                
+                   
     }    
     
     const checkPhoneNumber=(e, inputName)=>{
@@ -1486,36 +1468,35 @@ const UserRegistration = (props) => {
 
                             <div className="card-body">
                             <div className="row">
-                    <h2>PrEP Registration Form</h2>
+                    <h2>PrEP Registration </h2>
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="uniqueId">Unique Client's ID  * </Label>
                         <Input
                             type="text"
-                            name="uniqueId"
-                            id="uniqueId"
+                            name="uniqueClientId"
+                            id="uniqueClientId"
                             onChange={handleInputChange}
-                            value={objValues.uniqueId}
+                            value={objValues.uniqueClientId}
                             required
                         />
-                        {errors.uniqueId !=="" ? (
+                        {/* {errors.uniqueId !=="" ? (
                             <span className={classes.error}>{errors.uniqueId}</span>
-                        ) : "" }
+                        ) : "" } */}
                         </FormGroup>
                     </div>
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label >Date enrolled in PrEP *</Label>
-                        <DateTimePicker
-                            time={false}
-                            name="dateConfirmedHiv"
-                            id="dateConfirmedHiv"
-                            value={objValues.regDate}
-                            onChange={value1 =>
-                                setObjValues({ ...objValues, dateConfirmedHiv: moment(value1).format("YYYY-MM-DD") })
-                            }
-                            
-                                max={new Date()}
+                        <Input
+                            className="form-control"
+                            type="date"
+                            name="dateEnrolled"
+                            id="dateEnrolled"
+                            value={objValues.dateEnrolled}
+                            onChange={handleInputChange}
+                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                            //disabled={locationState.actionType==='update'? false : true}
                         />
                             
                         </FormGroup>
@@ -1528,22 +1509,22 @@ const UserRegistration = (props) => {
                                 <Label for="entryPointId">Population Type *</Label>
                                 <Input
                                     type="select"
-                                    name="entryPointId"
-                                    id="entryPointId"
+                                    name="populationType"
+                                    id="populationType"
                                     onChange={handleInputChange}
-                                    value={objValues.entryPointId}
+                                    value={objValues.populationType}
                                     required
                                 >
                                 <option value=""> </option>
                     
                                 {carePoints.map((value) => (
-                                    <option key={value.id} value={value.id}>
+                                    <option key={value.id} value={value.code}>
                                         {value.display}
                                     </option>
                                 ))}
-                                {errors.entryPointId !=="" ? (
+                                {/* {errors.entryPointId !=="" ? (
                                         <span className={classes.error}>{errors.entryPointId}</span>
-                                    ) : "" }
+                                    ) : "" } */}
                                 </Input>
                                 </FormGroup>
                                 
@@ -1553,22 +1534,22 @@ const UserRegistration = (props) => {
                                 <Label for="entryPointId">Partner Type *</Label>
                                 <Input
                                     type="select"
-                                    name="entryPointId"
-                                    id="entryPointId"
+                                    name="partnerType"
+                                    id="partnerType"
                                     onChange={handleInputChange}
-                                    value={objValues.entryPointId}
+                                    value={objValues.partnerType}
                                     required
                                 >
                                 <option value=""> </option>
                     
                                 {carePoints.map((value) => (
-                                    <option key={value.id} value={value.id}>
+                                    <option key={value.id} value={value.code}>
                                         {value.display}
                                     </option>
                                 ))}
-                                {errors.entryPointId !=="" ? (
+                                {/* {errors.entryPointId !=="" ? (
                                         <span className={classes.error}>{errors.entryPointId}</span>
-                                    ) : "" }
+                                    ) : "" } */}
                                 </Input>
                                 </FormGroup>
                                 
@@ -1578,22 +1559,22 @@ const UserRegistration = (props) => {
                                 <Label >HIV Testing Point </Label>
                                 <Input
                                     type="select"
-                                    name="statusAtRegistrationId"
-                                    id="statusAtRegistrationId"
+                                    name="hivTestingPoint"
+                                    id="hivTestingPoint"
                                     onChange={handleInputChange}
-                                    value={objValues.statusAtRegistrationId}
+                                    value={objValues.hivTestingPoint}
                                     required
                                 >
                                 <option value="Select"> </option>
                     
                                 {hivStatus.map((value) => (
-                                    <option key={value.id} value={value.id}>
+                                    <option key={value.id} value={value.code}>
                                         {value.display}
                                     </option>
                                 ))}
-                                {errors.statusAtRegistrationId !=="" ? (
+                                {/* {errors.statusAtRegistrationId !=="" ? (
                                         <span className={classes.error}>{errors.statusAtRegistrationId}</span>
-                                    ) : "" }
+                                    ) : "" } */}
                                 </Input>
                                 </FormGroup>
                                 </div>
@@ -1601,16 +1582,15 @@ const UserRegistration = (props) => {
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
                                     <Label >Date of last HIV Negative test*</Label>
-                                    <DateTimePicker
-                                        time={false}
-                                        name="dateConfirmedHiv"
-                                        id="dateConfirmedHiv"
-                                        value={objValues.regDate}
-                                        onChange={value1 =>
-                                            setObjValues({ ...objValues, dateConfirmedHiv: moment(value1).format("YYYY-MM-DD") })
-                                        }
-                                        
-                                            max={new Date()}
+                                    <Input
+                                        className="form-control"
+                                        type="date"
+                                        name="dateOfLastHivNegativeTest"
+                                        id="dateOfLastHivNegativeTest"
+                                        value={objValues.dateOfLastHivNegativeTest}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        //disabled={locationState.actionType==='update'? false : true}
                                     />
                                         
                                     </FormGroup>
@@ -1618,20 +1598,19 @@ const UserRegistration = (props) => {
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
                                     <Label >Date Referred for PrEP * </Label>
-                                    <DateTimePicker
-                                        time={false}
-                                        name="dateConfirmedHiv"
-                                        id="dateConfirmedHiv"
-                                        value={objValues.regDate}
-                                        onChange={value1 =>
-                                            setObjValues({ ...objValues, dateConfirmedHiv: moment(value1).format("YYYY-MM-DD") })
-                                        }
-                                        
-                                            max={new Date()}
+                                    <Input
+                                        className="form-control"
+                                        type="date"
+                                        name="dateReferredForPrep"
+                                        id="dateReferredForPrep"
+                                        value={objValues.dateReferredForPrep}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        //disabled={locationState.actionType==='update'? false : true}
                                     />
-                                    {errors.sourceOfReferrer !=="" ? (
+                                    {/* {errors.sourceOfReferrer !=="" ? (
                                         <span className={classes.error}>{errors.sourceOfReferrer}</span>
-                                    ) : "" }
+                                    ) : "" } */}
                                     </FormGroup>
                                 </div>
 
