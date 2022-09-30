@@ -468,7 +468,6 @@ const UserRegistration = (props) => {
                 setErrors({ ...temp })
         return Object.values(temp).every(x => x == "")
     }
-    console.log(errors)
     const handleSubmit = async (e) => {
         e.preventDefault(); 
          if(validate()){
@@ -671,7 +670,8 @@ const UserRegistration = (props) => {
         //console.log(error);
         });    
     }
-    const handleInputChange = e => {        
+    const handleInputChange = e => {  
+        setErrors({...errors, [e.target.name]: ""})         
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
                    
     }    
@@ -1468,40 +1468,39 @@ const UserRegistration = (props) => {
 
                             <div className="card-body">
                             <div className="row">
-                    <h2>PrEP Registration </h2>
-                    <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                        <Label for="uniqueId">Unique Client's ID  * </Label>
-                        <Input
-                            type="text"
-                            name="uniqueClientId"
-                            id="uniqueClientId"
-                            onChange={handleInputChange}
-                            value={objValues.uniqueClientId}
-                            required
-                        />
-                        {/* {errors.uniqueId !=="" ? (
-                            <span className={classes.error}>{errors.uniqueId}</span>
-                        ) : "" } */}
-                        </FormGroup>
-                    </div>
-                    <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                        <Label >Date enrolled in PrEP *</Label>
-                        <Input
-                            className="form-control"
-                            type="date"
-                            name="dateEnrolled"
-                            id="dateEnrolled"
-                            value={objValues.dateEnrolled}
-                            onChange={handleInputChange}
-                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                            //disabled={locationState.actionType==='update'? false : true}
-                        />
-                            
-                        </FormGroup>
-                    </div>
-                    
+                            <h2>PrEP Registration </h2>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                <Label for="uniqueId">Unique Client's ID  * </Label>
+                                <Input
+                                    type="text"
+                                    name="uniqueClientId"
+                                    id="uniqueClientId"
+                                    onChange={handleInputChange}
+                                    value={objValues.uniqueClientId}
+                                    required
+                                />
+                                {/* {errors.uniqueId !=="" ? (
+                                    <span className={classes.error}>{errors.uniqueId}</span>
+                                ) : "" } */}
+                                </FormGroup>
+                            </div>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                <Label >Date enrolled in PrEP *</Label>
+                                <Input
+                                    className="form-control"
+                                    type="date"
+                                    name="dateEnrolled"
+                                    id="dateEnrolled"
+                                    value={objValues.dateEnrolled}
+                                    onChange={handleInputChange}
+                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                    //disabled={locationState.actionType==='update'? false : true}
+                                />
+                                    
+                                </FormGroup>
+                            </div>
                             </div>
                             <div className="row">
                                 <div className="form-group mb-3 col-md-6">

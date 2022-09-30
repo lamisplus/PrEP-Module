@@ -189,12 +189,12 @@ const Patients = (props) => {
                 actions:
         
                 <div>
-                    {row.prepCount >=0 && (
+                    {row.prepCount >0 && (
                     <>
                         <Link
                             to={{
                                 pathname: "/patient-history",
-                                state: {patientObj: row.personResponseDto, clientCode:row.clientCode}
+                                state: {patientObj: row.personResponseDto,  prepId:row.uniqueClientId}
                             }}
                             
                         >
@@ -216,6 +216,38 @@ const Patients = (props) => {
                             style={{backgroundColor:'rgb(153, 46, 98)'}}
                             >
                                 <span style={{fontSize:'12px', color:'#fff', fontWeight:'bolder'}}>Patient Dashboard</span>
+                            </Button>
+                            
+                            </ButtonGroup>
+                        </Link> 
+                    </>
+                    )} 
+                    {row.prepCount <=0 && (
+                    <>
+                        <Link
+                              to={{
+                                  pathname: "/enroll-patient",
+                                  state: { patientId : row.personId, patientObj: row.personResponseDto }
+                              }}
+                          >
+                            <ButtonGroup variant="contained" 
+                                aria-label="split button"
+                                style={{backgroundColor:'rgb(153, 46, 98)', height:'30px',width:'215px'}}
+                                size="large"
+                            >
+                            <Button
+                            color="primary"
+                            size="small"
+                            aria-label="select merge strategy"
+                            aria-haspopup="menu"
+                            style={{backgroundColor:'rgb(153, 46, 98)'}}
+                            >
+                                <TiArrowForward />
+                            </Button>
+                            <Button 
+                            style={{backgroundColor:'rgb(153, 46, 98)'}}
+                            >
+                                <span style={{fontSize:'12px', color:'#fff', fontWeight:'bolder'}}>PrEp Enrollemnt</span>
                             </Button>
                             
                             </ButtonGroup>

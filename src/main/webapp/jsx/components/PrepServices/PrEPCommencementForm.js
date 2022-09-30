@@ -56,6 +56,7 @@ const useStyles = makeStyles(theme => ({
 const PrEPCommencementForm = (props) => {
 
     const patientObj = props.patientObj;
+    console.log(patientObj)
     let history = useHistory();
     const classes = useStyles()
     const [objValues, setObjValues] = useState({id:"", uniqueId: "",dateOfRegistration:"",entryPointId:"", facilityName:"",statusAtRegistrationId:"",dateConfirmedHiv:"",sourceOfReferrer:"",enrollmentSettingId:"",pregnancyStatusId:"",dateOfLpm:"",tbStatusId:"",targetGroupId:"",ovc_enrolled:"",ovcNumber:""});
