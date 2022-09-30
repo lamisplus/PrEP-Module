@@ -91,6 +91,32 @@ public class PrepClient extends Audit implements Serializable {
     @Column(name = "archived")
     private Integer archived;
 
+
+    //prep Commencement
+    @Basic
+    @Column(name = "date_initial_adherence_counseling")
+    private LocalDate dateInitialAdherenceCounseling;
+
+    @Basic
+    @Column(name = "date_prep_start")
+    private LocalDate datePrepStart;
+
+    @Basic
+    @Column(name = "prep_regimen")
+    private Long prepRegimen;
+
+    @Basic
+    @Column(name = "transferIn")
+    private String transferIn;   //-- codeSet
+
+    @Basic
+    @Column(name = "weight")
+    private Double weight;
+
+    @Basic
+    @Column(name = "height")
+    private Double height;
+
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){
