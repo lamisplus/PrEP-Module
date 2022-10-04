@@ -58,42 +58,25 @@ const PrEPEligibiltyScreeningForm = (props) => {
     const patientObj = props.patientObj;
     let history = useHistory();
     const classes = useStyles()
-    const [objValues, setObjValues] = useState({id:"", uniqueId: "",dateOfRegistration:"",entryPointId:"", facilityName:"",statusAtRegistrationId:"",dateConfirmedHiv:"",sourceOfReferrer:"",enrollmentSettingId:"",pregnancyStatusId:"",dateOfLpm:"",tbStatusId:"",targetGroupId:"",ovc_enrolled:"",ovcNumber:""});
+    const [objValues, setObjValues] = useState({
+        eligibilityScreeningClientName: "",
+        eligibilityScreeningDateVisit: "",
+        eligibilityScreeningDob: "",
+        eligibilityScreeningOccupation: "",
+        personId: patientObj.id,
+        prepClientId: props.prepId
+      });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
-    const [carePoints, setCarePoints] = useState([]);
-    const [hivStatus, setHivStatus] = useState([]);
-    //set ro show the facility name field if is transfer in 
-    const [transferIn, setTransferIn] = useState(false);
-    // display the OVC number if patient is enrolled into OVC 
-    const [ovcEnrolled, setOvcEnrolled] = useState(false);
 
     useEffect(() => {         
 
       }, []);
-
-    const handleInputChange = e => {
-        
+    const handleInputChange = e => {        
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
-        if(e.target.name ==="entryPointId" ){
-            if(e.target.value==="21"){
-                setTransferIn(true)
-            }else{
-                setTransferIn(false)
-            }
-        }
 
     }
-          
-    //Handle CheckBox 
-    const handleCheckBox =e =>{
-        if(e.target.checked){
-            setOvcEnrolled(true)
-        }else{
-            setOvcEnrolled(false)
-        }
-    }  
-    
+
     const validate = () => {
         let temp = { ...errors }
         //temp.name = details.name ? "" : "This field is required"
@@ -106,26 +89,23 @@ const PrEPEligibiltyScreeningForm = (props) => {
     /**** Submit Button Processing  */
     const handleSubmit = (e) => {        
         e.preventDefault();
-        
-          objValues.personId= patientObj.id
-          patientObj.enrolled=true
-          delete objValues['tableData'];
+
           setSaving(true);
-          axios.post(`${baseUrl}hiv/enrollment`,objValues,
+          axios.put(`${baseUrl}prep/${props.prepId}/eligibility-screening`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},
           
-          )
-              .then(response => {
+          ).then(response => {
                   setSaving(false);
                   toast.success("Record save successful");
-                  props.toggle()
-                  props.patientObj.enrolled=true
-                  props.PatientCurrentStatus()
+                  props.setActiveContent({...props.activeContent, route:'recent-history'})
 
               })
               .catch(error => {
                   setSaving(false);
-                  toast.error("Something went wrong");
+                  let errorMessage = error.response.data && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "An error occured while registering a patient !";
+                    toast.error(errorMessage, {
+                        position: toast.POSITION.TOP_RIGHT
+                    });
               });
           
     }
@@ -142,16 +122,13 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Client Name * </Label>
                         <Input
                             type="text"
-                            name="uniqueId"
-                            id="uniqueId"
+                            name="eligibilityScreeningClientName"
+                            id="eligibilityScreeningClientName"
                             onChange={handleInputChange}
-                            value={objValues.uniqueId}
+                            value={objValues.eligibilityScreeningClientName}
                             required
                         />
-                        <span >Surname First</span>
-                        {errors.uniqueId !=="" ? (
-                            <span className={classes.error}>{errors.uniqueId}</span>
-                        ) : "" }
+                        
                         </FormGroup>
                     </div>
                     <div className="form-group mb-3 col-md-6">
@@ -159,10 +136,10 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Age * </Label>
                         <Input
                             type="number"
-                            name="uniqueId"
-                            id="uniqueId"
+                            name="eligibilityScreeningDob"
+                            id="eligibilityScreeningDob"
                             onChange={handleInputChange}
-                            value={objValues.uniqueId}
+                            value={objValues.eligibilityScreeningDob}
                             required
                         />
                         
@@ -171,21 +148,21 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label >Date Of Visit *</Label>
-                        <DateTimePicker
-                            time={false}
-                            name="dateConfirmedHiv"
-                            id="dateConfirmedHiv"
-                            value={objValues.regDate}
-                            onChange={value1 =>
-                                setObjValues({ ...objValues, dateConfirmedHiv: moment(value1).format("YYYY-MM-DD") })
-                            }
-                            
-                                max={new Date()}
+                        <Input
+                            className="form-control"
+                            type="date"
+                            name="eligibilityScreeningDateVisit"
+                            id="eligibilityScreeningDateVisit"
+                            //min="1983-12-31"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            value={objValues.eligibilityScreeningDateVisit}
+                            onChange={handleInputChange}
+                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                         />
                             
                         </FormGroup>
                     </div>
-                    <div className="form-group mb-3 col-md-6">
+                    {/* <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="uniqueId">Education Level </Label>
                         <Input
@@ -198,23 +175,22 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         />
                         
                         </FormGroup>
-                    </div>
+                    </div> */}
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                        <Label for="uniqueId">Occupation </Label>
+                        <Label for="eligibilityScreeningOccupation">Occupation </Label>
                         <Input
                             type="text"
-                            name="uniqueId"
-                            id="uniqueId"
+                            name="eligibilityScreeningOccupation"
+                            id="eligibilityScreeningOccupation"
                             onChange={handleInputChange}
-                            value={objValues.uniqueId}
+                            value={objValues.eligibilityScreeningOccupation}
                             required
                         />
                         
                         </FormGroup>
                     </div>
-                    <br/><br/>
-                    <h3>Pre-test Counselling / Risk Counselling</h3><br/>
+                
                 </div>
 
                 {saving ? <Spinner /> : ""}
@@ -235,15 +211,15 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     )}
                 </MatButton>
             
-            <MatButton
-                variant="contained"
-                className={classes.button}
-                startIcon={<CancelIcon />}
-                onClick={props.toggle}
-                
-            >
-                <span style={{ textTransform: "capitalize" }}>Cancel</span>
-            </MatButton>
+                <MatButton
+                    variant="contained"
+                    className={classes.button}
+                    startIcon={<CancelIcon />}
+                    onClick={props.toggle}
+                    
+                >
+                    <span style={{ textTransform: "capitalize" }}>Cancel</span>
+                </MatButton>
             
                 </form>
             </CardBody>

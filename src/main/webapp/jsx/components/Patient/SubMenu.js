@@ -92,9 +92,10 @@ function SubMenu(props) {
             <Menu size="mini" color={"black"} inverted >
                 <Menu.Item onClick={() => onClickHome()} > Home</Menu.Item>                  
                 <Menu.Item onClick={() => onClickConsultation()} > PrEP Visit</Menu.Item>
-                <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibilty Screening Form</Menu.Item>
+                {/* <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibilty Screening Form</Menu.Item> */}
                 <Menu.Item onClick={() => loadPrEPDiscontinuationsInterruptions()} >PrEP Discontinuations & Interruptions</Menu.Item>
-                <Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>                   
+                <Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>
+                <Menu.Item >History</Menu.Item>                     
             </Menu>             
         </div>
     );

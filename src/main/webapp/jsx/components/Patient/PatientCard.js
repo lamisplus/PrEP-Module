@@ -208,7 +208,7 @@ function PatientCard(props) {
                     <Col md={12}>
                     <Row className={"mt-1"}>
                     <Col md={12} className={classes.root2}>
-                        <b style={{fontSize: "25px"}}>
+                    <b style={{fontSize: "25px", color:'rgb(153, 46, 98)'}}>
                         {patientObj.firstName + " " + patientObj.surname }
                         </b>
                         <Link to={"/"} >
@@ -228,38 +228,38 @@ function PatientCard(props) {
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Patient ID : <b>{getHospitalNumber(patientObj.identifier) }</b>
+                        Patient ID : <b style={{color:'#0B72AA'}}>{getHospitalNumber(patientObj.identifier) }</b>
                     </span>
                     </Col>
 
                     <Col md={4} className={classes.root2}>
                     <span>
-                        Date Of Birth : <b>{patientObj.dateOfBirth }</b>
+                        Date Of Birth : <b style={{color:'#0B72AA'}}>{patientObj.dateOfBirth }</b>
                     </span>
                     </Col>
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Age : <b>{calculate_age(moment(patientObj.dateOfBirth).format("DD-MM-YYYY"))}</b>
+                        Age : <b style={{color:'#0B72AA'}}>{calculate_age(moment(patientObj.dateOfBirth).format("DD-MM-YYYY"))}</b>
                     </span>
                     </Col>
                     <Col md={4}>
                     <span>
                         {" "}
                         Gender :{" "}
-                        <b>{patientObj.sex && patientObj.sex!==null ?  patientObj.sex : '' }</b>
+                        <b style={{color:'#0B72AA'}}>{patientObj.sex && patientObj.sex!==null ?  patientObj.sex : '' }</b>
                     </span>
                     </Col>
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Phone Number : <b>{getPhoneNumber(patientObj.contactPoint)}</b>
+                        Phone Number : <b style={{color:'#0B72AA'}}>{getPhoneNumber(patientObj.contactPoint)}</b>
                     </span>
                     </Col>
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Address : <b>{getAddress(patientObj.address)} </b>
+                        Address : <b style={{color:'#0B72AA'}}>{getAddress(patientObj.address)} </b>
                     </span>
                     </Col>
 

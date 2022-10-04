@@ -53,163 +53,30 @@ const useStyles = makeStyles(theme => ({
     } 
 }))
 
-const PrEPDiscontinuationsInterruptions = (props) => {
+const PrEPEligibiltyScreeningForm = (props) => {
 
     const patientObj = props.patientObj;
     let history = useHistory();
     const classes = useStyles()
-    const [values, setValues] = useState([]);
-    const [objValues, setObjValues] = useState({id:"", uniqueId: "",dateOfRegistration:"",entryPointId:"", facilityName:"",statusAtRegistrationId:"",dateConfirmedHiv:"",sourceOfReferrer:"",enrollmentSettingId:"",pregnancyStatusId:"",dateOfLpm:"",tbStatusId:"",targetGroupId:"",ovc_enrolled:"",ovcNumber:""});
+    const [objValues, setObjValues] = useState({
+        dateInterruption: "",
+        why: "",
+        interruptionType: "",
+        dateRestartPlacedBackMedication: "",
+        personId: patientObj.id,
+        prepClientId: props.prepId
+      });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
-    const [carePoints, setCarePoints] = useState([]);
-    const [sourceReferral, setSourceReferral] = useState([]);
-    const [hivStatus, setHivStatus] = useState([]);
-    const [enrollSetting, setEnrollSetting] = useState([]);
-    const [tbStatus, setTbStatus] = useState([]);
-    const [kP, setKP] = useState([]);
-    const [pregnancyStatus, setPregnancyStatus] = useState([]);
-    //set ro show the facility name field if is transfer in 
-    const [transferIn, setTransferIn] = useState(false);
-    // display the OVC number if patient is enrolled into OVC 
-    const [ovcEnrolled, setOvcEnrolled] = useState(false);
 
     useEffect(() => {         
-        CareEntryPoint();
-        SourceReferral();
-        HivStatus();
-        EnrollmentSetting();
-        TBStatus();
-        KP();
-        PregnancyStatus();
-      }, []);
 
-      //Get list of CareEntryPoint
-      const CareEntryPoint =()=>{
-             axios
-                .get(`${baseUrl}application-codesets/v2/POINT_ENTRY`,
-                    { headers: {"Authorization" : `Bearer ${token}`} }
-                )
-                .then((response) => {
-                    //console.log(response.data);
-                    setCarePoints(response.data);
-                })
-                .catch((error) => {
-                //console.log(error);
-                });
-            
-      }
-    //Get list of Source of Referral
-    const SourceReferral =()=>{
-            axios
-            .get(`${baseUrl}application-codesets/v2/SOURCE_REFERRAL`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-                //console.log(response.data);
-                setSourceReferral(response.data);
-            })
-            .catch((error) => {
-            //console.log(error);
-            });
-        
-    }
-     //Get list of HIV STATUS ENROLLMENT
-     const HivStatus =()=>{
-        axios
-           .get(`${baseUrl}application-codesets/v2/HIV_STATUS_ENROL`,
-               { headers: {"Authorization" : `Bearer ${token}`} }
-           )
-           .then((response) => {
-               //console.log(response.data);
-               setHivStatus(response.data);
-           })
-           .catch((error) => {
-           //console.log(error);
-           });
-       
-     }
-      //Get list of HIV STATUS ENROLLMENT
-      const EnrollmentSetting =()=>{
-        axios
-           .get(`${baseUrl}application-codesets/v2/ENROLLMENT_SETTING`,
-               { headers: {"Authorization" : `Bearer ${token}`} }
-           )
-           .then((response) => {
-               //console.log(response.data);
-               setEnrollSetting(response.data);
-           })
-           .catch((error) => {
-           //console.log(error);
-           });
-       
-     }
-      //Get list of HIV STATUS ENROLLMENT
-      const TBStatus =()=>{
-        axios
-           .get(`${baseUrl}application-codesets/v2/TB_STATUS`,
-               { headers: {"Authorization" : `Bearer ${token}`} }
-           )
-           .then((response) => {
-               //console.log(response.data);
-               setTbStatus(response.data);
-           })
-           .catch((error) => {
-           //console.log(error);
-           });
-       
-     }
-      //Get list of KP
-      const KP =()=>{
-        axios
-           .get(`${baseUrl}application-codesets/v2/KP_TYPE`,
-               { headers: {"Authorization" : `Bearer ${token}`} }
-           )
-           .then((response) => {
-               //console.log(response.data);
-               setKP(response.data);
-           })
-           .catch((error) => {
-           //console.log(error);
-           });
-       
-     }
-      //Get list of KP
-      const PregnancyStatus =()=>{
-        axios
-           .get(`${baseUrl}application-codesets/v2/PREGANACY_STATUS`,
-               { headers: {"Authorization" : `Bearer ${token}`} }
-           )
-           .then((response) => {
-               //console.log(response.data);
-               setPregnancyStatus(response.data);
-           })
-           .catch((error) => {
-           //console.log(error);
-           });
-       
-     }
-    const handleInputChange = e => {
-        
+      }, []);
+    const handleInputChange = e => {        
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
-        if(e.target.name ==="entryPointId" ){
-            if(e.target.value==="21"){
-                setTransferIn(true)
-            }else{
-                setTransferIn(false)
-            }
-        }
+
     }
-          
-    //Handle CheckBox 
-    const handleCheckBox =e =>{
-        if(e.target.checked){
-            setOvcEnrolled(true)
-        }else{
-            setOvcEnrolled(false)
-        }
-    }  
-    
+
     const validate = () => {
         let temp = { ...errors }
         //temp.name = details.name ? "" : "This field is required"
@@ -221,26 +88,24 @@ const PrEPDiscontinuationsInterruptions = (props) => {
     }
     /**** Submit Button Processing  */
     const handleSubmit = (e) => {        
-        e.preventDefault();        
-          objValues.personId= patientObj.id
-          patientObj.enrolled=true
-          delete objValues['tableData'];
+        e.preventDefault();
+
           setSaving(true);
-          axios.post(`${baseUrl}hiv/enrollment`,objValues,
+          axios.put(`${baseUrl}prep/${props.prepId}/discontinuation-interruption`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},
           
-          )
-              .then(response => {
+          ).then(response => {
                   setSaving(false);
                   toast.success("Record save successful");
-                  props.toggle()
-                  props.patientObj.enrolled=true
-                  props.PatientCurrentStatus()
+                  props.setActiveContent({...props.activeContent, route:'recent-history'})
 
               })
               .catch(error => {
                   setSaving(false);
-                  toast.error("Something went wrong");
+                  let errorMessage = error.response.data && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "An error occured while registering a patient !";
+                    toast.error(errorMessage, {
+                        position: toast.POSITION.TOP_RIGHT
+                    });
               });
           
     }
@@ -254,90 +119,148 @@ const PrEPDiscontinuationsInterruptions = (props) => {
                     <h2> PrEP Discontinuations & Interruptions</h2>
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                        <Label for="uniqueId">Interruption Type * </Label>
+                        <Label for="uniqueId">PrEP Interruption Type </Label>
                         <Input
                             type="select"
-                            name="entryPointId"
-                            id="entryPointId"
+                            name="interruptionType"
+                            id="interruptionType"
                             onChange={handleInputChange}
-                            value={objValues.entryPointId}
+                            value={objValues.interruptionType}
                             required
-                            >
-                            <option value="">select </option>
-                            <option value="stop"> Stop</option>
-                            <option value="default">Default </option>
-                            {errors.entryPointId !=="" ? (
-                                    <span className={classes.error}>{errors.entryPointId}</span>
-                                ) : "" }
+                        >
+                         <option value="">Select</option>
+                        <option value="Stopped">Stopped</option>
+                        <option value="Default">Default</option>
+                        <option value="Restart">Restart</option>
                         </Input>
+                        </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                        <Label for="uniqueId">Date of Interruption </Label>
+                        <Input
+                            type="date"
+                            name="dateInterruption"
+                            id="dateInterruption"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            onChange={handleInputChange}
+                            value={objValues.dateInterruption}
+                            required
+                        />
                         
                         </FormGroup>
                     </div>
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                        <Label >Date of Interruption *</Label>
-                        <DateTimePicker
-                            time={false}
-                            name="dateConfirmedHiv"
-                            id="dateConfirmedHiv"
-                            value={objValues.regDate}
-                            onChange={value1 =>
-                                setObjValues({ ...objValues, dateConfirmedHiv: moment(value1).format("YYYY-MM-DD") })
-                            }
-                            
-                                max={new Date()}
+                        <Label for="uniqueId">Date of client referred out </Label>
+                        <Input
+                            type="date"
+                            name="dateInterruption"
+                            id="dateInterruption"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            onChange={handleInputChange}
+                            value={objValues.dateInterruption}
+                            required
                         />
-                            
+                        
                         </FormGroup>
                     </div>
-                    
-                </div>
-                <div className="row">
                     <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                    <Label for="entryPointId">Why?</Label>
-                    <Input
-                        type="select"
-                        name="entryPointId"
-                        id="entryPointId"
-                        onChange={handleInputChange}
-                        value={objValues.entryPointId}
-                        required
-                    >
-                    <option value=""> </option>
-        
-                    {carePoints.map((value) => (
-                        <option key={value.id} value={value.id}>
-                            {value.display}
-                        </option>
-                    ))}
-                    {errors.entryPointId !=="" ? (
-                            <span className={classes.error}>{errors.entryPointId}</span>
-                        ) : "" }
-                    </Input>
-                    </FormGroup>
-                    
-                    </div>                               
+                        <FormGroup>
+                        <Label for="uniqueId">Facility referred to </Label>
+                        <Input
+                            type="text"
+                            name="dateInterruption"
+                            id="dateInterruption"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            onChange={handleInputChange}
+                            value={objValues.dateInterruption}
+                            required
+                        />
+                        
+                        </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                        <Label for="uniqueId">Date of client died </Label>
+                        <Input
+                            type="date"
+                            name="dateInterruption"
+                            id="dateInterruption"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            onChange={handleInputChange}
+                            value={objValues.dateInterruption}
+                            required
+                        />
+                        
+                        </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                        <Label for="uniqueId">Cause of death</Label>
+                        <Input
+                            type="date"
+                            name="dateInterruption"
+                            id="dateInterruption"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            onChange={handleInputChange}
+                            value={objValues.dateInterruption}
+                            required
+                        />
+                        
+                        </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                        <Label for="uniqueId">Dource of death information  </Label>
+                        <Input
+                            type="date"
+                            name="dateInterruption"
+                            id="dateInterruption"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            onChange={handleInputChange}
+                            value={objValues.dateInterruption}
+                            required
+                        />
+                        
+                        </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                        <Label for="eligibilityScreeningOccupation">Why ? </Label>
+                        <Input
+                            type="text"
+                            name="why"
+                            id="why"
+                            onChange={handleInputChange}
+                            value={objValues.why}
+                            required
+                        />
+                        
+                        </FormGroup>
+                    </div>
+                
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label >Date of restart if placed back on medication</Label>
-                        <DateTimePicker
-                            time={false}
-                            name="dateConfirmedHiv"
-                            id="dateConfirmedHiv"
-                            value={objValues.regDate}
-                            onChange={value1 =>
-                                setObjValues({ ...objValues, dateConfirmedHiv: moment(value1).format("YYYY-MM-DD") })
-                            }
-                            
-                                max={new Date()}
+                        <Input
+                            className="form-control"
+                            type="date"
+                            name="dateRestartPlacedBackMedication"
+                            id="dateRestartPlacedBackMedication"
+                            //min="1983-12-31"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            value={objValues.dateRestartPlacedBackMedication}
+                            onChange={handleInputChange}
+                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                         />
                             
                         </FormGroup>
                     </div>
-                    
+                   
+                   
                 </div>
-                
+
                 {saving ? <Spinner /> : ""}
                 <br />
             
@@ -356,15 +279,15 @@ const PrEPDiscontinuationsInterruptions = (props) => {
                     )}
                 </MatButton>
             
-            <MatButton
-                variant="contained"
-                className={classes.button}
-                startIcon={<CancelIcon />}
-                onClick={props.toggle}
-                
-            >
-                <span style={{ textTransform: "capitalize" }}>Cancel</span>
-            </MatButton>
+                <MatButton
+                    variant="contained"
+                    className={classes.button}
+                    startIcon={<CancelIcon />}
+                    onClick={props.toggle}
+                    
+                >
+                    <span style={{ textTransform: "capitalize" }}>Cancel</span>
+                </MatButton>
             
                 </form>
             </CardBody>
@@ -373,4 +296,4 @@ const PrEPDiscontinuationsInterruptions = (props) => {
   );
 }
 
-export default PrEPDiscontinuationsInterruptions;
+export default PrEPEligibiltyScreeningForm;

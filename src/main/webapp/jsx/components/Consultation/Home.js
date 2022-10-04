@@ -880,28 +880,16 @@ const handleInputValueCheckTemperature =(e)=>{
               </div>
             </div>
             <Label as='a' color='black'  style={{width:'106%', height:'35px'}} ribbon>
-              <h4 style={{color:'#fff'}}>CONSULTATION</h4>
+              <h4 style={{color:'#fff'}}></h4>
             </Label>
             <br /><br />
 
-            <div className=" mb-3">
-              <FormLabelName >Clinical Notes</FormLabelName>
-              <textarea
-                name="clinicalNote"
-                className="form-control"
-                value={objValues.clinicalNote}
-                onChange={handleInputChange}
-                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-              ></textarea>
-              {errors.clinicalNote !=="" ? (
-                      <span className={classes.error}>{errors.clinicalNote}</span>
-                  ) : "" }
-            </div>
             <div className="row">
 
+             
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >WHO Staging *</FormLabelName>
+                  <FormLabelName >HIV Test Result </FormLabelName>
                   <Input
                     type="select"
                     name="whoStagingId"
@@ -912,41 +900,29 @@ const handleInputValueCheckTemperature =(e)=>{
                     required
                   >
                     <option value="select">Select </option>
-
-                    {clinicalStage.map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.display}
-                      </option>
-                    ))}
+                    <option value="Yes">Yes </option>
+                    <option value="No">No </option>
                   </Input>
-                  {errors.whoStagingId !=="" ? (
-                      <span className={classes.error}>{errors.whoStagingId}</span>
-                  ) : "" }
+                 
                 </FormGroup>
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Functional Status *</FormLabelName>
+                  <FormLabelName >Regimen at Start of PrEP </FormLabelName>
                   <Input
                     type="select"
-                    name="functionalStatusId"
-                    id="functionalStatusId"
-                    value={objValues.functionalStatusId}
+                    name="whoStagingId"
+                    id="whoStagingId"
+                    value={objValues.whoStagingId}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
-                    <option value="select">Select </option>
-
-                    {functionalStatus.map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.display}
-                      </option>
-                    ))}
+                    <option value="">Select </option>
+                    <option value="TDF/FTC">TDF/FTC </option>
+                    <option value="TDF/3TC">TDF/3TC </option>
                   </Input>
-                  {errors.functionalStatusId !=="" ? (
-                      <span className={classes.error}>{errors.functionalStatusId}</span>
-                  ) : "" }
+                 
                 </FormGroup>
               </div>
               <div className=" mb-3 col-md-6">
@@ -969,52 +945,91 @@ const handleInputValueCheckTemperature =(e)=>{
                       </option>
                     ))}
                   </Input>
-                  {errors.adherenceLevel !=="" ? (
-                      <span className={classes.error}>{errors.adherenceLevel}</span>
-                  ) : "" }
+                 
                 </FormGroup>
               </div>
-
-            </div>
-            <br />
-            <Label as='a' color='red' style={{width:'106%', height:'35px'}} ribbon>
-              <h4 style={{color:'#fff'}}>OPPORTUNISTIC INFECTION</h4>
-            </Label>
-            <br /><br />
-            <OpportunisticInfection setInfection={setInfection} infection={infection} setInfectionList={setInfectionList} infectionList={infectionList} artStartDate={props.patientObj.enrollment.dateOfRegistration}/>
-            <br />
-            <Label as='a' color='pink' style={{width:'106%', height:'35px'}}  ribbon>
-            <h4 style={{color:'#fff'}}>ADR </h4>
-            </Label>
-            <br /><br />
-            <ADR setAdrObj={setAdrObj} adrObj={adrObj} setAdrList={setAdrList} adrList={adrList} artStartDate={props.patientObj.enrollment.dateOfRegistration} />
-            <br />
-            <Label as='a' color='teal' style={{width:'106%', height:'35px'}} ribbon>
-            <h4 style={{color:'#fff'}}>TB SCREENING</h4>
-            </Label>
-            <br /><br />
-            {/* TB Screening Form */}
-            <TBScreening tbObj={tbObj} setTbObj={setTbObj} />
-            <br />
-            <Label as='a' color='blue' style={{width:'106%', height:'35px'}} ribbon>
-            <h4 style={{color:'#fff'}}>NEXT CLINICAL APPOINTMENT DATE </h4>
-            </Label>
-            <br /><br />
-            {/* TB Screening Form */}
-            <Input
-                    type="date"
-                    name="nextAppointment"
-                    id="nextAppointment"
-                    className="col-md-6"
-                    value={vital.nextAppointment}
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >STI Screening</FormLabelName>
+                  <Input
+                    type="select"
+                    name="adherenceLevel"
+                    id="adherenceLevel"
+                    value={objValues.adherenceLevel}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    min={vital.encounterDate}
-                    
+                    required
+                  >
+                    <option value="select">Select </option>
+
+                    {adherenceLevel.map((value) => (
+                      <option key={value.id} value={value.id}>
+                        {value.display}
+                      </option>
+                    ))}
+                  </Input>
+                 
+                </FormGroup>
+              </div> 
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >PrEP Given</FormLabelName>
+                  <Input
+                    type="select"
+                    name="whoStagingId"
+                    id="whoStagingId"
+                    value={objValues.whoStagingId}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="select">Select </option>
+                    <option value="Yes">Yes </option>
+                    <option value="No">No </option>
+                  </Input>
+                 
+                </FormGroup>
+              </div>       
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Date PrEP Givern</FormLabelName>
+                  <Input
+                    type="date"
+                    name="whoStagingId"
+                    id="whoStagingId"
+                    value={objValues.whoStagingId}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
                   />
-              {errors.nextAppointment !=="" ? (
-                      <span className={classes.error}>{errors.nextAppointment}</span>
-                  ) : "" }
+                    
+                </FormGroup>
+              </div> 
+            
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >PrEP Status</FormLabelName>
+                  <Input
+                    type="select"
+                    name="functionalStatusId"
+                    id="functionalStatusId"
+                    value={objValues.functionalStatusId}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="select">Select </option>
+                    <option value="None">None </option>
+                    <option value="Positive">Positive </option>
+                    <option value="Negative">Negative </option>
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+            </div>
+            <br />
+            
+           
             <br />
             <MatButton
               type="submit"

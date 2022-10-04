@@ -59,7 +59,31 @@ const useStyles = makeStyles((theme) => ({
     },
     root: {
         flexGrow: 1,
-        maxWidth: 752,
+        "& .card-title":{
+            color:'#fff',
+            fontWeight:'bold'
+        },
+        "& .form-control":{
+            borderRadius:'0.25rem',
+            height:'41px'
+        },
+        "& .card-header:first-child": {
+            borderRadius: "calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0"
+        },
+        "& .dropdown-toggle::after": {
+            display: " block !important"
+        },
+        "& select":{
+            "-webkit-appearance": "listbox !important"
+        },
+        "& p":{
+            color:'red'
+        },
+        "& label":{
+            fontSize:'14px',
+            color:'#014d88',
+            fontWeight:'bold'
+        },
     },
     demo: {
         backgroundColor: theme.palette.background.default,
@@ -149,11 +173,12 @@ const UserRegistration = (props) => {
         dateReferredForPrep: "",
         extra: {},
         hivTestingPoint: "",
-        partnerType: "",
+        prepRiskType: "",
         personDto:{},
         personId: 0,
-        populationType: "",
-        uniqueClientId: ""
+        prepSupporter: "",
+        uniqueClientId: "",
+        ancUnique:""
     });
      const [carePoints, setCarePoints] = useState([]);
      const [sourceReferral, setSourceReferral] = useState([]);
@@ -471,7 +496,13 @@ const UserRegistration = (props) => {
             temp.stateId = basicInfo.stateId ? "" : "State is required."  
             temp.district = basicInfo.district ? "" : "Province/LGA is required." 
             //HIV FORM VALIDATION
-            
+            temp.uniqueClientId = objValues.uniqueClientId ? "" : "Unique ID is required."
+            temp.dateEnrolled = objValues.dateEnrolled ? "" : "Date enrolled is required." 
+            temp.dateOfLastHivNegativeTest = objValues.dateOfLastHivNegativeTest ? "" : "date of last HIV test is required." 
+            temp.dateReferredForPrep = objValues.dateReferredForPrep ? "" : "Date referred is required." 
+            temp.hivTestingPoint = objValues.hivTestingPoint ? "" : "Hiv test point is required." 
+            temp.prepRiskType = objValues.prepRiskType ? "" : "PrEp risk type is required." 
+            temp.prepSupporter = objValues.prepSupporter ? "" : "PrEp supporter is required." 
             
                 setErrors({ ...temp })
         return Object.values(temp).every(x => x == "")
@@ -790,7 +821,7 @@ const UserRegistration = (props) => {
 			</ol>
 		  </div>
             <ToastContainer autoClose={3000} hideProgressBar />
-            <Card className={classes.cardBottom}>
+            <Card className={classes.root}>
                 <CardContent>
                     <Link
                         to={{
@@ -1534,7 +1565,7 @@ const UserRegistration = (props) => {
                                     <h5 className="card-title"  style={{color:'#fff'}}>Prep  Enrollment</h5>
                                 </div>
 
-                            <div className="card-body">
+                                <div className="card-body">
                             <div className="row">
                             <h2>PrEP Registration </h2>
                             <div className="form-group mb-3 col-md-6">
@@ -1548,9 +1579,25 @@ const UserRegistration = (props) => {
                                     value={objValues.uniqueClientId}
                                     required
                                 />
-                                {/* {errors.uniqueId !=="" ? (
-                                    <span className={classes.error}>{errors.uniqueId}</span>
-                                ) : "" } */}
+                                {errors.uniqueClientId !=="" ? (
+                                    <span className={classes.error}>{errors.uniqueClientId}</span>
+                                ) : "" }
+                                </FormGroup>
+                            </div>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                <Label for="">Partner ANC/Unique ART No </Label>
+                                <Input
+                                    type="text"
+                                    name="ancUnique"
+                                    id="ancUnique"
+                                    onChange={handleInputChange}
+                                    value={objValues.ancUnique}
+                                    required
+                                />
+                                {errors.ancUnique !=="" ? (
+                                    <span className={classes.error}>{errors.ancUnique}</span>
+                                ) : "" }
                                 </FormGroup>
                             </div>
                             <div className="form-group mb-3 col-md-6">
@@ -1566,20 +1613,21 @@ const UserRegistration = (props) => {
                                     style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                     //disabled={locationState.actionType==='update'? false : true}
                                 />
-                                    
+                                    {errors.dateEnrolled !=="" ? (
+                                        <span className={classes.error}>{errors.dateEnrolled}</span>
+                                    ) : "" } 
                                 </FormGroup>
                             </div>
-                            </div>
-                            <div className="row">
+
                                 <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                <Label for="entryPointId">Population Type *</Label>
+                                <Label for="entryPointId">PrEP Risk Type*</Label>
                                 <Input
                                     type="select"
-                                    name="populationType"
-                                    id="populationType"
+                                    name="prepRiskType"
+                                    id="prepRiskType"
                                     onChange={handleInputChange}
-                                    value={objValues.populationType}
+                                    value={objValues.prepRiskType}
                                     required
                                 >
                                 <option value=""> </option>
@@ -1589,38 +1637,15 @@ const UserRegistration = (props) => {
                                         {value.display}
                                     </option>
                                 ))}
-                                {/* {errors.entryPointId !=="" ? (
-                                        <span className={classes.error}>{errors.entryPointId}</span>
-                                    ) : "" } */}
+                               
                                 </Input>
+                                 {errors.prepRiskType !=="" ? (
+                                        <span className={classes.error}>{errors.prepRiskType}</span>
+                                    ) : "" }
                                 </FormGroup>
                                 
                                 </div>
-                                <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label for="entryPointId">Partner Type *</Label>
-                                <Input
-                                    type="select"
-                                    name="partnerType"
-                                    id="partnerType"
-                                    onChange={handleInputChange}
-                                    value={objValues.partnerType}
-                                    required
-                                >
-                                <option value=""> </option>
-                    
-                                {carePoints.map((value) => (
-                                    <option key={value.id} value={value.code}>
-                                        {value.display}
-                                    </option>
-                                ))}
-                                {/* {errors.entryPointId !=="" ? (
-                                        <span className={classes.error}>{errors.entryPointId}</span>
-                                    ) : "" } */}
-                                </Input>
-                                </FormGroup>
-                                
-                                </div>
+                               
                                 <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
                                 <Label >HIV Testing Point </Label>
@@ -1639,10 +1664,11 @@ const UserRegistration = (props) => {
                                         {value.display}
                                     </option>
                                 ))}
-                                {/* {errors.statusAtRegistrationId !=="" ? (
-                                        <span className={classes.error}>{errors.statusAtRegistrationId}</span>
-                                    ) : "" } */}
+                               
                                 </Input>
+                                {errors.hivTestingPoint !=="" ? (
+                                        <span className={classes.error}>{errors.hivTestingPoint}</span>
+                                    ) : "" }
                                 </FormGroup>
                                 </div>
                             
@@ -1659,7 +1685,9 @@ const UserRegistration = (props) => {
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         //disabled={locationState.actionType==='update'? false : true}
                                     />
-                                        
+                                     {errors.dateOfLastHivNegativeTest !=="" ? (
+                                        <span className={classes.error}>{errors.dateOfLastHivNegativeTest}</span>
+                                    ) : "" }   
                                     </FormGroup>
                                 </div>
                                 <div className="form-group mb-3 col-md-6">
@@ -1675,11 +1703,30 @@ const UserRegistration = (props) => {
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         //disabled={locationState.actionType==='update'? false : true}
                                     />
-                                    {/* {errors.sourceOfReferrer !=="" ? (
-                                        <span className={classes.error}>{errors.sourceOfReferrer}</span>
-                                    ) : "" } */}
+                                    {errors.dateReferredForPrep !=="" ? (
+                                        <span className={classes.error}>{errors.dateReferredForPrep}</span>
+                                    ) : "" }
                                     </FormGroup>
                                 </div>
+                                <div className="form-group mb-3 col-md-6">
+                                    <FormGroup>
+                                    <Label >PrEP Supporter </Label>
+                                    <Input
+                                        className="form-control"
+                                        type="text"
+                                        name="prepSupporter"
+                                        id="prepSupporter"
+                                        value={objValues.prepSupporter}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        //disabled={locationState.actionType==='update'? false : true}
+                                    />
+                                    {errors.prepSupporter !=="" ? (
+                                        <span className={classes.error}>{errors.prepSupporter}</span>
+                                    ) : "" }
+                                    </FormGroup>
+                                </div>
+                                
 
                             </div>
                             </div>
