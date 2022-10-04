@@ -546,74 +546,7 @@ const handleInputValueCheckTemperature =(e)=>{
                
                 </PerfectScrollbar>
             </Segment>
-            <Segment>
-              <Label as='a' color='teal' style={{width:'110%', height:'35px'}} ribbon>
-                <h4 style={{color:'#fff'}}>Previous Clinical Notes</h4>
-              </Label>
-               
-             <PerfectScrollbar
-               style={{ height: "370px" }}
-               id="DZ_W_Todo1"
-               className="widget-media dz-scroll ps ps--active-y"
-             >
-              <br/>
-               <ul className="timeline">
-               { clinicVisitList.length > 0 ?(
-                 
-               <Accordion
-                   className="accordion accordion-header-bg accordion-header-shadow accordion-rounded "
-                   defaultActiveKey="0"
-                 >
-                   <>
-                   {clinicVisitList.map((visit, i)=>
-                 <div className="accordion-item" key={i}>
-                   <Accordion.Toggle
-                     as={Card.Text}
-                     eventKey={`${i}`}
-                     className={`accordion-header ${
-                       activeAccordionHeaderShadow === 1 ? "" : "collapsed"
-                     } accordion-header-info`}
-                     onClick={() =>
-                       setActiveAccordionHeaderShadow(
-                         activeAccordionHeaderShadow === 1 ? -1 : i
-                       )
-                     }
-                     style={{width:'100%'}}
-                   >
-                     <span className="accordion-header-icon"></span>
-                     <span className="accordion-header-text float-start" style={{width:'100%'}}>Visit Date : <span className="">{visit.visitDate}</span> </span>
-                     <span className="accordion-header-indicator "></span>
-                   </Accordion.Toggle>
-                   <Accordion.Collapse
-                     eventKey={`${i}`}
-                     className="accordion__body"
-                   >
-                     <div className="accordion-body-text">
-                         <p>{visit.clinicalNote}</p>
-                     </div>
-                   </Accordion.Collapse>
-                 </div>
-               )}
-               </>
-             </Accordion>             
-
-                   ):
-                   (
-                     <>
-                     <br/>
-                     <Alert
-                         variant="info"
-                         className="alert-dismissible solid fade show"
-                       >
-                         <p>No Clinical Notes</p>
-                       </Alert>
-                     </>
-                   )}
-               </ul>
-               </PerfectScrollbar>
-               
-         </Segment>
-         
+           
         </Grid.Column>
         <Grid.Column width={11}>
           <Segment>
