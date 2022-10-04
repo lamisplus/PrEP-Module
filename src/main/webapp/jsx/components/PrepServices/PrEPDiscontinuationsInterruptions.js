@@ -141,7 +141,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     <h2> PrEP Discontinuations & Interruptions</h2>
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                        <Label for="uniqueId">PrEP Interruption Type </Label>
+                        <Label for="uniqueId">PrEP Interruptions </Label>
                         <Input
                             type="select"
                             name="interruptionType"
@@ -221,7 +221,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <FormGroup>
                         <Label for="uniqueId">Cause of death</Label>
                         <Input
-                            type="date"
+                            type="text"
                             name="dateInterruption"
                             id="dateInterruption"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
@@ -234,9 +234,9 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     </div>
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                        <Label for="uniqueId">Dource of death information  </Label>
+                        <Label for="uniqueId">Source of death information  </Label>
                         <Input
-                            type="date"
+                            type="text"
                             name="dateInterruption"
                             id="dateInterruption"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
@@ -247,7 +247,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         
                         </FormGroup>
                     </div>
-                    <div className="form-group mb-3 col-md-6">
+                    {/* <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="eligibilityScreeningOccupation">Why ? </Label>
                         <Input
@@ -260,7 +260,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         />
                         
                         </FormGroup>
-                    </div>
+                    </div> */}
                 
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
