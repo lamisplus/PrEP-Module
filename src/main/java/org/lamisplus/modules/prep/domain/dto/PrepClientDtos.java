@@ -10,6 +10,7 @@ public class PrepClientDtos {
     private Long personId;
     private Integer prepCount;
     private String uniqueClientId;
+    private Long currentPrepId;
     private PersonResponseDto personResponseDto;
     private List<PrepClientDto> prepClientDtoList;
 }

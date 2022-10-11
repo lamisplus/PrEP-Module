@@ -5,12 +5,13 @@ store: true
 menus:
   - icon: fa-solid fa-pills
     disabled: false
-    name: PreP
-    state: prep
+    name: PrEP
+    state: prEp
     url: /across/resources/static/prep/index.html
 umdLocation: /across/resources/static/prep/index.html
 webModules:
-  - breadcrumb: PreP
+  - breadcrumb: PrEP
     name: PrepModule
     path: prep
     position: 99
+    ##fa-solid fa-file

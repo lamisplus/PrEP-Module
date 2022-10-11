@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -117,24 +118,29 @@ public class PrepClientService {
 
     private PrepClientDtos prepClientToPrepClientDtos(List<PrepClient> clients){
         final Long[] pId = {null};
+        final Long[] prepId = {null};
         final String[] clientCode = {null};
         final PersonResponseDto[] personResponseDto = {new PersonResponseDto()};
         PrepClientDtos prepClientDtos = new PrepClientDtos();
         List<PrepClientDto> prepClientDtoList =  clients
                 .stream()
+                .sorted(Comparator.comparingLong(PrepClient::getId).reversed())
                 .map(prepClient -> {
                     if(pId[0] == null) {
                         Person person = prepClient.getPerson();
+                        prepId[0] = prepClient.getId();
                         clientCode[0] = prepClient.getUniqueClientId();
                         pId[0] = person.getId();
                         personResponseDto[0] = personService.getDtoFromPerson(person);
                     }
                     return this.prepClientToPrepClientDto(prepClient);})
+                .sorted(Comparator.comparingLong(PrepClientDto::getId).reversed())
                 .collect(Collectors.toList());
         prepClientDtos.setPrepCount(prepClientDtoList.size());
         prepClientDtos.setPrepClientDtoList(prepClientDtoList);
         prepClientDtos.setPersonId(pId[0]);
         prepClientDtos.setUniqueClientId(clientCode[0]);
+        prepClientDtos.setCurrentPrepId(prepId[0]);
         prepClientDtos.setPersonResponseDto(personResponseDto[0]);
         return prepClientDtos;
     }
@@ -178,7 +184,7 @@ public class PrepClientService {
     }
 
     public String getClientNameByCode(String code) {
-        List<PrepClient> prepClients = prepClientRepository.findAllByUniqueClientId(code);
+        List<PrepClient> prepClients = prepClientRepository.findAllByUniqueClientIdOrderByIdDesc(code);
         if(prepClients.isEmpty())return "Record Not Found";
 
         Person person = prepClients.stream().findFirst().get().getPerson();
@@ -190,7 +196,7 @@ public class PrepClientService {
         if(person.getId() == null){
             return new PrepClientDtos();
         }
-        return this.prepClientToPrepClientDtos(prepClientRepository.findAllByPerson(person));
+        return this.prepClientToPrepClientDtos(prepClientRepository.findAllByPersonOrderByIdDesc(person));
     }
 
     public PrepClientDtos getPrepClientById(Long id){
