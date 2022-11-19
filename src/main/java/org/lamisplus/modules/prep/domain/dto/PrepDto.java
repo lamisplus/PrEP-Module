@@ -36,11 +36,9 @@ public class PrepDto implements Serializable {
 
     private String statusAtRegistration;
 
-    private Long enrollmentSetting;
+    private String enrollmentSetting;
 
     private LocalDate dateStarted;
-
-    private String uuid;
 
     private String facilityName;
 
@@ -54,14 +52,12 @@ public class PrepDto implements Serializable {
 
     private PersonResponseDto personResponseDto;
 
-    //prep Discontinuations Interruptions
-    private String interruptionType;
-
-    private LocalDate dateInterruption;
-
-    private String why;
-
-    private LocalDate dateRestartPlacedBackMedication;
-
-    public Boolean prepCommenced;
+//    //prep Discontinuations Interruptions
+//    private String interruptionType;
+//
+//    private LocalDate dateInterruption;
+//
+//    private LocalDate dateRestartPlacedBackMedication;
+//
+//    public Boolean prepCommenced;
 }

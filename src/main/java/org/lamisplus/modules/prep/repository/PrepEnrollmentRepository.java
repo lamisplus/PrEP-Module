@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 import java.util.Optional;
 
-public interface PrepRepository extends JpaRepository<PrepEnrollment, Long>, JpaSpecificationExecutor<PrepEnrollment> {
+public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, Long>, JpaSpecificationExecutor<PrepEnrollment> {
     List<PrepEnrollment> findAllByPersonOrderByIdDesc(Person person);
     List<PrepEnrollment> findAllByUniqueIdOrderByIdDesc(String code);
     List<PrepEnrollment> findAllByPerson(Person person);
@@ -17,4 +17,6 @@ public interface PrepRepository extends JpaRepository<PrepEnrollment, Long>, Jpa
 
     @Query(value = "SELECT uuid FROM hiv_enrollment where person_uuid=?1", nativeQuery = true)
     Optional<String> findInHivEnrollmentByUuid(String uuid);
+
+    Optional<PrepEnrollment> findByPrepEligibilityUuid(String prepEligibilityUuid);
 }

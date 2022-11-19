@@ -8,13 +8,16 @@ import com.vladmihalcea.hibernate.type.json.JsonNodeStringType;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 import org.lamisplus.modules.base.domain.entities.Audit;
+import org.lamisplus.modules.patient.domain.entity.Person;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -33,6 +36,9 @@ public class PrepEligibility  extends Audit implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
+
+    @Column(name = "unique_id")
+    private String uniqueId;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
@@ -60,25 +66,25 @@ public class PrepEligibility  extends Audit implements Serializable {
     private  Object sexPartnerRisk;
 
     @Column(name = "person_uuid")
-    private String person_uuid;
+    private String personUuid;
 
     @Column(name = "sex_partner")
-    private String sex_partner;
+    private String sexPartner;
 
     @Column(name = "counseling_type")
-    private String counseling_type;
+    private String counselingType;
 
     @Column(name = "first_time_visit")
-    private Boolean first_time_visit;
+    private Boolean firstTimeVisit;
 
     @Column(name = "num_children_less_than_five")
-    private Integer num_children_less_than_five;
+    private Integer numChildrenLessThanFive;
 
     @Column(name = "num_wives")
-    private Integer num_wives;
+    private Integer numWives;
 
     @Column(name = "target_group")
-    private String target_group;
+    private String targetGroup;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
@@ -93,4 +99,15 @@ public class PrepEligibility  extends Audit implements Serializable {
 
     @Column(name = "archived")
     private Integer archived;
+
+    @OneToOne
+    @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+    private Person person;
+
+    @PrePersist
+    public void setFields(){
+        if(StringUtils.isEmpty(uuid)){
+            uuid = UUID.randomUUID().toString();
+        }
+    }
 }

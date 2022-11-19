@@ -5,6 +5,7 @@ import lombok.*;
 import org.lamisplus.modules.patient.domain.dto.PersonDto;
 import org.lamisplus.modules.prep.domain.entity.PrepEnrollment;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -33,6 +34,9 @@ public class PrepEnrollmentRequestDto implements Serializable {
 
     private Long enrollmentSetting;
 
+    @NotBlank(message = "prepEligibilityUuid is mandatory")
+    public String prepEligibilityUuid;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateStarted;
 
@@ -49,7 +53,5 @@ public class PrepEnrollmentRequestDto implements Serializable {
 
     private Object extra;
 
-    public Long personId;
-
-    public PersonDto personDto;
+    //public PersonDto personDto;
 }

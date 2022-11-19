@@ -8,6 +8,7 @@ import com.vladmihalcea.hibernate.type.json.JsonNodeBinaryType;
 import com.vladmihalcea.hibernate.type.json.JsonNodeStringType;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
@@ -18,6 +19,7 @@ import org.lamisplus.modules.patient.domain.entity.Visit;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.UUID;
 
 
 @Entity
@@ -65,7 +67,7 @@ public class PrepEnrollment extends Audit implements Serializable {
 
     @Basic
     @Column(name = "enrollment_setting")
-    private Long enrollmentSetting;
+    private String enrollmentSetting;
 
     @Column(name = "date_started")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -108,4 +110,19 @@ public class PrepEnrollment extends Audit implements Serializable {
 
     @Column(name = "facility_id")
     public Long facilityId;
+
+    @Column(name = "prep_eligibility_uuid")
+    public String prepEligibilityUuid;
+
+    @OneToOne
+    @JoinColumn(name = "prep_eligibility_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+    private PrepEligibility prepEligibility;
+
+    @PrePersist
+    public void setFields(){
+        if(StringUtils.isEmpty(uuid)){
+            uuid = UUID.randomUUID().toString();
+        }
+    }
+
 }

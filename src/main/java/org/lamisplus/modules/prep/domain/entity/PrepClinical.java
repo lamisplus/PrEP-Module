@@ -11,6 +11,7 @@ import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
@@ -22,6 +23,7 @@ import org.lamisplus.modules.triage.domain.entity.VitalSign;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.UUID;
 
 
 @Entity
@@ -45,27 +47,21 @@ public class PrepClinical extends Audit implements Serializable{
     @Column(name = "visit_date")
     private LocalDate visitDate;
 
-    @Basic
     @Column(name = "is_commencement")
     private Boolean isCommencement;
 
-    @Basic
     @Column(name = "functional_status_uuid")
     private String functionalStatusUuid;
 
-    @Basic
     @Column(name = "clinical_stage_uuid")
     private String clinicalStageUuid;
 
-    @Basic
     @Column(name = "clinical_note")
     private String clinicalNote;
 
-    @Basic
     @Column(name = "prep_enrollment_uuid")
     private String prepEnrollmentUuid;
 
-    @Basic
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     private String uuid;
 
@@ -73,27 +69,21 @@ public class PrepClinical extends Audit implements Serializable{
     @JoinColumn(name = "prep_enrollment_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private PrepEnrollment prepEnrollment;
 
-    @Basic
     @Column(name = "regimen_id")
     private long regimenId;
 
-    @Basic
     @Column(name = "regimen_type_id")
     private long regimenTypeId;
 
-    @Basic
     @Column(name = "archived")
     private Integer archived;
 
-    @Basic
     @Column(name = "vital_sign_uuid")
     private String vitalSignUuid;
 
-    @Basic
     @Column(name = "person_uuid")
     private String personUuid;
 
-    @Basic
     @Column(name = "visit_uuid")
     private String visitUuid;
 
@@ -101,7 +91,7 @@ public class PrepClinical extends Audit implements Serializable{
     @JoinColumn(name = "vital_sign_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private VitalSign vitalSign;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private Person person;
 
@@ -146,5 +136,12 @@ public class PrepClinical extends Audit implements Serializable{
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "extra", columnDefinition = "jsonb")
     private Object extra;
+
+    @PrePersist
+    public void setFields(){
+        if(StringUtils.isEmpty(uuid)){
+            uuid = UUID.randomUUID().toString();
+        }
+    }
 }
 
