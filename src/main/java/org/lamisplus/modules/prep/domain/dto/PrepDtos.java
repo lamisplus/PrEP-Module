@@ -3,14 +3,16 @@ package org.lamisplus.modules.prep.domain.dto;
 import lombok.Data;
 import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
-public class PrepClientDtos {
+public class PrepDtos {
     private Long personId;
     private Integer prepCount;
-    private String uniqueClientId;
-    private Long currentPrepId;
+    private String uniqueId;
     private PersonResponseDto personResponseDto;
-    private List<PrepClientDto> prepClientDtoList;
+    private List<PrepDto> prepDtoList;
+    private Boolean hivPositive;
+    private LocalDate dateHivPositive;
 }
