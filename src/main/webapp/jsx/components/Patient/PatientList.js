@@ -170,26 +170,119 @@ const Patients = (props) => {
             { title: "Actions", field: "actions", filtering: false }, 
             ]}
             isLoading={loading}
-            data={ patientList.map((row) => ({
-                //Id: manager.id,
-                name:row.personResponseDto.firstName + " " + row.personResponseDto.surname,
-                hospital_number: getHospitalNumber(row.personResponseDto.identifier),
-                clientCode: row.uniqueClientId,
-                //phone_number:  row.phone,
-                gender:row && row.personResponseDto.sex ? row.personResponseDto.sex : "",
-                age: (row.personResponseDto.dateOfBirth === 0 ||
-                    row.personResponseDto.dateOfBirth === undefined ||
-                    row.personResponseDto.dateOfBirth === null ||
-                    row.personResponseDto.dateOfBirth === "" )
-                        ? 0
-                        : calculate_age(moment(row.personResponseDto.dateOfBirth).format("DD-MM-YYYY")),
+            // data={ patientList.map((row) => ({
+            //     //Id: manager.id,
+            //     name:row.personResponseDto.firstName + " " + row.personResponseDto.surname,
+            //     hospital_number: getHospitalNumber(row.personResponseDto.identifier),
+            //     clientCode: row.uniqueClientId,
+            //     //phone_number:  row.phone,
+            //     gender:row && row.personResponseDto.sex ? row.personResponseDto.sex : "",
+            //     age: (row.personResponseDto.dateOfBirth === 0 ||
+            //         row.personResponseDto.dateOfBirth === undefined ||
+            //         row.personResponseDto.dateOfBirth === null ||
+            //         row.personResponseDto.dateOfBirth === "" )
+            //             ? 0
+            //             : calculate_age(moment(row.personResponseDto.dateOfBirth).format("DD-MM-YYYY")),
                 
-                count: (<Label color="blue" size="mini">{row.prepCount}</Label>),
+            //     count: (<Label color="blue" size="mini">{row.prepCount}</Label>),
                 
-                actions:
+            //     actions:
         
-                <div>
-                    {row.prepCount >0 && (
+            //     <div>
+            //         {row.prepCount >0 && (
+            //         <>
+            //             <Link
+            //                 to={{
+            //                     pathname: "/patient-history",
+            //                     state: {patientObj: row.personResponseDto,  prepId:row.uniqueClientId}
+            //                 }}
+                            
+            //             >
+            //                 <ButtonGroup variant="contained" 
+            //                     aria-label="split button"
+            //                     style={{backgroundColor:'rgb(153, 46, 98)', height:'30px',width:'215px'}}
+            //                     size="large"
+            //                 >
+            //                 <Button
+            //                 color="primary"
+            //                 size="small"
+            //                 aria-label="select merge strategy"
+            //                 aria-haspopup="menu"
+            //                 style={{backgroundColor:'rgb(153, 46, 98)'}}
+            //                 >
+            //                     <MdDashboard />
+            //                 </Button>
+            //                 <Button 
+            //                 style={{backgroundColor:'rgb(153, 46, 98)'}}
+            //                 >
+            //                     <span style={{fontSize:'12px', color:'#fff', fontWeight:'bolder'}}>Patient Dashboard</span>
+            //                 </Button>
+                            
+            //                 </ButtonGroup>
+            //             </Link> 
+            //         </>
+            //         )} 
+            //         {row.prepCount <=0 && (
+            //         <>
+            //             <Link
+            //                   to={{
+            //                       pathname: "/enroll-patient",
+            //                       state: { patientId : row.personId, patientObj: row.personResponseDto }
+            //                   }}
+            //               >
+            //                 <ButtonGroup variant="contained" 
+            //                     aria-label="split button"
+            //                     style={{backgroundColor:'rgb(153, 46, 98)', height:'30px',width:'215px'}}
+            //                     size="large"
+            //                 >
+            //                 <Button
+            //                 color="primary"
+            //                 size="small"
+            //                 aria-label="select merge strategy"
+            //                 aria-haspopup="menu"
+            //                 style={{backgroundColor:'rgb(153, 46, 98)'}}
+            //                 >
+            //                     <TiArrowForward />
+            //                 </Button>
+            //                 <Button 
+            //                 style={{backgroundColor:'rgb(153, 46, 98)'}}
+            //                 >
+            //                     <span style={{fontSize:'12px', color:'#fff', fontWeight:'bolder'}}>PrEp Enrollemnt</span>
+            //                 </Button>
+                            
+            //                 </ButtonGroup>
+            //             </Link> 
+            //         </>
+            //         )} 
+                                    
+            //     </div>
+                
+            //     }))}
+            data={query =>
+                new Promise((resolve, reject) =>
+                    axios.get(`${baseUrl}prep/persons?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`, { headers: {"Authorization" : `Bearer ${token}`} })
+                        .then(response => response)
+                        .then(result => {
+                            
+                            resolve({
+                                data: result.data.records.map((row) => ({
+                                    name:row.personResponseDto.firstName + " " + row.personResponseDto.surname,
+                                    hospital_number: getHospitalNumber(row.personResponseDto.identifier),
+                                    clientCode: row.uniqueClientId,
+                                    //phone_number:  row.phone,
+                                    gender:row && row.personResponseDto.sex ? row.personResponseDto.sex : "",
+                                    age: (row.personResponseDto.dateOfBirth === 0 ||
+                                        row.personResponseDto.dateOfBirth === undefined ||
+                                        row.personResponseDto.dateOfBirth === null ||
+                                        row.personResponseDto.dateOfBirth === "" )
+                                            ? 0
+                                            : calculate_age(moment(row.personResponseDto.dateOfBirth).format("DD-MM-YYYY")),
+                                    
+                                    count: (<Label color="blue" size="mini">{row.prepCount}</Label>),
+                                
+                                actions:
+                                <div>
+                                 {row.prepCount >0 && (
                     <>
                         <Link
                             to={{
@@ -221,60 +314,65 @@ const Patients = (props) => {
                             </ButtonGroup>
                         </Link> 
                     </>
-                    )} 
-                    {row.prepCount <=0 && (
-                    <>
-                        <Link
-                              to={{
-                                  pathname: "/enroll-patient",
-                                  state: { patientId : row.personId, patientObj: row.personResponseDto }
-                              }}
-                          >
-                            <ButtonGroup variant="contained" 
-                                aria-label="split button"
-                                style={{backgroundColor:'rgb(153, 46, 98)', height:'30px',width:'215px'}}
-                                size="large"
-                            >
-                            <Button
-                            color="primary"
-                            size="small"
-                            aria-label="select merge strategy"
-                            aria-haspopup="menu"
-                            style={{backgroundColor:'rgb(153, 46, 98)'}}
-                            >
-                                <TiArrowForward />
-                            </Button>
-                            <Button 
-                            style={{backgroundColor:'rgb(153, 46, 98)'}}
-                            >
-                                <span style={{fontSize:'12px', color:'#fff', fontWeight:'bolder'}}>PrEp Enrollemnt</span>
-                            </Button>
-                            
-                            </ButtonGroup>
-                        </Link> 
-                    </>
-                    )} 
-                                    
-                </div>
-                
-                }))}
-        
-                options={{
-                    headerStyle: {
-                        backgroundColor: "#014d88",
-                        color: "#fff",
-                    },
-                    searchFieldStyle: {
-                        width : '200%',
-                        margingLeft: '250px',
-                    },
-                    filtering: false,
-                    exportButton: false,
-                    searchFieldAlignment: 'left',
-                    pageSizeOptions:[10,20,100],
-                    pageSize:10,
-                    debounceInterval: 400
-                }}
+                                    )} 
+                                    {row.prepCount <=0 && (
+                                    <>
+                                        <Link
+                                            to={{
+                                                pathname: "/enroll-patient",
+                                                state: { patientId : row.personId, patientObj: row.personResponseDto }
+                                            }}
+                                        >
+                                            <ButtonGroup variant="contained" 
+                                                aria-label="split button"
+                                                style={{backgroundColor:'rgb(153, 46, 98)', height:'30px',width:'215px'}}
+                                                size="large"
+                                            >
+                                            <Button
+                                            color="primary"
+                                            size="small"
+                                            aria-label="select merge strategy"
+                                            aria-haspopup="menu"
+                                            style={{backgroundColor:'rgb(153, 46, 98)'}}
+                                            >
+                                                <TiArrowForward />
+                                            </Button>
+                                            <Button 
+                                            style={{backgroundColor:'rgb(153, 46, 98)'}}
+                                            >
+                                                <span style={{fontSize:'12px', color:'#fff', fontWeight:'bolder'}}>PrEp Enrollemnt</span>
+                                            </Button>
+                                            
+                                            </ButtonGroup>
+                                        </Link> 
+                                    </>
+                                    )} 
+                                                    
+                                </div>
+                                    })),
+                                page: query.page,
+                                totalCount: result.data.totalRecords,
+                                
+                            })
+                        })
+                        
+            )}
+            options={{
+                headerStyle: {
+                    backgroundColor: "#014d88",
+                    color: "#fff",
+                },
+                searchFieldStyle: {
+                    width : '200%',
+                    margingLeft: '250px',
+                },
+                filtering: false,
+                exportButton: false,
+                searchFieldAlignment: 'left',
+                pageSizeOptions:[10,20,100],
+                pageSize:10,
+                debounceInterval: 400
+            }}
         />
        
     </div>
