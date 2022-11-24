@@ -321,7 +321,7 @@ const PrEPCommencementForm = (props) => {
                                 </FormGroup>
                             )}
                         </div>
-                                
+                        {props.patientObj.personResponseDto.sex==='Female'  || props.patientObj.personResponseDto.sex==='female' || props.patientObj.personResponseDto.sex==='FEMALE' && (       
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="prepRegimen">Pregnancy Status</Label>
@@ -344,6 +344,7 @@ const PrEPCommencementForm = (props) => {
                         </FormGroup>
                         
                         </div>
+                        )}
                         {objValues.pregnancyStatus==='PREGANACY_STATUS_BREASTFEEDING' && (
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>

@@ -344,7 +344,7 @@ const BasicInfo = (props) => {
                             </FormGroup>
                         </div>
                         )}
-                        {props.patientObj.personResponseDto.sex==='Male'   && (
+                        {props.patientObj.personResponseDto.sex==='Male' || props.patientObj.personResponseDto.sex==='male'  && (
                         <div className="form-group  col-md-4">
                             <FormGroup>
                                 <Label>Number of wives </Label>
