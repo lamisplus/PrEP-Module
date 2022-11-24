@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import { Link } from 'react-router-dom'
@@ -61,6 +61,10 @@ function PatientCard(props) {
     const { classes } = props;
     const patientObj = history.location && history.location.state ? history.location.state.patientObj : {}
     const prepId = history.location && history.location.state ? history.location.state.prepId : {}
+    console.log(patientObj)
+    useEffect(() => {
+
+     }, [patientObj]);
 
   return (
     <div className={classes.root}>

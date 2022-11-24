@@ -98,6 +98,7 @@ const PrEPCommencementForm = (props) => {
         prepClientId: props.prepId,
         prepRegimen: "",
         urinalysisResult: "",
+        prepEligibilityUuid:"",
         weight:"",
         pregnancyStatus:"",
         breastFeeding:"",
@@ -108,7 +109,7 @@ const PrEPCommencementForm = (props) => {
     });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
-    const [carePoints, setCarePoints] = useState([]);
+    const [pregnancyStatus, setPregnancyStatus] = useState([]);
     const [hivStatus, setHivStatus] = useState([]);
     //set ro show the facility name field if is transfer in 
     const [transferIn, setTransferIn] = useState(false);
@@ -116,8 +117,20 @@ const PrEPCommencementForm = (props) => {
     const [ovcEnrolled, setOvcEnrolled] = useState(false);
 
     useEffect(() => {         
-
+        PREGANACY_STATUS();
       }, []);
+      const PREGANACY_STATUS =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/PREGANACY_STATUS`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setPregnancyStatus(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
             //Vital signs clinical decision support 
     const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
         bodyWeight: "",
@@ -164,7 +177,7 @@ const PrEPCommencementForm = (props) => {
         e.preventDefault();
         if(validate()){
            setSaving(true);
-          axios.put(`${baseUrl}prep/${props.prepId}/commencement`,objValues,
+          axios.post(`${baseUrl}prep/enrollment`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},          
           ).then(response => {
                   setSaving(false);
@@ -321,8 +334,8 @@ const PrEPCommencementForm = (props) => {
                             
                         >
                         <option value="1"> </option>
-                        {carePoints.map((value) => (
-                            <option key={value.id} value={value.id}>
+                        {pregnancyStatus.map((value) => (
+                            <option key={value.id} value={value.code}>
                                 {value.display}
                             </option>
                         ))}
@@ -331,6 +344,7 @@ const PrEPCommencementForm = (props) => {
                         </FormGroup>
                         
                         </div>
+                        {objValues.pregnancyStatus==='PREGANACY_STATUS_BREASTFEEDING' && (
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="">Breast Feeding</Label>
@@ -342,7 +356,7 @@ const PrEPCommencementForm = (props) => {
                             value={objValues.breastFeeding}
                             
                         >
-                        <option value=""> </option>
+                        <option value="">Select </option>
                         <option value="Yes"> Yes</option>
                         <option value="No"> No</option>
                         </Input>
@@ -350,6 +364,7 @@ const PrEPCommencementForm = (props) => {
                         </FormGroup>
                         
                         </div>
+                        )}
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="">History of drug Allergies</Label>
@@ -409,7 +424,7 @@ const PrEPCommencementForm = (props) => {
                             id="dateReferred"
                             onChange={handleInputChange}
                             value={objValues.dateReferred}
-                            
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
                         />
                         {errors.dateReferred !=="" ? (
                                 <span className={classes.error}>{errors.dateReferred}</span>

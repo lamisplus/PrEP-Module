@@ -15,15 +15,12 @@ function SubMenu(props) {
     const classes = useStyles();
     let gender=""
     const patientObjs = props.patientObj ? props.patientObj : {}
-    const patientCurrentStatus=props.patientObj && props.patientObj.currentStatus==="Died (Confirmed)" ? true : false ;
+    //const patientCurrentStatus=props.patientObj && props.patientObj.currentStatus==="Died (Confirmed)" ? true : false ;
     const [patientObj, setpatientObj] = useState(patientObjs)
     const [genderType, setGenderType] = useState()
-    let mentalStatus=false
-    let initialEvaluationStatus=false
+    console.log(patientObj)
     useEffect(() => {
         Observation();
-        gender =props.patientObj && props.patientObj.sex ? props.patientObj.sex : null
-        setGenderType(gender==="Female" ? true : false)
     }, [props.patientObj]);
      //Get list of RegimenLine
      const Observation =()=>{
@@ -35,12 +32,7 @@ function SubMenu(props) {
                 const observation = response.data
                 const mental= observation.filter((x)=> x.type==='mental health')
                 const evaluation= observation.filter((x)=> x.type==='initial evaluation')
-                if(mental.length > 1){
-                    mentalStatus=true
-                }
-                if(evaluation.length > 1){
-                    initialEvaluationStatus=true
-                }
+                
 
             })
             .catch((error) => {
@@ -91,10 +83,16 @@ function SubMenu(props) {
          <div>
             <Menu size="mini" color={"black"} inverted >
                 <Menu.Item onClick={() => onClickHome()} > Home</Menu.Item>                  
-                <Menu.Item onClick={() => onClickConsultation()} > PrEP Visit</Menu.Item>
-                {/* <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibilty Screening Form</Menu.Item> */}
-                <Menu.Item onClick={() => loadPrEPDiscontinuationsInterruptions()} >PrEP Discontinuations & Interruptions</Menu.Item>
-                <Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>
+                {patientObj.prepEligibilityCount<=0 || patientObj.prepEnrollmentCount<=0 ? 
+                (<>
+                    {patientObj.prepEligibilityCount<=0 && (<Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibilty Screening Form</Menu.Item>)}
+                    {patientObj.prepEligibilityCount >0 && patientObj.prepEnrollmentCount<=0 && (<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
+                </>)
+                :
+                (<>  
+                    <Menu.Item onClick={() => onClickConsultation()} > PrEP Visit</Menu.Item>
+                    <Menu.Item onClick={() => loadPrEPDiscontinuationsInterruptions()} >PrEP Discontinuations & Interruptions</Menu.Item>
+                </>)}
                 <Menu.Item >History</Menu.Item>                     
             </Menu>             
         </div>

@@ -105,22 +105,21 @@ const PrEPRegistrationForm = (props) => {
     }
     /**** Submit Button Processing  */
     const handleSubmit = (e) => {        
-        e.preventDefault();
-        
+        e.preventDefault();    
           objValues.personId= patientObj.id
-          patientObj.enrolled=true
-          delete objValues['tableData'];
+          //patientObj.enrolled=true
+          //delete objValues['tableData'];
           setSaving(true);
-          axios.post(`${baseUrl}hiv/enrollment`,objValues,
+          axios.post(`${baseUrl}prep/enrollment`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},
           
           )
               .then(response => {
                   setSaving(false);
                   toast.success("Record save successful");
-                  props.toggle()
-                  props.patientObj.enrolled=true
-                  props.PatientCurrentStatus()
+                  //props.toggle()
+                  //props.patientObj.enrolled=true
+                  //props.PatientCurrentStatus()
 
               })
               .catch(error => {
