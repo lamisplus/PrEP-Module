@@ -44,11 +44,11 @@ public class PrepDto implements Serializable {
 
     private String careEntryPointOther;
 
-    private LocalDate dateOfLpm;
-
     private String pregnancyStatus;
 
     private Object extra;
+
+    private String status;
 
     private PersonResponseDto personResponseDto;
 

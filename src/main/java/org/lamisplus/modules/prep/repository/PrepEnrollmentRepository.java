@@ -19,4 +19,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
     Optional<String> findInHivEnrollmentByUuid(String uuid);
 
     Optional<PrepEnrollment> findByPrepEligibilityUuid(String prepEligibilityUuid);
+
+    Optional<PrepEnrollment> findByUuid(String enrollmentUuid);
 }

@@ -28,6 +28,8 @@ public class PrepEligibilityDto implements Serializable {
     private String uniqueId;
 
     private Object extra;
+    private String prepStatus;
+    private Integer prepEligibilityCount;
 
     private PersonResponseDto personResponseDto;
 }

@@ -20,6 +20,7 @@ public class PrepEligibilityRequestDto implements Serializable {
     @NotNull(message = "personalHivRiskAssessment is mandatory")
     private Object personalHivRiskAssessment;
     private Object sexPartnerRisk;
+    @NotNull(message = "personId is mandatory")
     private Long personId;
     private String sexPartner;
     private String counselingType;
@@ -30,7 +31,7 @@ public class PrepEligibilityRequestDto implements Serializable {
     @NotBlank(message = "targetGroup is mandatory")
     private String targetGroup;
     private Object extra;
-    public PersonDto personDto;
     @NotBlank(message = "uniqueId is mandatory")
     private String uniqueId;
+    private Integer score;
 }

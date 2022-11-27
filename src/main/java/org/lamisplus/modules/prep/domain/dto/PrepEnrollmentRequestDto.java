@@ -16,42 +16,29 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PrepEnrollmentRequestDto implements Serializable {
+    @NotNull(message = "personId is mandatory")
+    private Long personId;
+
     private String uniqueId;
-
-    private String entryPoint;
-
-    private String targetGroup;
-
-    private String sourceOfReferrer;
-
-    private Boolean pregnant;
-
-    private Boolean breastfeeding;
-
-    private LocalDate dateOfRegistration;
-
-    private String statusAtRegistration;
-
-    private Long enrollmentSetting;
 
     @NotBlank(message = "prepEligibilityUuid is mandatory")
     public String prepEligibilityUuid;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate dateStarted;
+    //@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @NotNull(message = "dateEnrolled is mandatory")
+    private LocalDate dateEnrolled;
 
-    private int archived;
+    private LocalDate dateReferred;
 
-    private String facilityName;
-
-    private String careEntryPointOther;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate dateOfLpm;
-
-    private String pregnancyStatus;
+    private String riskType; //applicationCodeSet
 
     private Object extra;
 
-    //public PersonDto personDto;
+    private String supporterName;
+
+    private String supporterRelationshipType;
+
+    private String supporterPhone;
+
+    private String ancUniqueArtNo;
 }

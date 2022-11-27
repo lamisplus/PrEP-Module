@@ -6,6 +6,7 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -16,38 +17,33 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PrepEnrollmentDto implements Serializable {
+    private Long id;
 
     private String uniqueId;
 
-    private String entryPoint;
-
-    private String targetGroup;
-
-    private String sourceOfReferrer;
-
-    private Boolean pregnant;
-
-    private Boolean breastfeeding;
-
     private LocalDate dateOfRegistration;
 
-    private String statusAtRegistration;
+    @NotBlank(message = "prepEligibilityUuid is mandatory")
+    public String prepEligibilityUuid;
 
-    private Long enrollmentSetting;
+    //@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate dateEnrolled;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate dateStarted;
+    private LocalDate dateReferred;
 
-    private int archived;
+    private String riskType; //applicationCodeSet
 
-    private String facilityName;
+    private Object extra;
 
-    private String careEntryPointOther;
+    private String supporterName;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate dateOfLpm;
+    private String supporterRelationshipType;
 
-    private String pregnancyStatus;
+    private String supporterPhone;
 
-    public Long personId;
+    private boolean isCommenced;
+
+    private String status;
+
+    private String ancUniqueArtNo;
 }

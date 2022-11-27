@@ -1,7 +1,6 @@
 package org.lamisplus.modules.prep.domain.entity;
 
 
-
 import com.vladmihalcea.hibernate.type.array.IntArrayType;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
@@ -10,7 +9,6 @@ import com.vladmihalcea.hibernate.type.json.JsonNodeStringType;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -29,7 +27,7 @@ import java.util.UUID;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
-@Table(name = "prep_clinical")
+@Table(name = "prep_clinic")
 @TypeDefs({
         @TypeDef(name = "string-array", typeClass = StringArrayType.class),
         @TypeDef(name = "int-array", typeClass = IntArrayType.class),
@@ -38,29 +36,26 @@ import java.util.UUID;
         @TypeDef(name = "jsonb-node", typeClass = JsonNodeBinaryType.class),
         @TypeDef(name = "json-node", typeClass = JsonNodeStringType.class),
 })
-public class PrepClinical extends Audit implements Serializable{
+public class PrepClinic extends Audit implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "visit_date")
-    private LocalDate visitDate;
+    @Column(name = " date_initial_adherence_counseling")
+    private LocalDate  dateInitialAdherenceCounseling;
 
-    @Column(name = "is_commencement")
-    private Boolean isCommencement;
+    @Column(name = "weight")
+    private Double weight;
 
-    @Column(name = "functional_status_uuid")
-    private String functionalStatusUuid;
+    @Column(name = "height")
+    private Double height;
 
-    @Column(name = "clinical_stage_uuid")
-    private String clinicalStageUuid;
+    @Column(name = "pregnant")
+    private Boolean pregnant;
 
-    @Column(name = "clinical_note")
-    private String clinicalNote;
-
-    @Column(name = "prep_enrollment_uuid")
-    private String prepEnrollmentUuid;
+    @Column(name = "breastfeeding")
+    private Boolean breastfeeding;
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     private String uuid;
@@ -68,6 +63,9 @@ public class PrepClinical extends Audit implements Serializable{
     @ManyToOne
     @JoinColumn(name = "prep_enrollment_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private PrepEnrollment prepEnrollment;
+
+    @Column(name = "prep_enrollment_uuid")
+    private String prepEnrollmentUuid;
 
     @Column(name = "regimen_id")
     private long regimenId;
@@ -77,6 +75,16 @@ public class PrepClinical extends Audit implements Serializable{
 
     @Column(name = "archived")
     private Integer archived;
+
+    //Urinalysis Result
+    @Column(name = "urinalysis_result")
+    private String urinalysisResult;
+
+    @Column(name = "referred")
+    private Boolean referred;
+
+    @Column(name = "date_referred")
+    private LocalDate dateReferred;
 
     @Column(name = "vital_sign_uuid")
     private String vitalSignUuid;
@@ -99,38 +107,14 @@ public class PrepClinical extends Audit implements Serializable{
     @JoinColumn(name = "visit_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private Visit visit;
 
-    @Column(name = "oi_screened")
-    private String oiScreened;
-
-    @Column(name = "sti_ids")
-    private String stiIds;
-
-    @Column(name = "sti_treated")
-    private String stiTreated;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "opportunistic_infections", columnDefinition = "jsonb")
-    private Object opportunisticInfections;
-
-    @Column(name = "adherence_level")
-    private String adherenceLevel;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "adheres", columnDefinition = "jsonb")
-    private Object adheres;
-
     @Column(name = "next_appointment")
     private LocalDate nextAppointment;
 
-    @Column(name = "lmp_date")
-    private LocalDate lmpDate;
+    @Column(name = "facility_id")
+    private Long facilityId;
 
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "tb_screen", columnDefinition = "jsonb")
-    private Object tbScreen;
+    @Column(name = "is_commencement")
+    private Boolean isCommencement;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
@@ -141,6 +125,9 @@ public class PrepClinical extends Audit implements Serializable{
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){
             uuid = UUID.randomUUID().toString();
+        }
+        if(archived == null){
+            archived=0;
         }
     }
 }

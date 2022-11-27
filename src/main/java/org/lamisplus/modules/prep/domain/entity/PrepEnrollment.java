@@ -43,31 +43,8 @@ public class PrepEnrollment extends Audit implements Serializable {
     @Column(name = "unique_id")
     private String uniqueId;
 
-    @Column(name = "entry_point")
-    private String entryPoint;
-
-    @Column(name = "target_group")
-    private String targetGroup;
-
-    @Column(name = "source_of_referrer")
-    private String sourceOfReferrer;
-
-    @Column(name = "pregnant")
-    private Boolean pregnant;
-
-    @Column(name = "breastfeeding")
-    private Boolean breastfeeding;
-
-    @Column(name = "date_of_registration")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate dateOfRegistration;
-
-    @Column(name = "status_at_registration")
-    private String statusAtRegistration;
-
-    @Basic
-    @Column(name = "enrollment_setting")
-    private String enrollmentSetting;
+    @Column(name = "status")
+    private String status;
 
     @Column(name = "date_started")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -85,23 +62,13 @@ public class PrepEnrollment extends Audit implements Serializable {
     private String uuid;
 
     @Column(name = "archived")
-    private int archived;
+    private Integer archived;
 
     @Column(name = "person_uuid")
     private String personUuid;
 
-    @Column(name = "facility_name")
-    private String facilityName;
-
-    @Column(name = "care_entry_point_other")
-    private String careEntryPointOther;
-
-    @Column(name = "date_of_lpm")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate dateOfLpm;
-
-    @Column(name = "pregnancy_status")
-    private String pregnancyStatus;
+    @Column(name = "visit_uuid")
+    private String visitUuid;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
@@ -118,10 +85,34 @@ public class PrepEnrollment extends Audit implements Serializable {
     @JoinColumn(name = "prep_eligibility_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private PrepEligibility prepEligibility;
 
+    @Column(name = "supporter_name")
+    private String supporterName;
+
+    @Column(name = "supporter_relationship_type")
+    private String supporterRelationshipType;
+
+    @Column(name = "supporter_phone")
+    private String supporterPhone;
+
+    @Column(name = "risk_type")
+    private String riskType;
+
+    @Column(name = "anc_unique_art_no")
+    private String ancUniqueArtNo;
+
+    @Column(name = "date_enrolled")
+    private LocalDate dateEnrolled;
+
+    @Column(name = "date_referred")
+    private LocalDate dateReferred;
+
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){
             uuid = UUID.randomUUID().toString();
+        }
+        if(archived == null){
+            archived=0;
         }
     }
 

@@ -40,6 +40,9 @@ public class PrepEligibility  extends Audit implements Serializable {
     @Column(name = "unique_id")
     private String uniqueId;
 
+    @Column(name = "score")
+    private Integer score;
+
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "hiv_risk", columnDefinition = "jsonb")
@@ -108,6 +111,9 @@ public class PrepEligibility  extends Audit implements Serializable {
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){
             uuid = UUID.randomUUID().toString();
+        }
+        if(archived == null){
+            archived = 0;
         }
     }
 }
