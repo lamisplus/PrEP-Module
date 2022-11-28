@@ -94,17 +94,19 @@ const PrEPCommencementForm = (props) => {
         dateInitialAdherenceCounseling: "",
         datePrepStart: "",
         height: "",
-        personId: patientObj.id,
+        personId: patientObj.personId,
         prepClientId: props.prepId,
-        prepRegimen: "",
+        regimenId: "",
         urinalysisResult: "",
-        prepEligibilityUuid:"c2e060d2-8b73-47d2-9b6c-8c1411506a65",
+        prepEligibilityUuid:"",
         weight:"",
-        pregnancyStatus:"",
-        breastFeeding:"",
         drugAllergies:"",
         reffered:"",
-        dateReferred:""
+        datereferred:"",
+        extra: {},
+        nextAppointment: "",
+        pregnant: true,
+        prepEnrollmentUuid: "",
 
     });
     const [saving, setSaving] = useState(false);
@@ -114,12 +116,13 @@ const PrEPCommencementForm = (props) => {
     //set ro show the facility name field if is transfer in 
     const [transferIn, setTransferIn] = useState(false);
     // display the OVC number if patient is enrolled into OVC 
-    const [ovcEnrolled, setOvcEnrolled] = useState(false);
+    const [patientDto, setPatientDto] = useState();
 
     useEffect(() => {         
         PREGANACY_STATUS();
-      }, []);
-      const PREGANACY_STATUS =()=>{
+        GetPatientDTOObj();
+    }, []);
+    const PREGANACY_STATUS =()=>{
         axios
         .get(`${baseUrl}application-codesets/v2/PREGANACY_STATUS`,
             { headers: {"Authorization" : `Bearer ${token}`} }
@@ -130,6 +133,18 @@ const PrEPCommencementForm = (props) => {
         .catch((error) => {
         //console.log(error);
         });    
+    }
+    const GetPatientDTOObj =()=>{
+        axios
+           .get(`${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+               { headers: {"Authorization" : `Bearer ${token}`} }
+           )
+           .then((response) => {
+               setPatientDto(response.data);
+           })
+           .catch((error) => {
+           //console.log(error);
+           });          
     }
             //Vital signs clinical decision support 
     const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
@@ -145,11 +160,11 @@ const PrEPCommencementForm = (props) => {
         let temp = { ...errors }
         temp.dateInitialAdherenceCounseling = objValues.dateInitialAdherenceCounseling ? "" : "This field is required"
         temp.datePrepStart = objValues.datePrepStart ? "" : "This field is required"
-        temp.prepRegimen = objValues.prepRegimen ? "" : "This field is required"
+        temp.regimenId = objValues.regimenId ? "" : "This field is required"
         temp.height = objValues.height ? "" : "This field is required"
         temp.weight = objValues.weight ? "" : "This field is required"
         temp.reffered = objValues.reffered ? "" : "This field is required"
-        temp.dateReferred = objValues.dateReferred ? "" : "This field is required"
+        temp.datereferred = objValues.datereferred ? "" : "This field is required"
         setErrors({
             ...temp
             })    
@@ -177,6 +192,7 @@ const PrEPCommencementForm = (props) => {
         e.preventDefault();
         if(validate()){
            setSaving(true);
+           objValues.prepEnrollmentUuid=patientDto.uuid 
           axios.post(`${baseUrl}prep/commencement`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},          
           ).then(response => {
@@ -331,7 +347,7 @@ const PrEPCommencementForm = (props) => {
                         {props.patientObj.personResponseDto.sex==='Female'  || props.patientObj.personResponseDto.sex==='female' || props.patientObj.personResponseDto.sex==='FEMALE' && (       
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                        <Label for="prepRegimen">Pregnancy Status</Label>
+                        <Label for="">Pregnancy Status</Label>
                         <Input
                             type="select"
                             name="pregnancyStatus"
@@ -404,7 +420,7 @@ const PrEPCommencementForm = (props) => {
                         </div>
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                        <Label for="">Referred</Label>
+                        <Label for="">referred</Label>
                         <Input
                             type="select"
                             name="reffered"
@@ -425,30 +441,30 @@ const PrEPCommencementForm = (props) => {
                         </div>
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                        <Label for="">Date Referred</Label>
+                        <Label for="">Date referred</Label>
                         <Input
                             type="date"
-                            name="dateReferred"
-                            id="dateReferred"
+                            name="datereferred"
+                            id="datereferred"
                             onChange={handleInputChange}
-                            value={objValues.dateReferred}
+                            value={objValues.datereferred}
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                         />
-                        {errors.dateReferred !=="" ? (
-                                <span className={classes.error}>{errors.dateReferred}</span>
+                        {errors.datereferred !=="" ? (
+                                <span className={classes.error}>{errors.datereferred}</span>
                             ) : "" } 
                         </FormGroup>
                         
                         </div>
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                        <Label for="prepRegimen">PrEP Regimen</Label>
+                        <Label for="">PrEP Regimen</Label>
                         <Input
                             type="select"
-                            name="prepRegimen"
-                            id="prepRegimen"
+                            name="regimenId"
+                            id="regimenId"
                             onChange={handleInputChange}
-                            value={objValues.prepRegimen}
+                            value={objValues.regimenId}
                             
                         >
                         <option value="1"> All Regimen</option>
@@ -457,8 +473,8 @@ const PrEPCommencementForm = (props) => {
                         <option value="34"> Third Line</option>
             
                         </Input>
-                        {errors.prepRegimen !=="" ? (
-                                <span className={classes.error}>{errors.prepRegimen}</span>
+                        {errors.regimenId !=="" ? (
+                                <span className={classes.error}>{errors.regimenId}</span>
                             ) : "" } 
                         </FormGroup>
                         

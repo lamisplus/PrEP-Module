@@ -13,7 +13,6 @@ import { useHistory } from "react-router-dom";
 import {  Modal, Button } from "react-bootstrap";
 import "react-widgets/dist/css/react-widgets.css";
 import { DateTimePicker } from "react-widgets";
-// import Moment from "moment";
 // import momentLocalizer from "react-widgets-moment";
 import moment from "moment";
 import { Spinner } from "reactstrap";
@@ -63,7 +62,7 @@ const PrEPRegistrationForm = (props) => {
         dateReferred: "",
         extra: {},
         personId: 0,
-        prepEligibilityUuid: "c2e060d2-8b73-47d2-9b6c-8c1411506a65",
+        prepEligibilityUuid: "",
         riskType: "",
         supporterName: "",
         supporterPhone: "",
@@ -74,7 +73,7 @@ const PrEPRegistrationForm = (props) => {
     const [errors, setErrors] = useState({});
     const [carePoints, setCarePoints] = useState([]);
     const [relatives, setRelatives] = useState([]);
-    const [patientDto, setPatientDto] = useState([]);
+    const [patientDto, setPatientDto] = useState();
 
     useEffect(() => {         
         GetPatientDTOObj();
@@ -92,13 +91,13 @@ const PrEPRegistrationForm = (props) => {
            //console.log(error);
            });          
     } 
-      const GetPatientDTOObj =()=>{
+    const GetPatientDTOObj =()=>{
         axios
-           .get(`${baseUrl}prep/persons/${props.patientObj.personId}`,
+           .get(`${baseUrl}prep/eligibility/open/patients/${props.patientObj.personId}`,
                { headers: {"Authorization" : `Bearer ${token}`} }
            )
            .then((response) => {
-               const patientDTO= response.data.enrollment
+               //const patientDTO= response.data.enrollment
                setPatientDto(response.data);
            })
            .catch((error) => {
@@ -129,6 +128,7 @@ const PrEPRegistrationForm = (props) => {
         e.preventDefault();
         if(validate) {   
           objValues.personId=props.patientObj.personId
+          objValues.prepEligibilityUuid=patientDto.uuid 
           setSaving(true);
           axios.post(`${baseUrl}prep/enrollment`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},
@@ -197,7 +197,7 @@ const PrEPRegistrationForm = (props) => {
                                     value={objValues.dateEnrolled}
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                    //disabled={locationState.actionType==='update'? false : true}
+                                    max= {moment(new Date()).format("YYYY-MM-DD") }
                                 />
                                     {errors.dateEnrolled !=="" ? (
                                         <span className={classes.error}>{errors.dateEnrolled}</span>
@@ -258,6 +258,7 @@ const PrEPRegistrationForm = (props) => {
                                         value={objValues.dateOfLastHivNegativeTest}
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        max= {moment(new Date()).format("YYYY-MM-DD") }
                                         disabled
                                     />
                                      {errors.dateOfLastHivNegativeTest !=="" ? (
@@ -276,7 +277,7 @@ const PrEPRegistrationForm = (props) => {
                                         value={objValues.dateReferred}
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        //disabled={locationState.actionType==='update'? false : true}
+                                        max= {moment(new Date()).format("YYYY-MM-DD") }
                                     />
                                     {errors.dateReferred !=="" ? (
                                         <span className={classes.error}>{errors.dateReferred}</span>
