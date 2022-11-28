@@ -83,10 +83,11 @@ function SubMenu(props) {
          <div>
             <Menu size="mini" color={"black"} inverted >
                 <Menu.Item onClick={() => onClickHome()} > Home</Menu.Item>                  
-                {patientObj.prepEligibilityCount<=0 || patientObj.prepEnrollmentCount<=0 ? 
+                {patientObj.prepEligibilityCount<=0 || patientObj.prepEnrollmentCount<=0 || patientObj.commenced!==true ? 
                 (<>
                     {patientObj.prepEligibilityCount<=0 && (<Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibilty Screening Form</Menu.Item>)}
-                    {patientObj.prepEligibilityCount >0 && patientObj.prepEnrollmentCount<=0 && (<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
+                    {patientObj.prepEligibilityCount >0 && patientObj.prepEnrollmentCount<=0 && (<Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>)}
+                    {patientObj.prepEligibilityCount >0 && patientObj.prepEnrollmentCount>0 && patientObj.commenced!==true && (<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
                 </>)
                 :
                 (<>  

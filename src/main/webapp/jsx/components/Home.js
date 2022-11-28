@@ -22,6 +22,18 @@ const Home = () => {
 				<li className="breadcrumb-item active"><h4>PrEP</h4></li>
 			</ol>
 		  </div>
+      <Link to={"register-patient"}>
+            <Button
+                variant="contained"
+                color="primary"
+                className=" float-end mb-10"
+                startIcon={<FaUserPlus size="10"/>}
+                style={{backgroundColor:'#014d88'}}
+            >
+                <span style={{ textTransform: "capitalize" }}>New Patient</span>
+            </Button>
+        </Link>
+        <br/><br/>
       <br/>
       <Row>       
         <Col xl={12}>
