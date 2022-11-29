@@ -4,6 +4,7 @@ import lombok.*;
 import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 @Builder(toBuilder = true)
 @Getter
@@ -32,4 +33,6 @@ public class PrepEligibilityDto implements Serializable {
     private Integer prepEligibilityCount;
 
     private PersonResponseDto personResponseDto;
+
+    private LocalDate visitDate;
 }

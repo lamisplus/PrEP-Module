@@ -23,9 +23,7 @@ public class PrepClinicRequestDto implements Serializable{
     @NotNull(message = "height is mandatory")
     private Double height;
 
-    private Boolean pregnant;
-
-    private Boolean breastfeeding;
+    private String pregnant;
 
     @NotBlank(message = "prepEnrollmentUuid is mandatory")
     private String prepEnrollmentUuid;
@@ -47,5 +45,7 @@ public class PrepClinicRequestDto implements Serializable{
     private LocalDate nextAppointment;
 
     private Object extra;
+
+    private LocalDate datePrepStart;
 }
 

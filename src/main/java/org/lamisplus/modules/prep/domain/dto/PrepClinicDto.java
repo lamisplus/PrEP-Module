@@ -22,9 +22,7 @@ public class PrepClinicDto implements Serializable{
 
     private Double height;
 
-    private Boolean pregnant;
-
-    private Boolean breastfeeding;
+    private String pregnant;
 
     private String prepEnrollmentUuid;
 
@@ -48,5 +46,6 @@ public class PrepClinicDto implements Serializable{
 
     private Boolean isCommencement;
 
+    private LocalDate datePrepStart;
 }
 

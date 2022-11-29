@@ -18,9 +18,11 @@ import org.lamisplus.modules.prep.domain.dto.*;
 import org.lamisplus.modules.prep.domain.entity.PrepClinic;
 import org.lamisplus.modules.prep.domain.entity.PrepEligibility;
 import org.lamisplus.modules.prep.domain.entity.PrepEnrollment;
+import org.lamisplus.modules.prep.domain.entity.PrepInterruption;
 import org.lamisplus.modules.prep.repository.PrepClinicRepository;
 import org.lamisplus.modules.prep.repository.PrepEligibilityRepository;
 import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
+import org.lamisplus.modules.prep.repository.PrepInterruptionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.lamisplus.modules.base.util.Constants.ArchiveStatus.ARCHIVED;
@@ -47,8 +50,11 @@ public class PrepService {
     private final VisitService visitService;
     private final VisitRepository visitRepository;
     private final PrepClinicRepository prepClinicRepository;
+    private final PatientActivityService patientActivityService;
 
     private ModuleService moduleService;
+
+    private PrepInterruptionRepository prepInterruptionRepository;
 
     public Person getPerson(Long personId) {
         return personRepository.findById (personId)
@@ -122,135 +128,27 @@ public class PrepService {
         return prepClinicDto;
     }
 
-    private PrepEnrollment enrollmentRequestDtoToEnrollment(PrepEnrollmentRequestDto prepEnrollmentRequestDto, String personUuid) {
-        if ( prepEnrollmentRequestDto == null ) {
-            return null;
-        }
+    public PrepInterruptionDto saveInterruption (PrepInterruptionRequestDto interruptionRequestDto){
+        Person person = this.getPerson(interruptionRequestDto.getPersonId());
 
-        PrepEnrollment prepEnrollment = new PrepEnrollment();
+        this.prepEnrollmentRepository.findByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED)
+                .orElseThrow(()-> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", String.valueOf(interruptionRequestDto.getPersonId())));
 
-        prepEnrollment.setPersonUuid( personUuid);
-        prepEnrollment.setExtra( prepEnrollmentRequestDto.getExtra() );
-        prepEnrollment.setUniqueId( prepEnrollmentRequestDto.getUniqueId() );
-        prepEnrollment.setExtra( prepEnrollmentRequestDto.getExtra() );
-        prepEnrollment.setPrepEligibilityUuid( prepEnrollmentRequestDto.getPrepEligibilityUuid() );
 
-        prepEnrollment.setDateEnrolled( prepEnrollmentRequestDto.getDateEnrolled() );
-        prepEnrollment.setDateReferred( prepEnrollmentRequestDto.getDateReferred() );
-        prepEnrollment.setRiskType( prepEnrollmentRequestDto.getRiskType() );
-        prepEnrollment.setSupporterName( prepEnrollmentRequestDto.getSupporterName() );
-        prepEnrollment.setSupporterRelationshipType( prepEnrollmentRequestDto.getSupporterRelationshipType() );
-        prepEnrollment.setSupporterPhone( prepEnrollmentRequestDto.getSupporterPhone() );
-        prepEnrollment.setStatus("ENROLLED");
+        PrepInterruption prepInterruption = this.prepInterruptionRequestDtoToPrepInterruption(interruptionRequestDto, person.getUuid());
 
-        prepEnrollment.setAncUniqueArtNo( prepEnrollmentRequestDto.getAncUniqueArtNo() );
-
-        return prepEnrollment;
-    }
-
-    private PrepClinic clinicRequestDtoToClinic(PrepClinicRequestDto prepClinicRequestDto, String personUuid) {
-        if ( prepClinicRequestDto == null ) {
-            return null;
-        }
-
-        PrepClinic prepClinic = new PrepClinic();
-
-        prepClinic.setPersonUuid( personUuid);
-        prepClinic.setExtra( prepClinicRequestDto.getExtra() );
-        prepClinic.setDateInitialAdherenceCounseling( prepClinicRequestDto.getDateInitialAdherenceCounseling() );
-        prepClinic.setWeight( prepClinicRequestDto.getWeight() );
-        prepClinic.setHeight( prepClinicRequestDto.getHeight() );
-        prepClinic.setPregnant( prepClinicRequestDto.getPregnant() );
-
-        prepClinic.setBreastfeeding( prepClinicRequestDto.getBreastfeeding() );
-        prepClinic.setDateReferred( prepClinicRequestDto.getDateReferred() );
-        prepClinic.setPrepEnrollmentUuid( prepClinicRequestDto.getPrepEnrollmentUuid() );
-        prepClinic.setRegimenId( prepClinicRequestDto.getRegimenId() );
-        prepClinic.setUrinalysisResult( prepClinicRequestDto.getUrinalysisResult() );
-        prepClinic.setReferred( prepClinicRequestDto.getReferred() );
-
-        prepClinic.setDateReferred( prepClinicRequestDto.getDateReferred() );
-        prepClinic.setNextAppointment( prepClinicRequestDto.getNextAppointment() );
-        prepClinic.setExtra( prepClinicRequestDto.getExtra() );
-
-        return prepClinic;
-    }
-
-    private PrepClinicDto clinicToClinicDto(PrepClinic clinic) {
-        if ( clinic == null ) {
-            return null;
-        }
-
-        PrepClinicDto prepClinicDto = new PrepClinicDto();
-
-        prepClinicDto.setId( clinic.getId());
-        prepClinicDto.setExtra( clinic.getExtra() );
-        prepClinicDto.setDateInitialAdherenceCounseling( clinic.getDateInitialAdherenceCounseling() );
-        prepClinicDto.setWeight( clinic.getWeight() );
-        prepClinicDto.setHeight( clinic.getHeight() );
-        prepClinicDto.setPregnant( clinic.getPregnant() );
-
-        prepClinicDto.setBreastfeeding( clinic.getBreastfeeding() );
-        prepClinicDto.setDateReferred( clinic.getDateReferred() );
-        prepClinicDto.setPrepEnrollmentUuid( clinic.getPrepEnrollmentUuid() );
-        prepClinicDto.setRegimenId( clinic.getRegimenId() );
-        prepClinicDto.setUrinalysisResult( clinic.getUrinalysisResult() );
-        prepClinicDto.setReferred( clinic.getReferred() );
-
-        prepClinicDto.setDateReferred( clinic.getDateReferred() );
-        prepClinicDto.setNextAppointment( clinic.getNextAppointment() );
-        prepClinicDto.setExtra( clinic.getExtra() );
-        prepClinicDto.setIsCommencement(clinic.getIsCommencement());
-
-        return prepClinicDto;
+        prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
+        prepInterruption = prepInterruptionRepository.save(prepInterruption);
+        prepInterruption.setPerson(person);
+        PrepInterruptionDto prepInterruptionDto = this.prepInterruptionToPrepInterruptionDto(prepInterruption);
+        //prepClinicDto.setStatus("COMMENCED");
+        return prepInterruptionDto;
     }
 
 
-    private PrepEnrollmentDto enrollmentToEnrollmentDto(PrepEnrollment enrollment) {
-        if ( enrollment == null ) {
-            return null;
-        }
-
-        PrepEnrollmentDto enrollmentDto = new PrepEnrollmentDto();
-
-        enrollmentDto.setExtra( enrollment.getExtra() );
-        enrollmentDto.setId( enrollment.getId() );
-        enrollmentDto.setUniqueId( enrollment.getUniqueId() );
-        enrollmentDto.setExtra( enrollment.getExtra() );
-
-        enrollmentDto.setDateEnrolled( enrollment.getDateEnrolled() );
-        enrollmentDto.setDateReferred( enrollment.getDateReferred() );
-        enrollmentDto.setRiskType( enrollment.getRiskType() );
-        enrollmentDto.setSupporterName( enrollment.getSupporterName() );
-        enrollmentDto.setSupporterRelationshipType( enrollment.getSupporterRelationshipType() );
-        enrollmentDto.setSupporterPhone( enrollment.getSupporterPhone() );
-        enrollmentDto.setPrepEligibilityUuid(enrollment.getPrepEligibilityUuid());
-        enrollmentDto.setCommenced(true);
-
-        enrollmentDto.setAncUniqueArtNo(enrollment.getAncUniqueArtNo());
-
-        return enrollmentDto;
-    }
-
-    private PrepDto prepEnrollmentToPrepDto(PrepEnrollment prepEnrollment) {
-        if ( prepEnrollment == null ) {
-            return null;
-        }
-
-        PrepDto prepDto = new PrepDto();
-
-        prepDto.setId(prepEnrollment.getId());
-        prepDto.setExtra( prepEnrollment.getExtra() );
-        PersonResponseDto personResponseDto = personService.getDtoFromPerson(prepEnrollment.getPerson());
-        prepDto.setPersonResponseDto(personResponseDto);
-        prepDto.setDateStarted(prepEnrollment.getDateStarted());
-        prepDto.setStatus(prepEnrollment.getStatus());
-        return prepDto;
-    }
 
     private PrepDtos prepToPrepDtos(List<PrepEnrollment> clients){
         final Long[] pId = {null};
-        final Long[] prepId = {null};
         final String[] uniqueId = {null};
         final String[] personUuid = {null};
         final PersonResponseDto[] personResponseDto = {new PersonResponseDto()};
@@ -261,7 +159,6 @@ public class PrepService {
                 .map(prepEnrollment -> {
                     if(pId[0] == null) {
                         Person person = prepEnrollment.getPerson();
-                        prepId[0] = prepEnrollment.getId();
                         uniqueId[0] = prepEnrollment.getUniqueId();
                         pId[0] = person.getId();
                         personUuid[0] = prepEnrollment.getPrepEligibilityUuid();
@@ -444,6 +341,20 @@ public class PrepService {
         return prepDtos;
     }
 
+    public PrepEligibilityDto getOpenEligibility(Long personId){
+        Person person = this.getPerson(personId);
+        return prepEligibilityToPrepEligibilityDto(prepEligibilityRepository
+                .findByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED));
+    }
+
+    public PrepEnrollmentDto getOpenEnrollment(Long personId){
+        Person person = this.getPerson(personId);
+        Optional<PrepEnrollment> prepEnrollmentOptional = prepEnrollmentRepository
+                .findByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED);
+        if(prepEnrollmentOptional.isPresent())return  enrollmentToEnrollmentDto(prepEnrollmentOptional.get());//PrepEnrollmentDto.builder().build();
+        return new PrepEnrollmentDto();
+    }
+
     public PrepEligibility prepEligibilityRequestDtoToPrepEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto, String personUuid) {
         if ( prepEligibilityRequestDto == null ) {
             return null;
@@ -466,6 +377,8 @@ public class PrepService {
         prepEligibility.setNumWives( prepEligibilityRequestDto.getNumWives() );
         prepEligibility.setTargetGroup( prepEligibilityRequestDto.getTargetGroup() );
         prepEligibility.setExtra( prepEligibilityRequestDto.getExtra() );
+
+        prepEligibility.setVisitDate( prepEligibilityRequestDto.getVisitDate());
 
         return prepEligibility;
     }
@@ -496,6 +409,175 @@ public class PrepService {
         PersonResponseDto personResponseDto = personService.getDtoFromPerson(eligibility.getPerson());
         prepEligibilityDto.setPersonResponseDto(personResponseDto);
 
+        prepEligibilityDto.setVisitDate( eligibility.getVisitDate() );
+
         return prepEligibilityDto;
+    }
+
+    public List<PatientActivity> getPrepPatientActivitiesById(Long id) {
+        return   patientActivityService.getActivities(id);
+    }
+
+    private PrepEnrollment enrollmentRequestDtoToEnrollment(PrepEnrollmentRequestDto prepEnrollmentRequestDto, String personUuid) {
+        if ( prepEnrollmentRequestDto == null ) {
+            return null;
+        }
+
+        PrepEnrollment prepEnrollment = new PrepEnrollment();
+
+        prepEnrollment.setPersonUuid( personUuid);
+        prepEnrollment.setExtra( prepEnrollmentRequestDto.getExtra() );
+        prepEnrollment.setUniqueId( prepEnrollmentRequestDto.getUniqueId() );
+        prepEnrollment.setExtra( prepEnrollmentRequestDto.getExtra() );
+        prepEnrollment.setPrepEligibilityUuid( prepEnrollmentRequestDto.getPrepEligibilityUuid() );
+
+        prepEnrollment.setDateEnrolled( prepEnrollmentRequestDto.getDateEnrolled() );
+        prepEnrollment.setDateReferred( prepEnrollmentRequestDto.getDateReferred() );
+        prepEnrollment.setRiskType( prepEnrollmentRequestDto.getRiskType() );
+        prepEnrollment.setSupporterName( prepEnrollmentRequestDto.getSupporterName() );
+        prepEnrollment.setSupporterRelationshipType( prepEnrollmentRequestDto.getSupporterRelationshipType() );
+        prepEnrollment.setSupporterPhone( prepEnrollmentRequestDto.getSupporterPhone() );
+        prepEnrollment.setStatus("ENROLLED");
+
+        prepEnrollment.setAncUniqueArtNo( prepEnrollmentRequestDto.getAncUniqueArtNo() );
+
+        return prepEnrollment;
+    }
+    private PrepClinic clinicRequestDtoToClinic(PrepClinicRequestDto prepClinicRequestDto, String personUuid) {
+        if ( prepClinicRequestDto == null ) {
+            return null;
+        }
+
+        PrepClinic prepClinic = new PrepClinic();
+
+        prepClinic.setPersonUuid( personUuid);
+        prepClinic.setExtra( prepClinicRequestDto.getExtra() );
+        prepClinic.setDateInitialAdherenceCounseling( prepClinicRequestDto.getDateInitialAdherenceCounseling() );
+        prepClinic.setWeight( prepClinicRequestDto.getWeight() );
+        prepClinic.setHeight( prepClinicRequestDto.getHeight() );
+        prepClinic.setPregnant( prepClinicRequestDto.getPregnant() );
+
+        prepClinic.setDateReferred( prepClinicRequestDto.getDateReferred() );
+        prepClinic.setPrepEnrollmentUuid( prepClinicRequestDto.getPrepEnrollmentUuid() );
+        prepClinic.setRegimenId( prepClinicRequestDto.getRegimenId() );
+        prepClinic.setUrinalysisResult( prepClinicRequestDto.getUrinalysisResult() );
+        prepClinic.setReferred( prepClinicRequestDto.getReferred() );
+
+        prepClinic.setDateReferred( prepClinicRequestDto.getDateReferred() );
+        prepClinic.setNextAppointment( prepClinicRequestDto.getNextAppointment() );
+        prepClinic.setExtra( prepClinicRequestDto.getExtra() );
+
+        prepClinic.setDatePrepStart( prepClinicRequestDto.getDatePrepStart());
+
+        return prepClinic;
+    }
+    private PrepClinicDto clinicToClinicDto(PrepClinic clinic) {
+        if ( clinic == null ) {
+            return null;
+        }
+
+        PrepClinicDto prepClinicDto = new PrepClinicDto();
+
+        prepClinicDto.setId( clinic.getId());
+        prepClinicDto.setExtra( clinic.getExtra() );
+        prepClinicDto.setDateInitialAdherenceCounseling( clinic.getDateInitialAdherenceCounseling() );
+        prepClinicDto.setWeight( clinic.getWeight() );
+        prepClinicDto.setHeight( clinic.getHeight() );
+        prepClinicDto.setPregnant( clinic.getPregnant() );
+
+        prepClinicDto.setDateReferred( clinic.getDateReferred() );
+        prepClinicDto.setPrepEnrollmentUuid( clinic.getPrepEnrollmentUuid() );
+        prepClinicDto.setRegimenId( clinic.getRegimenId() );
+        prepClinicDto.setUrinalysisResult( clinic.getUrinalysisResult() );
+        prepClinicDto.setReferred( clinic.getReferred() );
+
+        prepClinicDto.setDateReferred( clinic.getDateReferred() );
+        prepClinicDto.setNextAppointment( clinic.getNextAppointment() );
+        prepClinicDto.setExtra( clinic.getExtra() );
+        prepClinicDto.setIsCommencement(clinic.getIsCommencement());
+
+        prepClinicDto.setDatePrepStart( clinic.getDatePrepStart());
+
+        return prepClinicDto;
+    }
+    private PrepEnrollmentDto enrollmentToEnrollmentDto(PrepEnrollment enrollment) {
+        if ( enrollment == null ) {
+            return null;
+        }
+
+        PrepEnrollmentDto enrollmentDto = new PrepEnrollmentDto();
+
+        enrollmentDto.setExtra( enrollment.getExtra() );
+        enrollmentDto.setId( enrollment.getId() );
+        enrollmentDto.setUniqueId( enrollment.getUniqueId() );
+        enrollmentDto.setExtra( enrollment.getExtra() );
+        enrollmentDto.setUuid(enrollment.getUuid());
+
+        enrollmentDto.setDateEnrolled( enrollment.getDateEnrolled() );
+        enrollmentDto.setDateReferred( enrollment.getDateReferred() );
+        enrollmentDto.setRiskType( enrollment.getRiskType() );
+        enrollmentDto.setSupporterName( enrollment.getSupporterName() );
+        enrollmentDto.setSupporterRelationshipType( enrollment.getSupporterRelationshipType() );
+        enrollmentDto.setSupporterPhone( enrollment.getSupporterPhone() );
+        enrollmentDto.setPrepEligibilityUuid(enrollment.getPrepEligibilityUuid());
+        enrollmentDto.setCommenced(true);
+
+        enrollmentDto.setAncUniqueArtNo(enrollment.getAncUniqueArtNo());
+
+        return enrollmentDto;
+    }
+    private PrepDto prepEnrollmentToPrepDto(PrepEnrollment prepEnrollment) {
+        if ( prepEnrollment == null ) {
+            return null;
+        }
+
+        PrepDto prepDto = new PrepDto();
+
+        prepDto.setId(prepEnrollment.getId());
+        prepDto.setExtra( prepEnrollment.getExtra() );
+        PersonResponseDto personResponseDto = personService.getDtoFromPerson(prepEnrollment.getPerson());
+        prepDto.setPersonResponseDto(personResponseDto);
+        prepDto.setDateStarted(prepEnrollment.getDateStarted());
+        prepDto.setStatus(prepEnrollment.getStatus());
+        return prepDto;
+    }
+    public PrepInterruption prepInterruptionRequestDtoToPrepInterruption(PrepInterruptionRequestDto prepInterruptionRequestDto, String personUuid) {
+        if ( prepInterruptionRequestDto == null ) {
+            return null;
+        }
+
+        PrepInterruption prepInterruption = new PrepInterruption();
+
+        prepInterruption.setInterruptionType( prepInterruptionRequestDto.getInterruptionType() );
+        prepInterruption.setInterruptionDate( prepInterruptionRequestDto.getInterruptionDate() );
+        prepInterruption.setDateClientDied( prepInterruptionRequestDto.getDateClientDied() );
+        prepInterruption.setCauseOfDeath( prepInterruptionRequestDto.getCauseOfDeath() );
+        prepInterruption.setSourceOfDeathInfo( prepInterruptionRequestDto.getSourceOfDeathInfo() );
+        prepInterruption.setDateClientReferredOut( prepInterruptionRequestDto.getDateClientReferredOut() );
+        prepInterruption.setFacilityReferredTo( prepInterruptionRequestDto.getFacilityReferredTo() );
+        prepInterruption.setInterruptionReason( prepInterruptionRequestDto.getInterruptionReason() );
+        prepInterruption.setPersonUuid(personUuid);
+
+        return prepInterruption;
+    }
+
+    public PrepInterruptionDto prepInterruptionToPrepInterruptionDto(PrepInterruption prepInterruption) {
+        if ( prepInterruption == null ) {
+            return null;
+        }
+
+        PrepInterruptionDto prepInterruptionDto = new PrepInterruptionDto();
+
+        prepInterruptionDto.setId(prepInterruption.getId());
+        prepInterruptionDto.setInterruptionType( prepInterruption.getInterruptionType() );
+        prepInterruptionDto.setInterruptionDate( prepInterruption.getInterruptionDate() );
+        prepInterruptionDto.setDateClientDied( prepInterruption.getDateClientDied() );
+        prepInterruptionDto.setCauseOfDeath( prepInterruption.getCauseOfDeath() );
+        prepInterruptionDto.setSourceOfDeathInfo( prepInterruption.getSourceOfDeathInfo() );
+        prepInterruptionDto.setDateClientReferredOut( prepInterruption.getDateClientReferredOut() );
+        prepInterruptionDto.setFacilityReferredTo( prepInterruption.getFacilityReferredTo() );
+        prepInterruptionDto.setInterruptionReason( prepInterruption.getInterruptionReason() );
+
+        return prepInterruptionDto;
     }
 }

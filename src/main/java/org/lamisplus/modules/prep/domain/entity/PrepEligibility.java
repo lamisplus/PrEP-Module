@@ -17,6 +17,7 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -39,6 +40,9 @@ public class PrepEligibility  extends Audit implements Serializable {
 
     @Column(name = "unique_id")
     private String uniqueId;
+
+    @Column(name = "visit_date")
+    private LocalDate visitDate;
 
     @Column(name = "score")
     private Integer score;

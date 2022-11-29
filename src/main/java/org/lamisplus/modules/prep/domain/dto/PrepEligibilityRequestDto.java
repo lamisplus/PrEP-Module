@@ -6,6 +6,7 @@ import org.lamisplus.modules.patient.domain.dto.PersonDto;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.time.LocalDate;
 
 @Builder(toBuilder = true)
 @Getter
@@ -34,4 +35,5 @@ public class PrepEligibilityRequestDto implements Serializable {
     @NotBlank(message = "uniqueId is mandatory")
     private String uniqueId;
     private Integer score;
+    private LocalDate visitDate;
 }

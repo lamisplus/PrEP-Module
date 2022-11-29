@@ -35,6 +35,8 @@ public class PrepEnrollmentDto implements Serializable {
 
     private Object extra;
 
+    private String uuid;
+
     private String supporterName;
 
     private String supporterRelationshipType;
