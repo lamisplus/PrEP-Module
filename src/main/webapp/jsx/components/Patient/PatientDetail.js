@@ -9,6 +9,7 @@ import PatientCardDetail from './PatientCard'
 import { useHistory } from "react-router-dom";
 import SubMenu from './SubMenu';
 import RecentHistory from './../History/RecentHistory';
+import PatientHistory from './../History/PatientHistory'
 import ClinicVisit from '../Consultation/Index'
 import PrEPCommencementForm from './../PrepServices/PrEPCommencementForm';
 import PrEPDiscontinuationsInterruptions from './../PrepServices/PrEPDiscontinuationsInterruptions';
@@ -87,7 +88,7 @@ function PatientCard(props) {
           {activeContent.route==='prep-screening' &&( <PrEPEligibiltyScreeningForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
           {activeContent.route==='prep-visit' &&( <PrEPVisit />)}
           {activeContent.route==='prep-registration' &&( <PrEPRegistrationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)} 
-                    
+          {activeContent.route==='patient-history' &&( <PatientHistory patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}         
           {/* History Pages */}
          
          </CardContent>

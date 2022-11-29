@@ -111,7 +111,7 @@ const PrEPCommencementForm = (props) => {
     });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
-    const [pregnancyStatus, setPregnancyStatus] = useState([]);
+    const [pregnant, setpregnant] = useState([]);
     const [hivStatus, setHivStatus] = useState([]);
     //set ro show the facility name field if is transfer in 
     const [transferIn, setTransferIn] = useState(false);
@@ -128,7 +128,7 @@ const PrEPCommencementForm = (props) => {
             { headers: {"Authorization" : `Bearer ${token}`} }
         )
         .then((response) => {
-            setPregnancyStatus(response.data);
+            setpregnant(response.data);
         })
         .catch((error) => {
         //console.log(error);
@@ -233,7 +233,7 @@ const PrEPCommencementForm = (props) => {
                                 type="date"
                                 name="dateInitialAdherenceCounseling"
                                 id="dateInitialAdherenceCounseling"
-                                //min="1983-12-31"
+                                min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
                                 value={objValues.dateInitialAdherenceCounseling}
                                 onChange={handleInputChange}
@@ -252,7 +252,7 @@ const PrEPCommencementForm = (props) => {
                                 type="date"
                                 name="datePrepStart"
                                 id="datePrepStart"
-                                //min="1983-12-31"
+                                min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
                                 value={objValues.dateOfRegistration}
                                 onChange={handleInputChange}
@@ -350,14 +350,14 @@ const PrEPCommencementForm = (props) => {
                         <Label for="">Pregnancy Status</Label>
                         <Input
                             type="select"
-                            name="pregnancyStatus"
-                            id="pregnancyStatus"
+                            name="pregnant"
+                            id="pregnant"
                             onChange={handleInputChange}
-                            value={objValues.pregnancyStatus}
+                            value={objValues.pregnant}
                             
                         >
                         <option value="1"> </option>
-                        {pregnancyStatus.map((value) => (
+                        {pregnant.map((value) => (
                             <option key={value.id} value={value.code}>
                                 {value.display}
                             </option>
@@ -368,7 +368,7 @@ const PrEPCommencementForm = (props) => {
                         
                         </div>
                         )}
-                        {objValues.pregnancyStatus==='PREGANACY_STATUS_BREASTFEEDING' && (
+                        {objValues.pregnant==='PREGANACY_STATUS_BREASTFEEDING' && (
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="">Breast Feeding</Label>

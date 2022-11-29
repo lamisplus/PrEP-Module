@@ -77,6 +77,10 @@ function SubMenu(props) {
     const onClickHome = (row) =>{        
         props.setActiveContent({...props.activeContent, route:'recent-history'})
     }
+    const loadPatientHistory = ()=>{
+        //setActiveItem('history')
+        props.setActiveContent({...props.activeContent, route:'patient-history'})
+    }
 
 
     return (
@@ -94,7 +98,7 @@ function SubMenu(props) {
                     <Menu.Item onClick={() => onClickConsultation()} > PrEP Visit</Menu.Item>
                     <Menu.Item onClick={() => loadPrEPDiscontinuationsInterruptions()} >PrEP Discontinuations & Interruptions</Menu.Item>
                 </>)}
-                <Menu.Item >History</Menu.Item>                     
+                <Menu.Item onClick={() => loadPatientHistory(patientObj)} >History</Menu.Item>                    
             </Menu>             
         </div>
     );

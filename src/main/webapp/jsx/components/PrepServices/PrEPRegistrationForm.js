@@ -197,6 +197,7 @@ const PrEPRegistrationForm = (props) => {
                                     value={objValues.dateEnrolled}
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                    min={patientDto && patientDto.visitDate ?patientDto.visitDate :""}
                                     max= {moment(new Date()).format("YYYY-MM-DD") }
                                 />
                                     {errors.dateEnrolled !=="" ? (
@@ -231,7 +232,7 @@ const PrEPRegistrationForm = (props) => {
                                 </FormGroup>
                                 
                                 </div>
-                               
+                                {props.patientObj.hivPositive===true && (
                                 <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
                                 <Label >HIV Testing Point </Label>
@@ -240,13 +241,14 @@ const PrEPRegistrationForm = (props) => {
                                     name="hivTestingPoint"
                                     id="hivTestingPoint"
                                     onChange={handleInputChange}
-                                    value={objValues.hivTestingPoint}
+                                    value={"Positive"}
                                     disabled
                                 />
                                
                                 </FormGroup>
                                 </div>
-                            
+                                )}
+                                {props.patientObj.dateHivPositive!==null && (
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
                                     <Label >Date of last HIV Negative test*</Label>
@@ -255,7 +257,7 @@ const PrEPRegistrationForm = (props) => {
                                         type="date"
                                         name="dateOfLastHivNegativeTest"
                                         id="dateOfLastHivNegativeTest"
-                                        value={objValues.dateOfLastHivNegativeTest}
+                                        value={props.patientObj.dateHivPositive}
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         max= {moment(new Date()).format("YYYY-MM-DD") }
@@ -266,6 +268,7 @@ const PrEPRegistrationForm = (props) => {
                                     ) : "" }   
                                     </FormGroup>
                                 </div>
+                                )}
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
                                     <Label >Date Referred for PrEP * </Label>
@@ -277,6 +280,7 @@ const PrEPRegistrationForm = (props) => {
                                         value={objValues.dateReferred}
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        min={patientDto && patientDto.visitDate ?patientDto.visitDate :""}
                                         max= {moment(new Date()).format("YYYY-MM-DD") }
                                     />
                                     {errors.dateReferred !=="" ? (

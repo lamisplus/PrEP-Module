@@ -180,7 +180,7 @@ const Patients = (props) => {
                                 data: result.data.records.map((row) => ({
                                     name:row.personResponseDto.firstName + " " + row.personResponseDto.surname,
                                     hospital_number: getHospitalNumber(row.personResponseDto.identifier),
-                                    clientCode: row.uniqueClientId,
+                                    clientCode: row.uniqueId,
                                     //phone_number:  row.phone,
                                     gender:row && row.personResponseDto.sex ? row.personResponseDto.sex : "",
                                     age: (row.personResponseDto.dateOfBirth === 0 ||

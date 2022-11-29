@@ -151,7 +151,8 @@ const BasicInfo = (props) => {
                 sexPartnerRisk: {},
                 stiScreening: {},
                 targetGroup: "TARGET_GROUP_GEN_POP",
-                uniqueId: ""
+                uniqueId: "",
+                visitDate:""
             }
     )
     const handleInputChange = e => { 
@@ -295,7 +296,7 @@ const BasicInfo = (props) => {
             });
             
     }
-    console.log(props.patientObj)
+
 
     return (
         <>
@@ -305,7 +306,26 @@ const BasicInfo = (props) => {
                     <form >
                         <div className="row">
                         <div className="row">
-
+                        <div className="form-group  col-md-4">
+                            <FormGroup>
+                                <Label>Visit Date *</Label>
+                                <input
+                                    type="date"
+                                    className="form-control"
+                                    name="visitDate"
+                                    id="visitDate"
+                                    value={objValues.visitDate}
+                                    onChange={handleInputChange}
+                                    min={props.patientObj.personResponseDto.dateOfRegistration}
+                                    max= {moment(new Date()).format("YYYY-MM-DD") }
+                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                />
+                                   
+                                {errors.visitDate !=="" ? (
+                                <span className={classes.error}>{errors.visitDate}</span>
+                                ) : "" }
+                            </FormGroup>
+                        </div>
                         <div className="form-group  col-md-4">
                             <FormGroup>
                                 <Label>Sex partners *</Label>
@@ -787,7 +807,7 @@ const BasicInfo = (props) => {
                             <hr/>
                             <br/>
                             <div className="form-group  col-md-12 text-center pt-2 mb-4" style={{backgroundColor:'#000', width:'125%', height:'35px', color:'#fff', fontWeight:'bold'}} >Drug Use History</div>
-                            <div className="form-group  col-md-12">
+                            <div className="form-group  col-md-4">
                                 <FormGroup>
                                     <Label>Do you use any of these drugs/substances*</Label>
                                     <select
