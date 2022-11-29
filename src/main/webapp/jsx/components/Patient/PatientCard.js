@@ -65,20 +65,14 @@ const styles = theme => ({
 
 function PatientCard(props) {
   const { classes } = props;
-  const patientCurrentStatus=props.patientObj && props.patientObj.currentStatus==="Died (Confirmed)" ? true : false ;
-  const patientObjs = props.patientObj ? props.patientObj : {}
-  const permissions= props.permissions ? props.permissions : [];
+  const patientObjs = props.patientObj ? props.patientObj.personResponseDto : {}
   const [patientObj, setpatientObj] = useState(patientObjs)
-  const [patientBiometricStatus, setPatientBiometricStatus]= useState(props.patientObj.biometricStatus);
   const [biometricStatus, setBiometricStatus] = useState(false);
   const [devices, setDevices] = useState([]);
-  const [modal, setModal] = useState(false);
-  const toggle = () => setModal(!modal);
   const [biometricModal, setBiometricModal] = useState(false);
   const BiometricModalToggle = () => setBiometricModal(!biometricModal);
   const [hivStatus, setHivStatus] = useState();
-  const [artModal, setArtModal] = useState(false);
-  const Arttoggle = () => setArtModal(!artModal);
+
   useEffect(() => {
     PatientCurrentStatus();
     CheckBiometric();
@@ -163,14 +157,6 @@ function PatientCard(props) {
       //props.setActiveContent('biometrics')
       props.setActiveContent({...props.activeContent, route:'biometrics', obj:row})
     }
-    const loadArtCommencement =(row)=> {
-      props.setActiveContent('art-commencement')
-    }
-    
-    const loadArt =(row)=> {
-        setpatientObj({...patientObj, ...row});
-            setArtModal(!artModal)
-    }
     
     const CurrentStatus = ()=>{
 
@@ -191,24 +177,17 @@ function PatientCard(props) {
       const address = identifiers.address.find(obj => obj.city);      
       return address ? address.city : '';
     };
-    const handleBiometricCapture = (id) => { 
-      let patientObjID= id
-      setBiometricModal(!biometricModal);
-    }
 
   
   return (
     <div className={classes.root}>
-       <ExpansionPanel defaultExpanded>
-
-                <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-                
-                <Row>
-                
+       <ExpansionPanel >
+                <ExpansionPanelSummary >                
+                <Row>                
                     <Col md={12}>
                     <Row className={"mt-1"}>
                     <Col md={12} className={classes.root2}>
-                        <b style={{fontSize: "25px"}}>
+                    <b style={{fontSize: "25px", color:'rgb(153, 46, 98)'}}>
                         {patientObj.firstName + " " + patientObj.surname }
                         </b>
                         <Link to={"/"} >
@@ -228,148 +207,47 @@ function PatientCard(props) {
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Patient ID : <b>{getHospitalNumber(patientObj.identifier) }</b>
+                        Patient ID : <b style={{color:'#0B72AA'}}>{getHospitalNumber(patientObj.identifier) }</b>
                     </span>
                     </Col>
 
                     <Col md={4} className={classes.root2}>
                     <span>
-                        Date Of Birth : <b>{patientObj.dateOfBirth }</b>
+                        Date Of Birth : <b style={{color:'#0B72AA'}}>{patientObj.dateOfBirth }</b>
                     </span>
                     </Col>
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Age : <b>{calculate_age(moment(patientObj.dateOfBirth).format("DD-MM-YYYY"))}</b>
+                        Age : <b style={{color:'#0B72AA'}}>{calculate_age(moment(patientObj.dateOfBirth).format("DD-MM-YYYY"))}</b>
                     </span>
                     </Col>
                     <Col md={4}>
                     <span>
                         {" "}
                         Gender :{" "}
-                        <b>{patientObj.sex && patientObj.sex!==null ?  patientObj.sex : '' }</b>
+                        <b style={{color:'#0B72AA'}}>{patientObj.sex && patientObj.sex!==null ?  patientObj.sex : '' }</b>
                     </span>
                     </Col>
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Phone Number : <b>{getPhoneNumber(patientObj.contactPoint)}</b>
+                        Phone Number : <b style={{color:'#0B72AA'}}>{getPhoneNumber(patientObj.contactPoint)}</b>
                     </span>
                     </Col>
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Address : <b>{getAddress(patientObj.address)} </b>
+                        Address : <b style={{color:'#0B72AA'}}>{getAddress(patientObj.address)} </b>
                     </span>
                     </Col>
 
-                    <Col md={12}>
-                      {biometricStatus===true ? (
-                          <>
-                              <div >
-                                  <Typography variant="caption">
-                                      <Label color={props.patientObj.biometricStatus===true? "green" : "red"} size={"mini"}>
-                                          Biometric Status
-                                          <Label.Detail>{props.patientObj.biometricStatus===true? "Captured" : "Not Capture"}</Label.Detail>
-                                      </Label>
-                                      {props.patientObj.biometricStatus!==true ? (
-                                    
-                                          <>
-                                             
-                                                  <>
-                                                  <Label as='a' color='teal' onClick={() => capturePatientBiometric(patientObj)} tag>
-                                                      Capture Now
-                                                  </Label>
-                                                  </>
-                                            
-                                          </>
-                                      )
-                                      :""
-                                      }
-                                      
-                                  </Typography>
-                              </div>
-                          </>
-                          )
-                          :
-                          <>
-                              <div >
-                                  <Typography variant="caption">
-                                      <Label color={"red"} size={"mini"}>
-                                          Biometric Not Install
-                                          
-                                      </Label>
-                                    
-                                  </Typography>
-                              </div>
-                          </>
-                      }
-                    </Col>
                     </Row>
                     </Col>
                 </Row>
-            
                 </ExpansionPanelSummary>
-                <ExpansionPanelDetails className={classes.details}>
-                
-                    {/* <Button
-                      color='red'
-                      content='BloodType'
-                      //icon='heart'
-                      label={{ basic: true, color: 'red', pointing: 'left', content: 'AB+' }}
-                    /> */}                                  
-                    {/* <Button
-                        basic
-                        color='blue'
-                        content='Height'
-                        icon='fork'
-                        label={{
-                            as: 'a',
-                            basic: true,
-                            color: 'blue',
-                            pointing: 'left',
-                            content: '74.5 in',
-                        }}
-                      />               */}
-                      {/* <Button
-                        basic
-                        color='blue'
-                        content='Weight'
-                        icon='fork'
-                        label={{
-                            as: 'a',
-                            basic: true,
-                            color: 'blue',
-                            pointing: 'left',
-                            content: '74.5 in',
-                        }}
-                      /> */}
-                               
-                {/* <div className={classes.column}>
-                  <Button primary  floated='left' onClick={() => get_age(moment(patientObj.dateOfBirth).format("DD-MM-YYYY")) > 5 ? loadAdultEvaluation(patientObj) :loadChildEvaluation(patientObj) }><span style={{fontSize:"11px"}}>Initial Clinic Evaluation</span></Button>
-                </div> */}
-                {/* {patientCurrentStatus !==true && props.patientObj.enrollment.targetGroupId !=="456" ?                   
-                  (
-                    <>
-                      <div className={classes.column}>
-                        <Button primary  floated='left' onClick={() => loadMentalHealthScreening(patientObj) }><span style={{fontSize:"11px"}}>Mental Health Screening</span></Button>
-                      </div>
-                    </>
-                  ) :""           
-                } */}
-               {/* {patientObj.commenced!==true && (
-                <div className={classes.column} style={{paddingLeft:"20px"}}>
-                {" "}<Button primary onClick={() => loadArt(patientObj)} ><span style={{fontSize:"11px"}}>ART Commencement </span></Button>
-                </div>
-                )
-               }
-                     */}
-                </ExpansionPanelDetails>
                 <Divider />
-                <ExpansionPanelActions expandIcon={<ExpandMoreIcon />}>
-                
-                </ExpansionPanelActions>
-            </ExpansionPanel>
+        </ExpansionPanel>
     
     </div>
   );
