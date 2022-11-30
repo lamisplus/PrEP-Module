@@ -799,14 +799,14 @@ const handleInputValueCheckTemperature =(e)=>{
                   <FormLabelName >HIV Test Result </FormLabelName>
                   <Input
                     type="select"
-                    name="whoStagingId"
-                    id="whoStagingId"
-                    value={objValues.whoStagingId}
+                    name="hivTestResult"
+                    id="hivTestResult"
+                    value={objValues.hivTestResult}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
-                    <option value="select">Select </option>
+                    <option value="">Select </option>
                     <option value="Yes">Yes </option>
                     <option value="No">No </option>
                   </Input>
@@ -818,9 +818,9 @@ const handleInputValueCheckTemperature =(e)=>{
                   <FormLabelName >Regimen at Start of PrEP </FormLabelName>
                   <Input
                     type="select"
-                    name="whoStagingId"
-                    id="whoStagingId"
-                    value={objValues.whoStagingId}
+                    name="regimenStartPrep"
+                    id="regimenStartPrep"
+                    value={objValues.regimenStartPrep}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
@@ -844,7 +844,7 @@ const handleInputValueCheckTemperature =(e)=>{
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
-                    <option value="select">Select </option>
+                    <option value="">Select </option>
 
                     {adherenceLevel.map((value) => (
                       <option key={value.id} value={value.id}>
@@ -867,7 +867,7 @@ const handleInputValueCheckTemperature =(e)=>{
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
-                    <option value="select">Select </option>
+                    <option value="">Select </option>
                     <option value="Yes">Yes </option>
                     <option value="No">No </option>
                   </Input>
@@ -887,7 +887,7 @@ const handleInputValueCheckTemperature =(e)=>{
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
-                    <option value="select">Select </option>
+                    <option value="">Select </option>
                     {sti.map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
@@ -903,14 +903,14 @@ const handleInputValueCheckTemperature =(e)=>{
                   <FormLabelName >PrEP Given</FormLabelName>
                   <Input
                     type="select"
-                    name="whoStagingId"
-                    id="whoStagingId"
-                    value={objValues.whoStagingId}
+                    name="prepGiven"
+                    id="prepGiven"
+                    value={objValues.prepGiven}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
-                    <option value="select">Select </option>
+                    <option value="">Select </option>
                     <option value="Yes">Yes </option>
                     <option value="No">No </option>
                   </Input>
@@ -922,9 +922,9 @@ const handleInputValueCheckTemperature =(e)=>{
                   <FormLabelName >Date PrEP Givern</FormLabelName>
                   <Input
                     type="date"
-                    name="whoStagingId"
-                    id="whoStagingId"
-                    value={objValues.whoStagingId}
+                    name="datePrepGiven"
+                    id="datePrepGiven"
+                    value={objValues.datePrepGiven}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
@@ -938,14 +938,14 @@ const handleInputValueCheckTemperature =(e)=>{
                   <FormLabelName >PrEP Status</FormLabelName>
                   <Input
                     type="select"
-                    name="functionalStatusId"
-                    id="functionalStatusId"
-                    value={objValues.functionalStatusId}
+                    name="prepStatus"
+                    id="prepStatus"
+                    value={objValues.prepStatus}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
-                    <option value="select">Select </option>
+                    <option value="">Select </option>
                     <option value="None">None </option>
                     <option value="Positive">Positive </option>
                     <option value="Negative">Negative </option>
