@@ -87,23 +87,13 @@ const ClinicVisit = (props) => {
   const [clinicalStage, setClinicalStage] = useState([]);
   const [functionalStatus, setFunctionalStatus] = useState([]);
   const [adherenceLevel, setAdherenceLevel] = useState([]);
-  const [tbStatus, setTbStatus] = useState([]);
+  const [sti, setSti] = useState([]);
   const [TBForms, setTBForms] = useState(false)
-  // const [addVitalModal, setAddVitalModal] = useState(false);
-  // const AddVitalToggle = () => setAddVitalModal(!addVitalModal)
-  const [addConditionModal, setAddConditionModal] = useState(false);
-  const AddConditionToggle = () => setAddConditionModal(!addConditionModal)
-  const [addAllergyModal, setAddAllergyModal] = useState(false);
-  const AddAllergyToggle = () => setAddAllergyModal(!addAllergyModal)
-  const [postPatientModal, setPostPatientModal] = useState(false);
-  const PostPatientToggle = () => setPostPatientModal(!postPatientModal)
+
   const [currentVitalSigns, setcurrentVitalSigns] = useState({})
   const [showCurrentVitalSigns, setShowCurrentVitalSigns] = useState(false)
   //opportunistic infection Object
-  const [infection, setInfection] = useState({ illnessInfection: "", ondateInfection: "" });
   const [infectionList, setInfectionList] = useState([]);
-  //ADR array Object 
-  const [adrObj, setAdrObj] = useState({ adr: "", adrOnsetDate: "" });
   const [adrList, setAdrList] = useState([]);
   //Vital signs clinical decision support 
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
@@ -168,7 +158,7 @@ const ClinicVisit = (props) => {
     FunctionalStatus();
     WhoStaging();
     AdherenceLevel();
-    TBStatus();
+    SYNDROMIC_STI_SCREENING();
     VitalSigns();
     GetPatientObj();
     ClinicVisitList();
@@ -254,14 +244,14 @@ const ClinicVisit = (props) => {
   }
   ///GET LIST OF FUNCTIONAL%20_STATUS
   // TB STATUS
-  const TBStatus = () => {
+  const SYNDROMIC_STI_SCREENING = () => {
     axios
-      .get(`${baseUrl}application-codesets/v2/TB_STATUS`,
+      .get(`${baseUrl}application-codesets/v2/SYNDROMIC_STI_SCREENING`,
         { headers: { "Authorization": `Bearer ${token}` } }
       )
       .then((response) => {
         //console.log(response.data);
-        setTbStatus(response.data);
+        setSti(response.data);
       })
       .catch((error) => {
         //console.log(error);
@@ -307,19 +297,6 @@ const ClinicVisit = (props) => {
   }
   const handleInputChangeVitalSignDto = e => {
     setVitalSignDto({ ...vital, [e.target.name]: e.target.value });
-  }
-
-  const addConditionsModal = () => {
-    //setpatientObj({...patientObj, ...row});
-    setAddConditionModal(!addConditionModal)
-  }
-  const addAllergiesModal = () => {
-    //setpatientObj({...patientObj, ...row});
-    setAddAllergyModal(!addAllergyModal)
-  }
-  const PostPatientService = (row) => {
-    //setpatientObj({...patientObj, ...row});
-    setPostPatientModal(!postPatientModal)
   }
   //Handle CheckBox 
   const handleCheckBox = e => {
@@ -416,8 +393,6 @@ const handleInputValueCheckTemperature =(e)=>{
     })
     return Object.values(temp).every(x => x == "")
   }
-
-
   /**** Submit Button Processing  */
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -453,7 +428,6 @@ const handleInputValueCheckTemperature =(e)=>{
       });
     }
   }
-
 
   return (
     <div>
@@ -883,6 +857,26 @@ const handleInputValueCheckTemperature =(e)=>{
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
+                  <FormLabelName >Syndromic STI Screening </FormLabelName>
+                  <Input
+                    type="select"
+                    name="syndromicSTIScreening "
+                    id="syndromicSTIScreening"
+                    value={objValues.syndromicSTIScreening}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="select">Select </option>
+                    <option value="Yes">Yes </option>
+                    <option value="No">No </option>
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              {objValues.syndromicSTIScreening==='Yes' && (
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
                   <FormLabelName >STI Screening</FormLabelName>
                   <Input
                     type="select"
@@ -894,8 +888,7 @@ const handleInputValueCheckTemperature =(e)=>{
                     required
                   >
                     <option value="select">Select </option>
-
-                    {adherenceLevel.map((value) => (
+                    {sti.map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -904,6 +897,7 @@ const handleInputValueCheckTemperature =(e)=>{
                  
                 </FormGroup>
               </div> 
+              )}
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >PrEP Given</FormLabelName>
@@ -984,9 +978,7 @@ const handleInputValueCheckTemperature =(e)=>{
         </Grid.Column>
       </Grid>
       {/* <AddVitals toggle={AddVitalToggle} showModal={addVitalModal} /> */}
-      <AddAllergy toggle={AddAllergyToggle} showModal={addAllergyModal} />
-      <AddCondition toggle={AddConditionToggle} showModal={addConditionModal} />
-      <PostPatient toggle={PostPatientToggle} showModal={postPatientModal} />
+      
     </div>
   );
 };
