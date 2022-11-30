@@ -353,8 +353,7 @@ const PrEPCommencementForm = (props) => {
                             name="pregnant"
                             id="pregnant"
                             onChange={handleInputChange}
-                            value={objValues.pregnant}
-                            
+                            value={objValues.pregnant}  
                         >
                         <option value="1"> </option>
                         {pregnant.map((value) => (

@@ -90,10 +90,23 @@ const PrEPEligibiltyScreeningForm = (props) => {
       });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
+    const [prepStatus, setPrepStatus] = useState([]);
 
     useEffect(() => {         
-
-      }, []);
+        PREP_STATUS();
+    }, []);
+    const PREP_STATUS =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/PREP_STATUS`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setPrepStatus(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
     const handleInputChange = e => {        
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
 
@@ -157,9 +170,12 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             required
                         >
                          <option value="">Select</option>
-                        <option value="Stopped">Stopped</option>
-                        <option value="Default">Default</option>
-                        <option value="Restart">Restart</option>
+
+                        {prepStatus.map((value) => (
+                            <option key={value.id} value={value.code}>
+                                {value.display}
+                            </option>
+                        ))}
                         </Input>
                         </FormGroup>
                     </div>
@@ -178,6 +194,8 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         
                         </FormGroup>
                     </div>
+                    {objValues.dateInterruption==='PREP_STATUS_TRANSFER_OUT' && (
+                    <>
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="uniqueId">Date of client referred out </Label>
@@ -193,6 +211,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         
                         </FormGroup>
                     </div>
+                    
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="uniqueId">Facility referred to </Label>
@@ -208,6 +227,10 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         
                         </FormGroup>
                     </div>
+                    </>
+                    )}
+                    {objValues.dateInterruption==='PREP_STATUS_DEAD' && (
+                    <>
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="uniqueId">Date of client died </Label>
@@ -223,6 +246,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         
                         </FormGroup>
                     </div>
+
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="uniqueId">Cause of death</Label>
@@ -238,6 +262,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         
                         </FormGroup>
                     </div>
+                   
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="uniqueId">Source of death information  </Label>
@@ -253,6 +278,8 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         
                         </FormGroup>
                     </div>
+                    </>
+                    )}
                     {/* <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="eligibilityScreeningOccupation">Why ? </Label>
@@ -267,7 +294,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         
                         </FormGroup>
                     </div> */}
-                
+                     {objValues.dateInterruption==='PREP_STATUS_RESTART' && (
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label >Date of restart if placed back on medication</Label>
@@ -285,8 +312,57 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             
                         </FormGroup>
                     </div>
-                   
-                   
+                     )}
+                     {objValues.dateInterruption==='PREP_STATUS_SEROCONVERTED' && (
+                     <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                        <Label for="uniqueId">Date Seroconverted </Label>
+                        <Input
+                            type="date"
+                            name="dateSeroconverted"
+                            id="dateSeroconverted"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            onChange={handleInputChange}
+                            value={objValues.dateSeroconverted}
+                            required
+                        />
+                        
+                        </FormGroup>
+                    </div>
+                     )}
+                    <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                        <Label >Link to ART</Label>
+                        <Input
+                            type="select"
+                            name="linkToArt"
+                            id="linkToArt"
+                            onChange={handleInputChange}
+                            value={objValues.linkToArt}  
+                        >
+                        <option value=""> Select</option>
+                        <option value="Yes">Yes </option>
+                        <option value="No"> No</option>
+                        </Input>
+                        </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                        <Label >Date link to ART</Label>
+                        <Input
+                            className="form-control"
+                            type="date"
+                            name="dateLinkToArt"
+                            id="dateRestadateLinkToArtrtPlacedBackMedication"
+                            //min="1983-12-31"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            value={objValues.dateLinkToArt}
+                            onChange={handleInputChange}
+                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                        />
+                            
+                        </FormGroup>
+                    </div>
                 </div>
 
                 {saving ? <Spinner /> : ""}
