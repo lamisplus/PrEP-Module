@@ -194,7 +194,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         
                         </FormGroup>
                     </div>
-                    {objValues.dateInterruption==='PREP_STATUS_TRANSFER_OUT' && (
+                    {objValues.interruptionType==='PREP_STATUS_TRANSFER_OUT' && (
                     <>
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
@@ -229,7 +229,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     </div>
                     </>
                     )}
-                    {objValues.dateInterruption==='PREP_STATUS_DEAD' && (
+                    {objValues.interruptionType==='PREP_STATUS_DEAD' && (
                     <>
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
@@ -294,7 +294,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         
                         </FormGroup>
                     </div> */}
-                     {objValues.dateInterruption==='PREP_STATUS_RESTART' && (
+                     {objValues.interruptionType==='PREP_STATUS_RESTART' && (
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label >Date of restart if placed back on medication</Label>
@@ -313,7 +313,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         </FormGroup>
                     </div>
                      )}
-                     {objValues.dateInterruption==='PREP_STATUS_SEROCONVERTED' && (
+                     {objValues.interruptionType==='PREP_STATUS_SEROCONVERTED' && (
                      <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="uniqueId">Date Seroconverted </Label>

@@ -110,12 +110,11 @@ const PatientnHistory = (props) => {
         const PatientHistory =()=>{
             setLoading(true)
             axios
-               .get(`${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=false`,
+               .get(`${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
                    { headers: {"Authorization" : `Bearer ${token}`} }
                )
                .then((response) => {
-                setLoading(false)
-                       
+                setLoading(false)                       
                     setRecentActivities(response.data[0].activities)
                 })
 
