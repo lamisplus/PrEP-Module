@@ -86,7 +86,14 @@ const PrEPEligibiltyScreeningForm = (props) => {
         interruptionType: "",
         dateRestartPlacedBackMedication: "",
         personId: patientObj.id,
-        prepClientId: props.prepId
+        prepClientId: props.prepId,
+        causeOfDeath: "",
+        dateClientDied: "",
+        dateClientReferredOut: "",
+        facilityReferredTo: "",
+        interruptionDate: "",
+        interruptionReason: "",
+        sourceOfDeathInfo: ""
       });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
@@ -126,7 +133,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
         e.preventDefault();
 
           setSaving(true);
-          axios.put(`${baseUrl}prep/${props.prepId}/discontinuation-interruption`,objValues,
+          axios.put(`${baseUrl}prep/interruption`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},
           
           ).then(response => {
@@ -184,11 +191,11 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Date of Interruption </Label>
                         <Input
                             type="date"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="interruptionDate"
+                            id="interruptionDate"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.interruptionDate}
                             required
                         />
                         
@@ -201,11 +208,11 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Date of client referred out </Label>
                         <Input
                             type="date"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="dateClientReferredOut"
+                            id="dateClientReferredOut"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.dateClientReferredOut}
                             required
                         />
                         
@@ -217,11 +224,11 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Facility referred to </Label>
                         <Input
                             type="text"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="facilityReferredTo"
+                            id="facilityReferredTo"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.facilityReferredTo}
                             required
                         />
                         
@@ -236,11 +243,11 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Date of client died </Label>
                         <Input
                             type="date"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="dateClientDied"
+                            id="dateClientDied"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.dateClientDied}
                             required
                         />
                         
@@ -252,11 +259,11 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Cause of death</Label>
                         <Input
                             type="text"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="causeOfDeath"
+                            id="causeOfDeath"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.causeOfDeath}
                             required
                         />
                         
@@ -268,11 +275,11 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Source of death information  </Label>
                         <Input
                             type="text"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="sourceOfDeathInfo"
+                            id="sourceOfDeathInfo"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.sourceOfDeathInfo}
                             required
                         />
                         

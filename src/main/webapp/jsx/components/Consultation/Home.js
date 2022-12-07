@@ -89,7 +89,7 @@ const ClinicVisit = (props) => {
   const [adherenceLevel, setAdherenceLevel] = useState([]);
   const [sti, setSti] = useState([]);
   const [TBForms, setTBForms] = useState(false)
-
+  const [prepStatus, setPrepStatus] = useState([]);
   const [currentVitalSigns, setcurrentVitalSigns] = useState({})
   const [showCurrentVitalSigns, setShowCurrentVitalSigns] = useState(false)
   //opportunistic infection Object
@@ -163,8 +163,21 @@ const ClinicVisit = (props) => {
     GetPatientObj();
     ClinicVisitList();
     PatientDetaild();
+    PREP_STATUS();
     //hiv/patient/3
   }, []);
+  const PREP_STATUS =()=>{
+    axios
+    .get(`${baseUrl}application-codesets/v2/PREP_STATUS`,
+        { headers: {"Authorization" : `Bearer ${token}`} }
+    )
+    .then((response) => {
+        setPrepStatus(response.data);
+    })
+    .catch((error) => {
+    //console.log(error);
+    });    
+}
      //GET LIST Drug Refill
      async function ClinicVisitList() {
       setLoading(true)
@@ -734,7 +747,7 @@ const handleInputValueCheckTemperature =(e)=>{
                     </div>
               </div>
               <div className="row">
-              <div className="form-group mb-3 col-md-8">
+              <div className="form-group mb-3 col-md-12">
                   <FormGroup>
                   <FormLabelName >Blood Pressure</FormLabelName>
                   <InputGroup>
@@ -945,10 +958,11 @@ const handleInputValueCheckTemperature =(e)=>{
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
-                    <option value="">Select </option>
-                    <option value="None">None </option>
-                    <option value="Positive">Positive </option>
-                    <option value="Negative">Negative </option>
+                    {prepStatus.map((value) => (
+                            <option key={value.id} value={value.code}>
+                                {value.display}
+                            </option>
+                        ))}
                   </Input>
                  
                 </FormGroup>
