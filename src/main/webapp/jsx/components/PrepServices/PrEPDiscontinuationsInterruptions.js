@@ -78,15 +78,14 @@ const useStyles = makeStyles(theme => ({
 const PrEPEligibiltyScreeningForm = (props) => {
 
     const patientObj = props.patientObj;
-    let history = useHistory();
+    //let history = useHistory();
     const classes = useStyles()
     const [objValues, setObjValues] = useState({
         dateInterruption: "",
         why: "",
         interruptionType: "",
         dateRestartPlacedBackMedication: "",
-        personId: patientObj.id,
-        prepClientId: props.prepId,
+        personId: patientObj.personId,
         causeOfDeath: "",
         dateClientDied: "",
         dateClientReferredOut: "",
@@ -131,9 +130,9 @@ const PrEPEligibiltyScreeningForm = (props) => {
     /**** Submit Button Processing  */
     const handleSubmit = (e) => {        
         e.preventDefault();
-
+         console.log(objValues)
           setSaving(true);
-          axios.put(`${baseUrl}prep/interruption`,objValues,
+          axios.post(`${baseUrl}prep/interruption`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},
           
           ).then(response => {
@@ -146,11 +145,9 @@ const PrEPEligibiltyScreeningForm = (props) => {
                   setSaving(false);
                   if(error.response && error.response.data){
                     let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                    if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
-                      toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
-                    }else{
+                    
                       toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
-                    }
+
                 }else{
                     toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
                 }
