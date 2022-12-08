@@ -121,6 +121,22 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "extra", columnDefinition = "jsonb")
     private Object extra;
 
+    //For clinic
+    @Column(name = "pulse")
+    private Double pulse;
+    @Column(name = "respiratory_rate")
+    private Double respiratoryRate;
+    @Column(name = "temperature")
+    private Double temperature;
+    @Column(name = "systolic")
+    private Double systolic;
+    @Column(name = "diastolic")
+    private Double diastolic;
+    @Column(name = "adherence_level")
+    private String adherenceLevel;
+    @Column(name = "sti_screening")
+    private Boolean stiScreening;
+
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){

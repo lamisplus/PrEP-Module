@@ -47,5 +47,14 @@ public class PrepClinicRequestDto implements Serializable{
     private Object extra;
 
     private LocalDate datePrepStart;
+
+    //For clinic
+    private Double pulse;
+    private Double respiratoryRate;
+    private Double temperature;
+    private Double systolic;
+    private Double diastolic;
+    private String adherenceLevel;
+    private Boolean stiScreening;
 }
 

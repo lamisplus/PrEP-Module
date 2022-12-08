@@ -25,7 +25,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
     List<PrepEnrollment> findAllByPersonAndArchived(Person person, int archived);
 
     @Query(value = "SELECT * FROM prep_enrollment pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
-            "pe.uuid NOT IN (SELECT pc.prep_enrollment_uuid FROM prep_clinic pc WHERE pc.person_uuid=?1 " +
-            "AND pc.archived=?2 ) ORDER BY pe.date_enrolled ASC LIMIT 1", nativeQuery = true)
-    Optional<PrepEnrollment> findByPersonUuidAndArchived(String personUuid, int archived);
+            "pe.status NOT IN (?4) AND pe.facility_id=?3 ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
+    Optional<PrepEnrollment> findByPersonUuidAndArchived(String personUuid, int archived, Long facilityId, String status);
 }

@@ -23,6 +23,7 @@ public class PrepController {
     private final String PREP_URL_VERSION_ONE = "/api/v1/prep";
 
     @GetMapping(PREP_URL_VERSION_ONE + "/persons")
+    @ApiOperation("Get Prep Person")
     public ResponseEntity<PageDTO> getAllPerson(@RequestParam (required = false, defaultValue = "*")  String searchValue,
                                                 @RequestParam (required = false, defaultValue = "20")int pageSize,
                                                 @RequestParam (required = false, defaultValue = "0") int pageNo) {
@@ -47,9 +48,16 @@ public class PrepController {
 
     @PostMapping(PREP_URL_VERSION_ONE+ "/commencement")
     @ResponseStatus(HttpStatus.CREATED)
-    @ApiOperation("Prep Enrollment")
+    @ApiOperation("Prep Commencement")
     public ResponseEntity<PrepClinicDto> saveCommencement(@Valid @RequestBody PrepClinicRequestDto prepClinicRequestDto) {
         return new ResponseEntity<>(prepService.saveCommencement(prepClinicRequestDto), HttpStatus.CREATED);
+    }
+
+    @PostMapping(PREP_URL_VERSION_ONE+ "/clinic-visit")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ApiOperation("Prep Clinic")
+    public ResponseEntity<PrepClinicDto> saveClinic(@Valid @RequestBody PrepClinicRequestDto prepClinicRequestDto) {
+        return new ResponseEntity<>(prepService.saveClinic(prepClinicRequestDto), HttpStatus.CREATED);
     }
 
     @PostMapping(PREP_URL_VERSION_ONE+ "/interruption")
