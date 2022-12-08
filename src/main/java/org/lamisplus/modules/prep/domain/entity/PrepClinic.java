@@ -110,6 +110,9 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "next_appointment")
     private LocalDate nextAppointment;
 
+    @Column(name = "encounter_date")
+    private LocalDate encounterDate;
+
     @Column(name = "facility_id")
     private Long facilityId;
 

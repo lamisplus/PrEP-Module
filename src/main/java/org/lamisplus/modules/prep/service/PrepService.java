@@ -481,6 +481,7 @@ public class PrepService {
 
         prepClinic.setDateReferred( prepClinicRequestDto.getDateReferred() );
         prepClinic.setNextAppointment( prepClinicRequestDto.getNextAppointment() );
+        prepClinic.setEncounterDate( prepClinicRequestDto.getEncounterDate() );
         prepClinic.setExtra( prepClinicRequestDto.getExtra() );
 
         prepClinic.setDatePrepStart( prepClinicRequestDto.getDatePrepStart());
@@ -518,6 +519,7 @@ public class PrepService {
 
         prepClinicDto.setIsCommencement(clinic.getIsCommencement());
         prepClinicDto.setDatePrepStart( clinic.getDatePrepStart());
+        prepClinicDto.setEncounterDate( clinic.getEncounterDate());
         //For clinic
         prepClinicDto.setPulse( clinic.getPulse());
         prepClinicDto.setRespiratoryRate( clinic.getRespiratoryRate());

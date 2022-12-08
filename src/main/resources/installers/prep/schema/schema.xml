@@ -198,6 +198,7 @@
                 date_sero_converted date;
                 date_restart_placed_back_medication date;
                 link_to_art boolean;
+                encounter_date date;
                 date_modified timestamp without time zone,
                 CONSTRAINT pk_prep_interruption PRIMARY KEY (id),
                 CONSTRAINT uc_prep_interruption_uuid UNIQUE (uuid),

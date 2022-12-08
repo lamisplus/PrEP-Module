@@ -48,6 +48,8 @@ public class PrepClinicDto implements Serializable{
 
     private LocalDate datePrepStart;
 
+    private LocalDate encounterDate;
+
     //For clinic
     private Double pulse;
     private Double respiratoryRate;
