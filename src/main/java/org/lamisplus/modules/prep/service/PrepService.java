@@ -584,7 +584,10 @@ public class PrepService {
         prepInterruption.setDateClientReferredOut( prepInterruptionRequestDto.getDateClientReferredOut() );
         prepInterruption.setFacilityReferredTo( prepInterruptionRequestDto.getFacilityReferredTo() );
         prepInterruption.setInterruptionReason( prepInterruptionRequestDto.getInterruptionReason() );
+        prepInterruption.setDateSeroConverted(prepInterruptionRequestDto.getDateSeroConverted());
         prepInterruption.setPersonUuid(personUuid);
+        prepInterruption.setDateRestartPlacedBackMedication(prepInterruptionRequestDto.getDateRestartPlacedBackMedication());
+        prepInterruption.setLinkToArt(prepInterruptionRequestDto.getLinkToArt());
 
         return prepInterruption;
     }
@@ -605,6 +608,10 @@ public class PrepService {
         prepInterruptionDto.setDateClientReferredOut( prepInterruption.getDateClientReferredOut() );
         prepInterruptionDto.setFacilityReferredTo( prepInterruption.getFacilityReferredTo() );
         prepInterruptionDto.setInterruptionReason( prepInterruption.getInterruptionReason() );
+        prepInterruptionDto.setDateSeroConverted(prepInterruption.getDateSeroConverted());
+        prepInterruptionDto.setDateRestartPlacedBackMedication(prepInterruption.getDateRestartPlacedBackMedication());
+        prepInterruptionDto.setLinkToArt(prepInterruption.getLinkToArt());
+
 
         return prepInterruptionDto;
     }
