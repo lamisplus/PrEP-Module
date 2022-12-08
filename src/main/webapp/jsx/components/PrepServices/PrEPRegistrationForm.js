@@ -78,6 +78,11 @@ const PrEPRegistrationForm = (props) => {
     useEffect(() => {         
         GetPatientDTOObj();
         RELATIONSHIP();
+        //console.log(props)
+        if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
+            GetPatientPrepEnrollment(props.activeContent.id)
+        }
+        //GetPatientPrepEnrollment
       }, []);
       const RELATIONSHIP =()=>{
         axios
@@ -104,7 +109,19 @@ const PrEPRegistrationForm = (props) => {
            //console.log(error);
            });          
     } 
-    console.log(patientDto)
+    const GetPatientPrepEnrollment =(id)=>{
+        axios
+           .get(`${baseUrl}prep/enrollment/person/${props.patientObj.personId}`,
+               { headers: {"Authorization" : `Bearer ${token}`} }
+           )
+           .then((response) => {
+                //console.log(response.data.find((x)=> x.id===id));
+               setObjValues(response.data.find((x)=> x.id===id));
+           })
+           .catch((error) => {
+           //console.log(error);
+           });          
+    } 
     const handleInputChange = e => {        
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
     } 
