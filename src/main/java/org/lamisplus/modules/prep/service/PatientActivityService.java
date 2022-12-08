@@ -39,7 +39,7 @@ public class PatientActivityService {
 	@NotNull
 	public List<TimelineVm> getTimelineVms(Long patientId, boolean full) {
 		List<PatientActivity> patientActivities = getActivitiesFor(patientId);
-		Log.info("patientActivities : {}", patientActivities);
+		//Log.info("patientActivities : {}", patientActivities);
 		List<TimelineVm> timeline = new ArrayList<>();
 		
 		Map<String, List<PatientActivity>> activities = patientActivities

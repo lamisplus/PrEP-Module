@@ -16,6 +16,8 @@ public interface PrepEligibilityRepository extends JpaRepository<PrepEligibility
 
     List<PrepEligibility> findAllByPersonUuid(String uuid);
 
+    Integer countAllByPersonUuid(String personUuid);
+
     List<PrepEligibility> findAllByPersonAndArchived(Person person, int archived);
 
     @Query(value = "SELECT * FROM prep_eligibility pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +

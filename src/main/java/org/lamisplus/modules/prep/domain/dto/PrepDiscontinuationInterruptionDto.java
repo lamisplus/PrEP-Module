@@ -28,4 +28,6 @@ public class PrepDiscontinuationInterruptionDto implements Serializable {
     private String why;
 
     private LocalDate dateRestartPlacedBackMedication;
+
+    private LocalDate dateSeroConverted;
 }

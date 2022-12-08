@@ -95,6 +95,15 @@ public class PrepInterruption extends Audit implements Serializable {
     @Column(name = "extra", columnDefinition = "jsonb")
     private Object extra;
 
+    @Column(name = "date_sero_converted")
+    private LocalDate dateSeroConverted;
+
+    @Column(name = "date_restart_placed_back_medication")
+    private LocalDate dateRestartPlacedBackMedication;
+
+    @Column(name = "link_to_art")
+    private Boolean linkToArt;
+
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){

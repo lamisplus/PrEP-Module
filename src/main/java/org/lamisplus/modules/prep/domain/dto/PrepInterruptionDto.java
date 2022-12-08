@@ -20,4 +20,7 @@ public class PrepInterruptionDto implements Serializable {
     private LocalDate dateClientReferredOut;
     private String facilityReferredTo;
     private String interruptionReason;
+    private LocalDate dateSeroConverted;
+    private LocalDate dateRestartPlacedBackMedication;
+    private Boolean linkToArt;
 }
