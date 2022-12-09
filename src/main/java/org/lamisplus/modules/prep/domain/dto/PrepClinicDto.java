@@ -2,7 +2,11 @@ package org.lamisplus.modules.prep.domain.dto;
 
 
 import lombok.*;
+import org.hibernate.annotations.Type;
 
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.FetchType;
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -58,5 +62,19 @@ public class PrepClinicDto implements Serializable{
     private Double diastolic;
     private String adherenceLevel;
     private Boolean stiScreening;
+
+    private Boolean why;
+
+    private LocalDate datePrepGiven;
+
+    private Object urinalysis;
+
+    private Object hepatitis;
+
+    private Object syphilis;
+
+    private Object otherTestsDone;
+
+    private Object syndromicStiScreening ;
 }
 
