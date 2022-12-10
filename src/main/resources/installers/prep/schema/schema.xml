@@ -135,6 +135,18 @@
                 person_uuid character varying(255),
                 visit_uuid character varying(255),
                 next_appointment date,
+                why boolean,
+                datePrepGiven date,
+                urinalysis jsonb,
+                hepatitis jsonb,
+                syphilis jsonb,
+                other_tests_done jsonb,
+                syndromic_sti_screening jsonb,
+                date_initial_adherence_counseling date,
+                date_referred date,
+                referred boolean,
+                urinalysis_result character varying,
+                pregnant character varying,
                 facility_id bigint,
                 extra jsonb,
                 created_by character varying(255) NOT NULL,
@@ -142,11 +154,6 @@
                 modified_by character varying(255),
                 date_modified timestamp without time zone,
                 archived integer,
-                date_initial_adherence_counseling date,
-                date_referred date,
-                referred boolean,
-                urinalysis_result character varying,
-                pregnant character varying,
                 CONSTRAINT pk_prep_clinical PRIMARY KEY (id),
                 CONSTRAINT uc_prep_clinical_uuid UNIQUE (uuid),
                 CONSTRAINT fk_prep_clinical_on_person_uuid FOREIGN KEY (person_uuid)
@@ -198,6 +205,7 @@
                 date_sero_converted date;
                 date_restart_placed_back_medication date;
                 link_to_art boolean;
+                encounter_date date;
                 date_modified timestamp without time zone,
                 CONSTRAINT pk_prep_interruption PRIMARY KEY (id),
                 CONSTRAINT uc_prep_interruption_uuid UNIQUE (uuid),

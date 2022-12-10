@@ -29,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -481,6 +482,7 @@ public class PrepService {
 
         prepClinic.setDateReferred( prepClinicRequestDto.getDateReferred() );
         prepClinic.setNextAppointment( prepClinicRequestDto.getNextAppointment() );
+        prepClinic.setEncounterDate( prepClinicRequestDto.getEncounterDate() );
         prepClinic.setExtra( prepClinicRequestDto.getExtra() );
 
         prepClinic.setDatePrepStart( prepClinicRequestDto.getDatePrepStart());
@@ -492,6 +494,14 @@ public class PrepService {
         prepClinic.setDiastolic( prepClinicRequestDto.getDiastolic());
         prepClinic.setAdherenceLevel( prepClinicRequestDto.getAdherenceLevel());
         prepClinic.setStiScreening( prepClinicRequestDto.getStiScreening());
+
+        prepClinic.setWhy( prepClinicRequestDto.getWhy());
+        prepClinic.setDatePrepGiven( prepClinicRequestDto.getDatePrepGiven());
+        prepClinic.setUrinalysis( prepClinicRequestDto.getUrinalysis());
+        prepClinic.setHepatitis( prepClinicRequestDto.getHepatitis());
+        prepClinic.setSyphilis( prepClinicRequestDto.getSyphilis());
+        prepClinic.setOtherTestsDone( prepClinicRequestDto.getOtherTestsDone());
+        prepClinic.setSyndromicStiScreening( prepClinicRequestDto.getSyndromicStiScreening());
 
         return prepClinic;
     }
@@ -518,6 +528,7 @@ public class PrepService {
 
         prepClinicDto.setIsCommencement(clinic.getIsCommencement());
         prepClinicDto.setDatePrepStart( clinic.getDatePrepStart());
+        prepClinicDto.setEncounterDate( clinic.getEncounterDate());
         //For clinic
         prepClinicDto.setPulse( clinic.getPulse());
         prepClinicDto.setRespiratoryRate( clinic.getRespiratoryRate());
@@ -526,6 +537,15 @@ public class PrepService {
         prepClinicDto.setDiastolic( clinic.getDiastolic());
         prepClinicDto.setAdherenceLevel( clinic.getAdherenceLevel());
         prepClinicDto.setStiScreening( clinic.getStiScreening());
+
+        prepClinicDto.setWhy( clinic.getWhy());
+        prepClinicDto.setDatePrepGiven( clinic.getDatePrepGiven());
+        prepClinicDto.setUrinalysis( clinic.getUrinalysis());
+        prepClinicDto.setHepatitis( clinic.getHepatitis());
+        prepClinicDto.setSyphilis( clinic.getSyphilis());
+        prepClinicDto.setOtherTestsDone( clinic.getOtherTestsDone());
+        prepClinicDto.setSyndromicStiScreening( clinic.getSyndromicStiScreening());
+
         return prepClinicDto;
     }
     private PrepEnrollmentDto enrollmentToEnrollmentDto(PrepEnrollment enrollment) {

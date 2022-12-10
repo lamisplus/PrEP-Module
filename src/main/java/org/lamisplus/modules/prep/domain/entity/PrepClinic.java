@@ -110,6 +110,9 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "next_appointment")
     private LocalDate nextAppointment;
 
+    @Column(name = "encounter_date")
+    private LocalDate encounterDate;
+
     @Column(name = "facility_id")
     private Long facilityId;
 
@@ -136,6 +139,38 @@ public class PrepClinic extends Audit implements Serializable{
     private String adherenceLevel;
     @Column(name = "sti_screening")
     private Boolean stiScreening;
+
+    @Column(name = "why")
+    private Boolean why;
+
+    @Column(name = "date_prep_given")
+    private LocalDate datePrepGiven;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "urinalysis", columnDefinition = "jsonb")
+    private Object urinalysis;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "hepatitis", columnDefinition = "jsonb")
+    private Object hepatitis;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "syphilis", columnDefinition = "jsonb")
+    private Object syphilis;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "other_tests_done", columnDefinition = "jsonb")
+    private Object otherTestsDone;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "syndromic_sti_screening", columnDefinition = "jsonb")
+    private Object syndromicStiScreening ;
+
 
     @PrePersist
     public void setFields(){

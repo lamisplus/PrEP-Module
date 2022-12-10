@@ -44,6 +44,8 @@ public class PrepClinicRequestDto implements Serializable{
 
     private LocalDate nextAppointment;
 
+    private LocalDate encounterDate;
+
     private Object extra;
 
     private LocalDate datePrepStart;
@@ -56,5 +58,19 @@ public class PrepClinicRequestDto implements Serializable{
     private Double diastolic;
     private String adherenceLevel;
     private Boolean stiScreening;
+
+    private Boolean why;
+
+    private LocalDate datePrepGiven;
+
+    private Object urinalysis;
+
+    private Object hepatitis;
+
+    private Object syphilis;
+
+    private Object otherTestsDone;
+
+    private Object syndromicStiScreening ;
 }
 
