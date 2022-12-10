@@ -171,6 +171,13 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "syndromic_sti_screening", columnDefinition = "jsonb")
     private Object syndromicStiScreening ;
 
+    @Column(name = "risk_reduction_services")
+    private String riskReductionServices;
+
+
+    @Column(name = "noted_side_effects")
+    private String notedSideEffects;
+
 
     @PrePersist
     public void setFields(){

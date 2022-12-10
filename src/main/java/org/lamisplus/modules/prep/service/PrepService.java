@@ -503,6 +503,9 @@ public class PrepService {
         prepClinic.setOtherTestsDone( prepClinicRequestDto.getOtherTestsDone());
         prepClinic.setSyndromicStiScreening( prepClinicRequestDto.getSyndromicStiScreening());
 
+        prepClinic.setRiskReductionServices( prepClinicRequestDto.getRiskReductionServices());
+        prepClinic.setNotedSideEffects( prepClinicRequestDto.getNotedSideEffects());
+
         return prepClinic;
     }
     private PrepClinicDto clinicToClinicDto(PrepClinic clinic) {
@@ -545,6 +548,9 @@ public class PrepService {
         prepClinicDto.setSyphilis( clinic.getSyphilis());
         prepClinicDto.setOtherTestsDone( clinic.getOtherTestsDone());
         prepClinicDto.setSyndromicStiScreening( clinic.getSyndromicStiScreening());
+
+        prepClinicDto.setRiskReductionServices( clinic.getRiskReductionServices());
+        prepClinicDto.setNotedSideEffects( clinic.getNotedSideEffects());
 
         return prepClinicDto;
     }
