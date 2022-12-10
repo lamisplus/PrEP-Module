@@ -72,5 +72,9 @@ public class PrepClinicRequestDto implements Serializable{
     private Object otherTestsDone;
 
     private Object syndromicStiScreening ;
+
+    private String riskReductionServices;
+
+    private String notedSideEffects;
 }
 

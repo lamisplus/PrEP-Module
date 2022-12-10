@@ -11,5 +11,5 @@ import java.util.List;
 public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, JpaSpecificationExecutor<PrepClinic> {
     List<PrepClinic> findAllByPersonAndIsCommencement(Person person, boolean isCommenced);
 
-    List<PrepClinic> findAllByPersonAndArchived(Person person, int archived);
+    List<PrepClinic> findAllByPersonAndIsCommencementAndArchived(Person person, Boolean isCommencement, int archived);
 }
