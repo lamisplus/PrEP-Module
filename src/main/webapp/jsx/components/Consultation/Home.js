@@ -89,12 +89,14 @@ const ClinicVisit = (props) => {
   const [adherenceLevel, setAdherenceLevel] = useState([]);
   const [sti, setSti] = useState([]);
   const [TBForms, setTBForms] = useState(false)
-
+  const [prepStatus, setPrepStatus] = useState([]);
   const [currentVitalSigns, setcurrentVitalSigns] = useState({})
   const [showCurrentVitalSigns, setShowCurrentVitalSigns] = useState(false)
   //opportunistic infection Object
-  const [infectionList, setInfectionList] = useState([]);
-  const [adrList, setAdrList] = useState([]);
+  const [prepSideEffect, setPrepSideEffect] = useState([]);
+  const [htsResult, setHtsResult] = useState([]);
+  const [riskReductionService, setRiskReductionService] = useState([]);
+  const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
   //Vital signs clinical decision support 
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
                                                                     bodyWeight: "",
@@ -106,29 +108,27 @@ const ClinicVisit = (props) => {
                                                                     respiratoryRate:"" 
                                                                   })
   const [objValues, setObjValues] = useState({
-    adherenceLevel: "",
-    adheres: {},
-    adrScreened: "",
-    adverseDrugReactions: {},
-    artStatusId: "" ,
-    cd4: "",
-    cd4Percentage: "",
-    clinicalNote: "",
-    clinicalStageId: "",
-    facilityId: 0,
-    functionalStatusId: "",
-    hivEnrollmentId: "",
-    nextAppointment: "",
-    lmpDate: "",
-    oiScreened: "",
-    opportunisticInfections: {},
-    personId: patientObj.id,
-    tbScreen: {},
-    stiIds: "",
-    stiTreated: "",
-    uuid: "",
-    visitDate: "",
-    whoStagingId: ""
+
+      adherenceLevel: "",
+      dateInitialAdherenceCounseling: "",
+      datePrepStart: "",
+      dateReferred: "",
+      diastolic: "",
+      extra: {},
+      height: "",
+      nextAppointment: "",
+      personId: "",
+      pregnant: "",
+      prepEnrollmentUuid: "",
+      pulse: "",
+      referred: "",
+      regimenId: "",
+      respiratoryRate: "",
+      stiScreening: "",
+      systolic: "",
+      temperature: "",
+      urinalysisResult: "",
+      weight: ""
   });
   const [vital, setVitalSignDto] = useState({
     bodyWeight: "",
@@ -143,16 +143,7 @@ const ClinicVisit = (props) => {
     temperature:"",
     respiratoryRate:"" 
   })
-  const [tbObj, setTbObj] = useState({
-    currentOnIpt: "",
-    coughing: "",
-    antiTBDrug: "",
-    nightSweat: "",
-    fever: "",
-    contactWithTBCase: "",
-    lethergy: "",
-    tbStatusId: ""
-  });
+
 
   useEffect(() => {
     FunctionalStatus();
@@ -163,8 +154,73 @@ const ClinicVisit = (props) => {
     GetPatientObj();
     ClinicVisitList();
     PatientDetaild();
+    PREP_STATUS();
+    HTS_RESULT();
+    PREP_SIDE_EFFECTS();
+    PrEP_RISK_REDUCTION_PLAN();
+    WHY_POOR_FAIR_ADHERENCE();
     //hiv/patient/3
   }, []);
+    const PREP_STATUS =()=>{
+      axios
+      .get(`${baseUrl}application-codesets/v2/PREP_STATUS`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+      )
+      .then((response) => {
+          setPrepStatus(response.data);
+      })
+      .catch((error) => {
+      //console.log(error);
+      });    
+    }
+    const PREP_SIDE_EFFECTS =()=>{
+      axios
+      .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+      )
+      .then((response) => {
+        setPrepSideEffect(response.data);
+      })
+      .catch((error) => {
+      //console.log(error);
+      });    
+    }
+    const PrEP_RISK_REDUCTION_PLAN =()=>{
+      axios
+      .get(`${baseUrl}application-codesets/v2/PrEP_RISK_REDUCTION_PLAN`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+      )
+      .then((response) => {
+        setRiskReductionService(response.data);
+      })
+      .catch((error) => {
+      //console.log(error);
+      });    
+    }	
+    const HTS_RESULT =()=>{
+      axios
+      .get(`${baseUrl}application-codesets/v2/PREP_STATUS`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+      )
+      .then((response) => {
+        setHtsResult(response.data);
+      })
+      .catch((error) => {
+      //console.log(error);
+      });    
+    }
+    const WHY_POOR_FAIR_ADHERENCE =()=>{
+      axios
+      .get(`${baseUrl}application-codesets/v2/WHY_POOR_FAIR_ADHERENCE`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+      )
+      .then((response) => {
+        setWhyAdherenceLevelPoor(response.data);
+      })
+      .catch((error) => {
+      //console.log(error);
+      });    
+    }
      //GET LIST Drug Refill
      async function ClinicVisitList() {
       setLoading(true)
@@ -399,13 +455,9 @@ const handleInputValueCheckTemperature =(e)=>{
     if(validate()){
     setSaving(true)
     objValues.visitDate = vital.encounterDate
-    objValues.adverseDrugReactions = adrList
-    objValues.artStatusId = getPatientObj.artCommence.id
-    objValues.hivEnrollmentId = getPatientObj.enrollment.id
-    objValues.opportunisticInfections = infectionList
-    objValues.tbScreen = tbObj
+
     objValues['vitalSignDto'] = vital
-    axios.post(`${baseUrl}hiv/art/clinic-visit/`, objValues,
+    axios.post(`${baseUrl}prep/clinic-visit`, objValues,
       { headers: { "Authorization": `Bearer ${token}` } },
 
     )
@@ -734,7 +786,7 @@ const handleInputValueCheckTemperature =(e)=>{
                     </div>
               </div>
               <div className="row">
-              <div className="form-group mb-3 col-md-8">
+              <div className="form-group mb-3 col-md-12">
                   <FormGroup>
                   <FormLabelName >Blood Pressure</FormLabelName>
                   <InputGroup>
@@ -791,9 +843,7 @@ const handleInputValueCheckTemperature =(e)=>{
             </Label>
             <br /><br />
 
-            <div className="row">
-
-             
+            <div className="row">             
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >HIV Test Result </FormLabelName>
@@ -807,8 +857,33 @@ const handleInputValueCheckTemperature =(e)=>{
                     required
                   >
                     <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
+                    {htsResult.map((value) => (
+                      <option key={value.id} value={value.code}>
+                        {value.display}
+                      </option>
+                    ))}
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Noted Side Effects </FormLabelName>
+                  <Input
+                    type="select"
+                    name="sideEffect"
+                    id="sideEffect"
+                    value={objValues.sideEffect}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="">Select </option>
+                    {prepSideEffect.map((value) => (
+                      <option key={value.id} value={value.code}>
+                        {value.display}
+                      </option>
+                    ))}
                   </Input>
                  
                 </FormGroup>
@@ -832,57 +907,35 @@ const handleInputValueCheckTemperature =(e)=>{
                  
                 </FormGroup>
               </div>
-              <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName >Level of Adherence *</FormLabelName>
-                  <Input
-                    type="select"
-                    name="adherenceLevel"
-                    id="adherenceLevel"
-                    value={objValues.adherenceLevel}
-                    onChange={handleInputChange}
-                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
-                  >
-                    <option value="">Select </option>
-
-                    {adherenceLevel.map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                 
-                </FormGroup>
-              </div>
+              
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Syndromic STI Screening </FormLabelName>
                   <Input
                     type="select"
-                    name="syndromicSTIScreening "
-                    id="syndromicSTIScreening"
-                    value={objValues.syndromicSTIScreening}
+                    name="stiScreening "
+                    id="stiScreening"
+                    value={objValues.stiScreening}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
                     <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
+                    <option value="true">Yes </option>
+                    <option value="false">No </option>
                   </Input>
                  
                 </FormGroup>
               </div>
-              {objValues.syndromicSTIScreening==='Yes' && (
+              {objValues.syndromicSTIScreening==='true' && (
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >STI Screening</FormLabelName>
                   <Input
                     type="select"
-                    name="adherenceLevel"
-                    id="adherenceLevel"
-                    value={objValues.adherenceLevel}
+                    name="syndromicStiScreening"
+                    id="syndromicStiScreening"
+                    value={objValues.syndromicStiScreening}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
@@ -898,6 +951,77 @@ const handleInputValueCheckTemperature =(e)=>{
                 </FormGroup>
               </div> 
               )}
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Risk Reduction Services</FormLabelName>
+                  <Input
+                    type="select"
+                    name="riskReductionService"
+                    id="riskReductionService"
+                    value={objValues.riskReductionService}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="">Select </option>
+                    {riskReductionService.map((value) => (
+                      <option key={value.id} value={value.id}>
+                        {value.display}
+                      </option>
+                    ))}
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Level of Adherence *</FormLabelName>
+                  <Input
+                    type="select"
+                    name="adherenceLevel"
+                    id="adherenceLevel"
+                    value={objValues.adherenceLevel}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="">Select </option>
+
+                    {adherenceLevel.map((value) => (
+                      <option key={value.id} value={value.code}>
+                        {value.display}
+                      </option>
+                    ))}
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              {objValues.adherenceLevel==='PREP_LEVEL_OF_ADHERENCE_(POOR)_≥_7_DOSES' && (
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Why Poor/Fair Adherence </FormLabelName>
+                  <Input
+                    type="select"
+                    name="whyAdherenceLevelPoor"
+                    id="whyAdherenceLevelPoor"
+                    value={objValues.whyAdherenceLevelPoor}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="">Select </option>
+
+                    {whyAdherenceLevelPoor.map((value) => (
+                      <option key={value.id} value={value.code}>
+                        {value.display}
+                      </option>
+                    ))}
+                  </Input>
+                 
+                </FormGroup>
+              </div> 
+              )}
+              
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >PrEP Given</FormLabelName>
@@ -945,10 +1069,183 @@ const handleInputValueCheckTemperature =(e)=>{
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
+                    {prepStatus.map((value) => (
+                            <option key={value.id} value={value.code}>
+                                {value.display}
+                            </option>
+                        ))}
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              <br /><br />
+              <Label as='a' color='teal'  style={{width:'106%', height:'35px'}} ribbon>
+              <h4 style={{color:'#fff'}}><input type="checkbox" name="timeOfViralLoad" value="viralLoadAt32" onChange={handleInputChange} checked={objValues.timeOfViralLoad==='viralLoadAt32' ? true : false}/> Urinalysis Test</h4>
+              </Label>
+              <br /><br />
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Urinalysis Test Date</FormLabelName>
+                  <Input
+                    type="select"
+                    name="prepGiven"
+                    id="prepGiven"
+                    value={objValues.prepGiven}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
                     <option value="">Select </option>
-                    <option value="None">None </option>
-                    <option value="Positive">Positive </option>
-                    <option value="Negative">Negative </option>
+                    <option value="Yes">Yes </option>
+                    <option value="No">No </option>
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Urinalysis Test Result</FormLabelName>
+                  <Input
+                    type="select"
+                    name="prepGiven"
+                    id="prepGiven"
+                    value={objValues.prepGiven}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="">Select </option>
+                    <option value="Yes">Yes </option>
+                    <option value="No">No </option>
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              <br /><br />
+              <Label as='a' color='blue'  style={{width:'106%', height:'35px'}} ribbon>
+              <h4 style={{color:'#fff'}}><input type="checkbox" name="timeOfViralLoad" value="viralLoadAt32" onChange={handleInputChange} checked={objValues.timeOfViralLoad==='viralLoadAt32' ? true : false}/> Hepatitis  Test </h4>
+              </Label>
+              <br /><br />
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Hepatitis  Test  Date</FormLabelName>
+                  <Input
+                    type="select"
+                    name="prepGiven"
+                    id="prepGiven"
+                    value={objValues.prepGiven}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="">Select </option>
+                    <option value="Yes">Yes </option>
+                    <option value="No">No </option>
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Hepatitis  Test  Result</FormLabelName>
+                  <Input
+                    type="select"
+                    name="prepGiven"
+                    id="prepGiven"
+                    value={objValues.prepGiven}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="">Select </option>
+                    <option value="Yes">Yes </option>
+                    <option value="No">No </option>
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              <br /><br />
+              <Label as='a' color='red'  style={{width:'106%', height:'35px'}} ribbon>
+              <h4 style={{color:'#fff'}}><input type="checkbox" name="timeOfViralLoad" value="viralLoadAt32" onChange={handleInputChange} checked={objValues.timeOfViralLoad==='viralLoadAt32' ? true : false}/> Syphilis Test </h4>
+              </Label>
+              <br /><br />
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Syphilis Test  Date</FormLabelName>
+                  <Input
+                    type="select"
+                    name="prepGiven"
+                    id="prepGiven"
+                    value={objValues.prepGiven}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="">Select </option>
+                    <option value="Yes">Yes </option>
+                    <option value="No">No </option>
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Syphilis Test  Result</FormLabelName>
+                  <Input
+                    type="select"
+                    name="prepGiven"
+                    id="prepGiven"
+                    value={objValues.prepGiven}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="">Select </option>
+                    <option value="Yes">Yes </option>
+                    <option value="No">No </option>
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              <br /><br />
+              <Label as='a' color='black'  style={{width:'106%', height:'35px'}} ribbon>
+              <h4 style={{color:'#fff'}}><input type="checkbox" name="timeOfViralLoad" value="viralLoadAt32" onChange={handleInputChange} checked={objValues.timeOfViralLoad==='viralLoadAt32' ? true : false}/> Other Test </h4>
+              </Label>
+              <br /><br />
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName > Test  Date</FormLabelName>
+                  <Input
+                    type="select"
+                    name="prepGiven"
+                    id="prepGiven"
+                    value={objValues.prepGiven}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="">Select </option>
+                    <option value="Yes">Yes </option>
+                    <option value="No">No </option>
+                  </Input>
+                 
+                </FormGroup>
+              </div>
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName > Test  Result</FormLabelName>
+                  <Input
+                    type="select"
+                    name="prepGiven"
+                    id="prepGiven"
+                    value={objValues.prepGiven}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  >
+                    <option value="">Select </option>
+                    <option value="Yes">Yes </option>
+                    <option value="No">No </option>
                   </Input>
                  
                 </FormGroup>

@@ -18,32 +18,34 @@ import { DateTimePicker } from "react-widgets";
 import moment from "moment";
 import { Spinner } from "reactstrap";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
     card: {
         margin: theme.spacing(20),
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center'
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center"
     },
     form: {
-        width: '100%', // Fix IE 11 issue.
-        marginTop: theme.spacing(3)
+        width: "100%", // Fix IE 11 issue.
+        marginTop: theme.spacing(3),
     },
     submit: {
-        margin: theme.spacing(3, 0, 2)
+        margin: theme.spacing(3, 0, 2),
     },
     cardBottom: {
-        marginBottom: 20
+        marginBottom: 20,
     },
     Select: {
         height: 45,
-        width: 350
+        width: 300,
     },
     button: {
-        margin: theme.spacing(1)
+        margin: theme.spacing(1),
     },
     root: {
         flexGrow: 1,
+        //maxWidth: 752,
+        //flexGrow: 1,
         "& .card-title":{
             color:'#fff',
             fontWeight:'bold'
@@ -68,25 +70,44 @@ const useStyles = makeStyles(theme => ({
             fontSize:'14px',
             color:'#014d88',
             fontWeight:'bold'
-        },
+        }
+
     },
-    input: {
-        display: 'none'
-    } 
-}))
+    demo: {
+        backgroundColor: theme.palette.background.default,
+    },
+    inline: {
+        display: "inline",
+    },
+    error:{
+        color: '#f85032',
+        fontSize: '12.8px'
+    },  
+    success: {
+        color: "#4BB543 ",
+        fontSize: "11px",
+    },
+    
+}));
 
 const PrEPEligibiltyScreeningForm = (props) => {
 
     const patientObj = props.patientObj;
-    let history = useHistory();
+    //let history = useHistory();
     const classes = useStyles()
     const [objValues, setObjValues] = useState({
         dateInterruption: "",
         why: "",
         interruptionType: "",
         dateRestartPlacedBackMedication: "",
-        personId: patientObj.id,
-        prepClientId: props.prepId
+        personId: patientObj.personId,
+        causeOfDeath: "",
+        dateClientDied: "",
+        dateClientReferredOut: "",
+        facilityReferredTo: "",
+        interruptionDate: "",
+        interruptionReason: "",
+        sourceOfDeathInfo: ""
       });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
@@ -114,8 +135,8 @@ const PrEPEligibiltyScreeningForm = (props) => {
 
     const validate = () => {
         let temp = { ...errors }
-        //temp.name = details.name ? "" : "This field is required"
-        //temp.description = details.description ? "" : "This field is required"
+        temp.interruptionDate = objValues.interruptionDate ? "" : "This field is required"
+        temp.interruptionType = objValues.interruptionType ? "" : "This field is required"
         setErrors({
             ...temp
             })    
@@ -124,9 +145,10 @@ const PrEPEligibiltyScreeningForm = (props) => {
     /**** Submit Button Processing  */
     const handleSubmit = (e) => {        
         e.preventDefault();
-
+         //console.log(objValues)
+         if(validate()){
           setSaving(true);
-          axios.put(`${baseUrl}prep/${props.prepId}/discontinuation-interruption`,objValues,
+          axios.post(`${baseUrl}prep/interruption`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},
           
           ).then(response => {
@@ -139,15 +161,14 @@ const PrEPEligibiltyScreeningForm = (props) => {
                   setSaving(false);
                   if(error.response && error.response.data){
                     let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                    if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
-                      toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
-                    }else{
+                    
                       toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
-                    }
+
                 }else{
                     toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
                 }
               });
+        }
           
     }
 
@@ -177,6 +198,9 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             </option>
                         ))}
                         </Input>
+                        {errors.interruptionType !=="" ? (
+                                <span className={classes.error}>{errors.interruptionType}</span>
+                            ) : "" } 
                         </FormGroup>
                     </div>
                     <div className="form-group mb-3 col-md-6">
@@ -184,14 +208,16 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Date of Interruption </Label>
                         <Input
                             type="date"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="interruptionDate"
+                            id="interruptionDate"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.interruptionDate}
                             required
                         />
-                        
+                        {errors.interruptionDate !=="" ? (
+                            <span className={classes.error}>{errors.interruptionDate}</span>
+                        ) : "" } 
                         </FormGroup>
                     </div>
                     {objValues.interruptionType==='PREP_STATUS_TRANSFER_OUT' && (
@@ -201,14 +227,16 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Date of client referred out </Label>
                         <Input
                             type="date"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="dateClientReferredOut"
+                            id="dateClientReferredOut"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.dateClientReferredOut}
                             required
                         />
-                        
+                        {errors.dateClientReferredOut !=="" ? (
+                            <span className={classes.error}>{errors.dateClientReferredOut}</span>
+                        ) : "" } 
                         </FormGroup>
                     </div>
                     
@@ -217,14 +245,16 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Facility referred to </Label>
                         <Input
                             type="text"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="facilityReferredTo"
+                            id="facilityReferredTo"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.facilityReferredTo}
                             required
                         />
-                        
+                        {errors.facilityReferredTo !=="" ? (
+                            <span className={classes.error}>{errors.facilityReferredTo}</span>
+                        ) : "" } 
                         </FormGroup>
                     </div>
                     </>
@@ -236,14 +266,16 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Date of client died </Label>
                         <Input
                             type="date"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="dateClientDied"
+                            id="dateClientDied"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.dateClientDied}
                             required
                         />
-                        
+                        {errors.dateClientDied !=="" ? (
+                            <span className={classes.error}>{errors.dateClientDied}</span>
+                        ) : "" } 
                         </FormGroup>
                     </div>
 
@@ -252,14 +284,16 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Cause of death</Label>
                         <Input
                             type="text"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="causeOfDeath"
+                            id="causeOfDeath"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.causeOfDeath}
                             required
                         />
-                        
+                        {errors.causeOfDeath !=="" ? (
+                            <span className={classes.error}>{errors.causeOfDeath}</span>
+                        ) : "" } 
                         </FormGroup>
                     </div>
                    
@@ -268,14 +302,16 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Source of death information  </Label>
                         <Input
                             type="text"
-                            name="dateInterruption"
-                            id="dateInterruption"
+                            name="sourceOfDeathInfo"
+                            id="sourceOfDeathInfo"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
-                            value={objValues.dateInterruption}
+                            value={objValues.sourceOfDeathInfo}
                             required
                         />
-                        
+                        {errors.sourceOfDeathInfo !=="" ? (
+                            <span className={classes.error}>{errors.sourceOfDeathInfo}</span>
+                        ) : "" }
                         </FormGroup>
                     </div>
                     </>
@@ -309,7 +345,9 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             onChange={handleInputChange}
                             style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                         />
-                            
+                        {errors.dateRestartPlacedBackMedication !=="" ? (
+                            <span className={classes.error}>{errors.dateRestartPlacedBackMedication}</span>
+                        ) : "" }    
                         </FormGroup>
                     </div>
                      )}
@@ -326,7 +364,9 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             value={objValues.dateSeroconverted}
                             required
                         />
-                        
+                        {errors.dateSeroconverted !=="" ? (
+                            <span className={classes.error}>{errors.dateSeroconverted}</span>
+                        ) : "" }
                         </FormGroup>
                     </div>
                      )}
@@ -344,6 +384,9 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <option value="Yes">Yes </option>
                         <option value="No"> No</option>
                         </Input>
+                        {errors.linkToArt !=="" ? (
+                            <span className={classes.error}>{errors.linkToArt}</span>
+                        ) : "" }
                         </FormGroup>
                     </div>
                     <div className="form-group mb-3 col-md-6">
@@ -353,14 +396,16 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             className="form-control"
                             type="date"
                             name="dateLinkToArt"
-                            id="dateRestadateLinkToArtrtPlacedBackMedication"
+                            id="dateLinkToArt"
                             //min="1983-12-31"
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             value={objValues.dateLinkToArt}
                             onChange={handleInputChange}
                             style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                         />
-                            
+                        {errors.dateLinkToArt !=="" ? (
+                            <span className={classes.error}>{errors.dateLinkToArt}</span>
+                        ) : "" }    
                         </FormGroup>
                     </div>
                 </div>
@@ -375,6 +420,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     className={classes.button}
                     startIcon={<SaveIcon />}
                     onClick={handleSubmit}
+                    style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
                     >
                     {!saving ? (
                     <span style={{ textTransform: "capitalize" }}>Save</span>
@@ -388,9 +434,10 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     className={classes.button}
                     startIcon={<CancelIcon />}
                     onClick={props.toggle}
+                    style={{backgroundColor:'#992E62'}}
                     
                 >
-                    <span style={{ textTransform: "capitalize" }}>Cancel</span>
+                    <span style={{ textTransform: "capitalize", color:"#fff" }}>Cancel</span>
                 </MatButton>
             
                 </form>

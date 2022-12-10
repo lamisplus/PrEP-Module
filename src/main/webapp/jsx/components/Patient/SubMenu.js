@@ -18,7 +18,7 @@ function SubMenu(props) {
     //const patientCurrentStatus=props.patientObj && props.patientObj.currentStatus==="Died (Confirmed)" ? true : false ;
     const [patientObj, setpatientObj] = useState(patientObjs)
     const [genderType, setGenderType] = useState()
-    console.log(patientObj)
+    //console.log(patientObj)
     useEffect(() => {
         Observation();
     }, [props.patientObj]);

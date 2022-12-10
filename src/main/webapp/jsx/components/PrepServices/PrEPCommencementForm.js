@@ -146,6 +146,19 @@ const PrEPCommencementForm = (props) => {
            //console.log(error);
            });          
     }
+    const GetPatientPrepEligibility =(id)=>{
+        axios
+           .get(`${baseUrl}prep/enrollment/person/${props.patientObj.personId}`,
+               { headers: {"Authorization" : `Bearer ${token}`} }
+           )
+           .then((response) => {
+                //console.log(response.data.find((x)=> x.id===id));
+               //setObjValues(response.data.find((x)=> x.id===id));
+           })
+           .catch((error) => {
+           //console.log(error);
+           });          
+    } 
             //Vital signs clinical decision support 
     const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
         bodyWeight: "",

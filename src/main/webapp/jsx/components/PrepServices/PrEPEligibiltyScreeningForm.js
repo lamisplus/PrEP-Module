@@ -111,31 +111,6 @@ const BasicInfo = (props) => {
                 }
                 return age_now ;
     };
-    
-    useEffect(() => { 
-        
-        //console.log(props.extra.riskAssessment)
-        CounselingType();
-    }, [props.patientObj]);
-    const CounselingType =()=>{
-        axios
-        .get(`${baseUrl}application-codesets/v2/COUNSELING_TYPE`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
-            setCounselingType(response.data);
-        })
-        .catch((error) => {
-        //console.log(error);
-        });    
-    }
-    const handleItemClick =(page, completedMenu)=>{        
-        if(props.completed.includes(completedMenu)) {
-        }else{
-            props.setCompleted([...props.completed, completedMenu])
-        }
-        props.handleItemClick(page)
-    }
     const [objValues, setObjValues]= useState(
             {
                 counselingType: "",
@@ -155,6 +130,46 @@ const BasicInfo = (props) => {
                 visitDate:""
             }
     )
+    useEffect(() => { 
+        
+        //console.log(props.extra.riskAssessment)
+        CounselingType();
+        if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
+            GetPatientPrepEligibility(props.activeContent.id)
+        }
+    }, [props.patientObj]);
+    const GetPatientPrepEligibility =(id)=>{
+        axios
+           .get(`${baseUrl}prep/enrollment/person/${props.patientObj.personId}`,
+               { headers: {"Authorization" : `Bearer ${token}`} }
+           )
+           .then((response) => {
+                //console.log(response.data.find((x)=> x.id===id));
+               //setObjValues(response.data.find((x)=> x.id===id));
+           })
+           .catch((error) => {
+           //console.log(error);
+           });          
+    } 
+    const CounselingType =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/COUNSELING_TYPE`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setCounselingType(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
+    const handleItemClick =(page, completedMenu)=>{        
+        if(props.completed.includes(completedMenu)) {
+        }else{
+            props.setCompleted([...props.completed, completedMenu])
+        }
+        props.handleItemClick(page)
+    }
     const handleInputChange = e => { 
         //setErrors({...temp, [e.target.name]:""}) 
         setObjValues ({...objValues,  [e.target.name]: e.target.value});         
@@ -177,11 +192,9 @@ const BasicInfo = (props) => {
                           
         }
     )
-
     const handleInputChangeRiskAssessment = e => { 
         //setErrors({...temp, [e.target.name]:""}) 
-        setRiskAssessment ({...riskAssessment,  [e.target.name]: e.target.value}); 
-                          
+        setRiskAssessment ({...riskAssessment,  [e.target.name]: e.target.value});                           
     }
     // Getting the number count of riskAssessment True
     const actualRiskCountTrue=Object.values(riskAssessment)
