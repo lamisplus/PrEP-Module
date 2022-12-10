@@ -381,8 +381,8 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             value={objValues.linkToArt}  
                         >
                         <option value=""> Select</option>
-                        <option value="Yes">Yes </option>
-                        <option value="No"> No</option>
+                        <option value="true">Yes </option>
+                        <option value="false"> No</option>
                         </Input>
                         {errors.linkToArt !=="" ? (
                             <span className={classes.error}>{errors.linkToArt}</span>

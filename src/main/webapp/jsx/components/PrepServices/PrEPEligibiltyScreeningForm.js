@@ -820,7 +820,7 @@ const BasicInfo = (props) => {
                             <hr/>
                             <br/>
                             <div className="form-group  col-md-12 text-center pt-2 mb-4" style={{backgroundColor:'#000', width:'125%', height:'35px', color:'#fff', fontWeight:'bold'}} >Drug Use History</div>
-                            <div className="form-group  col-md-4">
+                            {/* <div className="form-group  col-md-4">
                                 <FormGroup>
                                     <Label>Do you use any of these drugs/substances*</Label>
                                     <select
@@ -840,9 +840,10 @@ const BasicInfo = (props) => {
                                     <span className={classes.error}>{errors.useAnyOfTheseDrugs}</span>
                                     ) : "" }
                                 </FormGroup>
-                            </div>
+                            </div> */}
                             <hr/>
                             <h3>Route of Administration</h3>
+                            <h4>Do you use any of these drugs/substances ?</h4>
                             <br/>
                             <div className="form-group  col-md-3">
                                 <FormGroup>
