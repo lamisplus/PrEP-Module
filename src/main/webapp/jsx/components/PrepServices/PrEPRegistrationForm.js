@@ -71,26 +71,39 @@ const PrEPRegistrationForm = (props) => {
     });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
-    const [carePoints, setCarePoints] = useState([]);
+    const [prepRisk, setPrepRisk] = useState([]);
     const [relatives, setRelatives] = useState([]);
     const [patientDto, setPatientDto] = useState();
 
     useEffect(() => {         
         GetPatientDTOObj();
         RELATIONSHIP();
+        PREP_RISK_TYPE();
         //console.log(props)
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientPrepEnrollment(props.activeContent.id)
         }
         //GetPatientPrepEnrollment
       }, []);
-      const RELATIONSHIP =()=>{
+    const RELATIONSHIP =()=>{
         axios
            .get(`${baseUrl}application-codesets/v2/RELATIONSHIP`,
                { headers: {"Authorization" : `Bearer ${token}`} }
            )
            .then((response) => {
                setRelatives(response.data);
+           })
+           .catch((error) => {
+           //console.log(error);
+           });          
+    }
+    const PREP_RISK_TYPE =()=>{
+        axios
+           .get(`${baseUrl}application-codesets/v2/RELATIONSHIP`,
+               { headers: {"Authorization" : `Bearer ${token}`} }
+           )
+           .then((response) => {
+            setPrepRisk(response.data);
            })
            .catch((error) => {
            //console.log(error);
@@ -124,6 +137,10 @@ const PrEPRegistrationForm = (props) => {
     } 
     const handleInputChange = e => {        
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
+    } 
+    const checkPhoneNumberBasic=(e, inputName)=>{
+        const limit = 10;
+        setObjValues({...objValues,  [inputName]: e.slice(0, limit)});     
     } 
     
     const validate = () => {
@@ -235,12 +252,11 @@ const PrEPRegistrationForm = (props) => {
                                     required
                                 >
                                 <option value=""> Select</option>
-                    
-                                {relatives.map((value) => (
-                                    <option key={value.id} value={value.code}>
-                                        {value.display}
-                                    </option>
-                                ))}
+                                    {prepRisk.map((value) => (
+                                        <option key={value.id} value={value.code}>
+                                            {value.display}
+                                        </option>
+                                    ))}
                                
                                 </Input>
                                  {errors.riskType !=="" ? (
@@ -363,6 +379,19 @@ const PrEPRegistrationForm = (props) => {
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         //disabled={locationState.actionType==='update'? false : true}
                                     />
+                                    <PhoneInput
+                                        containerStyle={{width:'100%',border: "1px solid #014D88"}}
+                                        inputStyle={{width:'100%',borderRadius:'0px'}}
+                                        country={'ng'}
+                                        placeholder="(234)7099999999"
+                                        maxLength={5}
+                                        name="supporterPhone"
+                                        id="supporterPhone"
+                                        masks={{ng: '...-...-....', at: '(....) ...-....'}}
+                                        value={objValues.supporterPhone}
+                                        onChange={(e)=>{checkPhoneNumberBasic(e,'supporterPhone')}}
+                                        //onChange={(e)=>{handleInputChangeBasic(e,'phoneNumber')}}
+                                                />
                                     {errors.supporterPhone !=="" ? (
                                         <span className={classes.error}>{errors.supporterPhone}</span>
                                     ) : "" }
