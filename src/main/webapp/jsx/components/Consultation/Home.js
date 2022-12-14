@@ -67,69 +67,86 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const ClinicVisit = (props) => {
-  let patientObj = props.patientObj ? props.patientObj : {}
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const [splitButtonOpen, setSplitButtonOpen] = React.useState(false);
-  const toggleDropDown = () => setDropdownOpen(!dropdownOpen);
-  const toggleSplit = () => setSplitButtonOpen(!splitButtonOpen);
-  const [heightValue, setHeightValue]= useState("cm")
+  //let patientObj = props.patientObj ? props.patientObj : {}
   const [errors, setErrors] = useState({});
   const [clinicVisitList, setClinicVisitList] = useState([])
-  const [loading, setLoading] = useState(true)
   const [
     activeAccordionHeaderShadow,
     setActiveAccordionHeaderShadow,
   ] = useState(0);
   let temp = { ...errors }
   const classes = useStyles()
-  const [getPatientObj, setGetPatientObj] = useState({});
   const [saving, setSaving] = useState(false);
-  const [clinicalStage, setClinicalStage] = useState([]);
-  const [functionalStatus, setFunctionalStatus] = useState([]);
   const [adherenceLevel, setAdherenceLevel] = useState([]);
   const [sti, setSti] = useState([]);
-  const [TBForms, setTBForms] = useState(false)
   const [prepStatus, setPrepStatus] = useState([]);
-  const [currentVitalSigns, setcurrentVitalSigns] = useState({})
-  const [showCurrentVitalSigns, setShowCurrentVitalSigns] = useState(false)
-  //opportunistic infection Object
   const [prepSideEffect, setPrepSideEffect] = useState([]);
   const [htsResult, setHtsResult] = useState([]);
   const [riskReductionService, setRiskReductionService] = useState([]);
   const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
   //Vital signs clinical decision support 
-  const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
-                                                                    bodyWeight: "",
-                                                                    diastolic: "",
-                                                                    height: "",
-                                                                    systolic: "",
-                                                                    pulse:"",
-                                                                    temperature:"",
-                                                                    respiratoryRate:"" 
-                                                                  })
+  const [vitalClinicalSupport, setVitalClinicalSupport] = 
+            useState({
+              bodyWeight: "",
+              diastolic: "",
+              height: "",
+              systolic: "",
+              pulse:"",
+              temperature:"",
+              respiratoryRate:"" 
+            })
   const [objValues, setObjValues] = useState({
-
-      adherenceLevel: "",
-      dateInitialAdherenceCounseling: "",
-      datePrepStart: "",
-      dateReferred: "",
-      diastolic: "",
-      extra: {},
-      height: "",
-      nextAppointment: "",
-      personId: "",
-      pregnant: "",
-      prepEnrollmentUuid: "",
-      pulse: "",
-      referred: "",
-      regimenId: "",
-      respiratoryRate: "",
-      stiScreening: "",
-      systolic: "",
-      temperature: "",
-      urinalysisResult: "",
-      weight: ""
+    adherenceLevel: "",
+    dateInitialAdherenceCounseling: "",
+    datePrepGiven: "",
+    datePrepStart: "",
+    dateReferre: "",
+    diastolic: "",
+    encounterDate: "",
+    extra: {},
+    height: "",
+    hepatitis: {},
+    nextAppointment: "",
+    notedSideEffects: "",
+    otherTestsDone: {},
+    personId: "",
+    pregnant: "",
+    prepEnrollmentUuid: "",
+    pulse: "",
+    referred: "",
+    regimenId: "",
+    respiratoryRate: "",
+    riskReductionServices: "",
+    stiScreening: "",
+    syndromicStiScreening: {},
+    syphilis: {},
+    systolic: "",
+    temperature: "",
+    urinalysis: {},
+    urinalysisResult: "",
+    weight: "",
+    why: ""
   });
+  const [urinalysisTest, setUrinalysisTest] = useState({
+    urinalysisTest: "No",
+    testDate: "",
+    result: "",
+  })
+  const [syphilisTest, setSyphilisTest] = useState({
+    syphilisTest: "No",
+    testDate: "",
+    result: "",
+  })
+  const [hepatitisTest, setHepatitisTest] = useState({
+    hepatitisTest: "No",
+    testDate: "",
+    result: "",
+  })
+  const [otherTest, setOtherTest] = useState({
+    otherTest: "No",
+    testDate: "",
+    result: "",
+  })
   const [vital, setVitalSignDto] = useState({
     bodyWeight: "",
     diastolic: "",
@@ -143,17 +160,10 @@ const ClinicVisit = (props) => {
     temperature:"",
     respiratoryRate:"" 
   })
-
-
   useEffect(() => {
-    FunctionalStatus();
-    WhoStaging();
     AdherenceLevel();
     SYNDROMIC_STI_SCREENING();
-    VitalSigns();
-    GetPatientObj();
-    ClinicVisitList();
-    PatientDetaild();
+    //PatientDetaild();
     PREP_STATUS();
     HTS_RESULT();
     PREP_SIDE_EFFECTS();
@@ -221,158 +231,69 @@ const ClinicVisit = (props) => {
       //console.log(error);
       });    
     }
-     //GET LIST Drug Refill
-     async function ClinicVisitList() {
-      setLoading(true)
+    ///GET LIST OF FUNCTIONAL%20_STATUS
+    // TB STATUS
+    const SYNDROMIC_STI_SCREENING = () => {
       axios
-          .get(`${baseUrl}hiv/art/clinic-visit/person?pageNo=0&pageSize=10&personId=${props.patientObj.id}`,
-          { headers: {"Authorization" : `Bearer ${token}`} }
-          )
-          .then((response) => {
-              setLoading(false)
-              setClinicVisitList(response.data);                
-          })
-          .catch((error) => {  
-              setLoading(false)  
-          });        
-    }
-    //Check for the last Vital Signs
-    const VitalSigns = () => {
-    axios
-      .get(`${baseUrl}patient/vital-sign/person/${props.patientObj.id}`,
-        { headers: { "Authorization": `Bearer ${token}` } }
-      )
-      .then((response) => {
-
-        const lastVitalSigns = response.data[response.data.length - 1]
-        if (lastVitalSigns.encounterDate === moment(new Date()).format("YYYY-MM-DD") === true) {
-          setcurrentVitalSigns(lastVitalSigns)
-          setShowCurrentVitalSigns(true)
-        }
-      })
-      .catch((error) => {
-        //console.log(error);
-      });
-    }
-    //Check for the Patient Object
-    const PatientDetaild = () => {
-      axios
-        .get(`${baseUrl}hiv/patient/${props.patientObj.id}`,
+        .get(`${baseUrl}application-codesets/v2/SYNDROMIC_STI_SCREENING`,
           { headers: { "Authorization": `Bearer ${token}` } }
         )
         .then((response) => {
-            patientObj=response.data
+          //console.log(response.data);
+          setSti(response.data);
         })
         .catch((error) => {
           //console.log(error);
         });
-      }
-    //Get The updated patient objeect
-    const GetPatientObj = () => {
+
+    }
+    ///Level of Adherence
+    async function AdherenceLevel() {
       axios
-        .get(`${baseUrl}hiv/patients`,
+        .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`,
           { headers: { "Authorization": `Bearer ${token}` } }
         )
         .then((response) => {
-          const patObJ= response.data.filter((x)=> x.id===props.patientObj.id)
+          setAdherenceLevel(response.data);
 
-          setGetPatientObj(patObJ[0])
         })
         .catch((error) => {
-          //console.log(error);
         });
     }
-
-  //Get list of WhoStaging
-  const WhoStaging = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`,
-        { headers: { "Authorization": `Bearer ${token}` } }
-      )
-      .then((response) => {
-        //console.log(response.data);
-        setClinicalStage(response.data);
-      })
-      .catch((error) => {
-        //console.log(error);
-      });
-
-  }
-  ///GET LIST OF FUNCTIONAL%20_STATUS
-  // TB STATUS
-  const SYNDROMIC_STI_SCREENING = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/SYNDROMIC_STI_SCREENING`,
-        { headers: { "Authorization": `Bearer ${token}` } }
-      )
-      .then((response) => {
-        //console.log(response.data);
-        setSti(response.data);
-      })
-      .catch((error) => {
-        //console.log(error);
-      });
-
-  }
-
-  async function FunctionalStatus() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`,
-        { headers: { "Authorization": `Bearer ${token}` } }
-      )
-      .then((response) => {
-
-        setFunctionalStatus(response.data);
-        //setValues(response.data)
-      })
-      .catch((error) => {
-      });
-  }
-  ///Level of Adherence
-  async function AdherenceLevel() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`,
-        { headers: { "Authorization": `Bearer ${token}` } }
-      )
-      .then((response) => {
-        setAdherenceLevel(response.data);
-
-      })
-      .catch((error) => {
-      });
-  }
-  const handleInputChange = e => {
-    setObjValues({ ...objValues, [e.target.name]: e.target.value });
-    if (e.target.name === "whoStagingId") {
-      if (e.target.value === "NO") {
-        setTBForms(true)
-      } else {
-        setTBForms(false)
-      }
+    const handleInputChange = e => {
+      setObjValues({ ...objValues, [e.target.name]: e.target.value });
+      
     }
-  }
-  const handleInputChangeVitalSignDto = e => {
-    setVitalSignDto({ ...vital, [e.target.name]: e.target.value });
-  }
+    const handleInputChangeVitalSignDto = e => {
+      setVitalSignDto({ ...vital, [e.target.name]: e.target.value });
+    }
   //Handle CheckBox 
-  const handleCheckBox = e => {
+  const handleCheckBoxSyphilisTest = e => {
     if (e.target.checked) {
-      //currentVitalSigns.personId === null ? props.patientObj.id : currentVitalSigns.personId
-      setVitalSignDto({ ...currentVitalSigns })
+      setSyphilisTest({ ...syphilisTest, ["syphilisTest"]: "Yes" })
     } else {
-      setVitalSignDto({
-        bodyWeight: "",
-        diastolic: "",
-        encounterDate: "",
-        facilityId: "",
-        height: "",
-        personId: props.patientObj.id,
-        serviceTypeId: "",
-        systolic: "",
-        pulse:"",
-        temperature:"",
-        respiratoryRate:"" 
-      })
+      setSyphilisTest({ ...syphilisTest, ["syphilisTest"]: "No" })
+    }
+  }
+  const handleCheckBoxHepatitisTest = e => {
+    if (e.target.checked) {
+      setHepatitisTest({ ...hepatitisTest, ["hepatitisTest"]: "Yes" })
+    } else {
+      setHepatitisTest({ ...syphilisTest, ["syphilisTest"]: "No" })
+    }
+  }
+  const handleCheckBoxOtherTest = e => {
+    if (e.target.checked) {
+      setOtherTest({ ...otherTest, ["otherTest"]: "Yes" })
+    } else {
+      setOtherTest({ ...otherTest, ["otherTest"]: "No" })
+    }
+  }
+  const handleCheckBoxUrinalysisTest = e => {
+    if (e.target.checked) {
+      setUrinalysisTest({ ...urinalysisTest, ["urinalysisTest"]: "Yes" })
+    } else {
+      setUrinalysisTest({ ...otherTest, ["urinalysisTest"]: "No" })
     }
   }
   //to check the input value for clinical decision 
@@ -415,23 +336,23 @@ const ClinicVisit = (props) => {
     }else{
     setVitalClinicalSupport({...vitalClinicalSupport, pulse:""})
     }
-}
-const handleInputValueCheckRespiratoryRate =(e)=>{
-    if(e.target.name==="respiratoryRate" && (e.target.value < 10 || e.target.value>70)){      
-    const message ="Respiratory Rate must not be greater than 70 and less than 10"
-    setVitalClinicalSupport({...vitalClinicalSupport, respiratoryRate:message})
-    }else{
-    setVitalClinicalSupport({...vitalClinicalSupport, respiratoryRate:""})
-    }
-}
-const handleInputValueCheckTemperature =(e)=>{
-    if(e.target.name==="temperature" && (e.target.value < 35 || e.target.value>47)){      
-    const message ="Temperature must not be greater than 47 and less than 35"
-    setVitalClinicalSupport({...vitalClinicalSupport, temperature:message})
-    }else{
-    setVitalClinicalSupport({...vitalClinicalSupport, temperature:""})
-    }
-}
+  }
+  const handleInputValueCheckRespiratoryRate =(e)=>{
+      if(e.target.name==="respiratoryRate" && (e.target.value < 10 || e.target.value>70)){      
+      const message ="Respiratory Rate must not be greater than 70 and less than 10"
+      setVitalClinicalSupport({...vitalClinicalSupport, respiratoryRate:message})
+      }else{
+      setVitalClinicalSupport({...vitalClinicalSupport, respiratoryRate:""})
+      }
+  }
+  const handleInputValueCheckTemperature =(e)=>{
+      if(e.target.name==="temperature" && (e.target.value < 35 || e.target.value>47)){      
+      const message ="Temperature must not be greater than 47 and less than 35"
+      setVitalClinicalSupport({...vitalClinicalSupport, temperature:message})
+      }else{
+      setVitalClinicalSupport({...vitalClinicalSupport, temperature:""})
+      }
+  }
   //Validations of the forms
   const validate = () => {        
     temp.encounterDate = vital.encounterDate ? "" : "This field is required"
@@ -455,28 +376,30 @@ const handleInputValueCheckTemperature =(e)=>{
     if(validate()){
     setSaving(true)
     objValues.visitDate = vital.encounterDate
-
-    objValues['vitalSignDto'] = vital
+    objValues.syphilis = syphilisTest
+    objValues.hepatitis = hepatitisTest
+    objValues.urinalysis = urinalysisTest
+    objValues.otherTestsDone = otherTest
     axios.post(`${baseUrl}prep/clinic-visit`, objValues,
       { headers: { "Authorization": `Bearer ${token}` } },
 
     )
       .then(response => {
-        PatientDetaild();
+        //PatientDetaild();
         setSaving(false);
-        toast.success("Clinic Visit save successful");
+        toast.success("Clinic Visit save successful", {position: toast.POSITION.BOTTOM_CENTER});
         props.setActiveContent({...props.activeContent, route:'recent-history'})
       })
       .catch(error => {
         setSaving(false);
         if(error.response && error.response.data){
           let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-          toast.error(errorMessage);
+          toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
         }
         else{
-          toast.error("Something went wrong. Please try again...");
+          toast.error("Something went wrong. Please try again...", {position: toast.POSITION.BOTTOM_CENTER});
         }
-       
+        
       });
     }
   }
@@ -487,8 +410,7 @@ const handleInputValueCheckTemperature =(e)=>{
 
       <div className="col-md-6">
         <h2>Clinic Follow-up Visit</h2>
-        </div>
-        
+        </div>      
       </div>
       <Grid columns='equal'>
        <Grid.Column width={5}>
@@ -515,45 +437,45 @@ const handleInputValueCheckTemperature =(e)=>{
                       >
                         <>
                         {clinicVisitList.map((visit, i)=>
-                        <div className="accordion-item" key={i} >
-                          <Accordion.Toggle
-                              as={Card.Text}
+                            <div className="accordion-item" key={i} >
+                              <Accordion.Toggle
+                                  as={Card.Text}
+                                  eventKey={`${i}`}
+                                  className={`accordion-header ${
+                                    activeAccordionHeaderShadow === 1 ? "" : "collapsed"
+                                  } accordion-header-info`}
+                                  onClick={() =>
+                                    setActiveAccordionHeaderShadow(
+                                      activeAccordionHeaderShadow === 1 ? -1 : i
+                                    )
+                                  }
+                                  style={{width:'100%'}}
+                              >
+                              <span className="accordion-header-icon"></span>
+                              <span className="accordion-header-text float-start">Visit Date : <span className="">{visit.visitDate}</span> </span>
+                              <span className="accordion-header-indicator"></span>
+                            </Accordion.Toggle>
+                            <Accordion.Collapse
                               eventKey={`${i}`}
-                              className={`accordion-header ${
-                                activeAccordionHeaderShadow === 1 ? "" : "collapsed"
-                              } accordion-header-info`}
-                              onClick={() =>
-                                setActiveAccordionHeaderShadow(
-                                  activeAccordionHeaderShadow === 1 ? -1 : i
-                                )
-                              }
-                              style={{width:'100%'}}
-                          >
-                          <span className="accordion-header-icon"></span>
-                          <span className="accordion-header-text float-start">Visit Date : <span className="">{visit.visitDate}</span> </span>
-                          <span className="accordion-header-indicator"></span>
-                        </Accordion.Toggle>
-                        <Accordion.Collapse
-                          eventKey={`${i}`}
-                          className="accordion__body"
-                        >
-                          <div className="accordion-body-text">
-                        
-                              <List celled style={{width:'100%'}}>
-                                  {visit.vitalSignDto && visit.vitalSignDto.pulse!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px',borderTop:'1px solid #fff', marginTop:'-5px' }}>Pulse <span style={{color:'rgb(153, 46, 98)'}} className="float-end"><b>{visit.vitalSignDto.pulse} bpm</b></span></List.Item>)}
-                                  {visit.vitalSignDto && visit.vitalSignDto.respiratoryRate!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Respiratory Rate <span className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.respiratoryRate} bpm</b></span></List.Item>)}
-                                  {visit.vitalSignDto && visit.vitalSignDto.temperature!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Temperature <span className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.temperature} <sup>0</sup>C</b></span></List.Item>)}
-                                  {visit.vitalSignDto && visit.vitalSignDto.systolic!==null && visit.vitalSignDto.diastolic!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Blood Pressure <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.systolic}/{visit.vitalSignDto.diastolic}</b></span></List.Item>)}
-                                  {visit.vitalSignDto && visit.vitalSignDto.height!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Height <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.height} cm</b></span></List.Item>)}
-                                  {visit.vitalSignDto && visit.vitalSignDto.bodyWeight!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Weight <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.bodyWeight} kg</b></span></List.Item>)}
-                                  {visit.vitalSignDto && visit.vitalSignDto.bodyWeight!==null && visit.vitalSignDto.height!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>BMI <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{Math.round(visit.vitalSignDto.bodyWeight/(visit.vitalSignDto.height/100))} kg</b></span></List.Item>)}
-                              </List>
+                              className="accordion__body"
+                            >
+                              <div className="accordion-body-text">
                             
+                                  <List celled style={{width:'100%'}}>
+                                      {visit.vitalSignDto && visit.vitalSignDto.pulse!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px',borderTop:'1px solid #fff', marginTop:'-5px' }}>Pulse <span style={{color:'rgb(153, 46, 98)'}} className="float-end"><b>{visit.vitalSignDto.pulse} bpm</b></span></List.Item>)}
+                                      {visit.vitalSignDto && visit.vitalSignDto.respiratoryRate!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Respiratory Rate <span className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.respiratoryRate} bpm</b></span></List.Item>)}
+                                      {visit.vitalSignDto && visit.vitalSignDto.temperature!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Temperature <span className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.temperature} <sup>0</sup>C</b></span></List.Item>)}
+                                      {visit.vitalSignDto && visit.vitalSignDto.systolic!==null && visit.vitalSignDto.diastolic!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Blood Pressure <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.systolic}/{visit.vitalSignDto.diastolic}</b></span></List.Item>)}
+                                      {visit.vitalSignDto && visit.vitalSignDto.height!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Height <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.height} cm</b></span></List.Item>)}
+                                      {visit.vitalSignDto && visit.vitalSignDto.bodyWeight!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Weight <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.bodyWeight} kg</b></span></List.Item>)}
+                                      {visit.vitalSignDto && visit.vitalSignDto.bodyWeight!==null && visit.vitalSignDto.height!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>BMI <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{Math.round(visit.vitalSignDto.bodyWeight/(visit.vitalSignDto.height/100))} kg</b></span></List.Item>)}
+                                  </List>
+                                
+                              </div>
+                            </Accordion.Collapse>
                           </div>
-                        </Accordion.Collapse>
-                      </div>
-                    )}
-                    </>
+                        )}
+                        </>
                     </Accordion>             
 
                 ):
@@ -600,26 +522,6 @@ const handleInputValueCheckTemperature =(e)=>{
                   ) : "" }
 
                 </FormGroup>
-              </div>
-              <div className="form-group mb-3 col-md-6">
-                {showCurrentVitalSigns && (
-                  <div className="form-check custom-checkbox ml-1 ">
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      name="currentVitalSigns"
-                      id="currentVitalSigns"
-                      onChange={handleCheckBox} 
-                                          
-                    />
-                    <label
-                      className="form-check-label"
-                      htmlFor="basic_checkbox_1"
-                    >
-                      use current Vital Signs
-                    </label>
-                  </div>
-                )}
               </div>
               <div className="row">
                     <div className=" mb-3 col-md-4">
@@ -737,8 +639,6 @@ const handleInputValueCheckTemperature =(e)=>{
                         <InputGroup> 
                         <InputGroupText
                                 addonType="append"
-                                isOpen={dropdownOpen}
-                                toggle={toggleDropDown}
                                 style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}
                                 >
                                 cm
@@ -756,8 +656,6 @@ const handleInputValueCheckTemperature =(e)=>{
                             />
                                 <InputGroupText
                                 addonType="append"
-                                isOpen={dropdownOpen}
-                                toggle={toggleDropDown}
                                 style={{ backgroundColor:"#992E62", color:"#fff", border: "1px solid #992E62", borderRadius:"0rem"}}
                                 >
                                 {vital.height!=='' ? (vital.height/100).toFixed(2) + "m" : "m"}
@@ -1080,9 +978,10 @@ const handleInputValueCheckTemperature =(e)=>{
               </div>
               <br /><br />
               <Label as='a' color='teal'  style={{width:'106%', height:'35px'}} ribbon>
-              <h4 style={{color:'#fff'}}><input type="checkbox" name="timeOfViralLoad" value="viralLoadAt32" onChange={handleInputChange} checked={objValues.timeOfViralLoad==='viralLoadAt32' ? true : false}/> Urinalysis Test</h4>
+              <h4 style={{color:'#fff'}}><input type="checkbox" name="urinalysisTest" value="Yes" onChange={handleCheckBoxUrinalysisTest} checked={urinalysisTest.urinalysisTest=='Yes' ? true : false}/> Urinalysis Test</h4>
               </Label>
               <br /><br />
+              {urinalysisTest.urinalysisTest==='Yes' && (<> 
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Urinalysis Test Date</FormLabelName>
@@ -1121,17 +1020,19 @@ const handleInputValueCheckTemperature =(e)=>{
                  
                 </FormGroup>
               </div>
+              </>)}
               <br /><br />
               <Label as='a' color='blue'  style={{width:'106%', height:'35px'}} ribbon>
-              <h4 style={{color:'#fff'}}><input type="checkbox" name="timeOfViralLoad" value="viralLoadAt32" onChange={handleInputChange} checked={objValues.timeOfViralLoad==='viralLoadAt32' ? true : false}/> Hepatitis  Test </h4>
+              <h4 style={{color:'#fff'}}><input type="checkbox" name="hepatitisTest" value="Yes" onChange={handleCheckBoxHepatitisTest} checked={hepatitisTest.hepatitisTest==='Yes' ? true : false}/> Hepatitis  Test </h4>
               </Label>
               <br /><br />
+              {hepatitisTest.hepatitisTest==='Yes' && (<>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Hepatitis  Test  Date</FormLabelName>
                   <Input
                     type="select"
-                    name="prepGiven"
+                    name="hepatitis"
                     id="prepGiven"
                     value={objValues.prepGiven}
                     onChange={handleInputChange}
@@ -1164,11 +1065,13 @@ const handleInputValueCheckTemperature =(e)=>{
                  
                 </FormGroup>
               </div>
+              </>)}
               <br /><br />
               <Label as='a' color='red'  style={{width:'106%', height:'35px'}} ribbon>
-              <h4 style={{color:'#fff'}}><input type="checkbox" name="timeOfViralLoad" value="viralLoadAt32" onChange={handleInputChange} checked={objValues.timeOfViralLoad==='viralLoadAt32' ? true : false}/> Syphilis Test </h4>
+              <h4 style={{color:'#fff'}}><input type="checkbox" name="syphilisTest" value="Yes" onChange={handleCheckBoxSyphilisTest} checked={syphilisTest.syphilisTest==='Yes' ? true : false}/> Syphilis Test </h4>
               </Label>
               <br /><br />
+              {syphilisTest.syphilisTest==='Yes' && (<>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Syphilis Test  Date</FormLabelName>
@@ -1207,11 +1110,13 @@ const handleInputValueCheckTemperature =(e)=>{
                  
                 </FormGroup>
               </div>
+              </>)}
               <br /><br />
               <Label as='a' color='black'  style={{width:'106%', height:'35px'}} ribbon>
-              <h4 style={{color:'#fff'}}><input type="checkbox" name="timeOfViralLoad" value="viralLoadAt32" onChange={handleInputChange} checked={objValues.timeOfViralLoad==='viralLoadAt32' ? true : false}/> Other Test </h4>
+              <h4 style={{color:'#fff'}}><input type="checkbox" name="otherTest" value="Yes" onChange={handleCheckBoxOtherTest} checked={otherTest.otherTest==='Yes' ? true : false}/> Other Test </h4>
               </Label>
               <br /><br />
+              {otherTest.otherTest==='Yes' && (<> 
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName > Test  Date</FormLabelName>
@@ -1250,6 +1155,7 @@ const handleInputValueCheckTemperature =(e)=>{
                  
                 </FormGroup>
               </div>
+              </>)}
             </div>
             <br />
             

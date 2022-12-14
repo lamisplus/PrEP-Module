@@ -230,31 +230,7 @@ const PrEPCommencementForm = (props) => {
               });
             }          
     }
-    function BmiCal (bmi){
-        if(bmi<18.5){
-          return (
-            <Message        
-             size='mini'
-             color='brown'
-              content='Underweight'
-            />
-          )      
-        }else if(bmi >=18.5 && bmi<=24.9){
-          <Message        
-             size='mini'
-             color='olive'
-              content='Well nourished'
-            />
-        }
-        else if( bmi>25){
-          <Message        
-             size='mini'
-             color='blue'
-              content='Overweight/Obese'
-            />
-        }
-        
-    }
+    
 
 
   return (      
@@ -376,7 +352,7 @@ const PrEPCommencementForm = (props) => {
                                 <Label > {" "}</Label>
                                 <InputGroup> 
                                 <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                    BMI : {(vital.bodyWeight/(((vital.height/100) * (vital.height/100)))).toFixed(2)}
+                                    BMI :  {(objValues.weight/((objValues.height/100) * (objValues.height/100))).toFixed(2)}
                                 </InputGroupText>                   
                             
                                 </InputGroup>                

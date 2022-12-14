@@ -10,9 +10,10 @@ import axios from "axios";
 import { toast} from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
 import { useHistory } from "react-router-dom";
-import {  Modal, Button } from "react-bootstrap";
+//import {  Modal, Button } from "react-bootstrap";
 import "react-widgets/dist/css/react-widgets.css";
-import { DateTimePicker } from "react-widgets";
+//import { DateTimePicker } from "react-widgets";
+import PhoneInput from 'react-phone-input-2'
 // import momentLocalizer from "react-widgets-moment";
 import moment from "moment";
 import { Spinner } from "reactstrap";
@@ -99,7 +100,7 @@ const PrEPRegistrationForm = (props) => {
     }
     const PREP_RISK_TYPE =()=>{
         axios
-           .get(`${baseUrl}application-codesets/v2/RELATIONSHIP`,
+           .get(`${baseUrl}application-codesets/v2/PREP_RISK_TYPE`,
                { headers: {"Authorization" : `Bearer ${token}`} }
            )
            .then((response) => {
@@ -369,7 +370,7 @@ const PrEPRegistrationForm = (props) => {
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
                                     <Label >PrEP Supporter Phone Number</Label>
-                                    <Input
+                                    {/* <Input
                                         className="form-control"
                                         type="text"
                                         name="supporterPhone"
@@ -378,7 +379,7 @@ const PrEPRegistrationForm = (props) => {
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         //disabled={locationState.actionType==='update'? false : true}
-                                    />
+                                    /> */}
                                     <PhoneInput
                                         containerStyle={{width:'100%',border: "1px solid #014D88"}}
                                         inputStyle={{width:'100%',borderRadius:'0px'}}
