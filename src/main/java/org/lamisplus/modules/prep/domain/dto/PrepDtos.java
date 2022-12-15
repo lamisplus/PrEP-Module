@@ -12,6 +12,7 @@ public class PrepDtos {
     private Long personId;
     private Integer prepEnrollmentCount;
     private Integer prepEligibilityCount;
+    private Integer prepCommencementCount;
     private String prepStatus;
     private String uniqueId;
     private PersonResponseDto personResponseDto;
