@@ -112,16 +112,28 @@ const PrEPCommencementForm = (props) => {
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [pregnant, setpregnant] = useState([]);
-    const [hivStatus, setHivStatus] = useState([]);
-    //set ro show the facility name field if is transfer in 
-    const [transferIn, setTransferIn] = useState(false);
-    // display the OVC number if patient is enrolled into OVC 
     const [patientDto, setPatientDto] = useState();
 
     useEffect(() => {         
         PREGANACY_STATUS();
         GetPatientDTOObj();
+        if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
+            GetPatientCommercement(props.activeContent.id)
+        }
     }, []);
+    const GetPatientCommercement =(id)=>{
+        axios
+           .get(`${baseUrl}prep/commencement/person/${props.patientObj.personId}`,
+               { headers: {"Authorization" : `Bearer ${token}`} }
+           )
+           .then((response) => {
+                //console.log(response.data.find((x)=> x.id===id));
+               setObjValues(response.data.find((x)=> x.id===id));
+           })
+           .catch((error) => {
+           //console.log(error);
+           });          
+    }
     const PREGANACY_STATUS =()=>{
         axios
         .get(`${baseUrl}application-codesets/v2/PREGANACY_STATUS`,
@@ -146,19 +158,19 @@ const PrEPCommencementForm = (props) => {
            //console.log(error);
            });          
     }
-    const GetPatientPrepEligibility =(id)=>{
-        axios
-           .get(`${baseUrl}prep/enrollment/person/${props.patientObj.personId}`,
-               { headers: {"Authorization" : `Bearer ${token}`} }
-           )
-           .then((response) => {
-                //console.log(response.data.find((x)=> x.id===id));
-               //setObjValues(response.data.find((x)=> x.id===id));
-           })
-           .catch((error) => {
-           //console.log(error);
-           });          
-    } 
+    // const GetPatientPrepEligibility =(id)=>{
+    //     axios
+    //        .get(`${baseUrl}prep/enrollment/person/${props.patientObj.personId}`,
+    //            { headers: {"Authorization" : `Bearer ${token}`} }
+    //        )
+    //        .then((response) => {
+    //             //console.log(response.data.find((x)=> x.id===id));
+    //            //setObjValues(response.data.find((x)=> x.id===id));
+    //        })
+    //        .catch((error) => {
+    //        //console.log(error);
+    //        });          
+    // } 
             //Vital signs clinical decision support 
     const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
         bodyWeight: "",

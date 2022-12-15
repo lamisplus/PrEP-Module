@@ -95,6 +95,7 @@ const ClinicVisit = (props) => {
               temperature:"",
               respiratoryRate:"" 
             })
+  console.log(props.patientObj)
   const [objValues, setObjValues] = useState({
     adherenceLevel: "",
     dateInitialAdherenceCounseling: "",
@@ -109,7 +110,7 @@ const ClinicVisit = (props) => {
     nextAppointment: "",
     notedSideEffects: "",
     otherTestsDone: {},
-    personId: "",
+    personId: props.patientObj.personId,
     pregnant: "",
     prepEnrollmentUuid: "",
     pulse: "",
@@ -118,7 +119,7 @@ const ClinicVisit = (props) => {
     respiratoryRate: "",
     riskReductionServices: "",
     stiScreening: "",
-    syndromicStiScreening: {},
+    syndromicStiScreening: "",
     syphilis: {},
     systolic: "",
     temperature: "",
@@ -132,6 +133,7 @@ const ClinicVisit = (props) => {
     testDate: "",
     result: "",
   })
+
   const [syphilisTest, setSyphilisTest] = useState({
     syphilisTest: "No",
     testDate: "",
@@ -147,19 +149,8 @@ const ClinicVisit = (props) => {
     testDate: "",
     result: "",
   })
-  const [vital, setVitalSignDto] = useState({
-    bodyWeight: "",
-    diastolic: "",
-    encounterDate: "",
-    facilityId: 1,
-    height: "",
-    personId: props.patientObj.id,
-    serviceTypeId: 1,
-    systolic: "",
-    pulse:"",
-    temperature:"",
-    respiratoryRate:"" 
-  })
+
+
   useEffect(() => {
     AdherenceLevel();
     SYNDROMIC_STI_SCREENING();
@@ -209,7 +200,7 @@ const ClinicVisit = (props) => {
     }	
     const HTS_RESULT =()=>{
       axios
-      .get(`${baseUrl}application-codesets/v2/PREP_STATUS`,
+      .get(`${baseUrl}application-codesets/v2/HTS_RESULT`,
           { headers: {"Authorization" : `Bearer ${token}`} }
       )
       .then((response) => {
@@ -264,8 +255,17 @@ const ClinicVisit = (props) => {
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
       
     }
-    const handleInputChangeVitalSignDto = e => {
-      setVitalSignDto({ ...vital, [e.target.name]: e.target.value });
+    const handleInputChangeUrinalysisTest= e => {
+      setUrinalysisTest({ ...urinalysisTest, [e.target.name]: e.target.value }); 
+    }
+    const handleInputChangeOtherTest = e => {
+      setOtherTest({ ...otherTest, [e.target.name]: e.target.value }); 
+    }
+    const handleInputChangeHepatitisTest = e => {
+      setHepatitisTest({ ...hepatitisTest, [e.target.name]: e.target.value });
+    }
+    const handleInputChangeSyphilisTest = e => {
+      setSyphilisTest({ ...syphilisTest, [e.target.name]: e.target.value });
     }
   //Handle CheckBox 
   const handleCheckBoxSyphilisTest = e => {
@@ -355,16 +355,14 @@ const ClinicVisit = (props) => {
   }
   //Validations of the forms
   const validate = () => {        
-    temp.encounterDate = vital.encounterDate ? "" : "This field is required"
-    temp.nextAppointment = objValues.nextAppointment ? "" : "This field is required"
-    temp.whoStagingId = objValues.whoStagingId ? "" : "This field is required"
-    temp.clinicalNote = objValues.clinicalNote ? "" : "This field is required"
-    temp.functionalStatusId = objValues.functionalStatusId ? "" : "This field is required"
+    temp.encounterDate = objValues.encounterDate ? "" : "This field is required"
+
+    //temp.functionalStatusId = objValues.functionalStatusId ? "" : "This field is required"
     temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
-    temp.labTestGroupId = vital.diastolic ? "" : "This field is required"
-    temp.systolic = vital.systolic ? "" : "This field is required"
-    temp.height = vital.height ? "" : "This field is required"
-    temp.bodyWeight = vital.bodyWeight ? "" : "This field is required"
+
+    temp.systolic = objValues.systolic ? "" : "This field is required"
+    temp.height = objValues.height ? "" : "This field is required"
+    temp.bodyWeight = objValues.bodyWeight ? "" : "This field is required"
     setErrors({
         ...temp
     })
@@ -375,7 +373,7 @@ const ClinicVisit = (props) => {
     e.preventDefault();
     if(validate()){
     setSaving(true)
-    objValues.visitDate = vital.encounterDate
+    //objValues.visitDate = vital.encounterDate
     objValues.syphilis = syphilisTest
     objValues.hepatitis = hepatitisTest
     objValues.urinalysis = urinalysisTest
@@ -403,6 +401,7 @@ const ClinicVisit = (props) => {
       });
     }
   }
+//console.log(objValues)
 
   return (
     <div>
@@ -510,10 +509,10 @@ const ClinicVisit = (props) => {
                     type="date"
                     name="encounterDate"
                     id="encounterDate"
-                    value={vital.encounterDate}
+                    value={objValues.encounterDate}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    onChange={handleInputChangeVitalSignDto}
-                    min={props.patientObj && props.patientObj.artCommence ? props.patientObj.artCommence.visitDate : null}
+                    onChange={handleInputChange}
+                    //min={props.patientObj && props.patientObj.artCommence ? props.patientObj.artCommence.visitDate : null}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     required
                   />
@@ -532,10 +531,10 @@ const ClinicVisit = (props) => {
                                 type="number"
                                 name="pulse"
                                 id="pulse"
-                                onChange={handleInputChangeVitalSignDto}
+                                onChange={handleInputChange}
                                 min="40"
                                 max="120"
-                                value={vital.pulse}
+                                value={objValues.pulse}
                                 onKeyUp={handleInputValueCheckPulse} 
                                 style={{border: "1px solid #014D88", borderRadius:"0rem"}}
                             />
@@ -559,10 +558,10 @@ const ClinicVisit = (props) => {
                                 type="number"
                                 name="respiratoryRate"
                                 id="respiratoryRate"
-                                onChange={handleInputChangeVitalSignDto}
+                                onChange={handleInputChange}
                                 min="10"
                                 max="70"
-                                value={vital.respiratoryRate}
+                                value={objValues.respiratoryRate}
                                 onKeyUp={handleInputValueCheckRespiratoryRate} 
                                 style={{border: "1px solid #014D88", borderRadius:"0rem"}}
                             />
@@ -586,10 +585,10 @@ const ClinicVisit = (props) => {
                                 type="number"
                                 name="temperature"
                                 id="temperature"
-                                onChange={handleInputChangeVitalSignDto}
+                                onChange={handleInputChange}
                                 min="35"
                                 max="47"
-                                value={vital.temperature}
+                                value={objValues.temperature}
                                 onKeyUp={handleInputValueCheckTemperature} 
                                 style={{border: "1px solid #014D88", borderRadius:"0rem"}}
                             />
@@ -606,7 +605,7 @@ const ClinicVisit = (props) => {
                         </FormGroup>
                     </div>
                    
-                    <div className=" mb-3 col-md-4">
+                    <div className=" mb-3 col-md-5">
                         <FormGroup>
                         <FormLabelName >Body Weight</FormLabelName>
                         <InputGroup> 
@@ -614,10 +613,10 @@ const ClinicVisit = (props) => {
                                 type="number"
                                 name="bodyWeight"
                                 id="bodyWeight"
-                                onChange={handleInputChangeVitalSignDto}
+                                onChange={handleInputChange}
                                 min="3"
                                 max="150"
-                                value={vital.bodyWeight}
+                                value={objValues.bodyWeight}
                                 onKeyUp={handleInputValueCheckBodyWeight} 
                                 style={{border: "1px solid #014D88", borderRadius:"0rem"}}
                             />
@@ -633,7 +632,7 @@ const ClinicVisit = (props) => {
                         ) : "" }
                         </FormGroup>
                     </div>                                   
-                    <div className="form-group mb-3 col-md-4">
+                    <div className="form-group mb-3 col-md-5">
                         <FormGroup>
                         <FormLabelName >Height</FormLabelName>
                         <InputGroup> 
@@ -647,8 +646,8 @@ const ClinicVisit = (props) => {
                                 type="number"
                                 name="height"
                                 id="height"
-                                onChange={handleInputChangeVitalSignDto}
-                                value={vital.height}
+                                onChange={handleInputChange}
+                                value={objValues.height}
                                 min="48.26"
                                 max="216.408"
                                 onKeyUp={handleInputValueCheckHeight} 
@@ -658,7 +657,7 @@ const ClinicVisit = (props) => {
                                 addonType="append"
                                 style={{ backgroundColor:"#992E62", color:"#fff", border: "1px solid #992E62", borderRadius:"0rem"}}
                                 >
-                                {vital.height!=='' ? (vital.height/100).toFixed(2) + "m" : "m"}
+                                {objValues.height!=='' ? (objValues.height/100).toFixed(2) + "m" : "m"}
                             </InputGroupText>
                         </InputGroup>
                         {vitalClinicalSupport.height !=="" ? (
@@ -669,13 +668,13 @@ const ClinicVisit = (props) => {
                         ) : "" }
                         </FormGroup>
                     </div>
-                    <div className="form-group mb-3 mt-2 col-md-4">
-                        {vital.bodyWeight!=="" && vital.height!=='' && (
+                    <div className="form-group mb-3 mt-2 col-md-2">
+                        {objValues.bodyWeight!=="" && objValues.height!=='' && (
                             <FormGroup>
                             <Label > {" "}</Label>
                             <InputGroup> 
                             <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                BMI : {Math.round(vital.bodyWeight/((vital.height * vital.height)/100))}
+                                BMI : {(objValues.bodyWeight/((objValues.height/100) * (objValues.height/100))).toFixed(2)}
                             </InputGroupText>                   
                            
                             </InputGroup>                
@@ -697,8 +696,8 @@ const ClinicVisit = (props) => {
                           id="systolic"
                           min="90"
                           max="240"
-                          onChange={handleInputChangeVitalSignDto}
-                          value={vital.systolic}
+                          onChange={handleInputChange}
+                          value={objValues.systolic}
                           onKeyUp={handleInputValueCheckSystolic}
                           style={{border: "1px solid #014D88", borderRadius:"0rem"}} 
                       />
@@ -711,8 +710,8 @@ const ClinicVisit = (props) => {
                           id="diastolic"
                           min={0}
                           max={140}
-                          onChange={handleInputChangeVitalSignDto}
-                          value={vital.diastolic}
+                          onChange={handleInputChange}
+                          value={objValues.diastolic}
                           onKeyUp={handleInputValueCheckDiastolic} 
                           style={{border: "1px solid #014D88", borderRadius:"0rem"}}
                           />
@@ -808,10 +807,10 @@ const ClinicVisit = (props) => {
               
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Syndromic STI Screening </FormLabelName>
+                  <FormLabelName >STI Screening</FormLabelName>
                   <Input
                     type="select"
-                    name="stiScreening "
+                    name="stiScreening"
                     id="stiScreening"
                     value={objValues.stiScreening}
                     onChange={handleInputChange}
@@ -825,10 +824,10 @@ const ClinicVisit = (props) => {
                  
                 </FormGroup>
               </div>
-              {objValues.syndromicSTIScreening==='true' && (
+              {objValues.stiScreening==='true' && (
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >STI Screening</FormLabelName>
+                  <FormLabelName >Syndromic STI Screening  </FormLabelName>
                   <Input
                     type="select"
                     name="syndromicStiScreening"
@@ -949,6 +948,7 @@ const ClinicVisit = (props) => {
                     value={objValues.datePrepGiven}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
                     required
                   />
                     
@@ -986,38 +986,31 @@ const ClinicVisit = (props) => {
                 <FormGroup>
                   <FormLabelName >Urinalysis Test Date</FormLabelName>
                   <Input
-                    type="select"
-                    name="prepGiven"
-                    id="prepGiven"
-                    value={objValues.prepGiven}
-                    onChange={handleInputChange}
+                    type="date"
+                    name="testDate"
+                    id="testDate"
+                    value={urinalysisTest.testDate}
+                    onChange={handleInputChangeUrinalysisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
                     required
-                  >
-                    <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
-                  </Input>
-                 
+                  />
+                    
                 </FormGroup>
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Urinalysis Test Result</FormLabelName>
                   <Input
-                    type="select"
-                    name="prepGiven"
-                    id="prepGiven"
-                    value={objValues.prepGiven}
-                    onChange={handleInputChange}
+                    type="text"
+                    name="result"
+                    id="result"
+                    value={urinalysisTest.result}
+                    onChange={handleInputChangeUrinalysisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
-                  >
-                    <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
-                  </Input>
-                 
+                 />
+                   
                 </FormGroup>
               </div>
               </>)}
@@ -1031,19 +1024,15 @@ const ClinicVisit = (props) => {
                 <FormGroup>
                   <FormLabelName >Hepatitis  Test  Date</FormLabelName>
                   <Input
-                    type="select"
-                    name="hepatitis"
-                    id="prepGiven"
-                    value={objValues.prepGiven}
-                    onChange={handleInputChange}
+                    type="date"
+                    name="testDate"
+                    id="testDate"
+                    value={hepatitisTest.testDate}
+                    onChange={handleInputChangeHepatitisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
                     required
-                  >
-                    <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
-                  </Input>
-                 
+                  />
                 </FormGroup>
               </div>
               <div className=" mb-3 col-md-6">
@@ -1051,10 +1040,11 @@ const ClinicVisit = (props) => {
                   <FormLabelName >Hepatitis  Test  Result</FormLabelName>
                   <Input
                     type="select"
-                    name="prepGiven"
-                    id="prepGiven"
-                    value={objValues.prepGiven}
-                    onChange={handleInputChange}
+                    name="result"
+                    id="result"
+                    value={hepatitisTest.result}
+                    
+                    onChange={handleInputChangeHepatitisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
@@ -1076,19 +1066,16 @@ const ClinicVisit = (props) => {
                 <FormGroup>
                   <FormLabelName >Syphilis Test  Date</FormLabelName>
                   <Input
-                    type="select"
-                    name="prepGiven"
-                    id="prepGiven"
-                    value={objValues.prepGiven}
-                    onChange={handleInputChange}
+                    type="date"
+                    name="testDate"
+                    id="testDate"
+                    value={syphilisTest.testDate}
+                    onChange={handleInputChangeSyphilisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
-                  >
-                    <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
-                  </Input>
-                 
+                    max={moment(new Date()).format("YYYY-MM-DD")}
+                  />
+                    
                 </FormGroup>
               </div>
               <div className=" mb-3 col-md-6">
@@ -1096,10 +1083,10 @@ const ClinicVisit = (props) => {
                   <FormLabelName >Syphilis Test  Result</FormLabelName>
                   <Input
                     type="select"
-                    name="prepGiven"
-                    id="prepGiven"
-                    value={objValues.prepGiven}
-                    onChange={handleInputChange}
+                    name="result"
+                    id="result"
+                    value={syphilisTest.result}
+                    onChange={handleInputChangeSyphilisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
@@ -1122,18 +1109,15 @@ const ClinicVisit = (props) => {
                   <FormLabelName > Test  Date</FormLabelName>
                   <Input
                     type="select"
-                    name="prepGiven"
-                    id="prepGiven"
-                    value={objValues.prepGiven}
-                    onChange={handleInputChange}
+                    name="testDate"
+                    id="testDate"
+                    value={otherTest.testDate}
+                    onChange={handleInputChangeOtherTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
-                  >
-                    <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
-                  </Input>
-                 
+                    max={moment(new Date()).format("YYYY-MM-DD")}
+                  />
+                   
                 </FormGroup>
               </div>
               <div className=" mb-3 col-md-6">
@@ -1141,10 +1125,10 @@ const ClinicVisit = (props) => {
                   <FormLabelName > Test  Result</FormLabelName>
                   <Input
                     type="select"
-                    name="prepGiven"
-                    id="prepGiven"
-                    value={objValues.prepGiven}
-                    onChange={handleInputChange}
+                    name="reult"
+                    id="result"
+                    value={otherTest.prepGiven}
+                    onChange={handleInputChangeOtherTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >

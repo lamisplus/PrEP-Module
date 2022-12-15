@@ -97,7 +97,7 @@ function SubMenu(props) {
                     <Menu.Item onClick={() => onClickConsultation()} > PrEP Visit</Menu.Item>
                     <Menu.Item onClick={() => loadPrEPDiscontinuationsInterruptions()} >PrEP Discontinuations & Interruptions</Menu.Item>
                 </>)}
-                <Menu.Item onClick={() => loadPatientHistory(patientObj)} >History</Menu.Item>                    
+                <Menu.Item onClick={() => onClickConsultation(patientObj)} >History</Menu.Item>                    
             </Menu>             
         </div>
     );
