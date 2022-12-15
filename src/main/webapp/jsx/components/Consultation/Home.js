@@ -87,7 +87,7 @@ const ClinicVisit = (props) => {
   //Vital signs clinical decision support 
   const [vitalClinicalSupport, setVitalClinicalSupport] = 
             useState({
-              bodyWeight: "",
+              weight: "",
               diastolic: "",
               height: "",
               systolic: "",
@@ -305,12 +305,12 @@ const ClinicVisit = (props) => {
       setVitalClinicalSupport({...vitalClinicalSupport, height:""})
     }
   }
-  const handleInputValueCheckBodyWeight =(e)=>{
-    if(e.target.name==="bodyWeight" && (e.target.value < 3 || e.target.value>150)){      
+  const handleInputValueCheckweight =(e)=>{
+    if(e.target.name==="weight" && (e.target.value < 3 || e.target.value>150)){      
       const message ="Body weight must not be greater than 150 and less than 3"
-      setVitalClinicalSupport({...vitalClinicalSupport, bodyWeight:message})
+      setVitalClinicalSupport({...vitalClinicalSupport, weight:message})
     }else{
-      setVitalClinicalSupport({...vitalClinicalSupport, bodyWeight:""})
+      setVitalClinicalSupport({...vitalClinicalSupport, weight:""})
     }
   }
   const handleInputValueCheckSystolic =(e)=>{
@@ -362,7 +362,7 @@ const ClinicVisit = (props) => {
 
     temp.systolic = objValues.systolic ? "" : "This field is required"
     temp.height = objValues.height ? "" : "This field is required"
-    temp.bodyWeight = objValues.bodyWeight ? "" : "This field is required"
+    temp.weight = objValues.weight ? "" : "This field is required"
     setErrors({
         ...temp
     })
@@ -392,11 +392,16 @@ const ClinicVisit = (props) => {
         setSaving(false);
         if(error.response && error.response.data){
           let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-          toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
-        }
-        else{
-          toast.error("Something went wrong. Please try again...", {position: toast.POSITION.BOTTOM_CENTER});
-        }
+          if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
+              toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
+          }else{
+              toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
+          }
+
+      }
+      else{
+          toast.error("Something went wrong. Please try again...",  {position: toast.POSITION.BOTTOM_CENTER});
+      }
         
       });
     }
@@ -466,8 +471,8 @@ const ClinicVisit = (props) => {
                                       {visit.vitalSignDto && visit.vitalSignDto.temperature!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Temperature <span className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.temperature} <sup>0</sup>C</b></span></List.Item>)}
                                       {visit.vitalSignDto && visit.vitalSignDto.systolic!==null && visit.vitalSignDto.diastolic!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Blood Pressure <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.systolic}/{visit.vitalSignDto.diastolic}</b></span></List.Item>)}
                                       {visit.vitalSignDto && visit.vitalSignDto.height!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Height <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.height} cm</b></span></List.Item>)}
-                                      {visit.vitalSignDto && visit.vitalSignDto.bodyWeight!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Weight <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.bodyWeight} kg</b></span></List.Item>)}
-                                      {visit.vitalSignDto && visit.vitalSignDto.bodyWeight!==null && visit.vitalSignDto.height!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>BMI <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{Math.round(visit.vitalSignDto.bodyWeight/(visit.vitalSignDto.height/100))} kg</b></span></List.Item>)}
+                                      {visit.vitalSignDto && visit.vitalSignDto.weight!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Weight <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.weight} kg</b></span></List.Item>)}
+                                      {visit.vitalSignDto && visit.vitalSignDto.weight!==null && visit.vitalSignDto.height!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>BMI <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{Math.round(visit.vitalSignDto.weight/(visit.vitalSignDto.height/100))} kg</b></span></List.Item>)}
                                   </List>
                                 
                               </div>
@@ -611,24 +616,24 @@ const ClinicVisit = (props) => {
                         <InputGroup> 
                             <Input 
                                 type="number"
-                                name="bodyWeight"
-                                id="bodyWeight"
+                                name="weight"
+                                id="weight"
                                 onChange={handleInputChange}
                                 min="3"
                                 max="150"
-                                value={objValues.bodyWeight}
-                                onKeyUp={handleInputValueCheckBodyWeight} 
+                                value={objValues.weight}
+                                onKeyUp={handleInputValueCheckweight} 
                                 style={{border: "1px solid #014D88", borderRadius:"0rem"}}
                             />
                             <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
                                 kg
                             </InputGroupText>
                         </InputGroup>
-                        {vitalClinicalSupport.bodyWeight !=="" ? (
-                                <span className={classes.error}>{vitalClinicalSupport.bodyWeight}</span>
+                        {vitalClinicalSupport.weight !=="" ? (
+                                <span className={classes.error}>{vitalClinicalSupport.weight}</span>
                         ) : ""}
-                        {errors.bodyWeight !=="" ? (
-                            <span className={classes.error}>{errors.bodyWeight}</span>
+                        {errors.weight !=="" ? (
+                            <span className={classes.error}>{errors.weight}</span>
                         ) : "" }
                         </FormGroup>
                     </div>                                   
@@ -669,12 +674,12 @@ const ClinicVisit = (props) => {
                         </FormGroup>
                     </div>
                     <div className="form-group mb-3 mt-2 col-md-2">
-                        {objValues.bodyWeight!=="" && objValues.height!=='' && (
+                        {objValues.weight!=="" && objValues.height!=='' && (
                             <FormGroup>
                             <Label > {" "}</Label>
                             <InputGroup> 
                             <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                BMI : {(objValues.bodyWeight/((objValues.height/100) * (objValues.height/100))).toFixed(2)}
+                                BMI : {(objValues.weight/((objValues.height/100) * (objValues.height/100))).toFixed(2)}
                             </InputGroupText>                   
                            
                             </InputGroup>                
