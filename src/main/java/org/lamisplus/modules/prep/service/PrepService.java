@@ -329,6 +329,8 @@ public class PrepService {
         if(person == null)throw new EntityNotFoundException(Person.class, "Person", "is null");
         prepDtos.setPersonId(person.getId());
         prepDtos.setPersonResponseDto(personService.getDtoFromPerson(person));
+        prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
+
 
         List<PrepDto> prepDtoList =  clients
                 .stream()
