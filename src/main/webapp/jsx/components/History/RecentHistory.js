@@ -4,15 +4,15 @@ import { Dropdown,} from "react-bootstrap";
 /// Scroll
 import { makeStyles } from '@material-ui/core/styles';
 import PerfectScrollbar from "react-perfect-scrollbar";
-import { Link } from "react-router-dom";
+//import { Link } from "react-router-dom";
 import axios from "axios";
 import { url as baseUrl, token } from "../../../api";
-import { Alert } from "react-bootstrap";
+//import { Alert } from "react-bootstrap";
 import {  Card,Accordion } from "react-bootstrap";
 import { useHistory } from "react-router-dom";
 import "react-widgets/dist/css/react-widgets.css";
 import { toast} from "react-toastify";
-
+import PatientChart from './../Patient/PatientChart/Index'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -370,7 +370,7 @@ const RecentHistory = (props) => {
   const redirectLink=()=>{
     props.setActiveContent({...props.activeContent, route:'recent-history'})
   }
-
+  const index= 1
 
   return (
     <Fragment>
@@ -379,7 +379,7 @@ const RecentHistory = (props) => {
       <div className="row">
       <div className="col-xl-4 col-xxl-4 col-lg-4">
           <div className="card">
-            <div className="card-header  border-0 pb-0">
+            <div className="card-header  border-0 pb-0" >
               <h4 className="card-title"> Recent Activities</h4>
             </div>
             <div className="card-body">
@@ -493,65 +493,64 @@ const RecentHistory = (props) => {
       </div>
       <div className="col-xl-8 col-xxl-8 col-lg-8">
         <div className="card">
-          <div className="card-header border-0 pb-0">
-            <h4 className="card-title">Visit Chart</h4>
+          <div className="card-header border-0  pb-2" style={{backgroundColor:"#EEEEEE"}}>
+            <h4 className="card-title">Summary </h4>
           </div>
-          <div className="card-body">
-            <PerfectScrollbar
-              style={{ height: "370px" }}
-              id="DZ_W_TimeLine"
-              className="widget-timeline dz-scroll height370 ps ps--active-y"
-            >
-              <ul className="timeline">
-                {vitaLoad.length >0 ? (
-                  <>
-                    {vitaLoad.map((test,index) => ( 
-                    <>
-                      <li key={index}>
-                      <div className={labStatus(test.labTestOrderStatus)}></div>
-                      <span
-                        className="timeline-panel text-muted"
-                        onClick={()=>redirectLink()}
-                        //to=""
+          <div className="row">
+            <div className="col-sm-6 col-md-6 col-lg-6">
+            <div className="card-body">
+              <div className="col-xl-12 col-lg-12 col-sm-12">
+              <div className="widget-stat card">
+                <div className="card-body p-4" style={{backgroundColor:"#E8F0FD"}}>
+                  <h4 className="card-title">Current Regimen Given</h4>
+                  <h3 class="text-info ">TDF(300mg)+3TC(150mg)</h3>
+                  <div className="progress mb-2">
+                    <div
+                      className="progress-bar progress-animated bg-primary"
+                      style={{ width: "100%" }}
+                    ></div>
+                  </div>
+                  <p class="text-success ">Next Appointment Date : 03/03/2023</p>
+                </div>
+              </div>
+              </div>
+              <div className="col-sm-12 col-md-12 col-lg-12">
+                <div className="widget-stat card">
+                  <div className="card-body p-4" >
+                  <div className="media ai-icon">
+                    <span className="me-3 bgl-primary text-primary">
+                      <svg
+                        id="icon-customers"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="30"
+                        height="30"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="feather feather-user"
                       >
-                        <h6 className="mb-0">
-                          Test Order Date{" "}<br/>
-                          <strong className="text-primary">{test.orderDate}</strong>
-                        </h6>
-                        {test.labTestGroupName!=='others' &&(<h6 className="mb-0">
-                          Test Order{" "}<br/>
-                          <strong className="text-primary">{test.labTestGroupName + " - " + test.labTestName}</strong>.
-                        </h6>
-                          )}
-                          {test.labTestGroupName==='others' &&(<h6 className="mb-0">
-                          Test Order{" "}<br/>
-                          <strong className="text-primary">{test.labTestName + " - " + test.viralLoadIndicationName}</strong>.
-                        </h6>
-                          )}
-                        
-                        <h6 className="mb-0">
-                          Status{" "}<br/>
-                          <strong className="text-primary">{test.labTestOrderStatusName}</strong>.
-                        </h6>
-                        
-                      </span>
-                      </li>
-                    </>
-
-                    ))}
-                  
-                  </>
-                  ) 
-                  :
-                  <Alert
-                    variant="info"
-                    className="alert-dismissible solid fade show"
-                  >
-                    <p>No visit yet</p>
-                  </Alert>
-                }
-              </ul>
-            </PerfectScrollbar>
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    </span>
+                    <div className="media-body">
+                      <p className="mb-1" ><span style={{fontSize:"14px"}} >Total Visit :</span> <span className="badge badge-primary">4</span></p>
+                      <p><span style={{fontSize:"10px", fontWeight:"bolder"}} >Last Visit Date : </span><span className="badge badge-dark">04/011/2022</span></p>
+                    </div>
+                  </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+            <div className="col-sm-6 col-md-6 col-lg-6">
+            <div className="card-body">
+                <PatientChart />
+            </div>
+            </div>
           </div>
         </div>
       </div>

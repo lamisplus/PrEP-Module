@@ -1,28 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Grid, Segment, Label, Icon, List, Button, Card,Feed } from 'semantic-ui-react'
+import { Grid, Segment, Label, List, Feed,Card } from 'semantic-ui-react'
 // Page titie
 import { FormGroup, Label as FormLabelName, InputGroup,
           InputGroupText,
           Input,
         } from "reactstrap";
-import ADR from './ADR/Index'
-import OpportunisticInfection from './OpportunisticInfection/Index'
-import TBScreening from './TBScreening/Index'
 import { url as baseUrl, token } from "../../../api";
 import MatButton from '@material-ui/core/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import SaveIcon from '@material-ui/icons/Save'
 import axios from "axios";
-//import AddVitals from './Vitals/AddVitals'
-import AddAllergy from './Allergies/AddAllergy'
-import AddCondition from './Conditions/AddCondition'
-import PostPatient from './PostPatient/Index'
 import moment from "moment";
 import { toast } from "react-toastify";
 import { Accordion, Alert } from "react-bootstrap";
 import PerfectScrollbar from "react-perfect-scrollbar";
 
-let adherenceLevelObj = []
+
 const useStyles = makeStyles(theme => ({
   card: {
     margin: theme.spacing(20),
@@ -82,7 +75,7 @@ const ClinicVisit = (props) => {
   const [prepStatus, setPrepStatus] = useState([]);
   const [prepSideEffect, setPrepSideEffect] = useState([]);
   const [htsResult, setHtsResult] = useState([]);
-  const [riskReductionService, setRiskReductionService] = useState([]);
+  //const [riskReductionService, setRiskReductionService] = useState([]);
   const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
   //Vital signs clinical decision support 
   const [vitalClinicalSupport, setVitalClinicalSupport] = 
@@ -95,7 +88,7 @@ const ClinicVisit = (props) => {
               temperature:"",
               respiratoryRate:"" 
             })
-  console.log(props.patientObj)
+  //console.log(props.patientObj)
   const [objValues, setObjValues] = useState({
     adherenceLevel: "",
     dateInitialAdherenceCounseling: "",
@@ -126,7 +119,9 @@ const ClinicVisit = (props) => {
     urinalysis: {},
     urinalysisResult: "",
     weight: "",
-    why: ""
+    why: "",
+    otherDrugs:"",
+    nextAppointment:""
   });
   const [urinalysisTest, setUrinalysisTest] = useState({
     urinalysisTest: "No",
@@ -158,7 +153,7 @@ const ClinicVisit = (props) => {
     PREP_STATUS();
     HTS_RESULT();
     PREP_SIDE_EFFECTS();
-    PrEP_RISK_REDUCTION_PLAN();
+    //PrEP_RISK_REDUCTION_PLAN();
     WHY_POOR_FAIR_ADHERENCE();
     //hiv/patient/3
   }, []);
@@ -186,18 +181,7 @@ const ClinicVisit = (props) => {
       //console.log(error);
       });    
     }
-    const PrEP_RISK_REDUCTION_PLAN =()=>{
-      axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_RISK_REDUCTION_PLAN`,
-          { headers: {"Authorization" : `Bearer ${token}`} }
-      )
-      .then((response) => {
-        setRiskReductionService(response.data);
-      })
-      .catch((error) => {
-      //console.log(error);
-      });    
-    }	
+
     const HTS_RESULT =()=>{
       axios
       .get(`${baseUrl}application-codesets/v2/HTS_RESULT`,
@@ -790,7 +774,7 @@ const ClinicVisit = (props) => {
                  
                 </FormGroup>
               </div>
-              <div className=" mb-3 col-md-6">
+              {/* <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Regimen at Start of PrEP </FormLabelName>
                   <Input
@@ -809,7 +793,7 @@ const ClinicVisit = (props) => {
                  
                 </FormGroup>
               </div>
-              
+               */}
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >STI Screening</FormLabelName>
@@ -853,28 +837,6 @@ const ClinicVisit = (props) => {
                 </FormGroup>
               </div> 
               )}
-              <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName >Risk Reduction Services</FormLabelName>
-                  <Input
-                    type="select"
-                    name="riskReductionService"
-                    id="riskReductionService"
-                    value={objValues.riskReductionService}
-                    onChange={handleInputChange}
-                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
-                  >
-                    <option value="">Select </option>
-                    {riskReductionService.map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                 
-                </FormGroup>
-              </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Level of Adherence *</FormLabelName>
@@ -942,10 +904,33 @@ const ClinicVisit = (props) => {
                   </Input>
                  
                 </FormGroup>
-              </div>       
+              </div>
+              {objValues.prepGiven==='Yes' && (<> 
+              <div className="form-group mb-3 col-md-6">
+              <FormGroup>
+              <Label for="">PrEP Regimen</Label>
+              <Input
+                  type="select"
+                  name="regimenId"
+                  id="regimenId"
+                  onChange={handleInputChange}
+                  value={objValues.regimenId}
+                  
+              >
+              <option value=""> Select</option>
+              <option value="30"> TDF(300mg)+3TC(150mg)</option>
+
+  
+              </Input>
+              {errors.regimenId !=="" ? (
+                      <span className={classes.error}>{errors.regimenId}</span>
+                  ) : "" } 
+              </FormGroup>
+              
+              </div>     
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Date PrEP Givern</FormLabelName>
+                  <FormLabelName >Date PrEP Given</FormLabelName>
                   <Input
                     type="date"
                     name="datePrepGiven"
@@ -959,7 +944,22 @@ const ClinicVisit = (props) => {
                     
                 </FormGroup>
               </div> 
-            
+              </>)}
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Other Drugs</FormLabelName>
+                  <Input
+                    type="text"
+                    name="otherDrugs"
+                    id="otherDrugs"
+                    value={objValues.otherDrugs}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                 />
+                    
+                </FormGroup>
+              </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >PrEP Status</FormLabelName>
@@ -981,6 +981,7 @@ const ClinicVisit = (props) => {
                  
                 </FormGroup>
               </div>
+               
               <br /><br />
               <Label as='a' color='teal'  style={{width:'106%', height:'35px'}} ribbon>
               <h4 style={{color:'#fff'}}><input type="checkbox" name="urinalysisTest" value="Yes" onChange={handleCheckBoxUrinalysisTest} checked={urinalysisTest.urinalysisTest=='Yes' ? true : false}/> Urinalysis Test</h4>
@@ -1054,8 +1055,8 @@ const ClinicVisit = (props) => {
                     required
                   >
                     <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
+                    <option value="Positive">Positive </option>
+                    <option value="Negative">Negative </option>
                   </Input>
                  
                 </FormGroup>
@@ -1096,8 +1097,8 @@ const ClinicVisit = (props) => {
                     required
                   >
                     <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
+                    <option value="Positive">Positive </option>
+                    <option value="Negative">Negative </option>
                   </Input>
                  
                 </FormGroup>
@@ -1138,17 +1139,36 @@ const ClinicVisit = (props) => {
                     required
                   >
                     <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
+                    <option value="Positive">Positive </option>
+                    <option value="Negative">Negative </option>
                   </Input>
                  
                 </FormGroup>
               </div>
               </>)}
-            </div>
-            <br />
             
-           
+            <br />
+            <Label as='a' color='blue' style={{width:'106%', height:'35px'}} ribbon>
+            <h4 style={{color:'#fff'}}>NEXT APPOINTMENT DATE </h4>
+            </Label>
+            <br /><br /><br />
+            <div className=" mb-3 col-md-12">
+                <Input
+                  type="date"
+                  name="nextAppointment"
+                  id="nextAppointment"
+                  className="col-md-6"
+                  value={objValues.nextAppointment}
+                  onChange={handleInputChange}
+                  style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                  // min={vital.encounterDate}
+                  
+                />
+                {errors.nextAppointment !=="" ? (
+                        <span className={classes.error}>{errors.nextAppointment}</span>
+                    ) : "" }
+              </div>
+           </div>
             <br />
             <MatButton
               type="submit"

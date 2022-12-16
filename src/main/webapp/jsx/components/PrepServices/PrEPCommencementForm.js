@@ -493,10 +493,9 @@ const PrEPCommencementForm = (props) => {
                             value={objValues.regimenId}
                             
                         >
-                        <option value="1"> All Regimen</option>
-                        <option value="34"> First Line</option>
-                        <option value="34"> Second Line</option>
-                        <option value="34"> Third Line</option>
+                        <option value=""> Select</option>
+                        <option value="30"> TDF(300mg)+3TC(150mg)</option>
+
             
                         </Input>
                         {errors.regimenId !=="" ? (
