@@ -24,4 +24,7 @@ public interface PrepEligibilityRepository extends JpaRepository<PrepEligibility
             "pe.uuid NOT IN (SELECT prep_eligibility_uuid FROM prep_enrollment peu WHERE peu.person_uuid=?1 " +
             "AND peu.archived=?2 ) ORDER BY pe.visit_date ASC LIMIT 1", nativeQuery = true)
     PrepEligibility findByPersonUuidAndArchived(String personUuid, int archived);
+
+    Optional<PrepEligibility> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
+
 }

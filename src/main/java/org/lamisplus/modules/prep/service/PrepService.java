@@ -329,6 +329,8 @@ public class PrepService {
         if(person == null)throw new EntityNotFoundException(Person.class, "Person", "is null");
         prepDtos.setPersonId(person.getId());
         prepDtos.setPersonResponseDto(personService.getDtoFromPerson(person));
+        prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
+
 
         List<PrepDto> prepDtoList =  clients
                 .stream()
@@ -350,9 +352,11 @@ public class PrepService {
         Integer eligibilityCount = (prepDtos.getPrepEligibilityCount() == null)
                 ? prepEligibilityRepository.countAllByPersonUuid(person.getUuid())
                 : prepDtos.getPrepEligibilityCount();
-        if(eligibilityCount == prepCount && eligibilityCount > 0) isCommenced=true;
+        Integer commencementCount = prepClinicRepository.countAllByPersonUuid(person.getUuid());
+        if(eligibilityCount > 0 && eligibilityCount == commencementCount) isCommenced=true;
         prepDtos.setCommenced(isCommenced);
         prepDtos.setHivPositive(isPositive);
+        prepDtos.setPrepCommencementCount(commencementCount);
         return prepDtos;
     }
 
@@ -640,5 +644,34 @@ public class PrepService {
 
 
         return prepInterruptionDto;
+    }
+
+    public PrepClinicDto getCommencementById(Long id) {
+        PrepClinic prepClinic = prepClinicRepository
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService
+                        .getCurrentUserOrganization(), UN_ARCHIVED)
+                .orElseThrow (() -> new EntityNotFoundException(PrepClinic.class, "id", String.valueOf (id)));
+
+        return this.clinicToClinicDto(prepClinic);
+    }
+
+    public PrepEligibilityDto getEligibilityById(Long id) {
+        PrepEligibility prepEligibility = prepEligibilityRepository
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService
+                        .getCurrentUserOrganization(), UN_ARCHIVED)
+                .orElseThrow (() -> new EntityNotFoundException(PrepEligibility.class, "id", String.valueOf (id)));
+
+        return prepEligibilityToPrepEligibilityDto(prepEligibility);
+
+    }
+
+    public PrepEnrollmentDto getEnrollmentById(Long id) {
+        PrepEnrollment prepEnrollment = prepEnrollmentRepository
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService
+                        .getCurrentUserOrganization(), UN_ARCHIVED)
+                .orElseThrow (() -> new EntityNotFoundException(PrepEligibility.class, "id", String.valueOf (id)));
+
+        return enrollmentToEnrollmentDto(prepEnrollment);
+
     }
 }
