@@ -121,7 +121,6 @@ const ClinicVisit = (props) => {
     weight: "",
     why: "",
     otherDrugs:"",
-    nextAppointment:""
   });
   const [urinalysisTest, setUrinalysisTest] = useState({
     urinalysisTest: "No",

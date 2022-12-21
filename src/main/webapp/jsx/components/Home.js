@@ -22,7 +22,7 @@ const Home = () => {
 				<li className="breadcrumb-item active"><h4>PrEP</h4></li>
 			</ol>
 		  </div>
-      <Link to={"register-patient"}>
+      {/* <Link to={"register-patient"}>
             <Button
                 variant="contained"
                 color="primary"
@@ -32,9 +32,9 @@ const Home = () => {
             >
                 <span style={{ textTransform: "capitalize" }}>New Patient</span>
             </Button>
-        </Link>
+        </Link> */}
         <br/><br/>
-      <br/>
+
       <Row>       
         <Col xl={12}>
           <Card style={divStyle}>            
