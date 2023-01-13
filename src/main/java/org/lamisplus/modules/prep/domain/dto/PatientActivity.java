@@ -14,7 +14,7 @@ public class PatientActivity {
     private Long id;
     @NonNull
     private String name;
-    //@NonNull
+    @NonNull
     private LocalDate date;
     @NonNull
     private String icon;
