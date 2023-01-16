@@ -474,6 +474,7 @@ const PrEPCommencementForm = (props) => {
                             id="datereferred"
                             onChange={handleInputChange}
                             value={objValues.datereferred}
+                            min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                         />
                         {errors.datereferred !=="" ? (
@@ -494,8 +495,9 @@ const PrEPCommencementForm = (props) => {
                             
                         >
                         <option value=""> Select</option>
-                        <option value="30"> TDF(300mg)+3TC(150mg)</option>
-
+                        <option value="30">TDF/3TC</option>
+                        <option value="30"> TDF/FTC</option>
+                        
             
                         </Input>
                         {errors.regimenId !=="" ? (

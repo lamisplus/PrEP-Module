@@ -154,8 +154,23 @@ const ClinicVisit = (props) => {
     PREP_SIDE_EFFECTS();
     //PrEP_RISK_REDUCTION_PLAN();
     WHY_POOR_FAIR_ADHERENCE();
+    PrepEligibilityObj()
     //hiv/patient/3
   }, []);
+ 
+  const PrepEligibilityObj =()=>{
+    axios
+    .get(`${baseUrl}prep/eligibility/open/patients/${props.patientObj.personId}`,
+        { headers: {"Authorization" : `Bearer ${token}`} }
+    )
+    .then((response) => {
+        //setPrepStatus(response.data);
+        objValues.prepEnrollmentUuid="";
+    })
+    .catch((error) => {
+    //console.log(error);
+    });    
+  }
     const PREP_STATUS =()=>{
       axios
       .get(`${baseUrl}application-codesets/v2/PREP_STATUS`,
@@ -850,7 +865,7 @@ const ClinicVisit = (props) => {
                   >
                     <option value="">Select </option>
 
-                    {adherenceLevel.map((value) => (
+                    {adherenceLevel.STImap((value) => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -917,8 +932,8 @@ const ClinicVisit = (props) => {
                   
               >
               <option value=""> Select</option>
-              <option value="30"> TDF(300mg)+3TC(150mg)</option>
-
+              <option value="30">TDF/3TC</option>
+              <option value="30"> TDF/FTC</option>
   
               </Input>
               {errors.regimenId !=="" ? (
