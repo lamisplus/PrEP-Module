@@ -10,6 +10,7 @@ import org.lamisplus.modules.prep.repository.PrepClinicRepository;
 import org.lamisplus.modules.prep.service.PatientActivityProvider;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,11 @@ public class PrepClinicActivityProvider implements PatientActivityProvider {
 	private PatientActivity buildPatientActivity(PrepClinic prepClinic) {
 		String name = "Prep Clinic";
 		assert prepClinic.getId() != null;
+		if(prepClinic.getDatePrepStart() ==null){
+			prepClinic.setDatePrepStart(LocalDate.of(1970, 1, 1));
+			name=name + " with missing date";
+		}
+
 		return new PatientActivity(prepClinic.getId(), name, prepClinic.getDatePrepStart(), "", "prep-clinic");
 	}
 }
