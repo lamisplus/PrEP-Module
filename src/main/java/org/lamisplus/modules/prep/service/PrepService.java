@@ -15,10 +15,7 @@ import org.lamisplus.modules.patient.repository.VisitRepository;
 import org.lamisplus.modules.patient.service.PersonService;
 import org.lamisplus.modules.patient.service.VisitService;
 import org.lamisplus.modules.prep.domain.dto.*;
-import org.lamisplus.modules.prep.domain.entity.PrepClinic;
-import org.lamisplus.modules.prep.domain.entity.PrepEligibility;
-import org.lamisplus.modules.prep.domain.entity.PrepEnrollment;
-import org.lamisplus.modules.prep.domain.entity.PrepInterruption;
+import org.lamisplus.modules.prep.domain.entity.*;
 import org.lamisplus.modules.prep.repository.PrepClinicRepository;
 import org.lamisplus.modules.prep.repository.PrepEligibilityRepository;
 import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
@@ -29,7 +26,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -308,6 +304,24 @@ public class PrepService {
                 .getAllByArchivedAndFacilityIdOrderByIdDesc(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(),pageable);
     }
 
+    public Page<PrepClient> findAllPrepPersonPage(String searchValue, int pageNo, int pageSize) {
+        Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        if(!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")){
+            searchValue = searchValue.replaceAll("\\s", "");
+            String queryParam = "%"+searchValue+"%";
+            return prepEnrollmentRepository
+                    .findAllPersonPrepBySearchParam(UN_ARCHIVED, facilityId,  queryParam, pageable);
+        }
+        return prepEnrollmentRepository
+                .findAllPersonPrep(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(),pageable);
+    }
+
+
+
+
+
+
     public PageDTO getAllPrepDtosByPerson(Page<Person> page){
 
         List<PrepDtos> htsClientDtosList =  page.stream()
@@ -510,6 +524,8 @@ public class PrepService {
         prepClinic.setRiskReductionServices( prepClinicRequestDto.getRiskReductionServices());
         prepClinic.setNotedSideEffects( prepClinicRequestDto.getNotedSideEffects());
 
+        prepClinic.setDuration( prepClinicRequestDto.getDuration());
+
         return prepClinic;
     }
     private PrepClinicDto clinicToClinicDto(PrepClinic clinic) {
@@ -555,6 +571,8 @@ public class PrepService {
 
         prepClinicDto.setRiskReductionServices( clinic.getRiskReductionServices());
         prepClinicDto.setNotedSideEffects( clinic.getNotedSideEffects());
+
+        prepClinicDto.setDuration( clinic.getDuration());
 
         return prepClinicDto;
     }

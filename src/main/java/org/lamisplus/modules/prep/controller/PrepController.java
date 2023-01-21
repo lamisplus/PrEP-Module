@@ -3,12 +3,13 @@ package org.lamisplus.modules.prep.controller;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.lamisplus.modules.base.domain.dto.PageDTO;
+import org.lamisplus.modules.base.util.PaginationUtil;
 import org.lamisplus.modules.prep.domain.dto.*;
-import org.lamisplus.modules.prep.domain.entity.PrepEnrollment;
+import org.lamisplus.modules.prep.domain.entity.PrepClient;
 import org.lamisplus.modules.prep.service.PatientActivityService;
 import org.lamisplus.modules.prep.service.PrepService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ public class PrepController {
     private final PrepService prepService;
     private final PatientActivityService patientActivityService;
     private final String PREP_URL_VERSION_ONE = "/api/v1/prep";
+    private final String PREP_URL_VERSION_TWO = "/api/v2/prep";
 
     @GetMapping(PREP_URL_VERSION_ONE + "/persons")
     @ApiOperation("Get Prep Persons")
@@ -28,8 +30,17 @@ public class PrepController {
                                                 @RequestParam (required = false, defaultValue = "20")int pageSize,
                                                 @RequestParam (required = false, defaultValue = "0") int pageNo) {
         return new ResponseEntity<>(this.prepService
-                .getAllPrepDtosByPerson(prepService
+                .getAllPrepDtosByPerson (prepService
                         .findPrepPersonPage(searchValue, pageNo, pageSize)), HttpStatus.OK);
+    }
+
+    @GetMapping(PREP_URL_VERSION_TWO + "/persons")
+    @ApiOperation("Get Prep Persons with optimized api")
+    public ResponseEntity<PageDTO> getAllPersons(@RequestParam (required = false, defaultValue = "*")  String searchValue,
+                                                @RequestParam (required = false, defaultValue = "20")int pageSize,
+                                                @RequestParam (required = false, defaultValue = "0") int pageNo) {
+        Page<PrepClient> page = prepService.findAllPrepPersonPage(searchValue, pageNo, pageSize);
+        return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
     }
 
     @PostMapping(PREP_URL_VERSION_ONE+ "/eligibility")
