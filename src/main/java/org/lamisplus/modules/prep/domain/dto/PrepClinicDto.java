@@ -80,5 +80,7 @@ public class PrepClinicDto implements Serializable{
     private String riskReductionServices;
 
     private String notedSideEffects;
+
+    private Integer duration;
 }
 

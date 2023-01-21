@@ -83,6 +83,9 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "referred")
     private Boolean referred;
 
+    @Column(name = "duration")
+    private Integer duration;
+
     @Column(name = "date_referred")
     private LocalDate dateReferred;
 

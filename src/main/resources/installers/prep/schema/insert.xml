@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+    <changeSet failOnError="true" author="Emeka" id="prep-insert-1">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM prep_regimen WHERE id=1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO prep_regimen(id, regimen, composition, description, archived, code)
+            OVERRIDING SYSTEM VALUE VALUES (1, 'TDF(300mg)+3TC(150mg)', 'Tenofovir+Lamivudine', 'Pre-Exposure Prophylaxis (PrEP)', 1, 'TDF(300mg)+3TC(150mg)');
+
+            SELECT pg_catalog.setval('prep_regimen_id_seq', 1, true);
+        </sql>
+    </changeSet>
+</databaseChangeLog>
