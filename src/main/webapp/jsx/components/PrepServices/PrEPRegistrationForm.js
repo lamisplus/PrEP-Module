@@ -56,7 +56,7 @@ const useStyles = makeStyles(theme => ({
 const PrEPRegistrationForm = (props) => {
 
     const patientObj = props.patientObj;
-    let history = useHistory();
+    //let history = useHistory();
     const classes = useStyles()
     const [objValues, setObjValues] = useState({
         dateEnrolled: "",
@@ -68,7 +68,7 @@ const PrEPRegistrationForm = (props) => {
         supporterName: "",
         supporterPhone: "",
         supporterRelationshipType: "",
-        uniqueId: ""
+        uniqueId: "",
     });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
@@ -80,7 +80,7 @@ const PrEPRegistrationForm = (props) => {
         GetPatientDTOObj();
         RELATIONSHIP();
         PREP_RISK_TYPE();
-        //console.log(props)
+        
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientPrepEnrollment(props.activeContent.id)
         }
@@ -116,7 +116,7 @@ const PrEPRegistrationForm = (props) => {
                { headers: {"Authorization" : `Bearer ${token}`} }
            )
            .then((response) => {
-               //const patientDTO= response.data.enrollment
+            console.log(response.data)
                setPatientDto(response.data);
            })
            .catch((error) => {

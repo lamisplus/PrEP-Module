@@ -24,12 +24,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 const RecentHistory = (props) => {
-  const classes = useStyles();
-  const [vitaLoad, setViralLoad]=useState([])
-  const [refillList, setRefillList] = useState([])
-  const [clinicVisitList, setClinicVisitList] = useState([])
+  //console.log(props.patientObj)
   const [recentActivities, setRecentActivities] = useState([])
-  const [loading, setLoading] = useState(true)
+  //const [loading, setLoading] = useState(true)
   let history = useHistory();
   const [
     activeAccordionHeaderShadow,
@@ -37,11 +34,9 @@ const RecentHistory = (props) => {
   ] = useState(0);
 
   useEffect(() => {
-    LaboratoryHistory();
-    PharmacyList();
-    ClinicVisitList();
+
     RecentActivities();
-  }, [props.patientObj.id]);
+  }, [props.patientObj.personId]);
 
   //Get list of LaboratoryHistory
   const RecentActivities =()=>{
@@ -57,59 +52,8 @@ const RecentHistory = (props) => {
        });
    
   }
-  //Get list of LaboratoryHistory
-  const LaboratoryHistory =()=>{
-    axios
-       .get(`${baseUrl}laboratory/orders/patients/${props.patientObj.id}`,
-           { headers: {"Authorization" : `Bearer ${token}`} }
-       )
-       .then((response) => {
-           let LabObject= []
-                response.data.forEach(function(value, index, array) {
-                    const dataOrders = value.labOrder.tests                    
-                    if(dataOrders[index]) {
-                        dataOrders.forEach(function(value, index, array) {
-                            LabObject.push(value)
-                        })                       
-                    }                   
-                });
-              setViralLoad(LabObject)
-       })
-       .catch((error) => {
-       //console.log(error);
-       });
-   
-  }
-   //GET LIST Drug Refill
-   async function PharmacyList() {
-    setLoading(true)
-    axios
-        .get(`${baseUrl}hiv/art/pharmacy/patient?pageNo=0&pageSize=10&personId=${props.patientObj.id}`,
-        { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
-            setLoading(false)
-            setRefillList(response.data);                
-        })
-        .catch((error) => {  
-            setLoading(false)  
-        });        
-  }
-   //GET LIST Drug Refill
-   async function ClinicVisitList() {
-    setLoading(true)
-    axios
-        .get(`${baseUrl}hiv/art/clinic-visit/person?pageNo=0&pageSize=10&personId=${props.patientObj.id}`,
-        { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
-            setLoading(false)
-            setClinicVisitList(response.data);                
-        })
-        .catch((error) => {  
-            setLoading(false)  
-        });        
-  }
+
+
   const labStatus =(status)=> {
       if(status===0){
         return "timeline-badge info"

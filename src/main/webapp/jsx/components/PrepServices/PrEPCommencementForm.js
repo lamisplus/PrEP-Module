@@ -87,7 +87,7 @@ const useStyles = makeStyles(theme => ({
 const PrEPCommencementForm = (props) => {
 
     const patientObj = props.patientObj;
-    console.log(props)
+    //console.log(props)
     let history = useHistory();
     const classes = useStyles()
     const [objValues, setObjValues] = useState({

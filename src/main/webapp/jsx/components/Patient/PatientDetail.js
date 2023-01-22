@@ -17,7 +17,8 @@ import PrEPEligibiltyScreeningForm from './../PrepServices/PrEPEligibiltyScreeni
 import PrEPVisit from './../PrepServices/PrEPVisit';
 import PrEPRegistrationForm from './../PrepServices/PrEPRegistrationForm';
 import Biometrics from './Biometric'
-
+import axios from "axios";
+import { url as baseUrl, token } from "./../../../api";
 
 const styles = theme => ({
   root: {
@@ -57,16 +58,26 @@ const styles = theme => ({
 
 function PatientCard(props) {
     let history = useHistory();
-    const [art, setArt] = useState(false);
+    const [patientDetail, setPatientDetail] = useState(null)
     const [activeContent, setActiveContent] = useState({route:"recent-history", id:"", activeTab:"home", actionType:"create", obj:{}});
     const { classes } = props;
     const patientObj = history.location && history.location.state ? history.location.state.patientObj : {}
     const prepId = history.location && history.location.state ? history.location.state.prepId : {}
     //console.log(patientObj)
     useEffect(() => {
-
+      PatientObject()
      }, [patientObj]);
-
+     async function PatientObject() {
+      axios
+          .get(`${baseUrl}prep/persons/${patientObj.personId}`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+          )
+          .then((response) => {
+            setPatientDetail(response.data);
+          })
+          .catch((error) => {    
+          });        
+    }
   return (
     <div className={classes.root}>
       <div className="row page-titles mx-0" style={{marginTop:"0px", marginBottom:"-10px"}}>
@@ -76,16 +87,16 @@ function PatientCard(props) {
 		  </div>
       <Card >
         <CardContent>
-            <PatientCardDetail patientObj={patientObj} setArt={setArt} setActiveContent={setActiveContent}/>            
-            <SubMenu patientObj={patientObj} art={art} setActiveContent={setActiveContent}/>
+            <PatientCardDetail patientObj={patientObj}  setActiveContent={setActiveContent} patientDetail={patientDetail}/>            
+            <SubMenu patientObj={patientObj}  setActiveContent={setActiveContent} patientDetail={patientDetail}/>
             <br/>
           {activeContent.route==='recent-history' &&(<RecentHistory patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
           {activeContent.route==='biometrics' &&(<Biometrics patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
           {activeContent.route==='consultation' &&( <ClinicVisit patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
           {/* {activeContent==='child-consultation' &&( <ChildConsultation patientObj={patientObj} setActiveContent={setActiveContent}/>)} */}
-          {activeContent.route==='prep-commencement' &&( <PrEPCommencementForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
+          {activeContent.route==='prep-commencement' &&( <PrEPCommencementForm patientObj={patientDetail} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
           {activeContent.route==='prep-interruptions' &&( <PrEPDiscontinuationsInterruptions patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
-          {activeContent.route==='prep-screening' &&( <PrEPEligibiltyScreeningForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
+          {activeContent.route==='prep-screening' &&( <PrEPEligibiltyScreeningForm patientObj={patientDetail} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
           {activeContent.route==='prep-visit' &&( <PrEPVisit />)}
           {activeContent.route==='prep-registration' &&( <PrEPRegistrationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)} 
           {activeContent.route==='patient-history' &&( <PatientHistory patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}         

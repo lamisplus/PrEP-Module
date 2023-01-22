@@ -96,21 +96,7 @@ const BasicInfo = (props) => {
     const [errors, setErrors] = useState({});
     const [counselingType, setCounselingType] = useState([]);
     let temp = { ...errors }
-    const calculate_age = dob => {
-        var today = new Date();
-        var dateParts = dob.split("-");
-        var dateObject = new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
-        var birthDate = new Date(dateObject); // create a date object directlyfrom`dob1`argument
-        var age_now = today.getFullYear() - birthDate.getFullYear();
-        var m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                    age_now--;
-                }
-            if (age_now === 0) {
-                    return m + " month(s)";
-                }
-                return age_now ;
-    };
+
     const [objValues, setObjValues]= useState(
             {
                 counselingType: "",
@@ -132,7 +118,7 @@ const BasicInfo = (props) => {
     )
     useEffect(() => { 
         
-        //console.log(props.extra.riskAssessment)
+        console.log(props)
         CounselingType();
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientPrepEligibility(props.activeContent.id)
@@ -163,13 +149,7 @@ const BasicInfo = (props) => {
         //console.log(error);
         });    
     }
-    const handleItemClick =(page, completedMenu)=>{        
-        if(props.completed.includes(completedMenu)) {
-        }else{
-            props.setCompleted([...props.completed, completedMenu])
-        }
-        props.handleItemClick(page)
-    }
+
     const handleInputChange = e => { 
         //setErrors({...temp, [e.target.name]:""}) 
         setObjValues ({...objValues,  [e.target.name]: e.target.value});         
