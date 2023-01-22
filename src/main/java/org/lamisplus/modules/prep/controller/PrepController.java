@@ -24,7 +24,7 @@ public class PrepController {
     private final String PREP_URL_VERSION_ONE = "/api/v1/prep";
     private final String PREP_URL_VERSION_TWO = "/api/v2/prep";
 
-    @GetMapping(PREP_URL_VERSION_ONE + "/persons")
+   /* @GetMapping(PREP_URL_VERSION_ONE + "/persons")
     @ApiOperation("Get Prep Persons")
     public ResponseEntity<PageDTO> getAllPerson(@RequestParam (required = false, defaultValue = "*")  String searchValue,
                                                 @RequestParam (required = false, defaultValue = "20")int pageSize,
@@ -32,9 +32,9 @@ public class PrepController {
         return new ResponseEntity<>(this.prepService
                 .getAllPrepDtosByPerson (prepService
                         .findPrepPersonPage(searchValue, pageNo, pageSize)), HttpStatus.OK);
-    }
+    }*/
 
-    @GetMapping(PREP_URL_VERSION_TWO + "/persons")
+    @GetMapping(PREP_URL_VERSION_ONE + "/persons")
     @ApiOperation("Get Prep Persons with optimized api")
     public ResponseEntity<PageDTO> getAllPersons(@RequestParam (required = false, defaultValue = "*")  String searchValue,
                                                 @RequestParam (required = false, defaultValue = "20")int pageSize,

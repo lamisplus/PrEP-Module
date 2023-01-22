@@ -22,6 +22,9 @@ public class PrepRegimen implements Serializable{
     @Column(name = "code")
     private String code;
 
+    @Column(name = "regimen")
+    private String regimen;
+
     @Column(name = "composition")
     private String composition;
 
