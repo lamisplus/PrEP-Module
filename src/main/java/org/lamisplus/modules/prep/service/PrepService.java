@@ -311,10 +311,10 @@ public class PrepService {
             searchValue = searchValue.replaceAll("\\s", "");
             String queryParam = "%"+searchValue+"%";
             return prepEnrollmentRepository
-                    .findAllPersonPrepBySearchParam(UN_ARCHIVED, facilityId,  queryParam, pageable);
+                    .findAllPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId,  queryParam, pageable);
         }
         return prepEnrollmentRepository
-                .findAllPersonPrep(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(),pageable);
+                .findAllPersonPrepAndStatus(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(),pageable);
     }
 
 
@@ -333,7 +333,6 @@ public class PrepService {
     public PrepDtos getPrepClientByPersonId(Person person){
         return this.prepToPrepDtos(person, prepEnrollmentRepository.findAllByPersonOrderByIdDesc(person));
     }
-
 
     private PrepDtos prepToPrepDtos(@NotNull Person person, List<PrepEnrollment> clients){
         boolean isPositive = false;
