@@ -166,7 +166,7 @@ const Patients = (props) => {
             { title: "Age", field: "age", filtering: false },
             
             //{ title: "ART Number", field: "v_status", filtering: false },
-            { title: "PrEP Count", field: "count", filtering: false },
+            { title: "PrEP Status", field: "status", filtering: false },
             { title: "Actions", field: "actions", filtering: false }, 
             ]}
             //isLoading={loading}
@@ -185,7 +185,7 @@ const Patients = (props) => {
                                     gender:row && row.gender ? row.gender : "",
                                     age: row.age,
                                     
-                                    count: (<Label color="blue" size="mini">{row.prepCount}</Label>),
+                                    count: (<Label color="blue" size="mini">{row.prepStatus}</Label>),
                                 
                                 actions:
                                         <div>

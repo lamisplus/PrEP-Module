@@ -42,12 +42,13 @@ function SubMenu(props) {
                 <Menu.Item onClick={() => onClickHome()} > Home</Menu.Item>                  
                 {patientObj.prepEligibilityCount<=0 || patientObj.prepEnrollmentCount<=0 || patientObj.commenced!==true ? 
                 (<>
-                    {patientObj.prepEligibilityCount <=0 && (<Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibilty Screening Form</Menu.Item>)}
+                    {patientObj.prepEligibilityCount <=0 && (<Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibility Screening </Menu.Item>)}
                     {patientObj.prepEligibilityCount >0 && patientObj.prepEnrollmentCount<=0 && (<Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>)}
                     {patientObj.prepEligibilityCount >0 && patientObj.prepEnrollmentCount>0 && patientObj.commenced!==true && (<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
                 </>)
                 :
-                (<>  
+                (<>
+                    <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} > PrEP Eligibility Screening </Menu.Item>
                     <Menu.Item onClick={() => onClickConsultation()} > PrEP Visit</Menu.Item>
                     <Menu.Item onClick={() => loadPrEPDiscontinuationsInterruptions()} >PrEP Discontinuations & Interruptions</Menu.Item>
                 </>)}
