@@ -22,7 +22,7 @@ import moment from "moment";
 import axios from "axios";
 import { url as baseUrl, token } from "./../../../api";
 import Typography from '@material-ui/core/Typography';
-import CaptureBiometric from './CaptureBiometric';
+// import CaptureBiometric from './CaptureBiometric';
 
 //Dtate Picker package
 Moment.locale("en");
@@ -65,75 +65,13 @@ const styles = theme => ({
 
 function PatientCard(props) {
   const { classes } = props;
-  const patientObjs = props.patientObj ? props.patientObj.personResponseDto : {}
-  const [patientObj, setpatientObj] = useState(patientObjs)
-  const [biometricStatus, setBiometricStatus] = useState(false);
-  const [devices, setDevices] = useState([]);
-  const [biometricModal, setBiometricModal] = useState(false);
-  const BiometricModalToggle = () => setBiometricModal(!biometricModal);
-  const [hivStatus, setHivStatus] = useState();
+  //const patientObj = props.patientObj ? props.patientObj : {}
+  const [patientObj, setpatientObj] = useState(props.patientDetail)
 
   useEffect(() => {
-    PatientCurrentStatus();
-    CheckBiometric();
-  }, [props.patientObj]);
+    setpatientObj(props.patientDetail);
+  }, [props.patientDetail]);
 
-  //Get list of KP
-  const CheckBiometric =()=>{
-      axios
-        .get(`${baseUrl}modules/check?moduleName=biometric`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
-            setBiometricStatus(response.data);
-            if(response.data===true){
-              axios
-                  .get(`${baseUrl}biometrics/devices`,
-                      { headers: {"Authorization" : `Bearer ${token}`} }
-                  )
-                  .then((response) => {
-                      setDevices(response.data);
-                      
-                  })
-                  .catch((error) => {
-                      console.log(error)
-                  });
-            
-              }
-        })
-        .catch((error) => {
-        //console.log(error);
-        });
-    
-  }
-    ///GET LIST OF Patients
-    async function PatientCurrentStatus() {
-        axios
-            .get(`${baseUrl}hiv/status/patient-current/${patientObj.id}`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-
-              setHivStatus(response.data);
-            })
-            .catch((error) => {    
-            });        
-    }
-    const get_age = dob => {
-      var today = new Date();
-      var dateParts = dob.split("-");
-      var dateObject = new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
-      var birthDate = new Date(dateObject); // create a date object directlyfrom`dob1`argument
-      var age_now = today.getFullYear() - birthDate.getFullYear();
-      var m = today.getMonth() - birthDate.getMonth();
-          if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                  age_now--;
-              }
-          if (age_now === 0) {
-                  return m + " month(s)";
-              }
-              return age_now ;
-    }
     const calculate_age = dob => {
       var today = new Date();
       var dateParts = dob.split("-");
@@ -150,26 +88,14 @@ function PatientCard(props) {
               return age_now + " year(s)";
     };
 
-    const loadChildEvaluation =(row)=> {
-      props.setActiveContent('child-evaluation')
-    }
-    const capturePatientBiometric =(row)=> {
-      //props.setActiveContent('biometrics')
-      props.setActiveContent({...props.activeContent, route:'biometrics', obj:row})
-    }
-    
-    const CurrentStatus = ()=>{
-
-          return (  <Label color="blue" size="mini">{hivStatus}</Label>);
-  }
     const getHospitalNumber = (identifier) => {     
       const identifiers = identifier;
-      const hospitalNumber = identifiers.identifier.find(obj => obj.type == 'HospitalNumber');       
+      const hospitalNumber = identifiers.identifier.find(obj => obj.type === 'HospitalNumber');       
       return hospitalNumber ? hospitalNumber.value : '';
     };
     const getPhoneNumber = (identifier) => {     
       const identifiers = identifier;
-      const phoneNumber = identifiers.contactPoint.find(obj => obj.type == 'phone');       
+      const phoneNumber = identifiers.contactPoint.find(obj => obj.type === 'phone');       
       return phoneNumber ? phoneNumber.value : '';
     };
     const getAddress = (identifier) => {     
@@ -185,10 +111,11 @@ function PatientCard(props) {
                 <ExpansionPanelSummary >                
                 <Row>                
                     <Col md={12}>
+                    {patientObj && patientObj!==null ? (<>
                     <Row className={"mt-1"}>
                     <Col md={12} className={classes.root2}>
                     <b style={{fontSize: "25px", color:'rgb(153, 46, 98)'}}>
-                        {patientObj.firstName + " " + patientObj.surname }
+                        {patientObj.personResponseDto.firstName + " " + patientObj.personResponseDto.surname }
                         </b>
                         <Link to={"/"} >
                         <ButtonMui
@@ -207,42 +134,60 @@ function PatientCard(props) {
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Patient ID : <b style={{color:'#0B72AA'}}>{getHospitalNumber(patientObj.identifier) }</b>
+                        Patient ID : <b style={{color:'#0B72AA'}}>{getHospitalNumber(patientObj.personResponseDto.identifier) }</b>
                     </span>
                     </Col>
 
                     <Col md={4} className={classes.root2}>
                     <span>
-                        Date Of Birth : <b style={{color:'#0B72AA'}}>{patientObj.dateOfBirth }</b>
+                        Date Of Birth : <b style={{color:'#0B72AA'}}>{patientObj.personResponseDto.dateOfBirth }</b>
                     </span>
                     </Col>
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Age : <b style={{color:'#0B72AA'}}>{calculate_age(moment(patientObj.dateOfBirth).format("DD-MM-YYYY"))}</b>
+                        Age : <b style={{color:'#0B72AA'}}>{calculate_age(moment(patientObj.personResponseDtodateOfBirth).format("DD-MM-YYYY"))}</b>
                     </span>
                     </Col>
                     <Col md={4}>
                     <span>
                         {" "}
                         Gender :{" "}
-                        <b style={{color:'#0B72AA'}}>{patientObj.sex && patientObj.sex!==null ?  patientObj.sex : '' }</b>
+                        <b style={{color:'#0B72AA'}}>{patientObj.personResponseDtosex && patientObj.personResponseDto.sex!==null ?  patientObj.sex : '' }</b>
                     </span>
                     </Col>
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Phone Number : <b style={{color:'#0B72AA'}}>{getPhoneNumber(patientObj.contactPoint)}</b>
+                        Phone Number : <b style={{color:'#0B72AA'}}>{getPhoneNumber(patientObj.personResponseDto.contactPoint)}</b>
                     </span>
                     </Col>
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Address : <b style={{color:'#0B72AA'}}>{getAddress(patientObj.address)} </b>
+                        Address : <b style={{color:'#0B72AA'}}>{getAddress(patientObj.personResponseDto.address)} </b>
                     </span>
                     </Col>
-
+                    {patientObj.prepStatus!==null && (
+                    <Col md={12}>
+                       <div >
+                            <Typography variant="caption">
+                                <Label color={patientObj && patientObj.prepStatus===true ? "red" : "teal"} size={"mini"}>
+                                   STATUS : {patientObj && patientObj.prepStatus===true ? "Positive" : "Negative"}    
+                                </Label>
+                              
+                            </Typography>
+                       </div>                 
+                    </Col> 
+                    )}
                     </Row>
+                    </>)
+                    :(
+                      <>
+                      <p>Loading please wait..</p>
+                      </>
+                    )
+                  }
                     </Col>
                 </Row>
                 </ExpansionPanelSummary>

@@ -203,23 +203,25 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             ) : "" } 
                         </FormGroup>
                     </div>
-                    <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                        <Label for="uniqueId">Date of Interruption </Label>
-                        <Input
-                            type="date"
-                            name="interruptionDate"
-                            id="interruptionDate"
-                            max= {moment(new Date()).format("YYYY-MM-DD") }
-                            onChange={handleInputChange}
-                            value={objValues.interruptionDate}
-                            required
-                        />
-                        {errors.interruptionDate !=="" ? (
-                            <span className={classes.error}>{errors.interruptionDate}</span>
-                        ) : "" } 
-                        </FormGroup>
-                    </div>
+                    {(objValues.interruptionType==='PREP_STATUS_ADVERSE_DRUG_REACTION' || objValues.interruptionType==='PREP_STATUS_STOPPED' || objValues.interruptionType==='PREP_STATUS_LOSS_TO_FOLLOW_UP' ) && (
+                        <div className="form-group mb-3 col-md-6">
+                            <FormGroup>
+                            <Label for="uniqueId">Date of Interruption </Label>
+                            <Input
+                                type="date"
+                                name="interruptionDate"
+                                id="interruptionDate"
+                                max= {moment(new Date()).format("YYYY-MM-DD") }
+                                onChange={handleInputChange}
+                                value={objValues.interruptionDate}
+                                required
+                            />
+                            {errors.interruptionDate !=="" ? (
+                                <span className={classes.error}>{errors.interruptionDate}</span>
+                            ) : "" } 
+                            </FormGroup>
+                        </div>
+                    )}
                     {objValues.interruptionType==='PREP_STATUS_TRANSFER_OUT' && (
                     <>
                     <div className="form-group mb-3 col-md-6">
@@ -352,6 +354,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     </div>
                      )}
                      {objValues.interruptionType==='PREP_STATUS_SEROCONVERTED' && (
+                    <>
                      <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="uniqueId">Date Seroconverted </Label>
@@ -369,7 +372,6 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         ) : "" }
                         </FormGroup>
                     </div>
-                     )}
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label >Link to ART</Label>
@@ -408,6 +410,8 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         ) : "" }    
                         </FormGroup>
                     </div>
+                    </>)}
+                    
                 </div>
 
                 {saving ? <Spinner /> : ""}

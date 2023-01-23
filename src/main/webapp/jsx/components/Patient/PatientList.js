@@ -166,7 +166,7 @@ const Patients = (props) => {
             { title: "Age", field: "age", filtering: false },
             
             //{ title: "ART Number", field: "v_status", filtering: false },
-            { title: "PrEP Count", field: "count", filtering: false },
+            { title: "PrEP Status", field: "status", filtering: false },
             { title: "Actions", field: "actions", filtering: false }, 
             ]}
             //isLoading={loading}
@@ -178,19 +178,14 @@ const Patients = (props) => {
                             
                             resolve({
                                 data: result.data.records.map((row) => ({
-                                    name:row.personResponseDto.firstName + " " + row.personResponseDto.surname,
-                                    hospital_number: getHospitalNumber(row.personResponseDto.identifier),
+                                    name:row.firstName + " " + row.surname,
+                                    hospital_number: row.hospitalNumber,
                                     clientCode: row.uniqueId,
                                     //phone_number:  row.phone,
-                                    gender:row && row.personResponseDto.sex ? row.personResponseDto.sex : "",
-                                    age: (row.personResponseDto.dateOfBirth === 0 ||
-                                        row.personResponseDto.dateOfBirth === undefined ||
-                                        row.personResponseDto.dateOfBirth === null ||
-                                        row.personResponseDto.dateOfBirth === "" )
-                                            ? 0
-                                            : calculate_age(moment(row.personResponseDto.dateOfBirth).format("DD-MM-YYYY")),
+                                    gender:row && row.gender ? row.gender : "",
+                                    age: row.age,
                                     
-                                    count: (<Label color="blue" size="mini">{row.prepEnrollmentCount}</Label>),
+                                    count: (<Label color="blue" size="mini">{row.prepStatus}</Label>),
                                 
                                 actions:
                                         <div>

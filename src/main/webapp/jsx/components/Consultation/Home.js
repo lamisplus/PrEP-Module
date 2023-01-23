@@ -1,28 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Grid, Segment, Label, Icon, List, Button, Card,Feed } from 'semantic-ui-react'
+import { Grid, Segment, Label, List,Card } from 'semantic-ui-react'
 // Page titie
 import { FormGroup, Label as FormLabelName, InputGroup,
           InputGroupText,
           Input,
         } from "reactstrap";
-import ADR from './ADR/Index'
-import OpportunisticInfection from './OpportunisticInfection/Index'
-import TBScreening from './TBScreening/Index'
 import { url as baseUrl, token } from "../../../api";
 import MatButton from '@material-ui/core/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import SaveIcon from '@material-ui/icons/Save'
 import axios from "axios";
-//import AddVitals from './Vitals/AddVitals'
-import AddAllergy from './Allergies/AddAllergy'
-import AddCondition from './Conditions/AddCondition'
-import PostPatient from './PostPatient/Index'
 import moment from "moment";
 import { toast } from "react-toastify";
 import { Accordion, Alert } from "react-bootstrap";
 import PerfectScrollbar from "react-perfect-scrollbar";
 
-let adherenceLevelObj = []
+
 const useStyles = makeStyles(theme => ({
   card: {
     margin: theme.spacing(20),
@@ -49,9 +42,32 @@ const useStyles = makeStyles(theme => ({
   },
 
   root: {
-    '& > *': {
-      margin: theme.spacing(1)
-    }
+    flexGrow: 1,
+    "& .card-title":{
+        color:'#fff',
+        fontWeight:'bold'
+    },
+    "& .form-control":{
+        borderRadius:'0.25rem',
+        height:'41px'
+    },
+    "& .card-header:first-child": {
+        borderRadius: "calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0"
+    },
+    "& .dropdown-toggle::after": {
+        display: " block !important"
+    },
+    "& select":{
+        "-webkit-appearance": "listbox !important"
+    },
+    "& p":{
+        color:'red'
+    },
+    "& label":{
+        fontSize:'14px',
+        color:'#014d88',
+        fontWeight:'bold'
+    },
   },
   input: {
     display: 'none'
@@ -69,11 +85,8 @@ const useStyles = makeStyles(theme => ({
 const ClinicVisit = (props) => {
   //let patientObj = props.patientObj ? props.patientObj : {}
   const [errors, setErrors] = useState({});
-  const [clinicVisitList, setClinicVisitList] = useState([])
-  const [
-    activeAccordionHeaderShadow,
-    setActiveAccordionHeaderShadow,
-  ] = useState(0);
+  //const [clinicVisitList, setClinicVisitList] = useState([])
+  const [patientDto, setPatientDto] = useState();
   let temp = { ...errors }
   const classes = useStyles()
   const [saving, setSaving] = useState(false);
@@ -82,7 +95,7 @@ const ClinicVisit = (props) => {
   const [prepStatus, setPrepStatus] = useState([]);
   const [prepSideEffect, setPrepSideEffect] = useState([]);
   const [htsResult, setHtsResult] = useState([]);
-  const [riskReductionService, setRiskReductionService] = useState([]);
+  const [prepRegimen, setprepRegimen] = useState([]);
   const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
   //Vital signs clinical decision support 
   const [vitalClinicalSupport, setVitalClinicalSupport] = 
@@ -95,7 +108,7 @@ const ClinicVisit = (props) => {
               temperature:"",
               respiratoryRate:"" 
             })
-  console.log(props.patientObj)
+  //console.log(props.patientObj)
   const [objValues, setObjValues] = useState({
     adherenceLevel: "",
     dateInitialAdherenceCounseling: "",
@@ -126,7 +139,9 @@ const ClinicVisit = (props) => {
     urinalysis: {},
     urinalysisResult: "",
     weight: "",
-    why: ""
+    why: "",
+    otherDrugs:"",
+    duration:""
   });
   const [urinalysisTest, setUrinalysisTest] = useState({
     urinalysisTest: "No",
@@ -158,10 +173,49 @@ const ClinicVisit = (props) => {
     PREP_STATUS();
     HTS_RESULT();
     PREP_SIDE_EFFECTS();
-    PrEP_RISK_REDUCTION_PLAN();
+    GetPatientDTOObj();
     WHY_POOR_FAIR_ADHERENCE();
+    PrepEligibilityObj();
+    PrepRegimen();
     //hiv/patient/3
   }, []);
+    const GetPatientDTOObj =()=>{
+      axios
+        .get(`${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setPatientDto(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });          
+    }
+    const PrepEligibilityObj =()=>{
+      axios
+      .get(`${baseUrl}prep/eligibility/open/patients/${props.patientObj.personId}`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+      )
+      .then((response) => {
+          //setPrepStatus(response.data);
+          objValues.prepEnrollmentUuid="";
+      })
+      .catch((error) => {
+      //console.log(error);
+      });    
+    }
+    const PrepRegimen =()=>{
+      axios
+      .get(`${baseUrl}prep-regimen`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+      )
+      .then((response) => {
+        setprepRegimen(response.data);
+      })
+      .catch((error) => {
+      //console.log(error);
+      });    
+    }
     const PREP_STATUS =()=>{
       axios
       .get(`${baseUrl}application-codesets/v2/PREP_STATUS`,
@@ -186,18 +240,7 @@ const ClinicVisit = (props) => {
       //console.log(error);
       });    
     }
-    const PrEP_RISK_REDUCTION_PLAN =()=>{
-      axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_RISK_REDUCTION_PLAN`,
-          { headers: {"Authorization" : `Bearer ${token}`} }
-      )
-      .then((response) => {
-        setRiskReductionService(response.data);
-      })
-      .catch((error) => {
-      //console.log(error);
-      });    
-    }	
+
     const HTS_RESULT =()=>{
       axios
       .get(`${baseUrl}application-codesets/v2/HTS_RESULT`,
@@ -284,7 +327,7 @@ const ClinicVisit = (props) => {
   }
   const handleCheckBoxOtherTest = e => {
     if (e.target.checked) {
-      setOtherTest({ ...otherTest, ["otherTest"]: "Yes" })
+      setOtherTest({ ...otherTest, ["otherTest"]:"Yes" })
     } else {
       setOtherTest({ ...otherTest, ["otherTest"]: "No" })
     }
@@ -378,6 +421,7 @@ const ClinicVisit = (props) => {
     objValues.hepatitis = hepatitisTest
     objValues.urinalysis = urinalysisTest
     objValues.otherTestsDone = otherTest
+    objValues.prepEnrollmentUuid= patientDto.uuid
     axios.post(`${baseUrl}prep/clinic-visit`, objValues,
       { headers: { "Authorization": `Bearer ${token}` } },
 
@@ -390,16 +434,18 @@ const ClinicVisit = (props) => {
       })
       .catch(error => {
         setSaving(false);
+        
         if(error.response && error.response.data){
           let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-          if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
-              toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
+          if(error.response.data.apierror && error.response.data.apierror.message!==""){
+              toast.error(error.response.data.apierror.message, {position: toast.POSITION.BOTTOM_CENTER});
+          }else if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
+            toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
           }else{
               toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
           }
 
-      }
-      else{
+      }else{
           toast.error("Something went wrong. Please try again...",  {position: toast.POSITION.BOTTOM_CENTER});
       }
         
@@ -416,91 +462,9 @@ const ClinicVisit = (props) => {
         <h2>Clinic Follow-up Visit</h2>
         </div>      
       </div>
-      <Grid columns='equal'>
-       <Grid.Column width={5}>
-          
-            <Segment>
-              <Label as='a' color='blue' style={{width:'110%', height:'35px'}} ribbon>
-              <h4 style={{color:'#fff'}}>Vital Signs</h4>
-              </Label>
-              <br />
+      <Grid >
 
-               <PerfectScrollbar
-                style={{ height: "370px" }}
-                id="DZ_W_Todo1"
-                className="widget-media dz-scroll ps ps--active-y"
-              >
-                <br/>
-                    <ul className="timeline">
-                    { clinicVisitList.length > 0 ?(
-                      
-                    <Accordion
-                        className="accordion accordion-header-bg accordion-header-shadow accordion-rounded "
-                        defaultActiveKey="0"
-                        
-                      >
-                        <>
-                        {clinicVisitList.map((visit, i)=>
-                            <div className="accordion-item" key={i} >
-                              <Accordion.Toggle
-                                  as={Card.Text}
-                                  eventKey={`${i}`}
-                                  className={`accordion-header ${
-                                    activeAccordionHeaderShadow === 1 ? "" : "collapsed"
-                                  } accordion-header-info`}
-                                  onClick={() =>
-                                    setActiveAccordionHeaderShadow(
-                                      activeAccordionHeaderShadow === 1 ? -1 : i
-                                    )
-                                  }
-                                  style={{width:'100%'}}
-                              >
-                              <span className="accordion-header-icon"></span>
-                              <span className="accordion-header-text float-start">Visit Date : <span className="">{visit.visitDate}</span> </span>
-                              <span className="accordion-header-indicator"></span>
-                            </Accordion.Toggle>
-                            <Accordion.Collapse
-                              eventKey={`${i}`}
-                              className="accordion__body"
-                            >
-                              <div className="accordion-body-text">
-                            
-                                  <List celled style={{width:'100%'}}>
-                                      {visit.vitalSignDto && visit.vitalSignDto.pulse!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px',borderTop:'1px solid #fff', marginTop:'-5px' }}>Pulse <span style={{color:'rgb(153, 46, 98)'}} className="float-end"><b>{visit.vitalSignDto.pulse} bpm</b></span></List.Item>)}
-                                      {visit.vitalSignDto && visit.vitalSignDto.respiratoryRate!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Respiratory Rate <span className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.respiratoryRate} bpm</b></span></List.Item>)}
-                                      {visit.vitalSignDto && visit.vitalSignDto.temperature!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Temperature <span className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.temperature} <sup>0</sup>C</b></span></List.Item>)}
-                                      {visit.vitalSignDto && visit.vitalSignDto.systolic!==null && visit.vitalSignDto.diastolic!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Blood Pressure <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.systolic}/{visit.vitalSignDto.diastolic}</b></span></List.Item>)}
-                                      {visit.vitalSignDto && visit.vitalSignDto.height!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Height <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.height} cm</b></span></List.Item>)}
-                                      {visit.vitalSignDto && visit.vitalSignDto.weight!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>Weight <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{visit.vitalSignDto.weight} kg</b></span></List.Item>)}
-                                      {visit.vitalSignDto && visit.vitalSignDto.weight!==null && visit.vitalSignDto.height!==null && (<List.Item style={{paddingBottom:'10px', paddingTop:'10px'}}>BMI <span  className="float-end"><b style={{color:'rgb(153, 46, 98)'}}>{Math.round(visit.vitalSignDto.weight/(visit.vitalSignDto.height/100))} kg</b></span></List.Item>)}
-                                  </List>
-                                
-                              </div>
-                            </Accordion.Collapse>
-                          </div>
-                        )}
-                        </>
-                    </Accordion>             
-
-                ):
-                (
-                  <>
-                  <br/>
-                  <Alert
-                      variant="info"
-                      className="alert-dismissible solid fade show"
-                    >
-                      <p>No Vital Signs</p>
-                    </Alert>
-                  </>
-                )}
-                    </ul>
-               
-                </PerfectScrollbar>
-            </Segment>
-           
-        </Grid.Column>
-        <Grid.Column width={11}>
+        <Grid.Column >
           <Segment>
             <Label as='a' color='blue'  style={{width:'106%', height:'35px'}} ribbon>
               <h4 style={{color:'#fff'}}>VITAL  SIGNS</h4>
@@ -517,7 +481,7 @@ const ClinicVisit = (props) => {
                     value={objValues.encounterDate}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     onChange={handleInputChange}
-                    //min={props.patientObj && props.patientObj.artCommence ? props.patientObj.artCommence.visitDate : null}
+                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     required
                   />
@@ -790,7 +754,7 @@ const ClinicVisit = (props) => {
                  
                 </FormGroup>
               </div>
-              <div className=" mb-3 col-md-6">
+              {/* <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Regimen at Start of PrEP </FormLabelName>
                   <Input
@@ -809,8 +773,8 @@ const ClinicVisit = (props) => {
                  
                 </FormGroup>
               </div>
-              
-              <div className=" mb-3 col-md-6">
+               */}
+              <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >STI Screening</FormLabelName>
                   <Input
@@ -853,28 +817,6 @@ const ClinicVisit = (props) => {
                 </FormGroup>
               </div> 
               )}
-              <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName >Risk Reduction Services</FormLabelName>
-                  <Input
-                    type="select"
-                    name="riskReductionService"
-                    id="riskReductionService"
-                    value={objValues.riskReductionService}
-                    onChange={handleInputChange}
-                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
-                  >
-                    <option value="">Select </option>
-                    {riskReductionService.map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                 
-                </FormGroup>
-              </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Level of Adherence *</FormLabelName>
@@ -924,7 +866,7 @@ const ClinicVisit = (props) => {
               </div> 
               )}
               
-              <div className=" mb-3 col-md-6">
+              <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >PrEP Given</FormLabelName>
                   <Input
@@ -942,10 +884,52 @@ const ClinicVisit = (props) => {
                   </Input>
                  
                 </FormGroup>
-              </div>       
+              </div>
+              {objValues.prepGiven==='Yes' && (<> 
+              <div className="form-group mb-3 col-md-6">
+              <FormGroup>
+              <FormLabelName for="">PrEP Regimen</FormLabelName>
+              <Input
+                  type="select"
+                  name="regimenId"
+                  id="regimenId"
+                  onChange={handleInputChange}
+                  value={objValues.regimenId}
+                  
+              >
+              <option value=""> Select</option>
+              {prepRegimen.map((value) => (
+                      <option key={value.id} value={value.id}>
+                        {value.composition}
+                      </option>
+                    ))}
+              </Input>
+              {errors.regimenId !=="" ? (
+                      <span className={classes.error}>{errors.regimenId}</span>
+                  ) : "" } 
+              </FormGroup>
+              
+              </div> 
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Date PrEP Givern</FormLabelName>
+                  <FormLabelName >Duration </FormLabelName>
+                  <Input
+                    type="number"
+                    name="duration"
+                    id="duration"
+                    value={objValues.duration}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
+                    required
+                  />
+                    
+                </FormGroup>
+              </div>     
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Date PrEP Given</FormLabelName>
                   <Input
                     type="date"
                     name="datePrepGiven"
@@ -953,13 +937,29 @@ const ClinicVisit = (props) => {
                     value={objValues.datePrepGiven}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     required
                   />
                     
                 </FormGroup>
               </div> 
-            
+              </>)}
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Other Drugs</FormLabelName>
+                  <Input
+                    type="text"
+                    name="otherDrugs"
+                    id="otherDrugs"
+                    value={objValues.otherDrugs}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                 />
+                    
+                </FormGroup>
+              </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >PrEP Status</FormLabelName>
@@ -972,6 +972,7 @@ const ClinicVisit = (props) => {
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
                   >
+                    <option value="">Select</option>
                     {prepStatus.map((value) => (
                             <option key={value.id} value={value.code}>
                                 {value.display}
@@ -981,6 +982,7 @@ const ClinicVisit = (props) => {
                  
                 </FormGroup>
               </div>
+               
               <br /><br />
               <Label as='a' color='teal'  style={{width:'106%', height:'35px'}} ribbon>
               <h4 style={{color:'#fff'}}><input type="checkbox" name="urinalysisTest" value="Yes" onChange={handleCheckBoxUrinalysisTest} checked={urinalysisTest.urinalysisTest=='Yes' ? true : false}/> Urinalysis Test</h4>
@@ -1054,8 +1056,8 @@ const ClinicVisit = (props) => {
                     required
                   >
                     <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
+                    <option value="Positive">Positive </option>
+                    <option value="Negative">Negative </option>
                   </Input>
                  
                 </FormGroup>
@@ -1096,8 +1098,8 @@ const ClinicVisit = (props) => {
                     required
                   >
                     <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
+                    <option value="Positive">Positive </option>
+                    <option value="Negative">Negative </option>
                   </Input>
                  
                 </FormGroup>
@@ -1138,17 +1140,36 @@ const ClinicVisit = (props) => {
                     required
                   >
                     <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
+                    <option value="Positive">Positive </option>
+                    <option value="Negative">Negative </option>
                   </Input>
                  
                 </FormGroup>
               </div>
               </>)}
-            </div>
-            <br />
             
-           
+            <br />
+            <Label as='a' color='blue' style={{width:'106%', height:'35px'}} ribbon>
+            <h4 style={{color:'#fff'}}>NEXT APPOINTMENT DATE </h4>
+            </Label>
+            <br /><br /><br />
+            <div className=" mb-3 col-md-12">
+                <Input
+                  type="date"
+                  name="nextAppointment"
+                  id="nextAppointment"
+                  className="col-md-6"
+                  value={objValues.nextAppointment}
+                  onChange={handleInputChange}
+                  style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                  // min={vital.encounterDate}
+                  
+                />
+                {errors.nextAppointment !=="" ? (
+                        <span className={classes.error}>{errors.nextAppointment}</span>
+                    ) : "" }
+              </div>
+           </div>
             <br />
             <MatButton
               type="submit"

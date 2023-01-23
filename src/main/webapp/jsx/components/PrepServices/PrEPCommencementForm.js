@@ -87,7 +87,7 @@ const useStyles = makeStyles(theme => ({
 const PrEPCommencementForm = (props) => {
 
     const patientObj = props.patientObj;
-    console.log(props)
+    //console.log(props)
     let history = useHistory();
     const classes = useStyles()
     const [objValues, setObjValues] = useState({
@@ -474,6 +474,7 @@ const PrEPCommencementForm = (props) => {
                             id="datereferred"
                             onChange={handleInputChange}
                             value={objValues.datereferred}
+                            min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                         />
                         {errors.datereferred !=="" ? (
@@ -493,10 +494,10 @@ const PrEPCommencementForm = (props) => {
                             value={objValues.regimenId}
                             
                         >
-                        <option value="1"> All Regimen</option>
-                        <option value="34"> First Line</option>
-                        <option value="34"> Second Line</option>
-                        <option value="34"> Third Line</option>
+                        <option value=""> Select</option>
+                        <option value="30">TDF/3TC</option>
+                        <option value="30"> TDF/FTC</option>
+                        
             
                         </Input>
                         {errors.regimenId !=="" ? (
