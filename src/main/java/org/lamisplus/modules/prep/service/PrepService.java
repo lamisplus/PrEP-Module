@@ -311,10 +311,10 @@ public class PrepService {
             searchValue = searchValue.replaceAll("\\s", "");
             String queryParam = "%"+searchValue+"%";
             return prepEnrollmentRepository
-                    .findAllPersonPrepBySearchParam(UN_ARCHIVED, facilityId,  queryParam, pageable);
+                    .findAllPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId,  queryParam, pageable);
         }
         return prepEnrollmentRepository
-                .findAllPersonPrep(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(),pageable);
+                .findAllPersonPrepAndStatus(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(),pageable);
     }
 
 
@@ -334,17 +334,15 @@ public class PrepService {
         return this.prepToPrepDtos(person, prepEnrollmentRepository.findAllByPersonOrderByIdDesc(person));
     }
 
-
     private PrepDtos prepToPrepDtos(@NotNull Person person, List<PrepEnrollment> clients){
         boolean isPositive = false;
-        boolean isCommenced = false;
+        //boolean isCommenced = false;
         PrepDtos prepDtos = new PrepDtos();
 
         if(person == null)throw new EntityNotFoundException(Person.class, "Person", "is null");
         prepDtos.setPersonId(person.getId());
         prepDtos.setPersonResponseDto(personService.getDtoFromPerson(person));
         prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
-
 
         List<PrepDto> prepDtoList =  clients
                 .stream()
@@ -363,12 +361,13 @@ public class PrepService {
         int prepCount = prepDtoList.size();
         prepDtos.setPrepEnrollmentCount(prepCount);
         prepDtos.setPrepDtoList(prepDtoList);
-        Integer eligibilityCount = (prepDtos.getPrepEligibilityCount() == null)
+        /*Integer eligibilityCount = (prepDtos.getPrepEligibilityCount() == null)
                 ? prepEligibilityRepository.countAllByPersonUuid(person.getUuid())
-                : prepDtos.getPrepEligibilityCount();
+                : prepDtos.getPrepEligibilityCount();*/
         Integer commencementCount = prepClinicRepository.countAllByPersonUuid(person.getUuid());
-        if(eligibilityCount > 0 && eligibilityCount == commencementCount) isCommenced=true;
-        prepDtos.setCommenced(isCommenced);
+        //if(eligibilityCount > 0 && eligibilityCount == commencementCount) isCommenced=true;
+        prepDtos.setCommenced((commencementCount > 0)?true:false);
+        prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
         prepDtos.setHivPositive(isPositive);
         prepDtos.setPrepCommencementCount(commencementCount);
         return prepDtos;
