@@ -90,6 +90,7 @@ const PrEPCommencementForm = (props) => {
     //console.log(props)
     let history = useHistory();
     const classes = useStyles()
+    const [prepRegimen, setprepRegimen] = useState([]);
     const [objValues, setObjValues] = useState({
         dateInitialAdherenceCounseling: "",
         datePrepStart: "",
@@ -117,10 +118,23 @@ const PrEPCommencementForm = (props) => {
     useEffect(() => {         
         PREGANACY_STATUS();
         GetPatientDTOObj();
+        PrepRegimen();
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientCommercement(props.activeContent.id)
         }
     }, []);
+    const PrepRegimen =()=>{
+        axios
+        .get(`${baseUrl}prep-regimen`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+          setprepRegimen(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+      }
     const GetPatientCommercement =(id)=>{
         axios
            .get(`${baseUrl}prep/commencement/person/${props.patientObj.personId}`,
@@ -495,9 +509,11 @@ const PrEPCommencementForm = (props) => {
                             
                         >
                         <option value=""> Select</option>
-                        <option value="30">TDF/3TC</option>
-                        <option value="30"> TDF/FTC</option>
-                        
+                        {prepRegimen.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                    {value.composition}
+                                </option>
+                                ))}
             
                         </Input>
                         {errors.regimenId !=="" ? (
