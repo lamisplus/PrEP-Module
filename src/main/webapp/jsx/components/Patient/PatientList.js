@@ -185,7 +185,7 @@ const Patients = (props) => {
                                     gender:row && row.gender ? row.gender : "",
                                     age: row.age,
                                     
-                                    count: (<Label color="blue" size="mini">{row.prepStatus}</Label>),
+                                    status: (<Label color="blue" size="mini">{row.prepStatus}</Label>),
                                 
                                 actions:
                                         <div>
