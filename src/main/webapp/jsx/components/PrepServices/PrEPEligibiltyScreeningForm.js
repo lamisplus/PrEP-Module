@@ -117,8 +117,7 @@ const BasicInfo = (props) => {
             }
     )
     useEffect(() => { 
-        
-        console.log(props)
+
         CounselingType();
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientPrepEligibility(props.activeContent.id)
@@ -126,12 +125,16 @@ const BasicInfo = (props) => {
     }, [props.patientObj]);
     const GetPatientPrepEligibility =(id)=>{
         axios
-           .get(`${baseUrl}prep/enrollment/person/${props.patientObj.personId}`,
+           .get(`${baseUrl}prep/eligibility/${id}`,
                { headers: {"Authorization" : `Bearer ${token}`} }
            )
            .then((response) => {
-                //console.log(response.data.find((x)=> x.id===id));
-               //setObjValues(response.data.find((x)=> x.id===id));
+                console.log(response.data);
+               setObjValues(response.data);
+               setRiskAssessment(response.data.personalHivRiskAssessment)
+               setRiskAssessmentPartner(response.data.sexPartnerRisk)
+               setStiScreening(response.data.stiScreening)
+               setDrugHistory(response.data.drugUseHistory)
            })
            .catch((error) => {
            //console.log(error);
@@ -247,7 +250,7 @@ const BasicInfo = (props) => {
            temp.sexPartners = objValues.sexPartners ? "" : "This field is required."
            
             setErrors({ ...temp })
-        return Object.values(temp).every(x => x == "")
+        return Object.values(temp).every(x => x === "")
     }
     const handleSubmit =(e)=>{
         e.preventDefault();

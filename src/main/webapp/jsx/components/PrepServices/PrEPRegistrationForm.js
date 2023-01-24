@@ -289,8 +289,8 @@ const PrEPRegistrationForm = (props) => {
                                     name="hivTestingPoint"
                                     id="hivTestingPoint"
                                     onChange={handleInputChange}
-                                    value={"Positive"}
-                                    disabled
+                                    value={objValues.dateOfLastHivNegativeTest}
+                                    
                                 >
                                       {entryPoint.map((value) => (
                                             <option key={value.id} value={value.id}>
@@ -303,7 +303,7 @@ const PrEPRegistrationForm = (props) => {
 
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
-                                    <Label >Date of last HIV Negative test*</Label>
+                                    <Label >Date of last HIV Negative test</Label>
                                     <Input
                                         className="form-control"
                                         type="date"
@@ -313,7 +313,7 @@ const PrEPRegistrationForm = (props) => {
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         max= {moment(new Date()).format("YYYY-MM-DD") }
-                                        disabled
+                                        
                                     />
                                      {errors.dateOfLastHivNegativeTest !=="" ? (
                                         <span className={classes.error}>{errors.dateOfLastHivNegativeTest}</span>
@@ -343,7 +343,7 @@ const PrEPRegistrationForm = (props) => {
                                 
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
-                                    <Label >PrEP Supporter </Label>
+                                    <Label >PrEP Supporter *</Label>
                                     <Input
                                         className="form-control"
                                         type="text"
@@ -361,7 +361,7 @@ const PrEPRegistrationForm = (props) => {
                                 </div>
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
-                                    <Label >Relationship</Label>
+                                    <Label >Relationship *</Label>
                                     <Input
                                         className="form-control"
                                         type="select"

@@ -400,10 +400,10 @@ const ClinicVisit = (props) => {
   const validate = () => {        
     temp.encounterDate = objValues.encounterDate ? "" : "This field is required"
 
-    //temp.functionalStatusId = objValues.functionalStatusId ? "" : "This field is required"
+    temp.nextAppointment = objValues.nextAppointment ? "" : "This field is required"
     temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
 
-    temp.systolic = objValues.systolic ? "" : "This field is required"
+    //temp.systolic = objValues.systolic ? "" : "This field is required"
     temp.height = objValues.height ? "" : "This field is required"
     temp.weight = objValues.weight ? "" : "This field is required"
     setErrors({
@@ -576,7 +576,7 @@ const ClinicVisit = (props) => {
                    
                     <div className=" mb-3 col-md-5">
                         <FormGroup>
-                        <FormLabelName >Body Weight</FormLabelName>
+                        <FormLabelName >Body Weight *</FormLabelName>
                         <InputGroup> 
                             <Input 
                                 type="number"
@@ -603,7 +603,7 @@ const ClinicVisit = (props) => {
                     </div>                                   
                     <div className="form-group mb-3 col-md-5">
                         <FormGroup>
-                        <FormLabelName >Height</FormLabelName>
+                        <FormLabelName >Height *</FormLabelName>
                         <InputGroup> 
                         <InputGroupText
                                 addonType="append"
@@ -837,7 +837,9 @@ const ClinicVisit = (props) => {
                       </option>
                     ))}
                   </Input>
-                 
+                  {errors.adherenceLevel !=="" ? (
+                      <span className={classes.error}>{errors.adherenceLevel}</span>
+                  ) : "" } 
                 </FormGroup>
               </div>
               {objValues.adherenceLevel==='PREP_LEVEL_OF_ADHERENCE_(POOR)_≥_7_DOSES' && (

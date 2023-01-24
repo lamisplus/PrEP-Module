@@ -88,7 +88,7 @@ const PrEPCommencementForm = (props) => {
 
     const patientObj = props.patientObj;
     //console.log(props)
-    let history = useHistory();
+    //let history = useHistory();
     const classes = useStyles()
     const [prepRegimen, setprepRegimen] = useState([]);
     const [objValues, setObjValues] = useState({
@@ -203,7 +203,7 @@ const PrEPCommencementForm = (props) => {
         temp.height = objValues.height ? "" : "This field is required"
         temp.weight = objValues.weight ? "" : "This field is required"
         temp.reffered = objValues.reffered ? "" : "This field is required"
-        temp.datereferred = objValues.datereferred ? "" : "This field is required"
+        //temp.datereferred = objValues.datereferred ? "" : "This field is required"
         setErrors({
             ...temp
             })    
@@ -295,7 +295,7 @@ const PrEPCommencementForm = (props) => {
                                 id="datePrepStart"
                                 min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
-                                value={objValues.dateOfRegistration}
+                                value={objValues.datePrepStart}
                                 onChange={handleInputChange}
                                 style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                             />
@@ -479,6 +479,7 @@ const PrEPCommencementForm = (props) => {
                         </FormGroup>
                         
                         </div>
+                        {objValues.reffered==='Yes' && (
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="">Date referred</Label>
@@ -497,6 +498,7 @@ const PrEPCommencementForm = (props) => {
                         </FormGroup>
                         
                         </div>
+                        )}
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="">PrEP Regimen</Label>
