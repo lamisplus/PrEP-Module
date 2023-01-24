@@ -460,7 +460,7 @@ const PrEPCommencementForm = (props) => {
                         </div>
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                        <Label for="">referred</Label>
+                        <Label for="">Referred</Label>
                         <Input
                             type="select"
                             name="reffered"
