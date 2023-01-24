@@ -132,7 +132,7 @@ const ClinicVisit = (props) => {
     respiratoryRate: "",
     riskReductionServices: "",
     stiScreening: "",
-    syndromicStiScreening: "",
+    syndromicStiScreening: null,
     syphilis: {},
     systolic: "",
     temperature: "",

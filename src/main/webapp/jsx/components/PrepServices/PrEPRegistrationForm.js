@@ -56,6 +56,7 @@ const useStyles = makeStyles(theme => ({
 const PrEPRegistrationForm = (props) => {
 
     const patientObj = props.patientObj;
+    const [entryPoint, setEntryPoint] = useState([]);
     //let history = useHistory();
     const classes = useStyles()
     const [objValues, setObjValues] = useState({
@@ -80,12 +81,25 @@ const PrEPRegistrationForm = (props) => {
         GetPatientDTOObj();
         RELATIONSHIP();
         PREP_RISK_TYPE();
-        
+        EntryPoint();
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientPrepEnrollment(props.activeContent.id)
         }
         //GetPatientPrepEnrollment
       }, []);
+      const EntryPoint =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/HTS_ENTRY_POINT`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            //console.log(response.data);
+            setEntryPoint(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
     const RELATIONSHIP =()=>{
         axios
            .get(`${baseUrl}application-codesets/v2/RELATIONSHIP`,
@@ -266,23 +280,27 @@ const PrEPRegistrationForm = (props) => {
                                 </FormGroup>
                                 
                                 </div>
-                                {props.patientObj.hivPositive===true && (
+
                                 <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
                                 <Label >HIV Testing Point </Label>
                                 <Input
-                                    type="text"
+                                    type="select"
                                     name="hivTestingPoint"
                                     id="hivTestingPoint"
                                     onChange={handleInputChange}
                                     value={"Positive"}
                                     disabled
-                                />
-                               
+                                >
+                                      {entryPoint.map((value) => (
+                                            <option key={value.id} value={value.id}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+                                </Input>
                                 </FormGroup>
                                 </div>
-                                )}
-                                {props.patientObj.dateHivPositive!==null && (
+
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
                                     <Label >Date of last HIV Negative test*</Label>
@@ -291,7 +309,7 @@ const PrEPRegistrationForm = (props) => {
                                         type="date"
                                         name="dateOfLastHivNegativeTest"
                                         id="dateOfLastHivNegativeTest"
-                                        value={props.patientObj.dateHivPositive}
+                                        value={objValues.dateOfLastHivNegativeTest}
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         max= {moment(new Date()).format("YYYY-MM-DD") }
@@ -302,7 +320,7 @@ const PrEPRegistrationForm = (props) => {
                                     ) : "" }   
                                     </FormGroup>
                                 </div>
-                                )}
+
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
                                     <Label >Date Referred for PrEP * </Label>

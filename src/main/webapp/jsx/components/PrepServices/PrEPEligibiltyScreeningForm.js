@@ -243,20 +243,16 @@ const BasicInfo = (props) => {
      /*****  Validation  */
      const validate = () => {
         //PREP FORM VALIDATION
-        //    temp.previousTestedHIVNegative = knowledgeAssessment.previousTestedHIVNegative ? "" : "This field is required."
-        //    {knowledgeAssessment.previousTestedHIVNegative==='true' && ( temp.timeLastHIVNegativeTestResult = knowledgeAssessment.timeLastHIVNegativeTestResult ? "" : "This field is required.")}
-        //    temp.clientPregnant = knowledgeAssessment.clientPregnant ? "" : "This field is required."
-        //    temp.clientInformHivTransRoutes = knowledgeAssessment.clientInformHivTransRoutes ? "" : "This field is required."
-        //    temp.clientInformRiskkHivTrans = knowledgeAssessment.clientInformRiskkHivTrans ? "" : "This field is required."
-        //    temp.clientInformPreventingsHivTrans = knowledgeAssessment.clientInformPreventingsHivTrans ? "" : "This field is required."
-        //    temp.clientInformPossibleTestResult = knowledgeAssessment.clientInformPossibleTestResult ? "" : "This field is required."
-        //    temp.informConsentHivTest = knowledgeAssessment.informConsentHivTest ? "" : "This field is required."  
-
+           temp.visitDate = objValues.visitDate? "" : "This field is required."
+           temp.sexPartners = objValues.sexPartners ? "" : "This field is required."
+           
             setErrors({ ...temp })
         return Object.values(temp).every(x => x == "")
     }
     const handleSubmit =(e)=>{
         e.preventDefault();
+            setSaving(true);
+            if(validate()){
             objValues.htsClientId= clientId
             objValues.drugUseHistory= drugHistory
             objValues.personalHivRiskAssessment= riskAssessment
@@ -287,7 +283,10 @@ const BasicInfo = (props) => {
                     toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
                 }
             });
-            
+        }else{
+            setSaving(false);
+            toast.error("All field are required ", {position: toast.POSITION.BOTTOM_CENTER});
+        }   
     }
 
 
@@ -426,7 +425,7 @@ const BasicInfo = (props) => {
                             </div>
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Unprotected Vaginal sex with regular partner *</Label>
+                                    <Label>Unprotected Vaginal sex with regular partner </Label>
                                     <select
                                         className="form-control"
                                         name="unprotectedVaginalSexRegular"
@@ -447,7 +446,7 @@ const BasicInfo = (props) => {
                             </div> 
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Unprotected Anal sex with casual partner *</Label>
+                                    <Label>Unprotected Anal sex with casual partner </Label>
                                     <select
                                         className="form-control"
                                         name="uprotectedAnalSexWithCasual"
@@ -531,7 +530,7 @@ const BasicInfo = (props) => {
                             </div>           
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>More than 1 sex partner *</Label>
+                                    <Label>More than 1 sex partner </Label>
                                     <select
                                         className="form-control"
                                         name="moreThan1SexPartner"
@@ -552,7 +551,7 @@ const BasicInfo = (props) => {
                             </div>
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Anal sex with Male/Female partner *</Label>
+                                    <Label>Anal sex with Male/Female partner </Label>
                                     <select
                                         className="form-control"
                                         name="analSexWithPartner"
@@ -573,7 +572,7 @@ const BasicInfo = (props) => {
                             </div>
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Unprotected Anal sex with male/female partner *</Label>
+                                    <Label>Unprotected Anal sex with male/female partner </Label>
                                     <select
                                         className="form-control"
                                         name="unprotectedAnalSexWithPartner"
@@ -594,7 +593,7 @@ const BasicInfo = (props) => {
                             </div>
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Have you paid for sex in the last 6 months?  *</Label>
+                                    <Label>Have you paid for sex in the last 6 months?  </Label>
                                     <select
                                         className="form-control"
                                         name="haveYouPaidForSex"
@@ -615,7 +614,7 @@ const BasicInfo = (props) => {
                             </div>
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Have you been paid for sex in the last 6 months *</Label>
+                                    <Label>Have you been paid for sex in the last 6 months </Label>
                                     <select
                                         className="form-control"
                                         name="moreThanOneSexPartnerLastThreeMonths"
@@ -636,7 +635,7 @@ const BasicInfo = (props) => {
                             </div> 
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Have you experience condom breakage *</Label>
+                                    <Label>Have you experience condom breakage </Label>
                                     <select
                                         className="form-control"
                                         name="experienceCondomBreakage"
@@ -657,7 +656,7 @@ const BasicInfo = (props) => {
                             </div>
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Have you taken part in sexual orgy *</Label>
+                                    <Label>Have you taken part in sexual orgy </Label>
                                     <select
                                         className="form-control"
                                         name="takenPartInSexualOrgy"
@@ -708,7 +707,7 @@ const BasicInfo = (props) => {
                             {/* {riskAssessmentPartner.sexPartnerHivPositive==='true' && (<> */}
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Have you had sex with a partner who inject drug?*</Label>
+                                    <Label>Have you had sex with a partner who inject drug?</Label>
                                     <select
                                         className="form-control"
                                         name="haveSexWithPartnerInjectDrug"
@@ -729,7 +728,7 @@ const BasicInfo = (props) => {
                             </div>
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Have you had sex with a partner who has sex with men ?*</Label>
+                                    <Label>Have you had sex with a partner who has sex with men ?</Label>
                                     <select
                                         className="form-control"
                                         name="haveSexWithPartnerWhoHasSexWithMen"
