@@ -27,12 +27,13 @@ public class PrepEligibilityDto implements Serializable {
     private Integer numWives;
     private String targetGroup;
     private String uniqueId;
+    private Integer score;
 
     private Object extra;
     private String prepStatus;
     private Integer prepEligibilityCount;
 
-    private PersonResponseDto personResponseDto;
+    //private PersonResponseDto personResponseDto;
 
     private LocalDate visitDate;
 }

@@ -83,6 +83,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "(CASE " +
             "WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
             "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
+            "WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' " +
             "ELSE prepc.status END) prepStatus" +
             " FROM patient_person p  " +
             " LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND pet.archived=?1" +
@@ -104,7 +105,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
-            "pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, " +
+            "pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
             "p.other_name, p.hospital_number, p.date_of_birth, prepc.status ", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
     @Query(value = "SELECT pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,    " +
@@ -114,6 +115,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "(CASE " +
             "WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
             "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
+            "WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' " +
             "ELSE prepc.status END) prepStatus" +
             " FROM patient_person p  " +
             " LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND pet.archived=?1" +
@@ -133,7 +135,9 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type" +
             " WHERE p.archived=?1 AND p.facility_id=?2 "+
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
-            "pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, " +
+            "pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
             "p.other_name, p.hospital_number, p.date_of_birth, prepc.status ", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
+
+    List<PrepEnrollment> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
 }

@@ -27,4 +27,5 @@ public interface PrepEligibilityRepository extends JpaRepository<PrepEligibility
 
     Optional<PrepEligibility> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
 
+    List<PrepEligibility> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
 }

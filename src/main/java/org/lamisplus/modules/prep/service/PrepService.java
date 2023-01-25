@@ -68,10 +68,8 @@ public class PrepService {
         prepEligibility = prepEligibilityRepository.save(prepEligibility);
         prepEligibility.setPerson(person);
         PrepEligibilityDto prepEligibilityDto =  this.prepEligibilityToPrepEligibilityDto(prepEligibility);
-        prepEligibilityDto
-                .setPrepEligibilityCount(prepEligibilityRepository
+        prepEligibilityDto.setPrepEligibilityCount(prepEligibilityRepository
                         .findAllByPersonUuid(person.getUuid()).size());
-        //prepEligibilityDto.setPrepStatus("ELIGIB");
         return prepEligibilityDto;
     }
 
@@ -99,7 +97,7 @@ public class PrepService {
         prepEnrollment = prepEnrollmentRepository.save(prepEnrollment);
         prepEnrollment.setPerson(prepEligibility.getPerson());
         PrepEnrollmentDto prepEnrollmentDto = this.enrollmentToEnrollmentDto(prepEnrollment);
-        prepEnrollmentDto.setStatus("ENROLLED");
+        prepEnrollmentDto.setStatus("Enrolled");
         return prepEnrollmentDto;
     }
 
@@ -122,7 +120,6 @@ public class PrepService {
         prepClinic = prepClinicRepository.save(prepClinic);
         prepClinic.setPerson(person);
         PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic);
-        //prepClinicDto.setStatus("COMMENCED");
         return prepClinicDto;
     }
 
@@ -145,7 +142,6 @@ public class PrepService {
         prepClinic = prepClinicRepository.save(prepClinic);
         prepClinic.setPerson(person);
         PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic);
-        //prepClinicDto.setStatus("COMMENCED");
         return prepClinicDto;
     }
 
@@ -159,12 +155,12 @@ public class PrepService {
                 .orElseThrow(()-> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", String.valueOf(interruptionRequestDto.getPersonId())));
 
 
-        PrepInterruption prepInterruption = this.prepInterruptionRequestDtoToPrepInterruption(interruptionRequestDto, person.getUuid());
+        PrepInterruption prepInterruption = this.interruptionRequestDtoInterruption(interruptionRequestDto, person.getUuid());
 
         prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepInterruption = prepInterruptionRepository.save(prepInterruption);
         prepInterruption.setPerson(person);
-        PrepInterruptionDto prepInterruptionDto = this.prepInterruptionToPrepInterruptionDto(prepInterruption);
+        PrepInterruptionDto prepInterruptionDto = this.interruptionToInterruptionDto(prepInterruption);
         //prepClinicDto.setStatus("COMMENCED");
         return prepInterruptionDto;
     }
@@ -440,8 +436,8 @@ public class PrepService {
         prepEligibilityDto.setNumWives( eligibility.getNumWives() );
         prepEligibilityDto.setTargetGroup( eligibility.getTargetGroup() );
         prepEligibilityDto.setExtra( eligibility.getExtra() );
-        PersonResponseDto personResponseDto = personService.getDtoFromPerson(eligibility.getPerson());
-        prepEligibilityDto.setPersonResponseDto(personResponseDto);
+        //PersonResponseDto personResponseDto = personService.getDtoFromPerson(eligibility.getPerson());
+        //prepEligibilityDto.setPersonResponseDto(personResponseDto);
 
         prepEligibilityDto.setVisitDate( eligibility.getVisitDate() );
 
@@ -616,30 +612,30 @@ public class PrepService {
         prepDto.setStatus(prepEnrollment.getStatus());
         return prepDto;
     }
-    public PrepInterruption prepInterruptionRequestDtoToPrepInterruption(PrepInterruptionRequestDto prepInterruptionRequestDto, String personUuid) {
-        if ( prepInterruptionRequestDto == null ) {
+    public PrepInterruption interruptionRequestDtoInterruption(PrepInterruptionRequestDto interruptionRequestDto, String personUuid) {
+        if ( interruptionRequestDto == null ) {
             return null;
         }
 
         PrepInterruption prepInterruption = new PrepInterruption();
 
-        prepInterruption.setInterruptionType( prepInterruptionRequestDto.getInterruptionType() );
-        prepInterruption.setInterruptionDate( prepInterruptionRequestDto.getInterruptionDate() );
-        prepInterruption.setDateClientDied( prepInterruptionRequestDto.getDateClientDied() );
-        prepInterruption.setCauseOfDeath( prepInterruptionRequestDto.getCauseOfDeath() );
-        prepInterruption.setSourceOfDeathInfo( prepInterruptionRequestDto.getSourceOfDeathInfo() );
-        prepInterruption.setDateClientReferredOut( prepInterruptionRequestDto.getDateClientReferredOut() );
-        prepInterruption.setFacilityReferredTo( prepInterruptionRequestDto.getFacilityReferredTo() );
-        prepInterruption.setInterruptionReason( prepInterruptionRequestDto.getInterruptionReason() );
-        prepInterruption.setDateSeroConverted(prepInterruptionRequestDto.getDateSeroConverted());
+        prepInterruption.setInterruptionType( interruptionRequestDto.getInterruptionType() );
+        prepInterruption.setInterruptionDate( interruptionRequestDto.getInterruptionDate() );
+        prepInterruption.setDateClientDied( interruptionRequestDto.getDateClientDied() );
+        prepInterruption.setCauseOfDeath( interruptionRequestDto.getCauseOfDeath() );
+        prepInterruption.setSourceOfDeathInfo( interruptionRequestDto.getSourceOfDeathInfo() );
+        prepInterruption.setDateClientReferredOut( interruptionRequestDto.getDateClientReferredOut() );
+        prepInterruption.setFacilityReferredTo( interruptionRequestDto.getFacilityReferredTo() );
+        prepInterruption.setInterruptionReason( interruptionRequestDto.getInterruptionReason() );
+        prepInterruption.setDateSeroConverted(interruptionRequestDto.getDateSeroConverted());
         prepInterruption.setPersonUuid(personUuid);
-        prepInterruption.setDateRestartPlacedBackMedication(prepInterruptionRequestDto.getDateRestartPlacedBackMedication());
-        prepInterruption.setLinkToArt(prepInterruptionRequestDto.getLinkToArt());
+        prepInterruption.setDateRestartPlacedBackMedication(interruptionRequestDto.getDateRestartPlacedBackMedication());
+        prepInterruption.setLinkToArt(interruptionRequestDto.getLinkToArt());
 
         return prepInterruption;
     }
 
-    public PrepInterruptionDto prepInterruptionToPrepInterruptionDto(PrepInterruption prepInterruption) {
+    public PrepInterruptionDto interruptionToInterruptionDto(PrepInterruption prepInterruption) {
         if ( prepInterruption == null ) {
             return null;
         }
