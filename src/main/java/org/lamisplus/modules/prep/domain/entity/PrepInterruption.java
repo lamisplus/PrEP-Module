@@ -70,19 +70,19 @@ public class PrepInterruption extends Audit implements Serializable {
     @Column(name = "person_uuid")
     private String personUuid;
 
-    @Column(name = "visit_uuid")
-    private String visitUuid;
+    /*@Column(name = "visit_uuid")
+    private String visitUuid;*/
 
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private Person person;
 
-    @ManyToOne
+    /*@ManyToOne
     @JoinColumn(name = "visit_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
-    private Visit visit;
+    private Visit visit;*/
 
     @Column(name = "archived")
-    private Integer archived;
+    private Integer archived=0;
 
     @Column(name = "uuid")
     private String uuid;

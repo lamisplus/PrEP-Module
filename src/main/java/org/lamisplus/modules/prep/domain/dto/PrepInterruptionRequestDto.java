@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PrepInterruptionRequestDto implements Serializable {
-    @NotBlank(message = "personId is mandatory")
+    @NotBlank(message = "interruptionType is mandatory")
     private String interruptionType;
     @NotNull(message = "interruptionDate is mandatory")
     private LocalDate interruptionDate;

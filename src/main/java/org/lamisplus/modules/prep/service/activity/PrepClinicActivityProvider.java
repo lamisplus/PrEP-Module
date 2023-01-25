@@ -31,11 +31,11 @@ public class PrepClinicActivityProvider implements PatientActivityProvider {
 	private PatientActivity buildPatientActivity(PrepClinic prepClinic) {
 		String name = "Prep Clinic";
 		assert prepClinic.getId() != null;
-		if(prepClinic.getDatePrepStart() ==null){
+		/*if(prepClinic.getDatePrepStart() ==null){
 			prepClinic.setDatePrepStart(LocalDate.of(1970, 1, 1));
 			name=name + " with missing date";
-		}
+		}*/
 
-		return new PatientActivity(prepClinic.getId(), name, prepClinic.getDatePrepStart(), "", "prep-clinic");
+		return new PatientActivity(prepClinic.getId(), name, prepClinic.getEncounterDate(), "", "prep-clinic");
 	}
 }

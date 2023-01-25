@@ -44,15 +44,9 @@ public class PrepService {
     private final CurrentUserOrganizationService currentUserOrganizationService;
     private final PrepEnrollmentRepository prepEnrollmentRepository;
     private final PrepEligibilityRepository prepEligibilityRepository;
-
-    private final VisitService visitService;
-    private final VisitRepository visitRepository;
     private final PrepClinicRepository prepClinicRepository;
     private final PatientActivityService patientActivityService;
-
-    private ModuleService moduleService;
-
-    private PrepInterruptionRepository prepInterruptionRepository;
+    private final PrepInterruptionRepository prepInterruptionRepository;
 
     public Person getPerson(Long personId) {
         return personRepository.findById (personId)
@@ -148,20 +142,16 @@ public class PrepService {
 
     public PrepInterruptionDto saveInterruption (PrepInterruptionRequestDto interruptionRequestDto){
         Person person = this.getPerson(interruptionRequestDto.getPersonId());
-        String status = "STOPPED, DEATH";
-
-        this.prepEnrollmentRepository
-                .findByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(), status)
-                .orElseThrow(()-> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", String.valueOf(interruptionRequestDto.getPersonId())));
-
-
-        PrepInterruption prepInterruption = this.interruptionRequestDtoInterruption(interruptionRequestDto, person.getUuid());
+        PrepInterruption prepInterruption = interruptionRequestDtoInterruption(interruptionRequestDto, person.getUuid());
 
         prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
+        //prepInterruption.setArchived(UN_ARCHIVED);
+        //prepInterruption.setPerson(person);
+        LOG.info("prepInterruption {}", prepInterruption);
         prepInterruption = prepInterruptionRepository.save(prepInterruption);
+        LOG.info("prepInterruption after saving {}", prepInterruption);
         prepInterruption.setPerson(person);
         PrepInterruptionDto prepInterruptionDto = this.interruptionToInterruptionDto(prepInterruption);
-        //prepClinicDto.setStatus("COMMENCED");
         return prepInterruptionDto;
     }
 
@@ -332,7 +322,6 @@ public class PrepService {
 
     private PrepDtos prepToPrepDtos(@NotNull Person person, List<PrepEnrollment> clients){
         boolean isPositive = false;
-        //boolean isCommenced = false;
         PrepDtos prepDtos = new PrepDtos();
 
         if(person == null)throw new EntityNotFoundException(Person.class, "Person", "is null");
@@ -357,15 +346,21 @@ public class PrepService {
         int prepCount = prepDtoList.size();
         prepDtos.setPrepEnrollmentCount(prepCount);
         prepDtos.setPrepDtoList(prepDtoList);
-        /*Integer eligibilityCount = (prepDtos.getPrepEligibilityCount() == null)
-                ? prepEligibilityRepository.countAllByPersonUuid(person.getUuid())
-                : prepDtos.getPrepEligibilityCount();*/
         Integer commencementCount = prepClinicRepository.countAllByPersonUuid(person.getUuid());
-        //if(eligibilityCount > 0 && eligibilityCount == commencementCount) isCommenced=true;
         prepDtos.setCommenced((commencementCount > 0)?true:false);
         prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
         prepDtos.setHivPositive(isPositive);
         prepDtos.setPrepCommencementCount(commencementCount);
+        PrepClient prepClient = prepEnrollmentRepository
+                .findPersonPrepAndStatusByPatientUuid(UN_ARCHIVED,
+                        currentUserOrganizationService.getCurrentUserOrganization(), person.getUuid())
+                        .orElse(null);
+        if(prepClient == null){
+            prepDtos.setPrepStatus("Status not available");
+        } else {
+            prepDtos.setPrepStatus(prepClient.getPrepStatus());
+        }
+
         return prepDtos;
     }
 
