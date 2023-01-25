@@ -17,4 +17,8 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
     Integer countAllByPersonUuid(String personUuid);
 
     Optional<PrepClinic> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
+
+    List<PrepClinic> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
+
+    List<PrepClinic> findAllByPrepEnrollmentUuid(String uuid);
 }
