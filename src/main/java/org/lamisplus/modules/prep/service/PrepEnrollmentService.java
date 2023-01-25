@@ -79,6 +79,7 @@ public class PrepEnrollmentService {
         prepEnrollment = enrollmentDtoToEnrollment(prepEnrollmentDto, prepEnrollment.getPersonUuid());
         prepEnrollment.setArchived(UN_ARCHIVED);
         prepEnrollment.setId(id);
+        prepEnrollment.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         return enrollmentToEnrollmentDto(prepEnrollment);
     }
 

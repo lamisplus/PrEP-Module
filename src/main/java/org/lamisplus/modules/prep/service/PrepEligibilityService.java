@@ -75,6 +75,7 @@ public class PrepEligibilityService {
         prepEligibility = eligibilityDtoToEligibility(prepEligibilityDto, prepEligibility.getPersonUuid());
         prepEligibility.setArchived(UN_ARCHIVED);
         prepEligibility.setId(id);
+        prepEligibility.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         return eligibilityToEligibilityDto(prepEligibilityRepository.save(prepEligibility));
     }
 

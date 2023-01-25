@@ -137,6 +137,7 @@ public class PrepClinicService {
         prepClinic = clinicDtoToClinic(prepClinicDto, prepClinic.getPersonUuid());
         prepClinic.setArchived(UN_ARCHIVED);
         prepClinic.setId(id);
+        prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         return clinicToClinicDto(prepClinicRepository.save(prepClinic));
     }
 

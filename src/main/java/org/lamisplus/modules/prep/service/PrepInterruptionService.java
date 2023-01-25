@@ -74,6 +74,7 @@ public class PrepInterruptionService {
         interruption = interruptionDtoInterruption(interruptionDto, interruption.getPersonUuid());
         interruption.setArchived(UN_ARCHIVED);
         interruption.setId(id);
+        interruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         return interruptionToInterruptionDto(prepInterruptionRepository.save(interruption));
     }
 

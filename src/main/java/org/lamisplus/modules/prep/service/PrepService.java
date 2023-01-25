@@ -217,15 +217,6 @@ public class PrepService {
         return prepEnrollmentRepository.findAll(pageable);
     }
 
-    /*public PrepDtos getAllPrepDtos(Page<PrepEnrollment> page, List<PrepEnrollment> prepEnrollments){
-        if(page != null && !page.isEmpty()){
-            return prepToPrepDtos(null, page.stream().collect(Collectors.toList()));
-        } else if(prepEnrollments != null && !prepEnrollments.isEmpty()){
-            return prepToPrepDtos(null, prepEnrollments);
-        }
-        return null;
-    }*/
-
     public String getClientNameByCode(String code) {
         List<PrepEnrollment> prepEnrollments = prepEnrollmentRepository.findAllByUniqueIdOrderByIdDesc(code);
         if(prepEnrollments.isEmpty())return "Record Not Found";
@@ -261,12 +252,6 @@ public class PrepService {
         });
         return prepClinicDtos;
     }
-
-    /*public PrepDtos getPrepClientById(Long id){
-        List<PrepEnrollment> prepEnrollments = new ArrayList<>();
-        prepEnrollments.add(this.getById(id));
-        return this.prepToPrepDtos(null, prepEnrollments);
-    }*/
 
     private Long getPersonId(PrepEnrollment prepEnrollment){
         return prepEnrollment.getPerson().getId();
