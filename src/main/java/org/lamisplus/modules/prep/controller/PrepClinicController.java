@@ -18,6 +18,7 @@ public class PrepClinicController {
     private final String PREP_CLINIC_URL_VERSION_ONE = "/api/v1/prep-clinic";
 
     @PutMapping(PREP_CLINIC_URL_VERSION_ONE +"/{id}")
+    @ApiOperation("Update Prep Clinic by id")
     public ResponseEntity<PrepClinicDto> update(@PathVariable Long id, @Valid @RequestBody PrepClinicDto prepClinicDto) {
         return ResponseEntity.ok(prepClinicService.update(id, prepClinicDto));
     }

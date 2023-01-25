@@ -18,7 +18,7 @@ public class PrepInterruptionController {
     private final String PREP_INTERRUPTION_URL_VERSION_ONE = "/api/v1/prep-interruption";
 
     @PutMapping(PREP_INTERRUPTION_URL_VERSION_ONE +"/{id}")
-    @ApiOperation("Get Prep Interruption by id")
+    @ApiOperation("Update Prep Interruption by id")
     public ResponseEntity<PrepInterruptionDto> update(@PathVariable Long id, @Valid @RequestBody PrepInterruptionDto interruptionDto) {
         return ResponseEntity.ok(interruptionService.update(id, interruptionDto));
     }

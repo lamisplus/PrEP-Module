@@ -18,6 +18,7 @@ public class PrepEligibilityController {
     private final String PREP_ELIGIBILITY_URL_VERSION_ONE = "/api/v1/prep-eligibility";
 
     @PutMapping(PREP_ELIGIBILITY_URL_VERSION_ONE +"/{id}")
+    @ApiOperation("update Prep Eligibility by id")
     public ResponseEntity<PrepEligibilityDto> update(@PathVariable Long id, @Valid @RequestBody PrepEligibilityDto eligibilityDto) {
         return ResponseEntity.ok(prepEligibilityService.update(id, eligibilityDto));
     }

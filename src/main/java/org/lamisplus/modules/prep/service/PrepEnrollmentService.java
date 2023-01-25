@@ -78,6 +78,7 @@ public class PrepEnrollmentService {
                 .orElseThrow(()-> new EntityNotFoundException(PrepEnrollment.class, "id", ""+id));
         prepEnrollment = enrollmentDtoToEnrollment(prepEnrollmentDto, prepEnrollment.getPersonUuid());
         prepEnrollment.setArchived(UN_ARCHIVED);
+        prepEnrollment.setId(id);
         return enrollmentToEnrollmentDto(prepEnrollment);
     }
 

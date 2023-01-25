@@ -18,6 +18,7 @@ public class PrepEnrollmentController {
     private final String PREP_ENROLLMENT_URL_VERSION_ONE = "/api/v1/prep-enrollment";
 
     @PutMapping(PREP_ENROLLMENT_URL_VERSION_ONE +"/{id}")
+    @ApiOperation("Update Prep Enrollment by id")
     public ResponseEntity<PrepEnrollmentDto> update(@PathVariable Long id, @Valid @RequestBody PrepEnrollmentDto prepEnrollmentDto) {
         return ResponseEntity.ok(prepEnrollment.update(id, prepEnrollmentDto));
     }

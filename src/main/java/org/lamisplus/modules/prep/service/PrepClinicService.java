@@ -136,6 +136,7 @@ public class PrepClinicService {
                 .orElseThrow(()-> new EntityNotFoundException(PrepClinic.class, "id", String.valueOf(id)));
         prepClinic = clinicDtoToClinic(prepClinicDto, prepClinic.getPersonUuid());
         prepClinic.setArchived(UN_ARCHIVED);
+        prepClinic.setId(id);
         return clinicToClinicDto(prepClinicRepository.save(prepClinic));
     }
 

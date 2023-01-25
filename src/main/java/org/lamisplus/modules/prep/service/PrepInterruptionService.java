@@ -72,6 +72,8 @@ public class PrepInterruptionService {
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
                 .orElseThrow(()-> new EntityNotFoundException(PrepInterruption.class, "id", String.valueOf(id)));
         interruption = interruptionDtoInterruption(interruptionDto, interruption.getPersonUuid());
+        interruption.setArchived(UN_ARCHIVED);
+        interruption.setId(id);
         return interruptionToInterruptionDto(prepInterruptionRepository.save(interruption));
     }
 
