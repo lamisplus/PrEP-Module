@@ -61,7 +61,8 @@ function PatientCard(props) {
     const [patientDetail, setPatientDetail] = useState(null)
     const [activeContent, setActiveContent] = useState({route:"recent-history", id:"", activeTab:"home", actionType:"create", obj:{}});
     const { classes } = props;
-    const patientObj = history.location && history.location.state ? history.location.state.patientObj : {}
+    const patientObjLocation = history.location && history.location.state ? history.location.state.patientObj : {}
+    let patientObj =""
     const prepId = history.location && history.location.state ? history.location.state.prepId : {}
     //console.log(patientObj)
     useEffect(() => {
@@ -69,11 +70,12 @@ function PatientCard(props) {
      }, [patientObj]);
      async function PatientObject() {
       axios
-          .get(`${baseUrl}prep/persons/${patientObj.personId}`,
+          .get(`${baseUrl}prep/persons/${patientObjLocation.personId}`,
           { headers: {"Authorization" : `Bearer ${token}`} }
           )
           .then((response) => {
             setPatientDetail(response.data);
+            patientObj=response.data
           })
           .catch((error) => {    
           });        
