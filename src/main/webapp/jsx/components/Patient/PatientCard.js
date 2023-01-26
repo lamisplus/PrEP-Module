@@ -172,8 +172,8 @@ function PatientCard(props) {
                     <Col md={12}>
                        <div >
                             <Typography variant="caption">
-                                <Label color={patientObj && patientObj.prepStatus===true ? "red" : "teal"} size={"mini"}>
-                                   STATUS : {patientObj && patientObj.prepStatus===true ? "Positive" : "Negative"}    
+                                <Label color={ "teal"} size={"mini"}>
+                                   STATUS : {patientObj && patientObj.prepStatus}    
                                 </Label>
                               
                             </Typography>

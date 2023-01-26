@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu } from "semantic-ui-react";
+import { Menu, Popup } from "semantic-ui-react";
 
 
 
@@ -39,7 +39,14 @@ function SubMenu(props) {
          <div>
             {patientObj && patientObj!==null ? (<>
                 <Menu size="mini" color={"black"} inverted >
-                <Menu.Item onClick={() => onClickHome()} > Home</Menu.Item>                  
+                <Menu.Item onClick={() => onClickHome()} > 
+                
+                <Popup
+                    
+                    content='Home'
+                    position='bottom center'
+                    />
+                </Menu.Item>                  
                 {patientObj.prepEligibilityCount<=0 || patientObj.prepEnrollmentCount<=0 || patientObj.commenced!==true ? 
                 (<>
                     {patientObj.prepEligibilityCount <=0 && (<Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibility Screening </Menu.Item>)}
