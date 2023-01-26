@@ -124,8 +124,6 @@ public class PrepEligibilityService {
 
         return prepEligibility;
     }
-
-
     public PrepEligibility eligibilityRequestDtoToEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto, String personUuid) {
         if ( prepEligibilityRequestDto == null ) {
             return null;
