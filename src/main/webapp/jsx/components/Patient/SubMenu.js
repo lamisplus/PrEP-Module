@@ -39,19 +39,13 @@ function SubMenu(props) {
          <div>
             {patientObj && patientObj!==null ? (<>
                 <Menu size="mini" color={"black"} inverted >
-                <Menu.Item onClick={() => onClickHome()} > 
-                
-                <Popup
-                    
-                    content='Home'
-                    position='bottom center'
-                    />
+                <Menu.Item onClick={() => onClickHome()} >Home
                 </Menu.Item>                  
-                {patientObj.prepEligibilityCount<=0 || patientObj.prepEnrollmentCount<=0 || patientObj.commenced!==true ? 
+                {patientObj.prepStatus==='Not Enrolled' || patientObj.prepStatus==='Not Commenced'  ?
                 (<>
-                    {patientObj.prepEligibilityCount <=0 && (<Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibility Screening </Menu.Item>)}
-                    {patientObj.prepEligibilityCount >0 && patientObj.prepEnrollmentCount<=0 && (<Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>)}
-                    {patientObj.prepEligibilityCount >0 && patientObj.prepEnrollmentCount>0 && patientObj.commenced!==true && (<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
+
+                    {patientObj.prepStatus==='Not Enrolled' && (<Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>)}
+                    {patientObj.prepStatus==='Not Commenced' && (<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
                 </>)
                 :
                 (<>
