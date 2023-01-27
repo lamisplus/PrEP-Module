@@ -223,7 +223,7 @@ const PrEPCommencementForm = (props) => {
            { headers: {"Authorization" : `Bearer ${token}`}},          
           ).then(response => {
                   setSaving(false);
-                  patientObj.prepStatus="Active"
+                  patientObj.commencementCount=1
                   toast.success("Record save successful", {position: toast.POSITION.BOTTOM_CENTER});
                   props.setActiveContent({...props.activeContent, route:'recent-history'})
                  
