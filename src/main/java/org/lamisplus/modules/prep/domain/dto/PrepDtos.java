@@ -14,6 +14,8 @@ public class PrepDtos {
     private Integer prepEligibilityCount;
     private Integer prepCommencementCount;
     private String prepStatus;
+    private LocalDate dateConfirmedHiv;
+    private String createdBy;
     private String uniqueId;
     private PersonResponseDto personResponseDto;
     private List<PrepDto> prepDtoList;

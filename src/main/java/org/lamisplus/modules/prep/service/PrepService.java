@@ -288,11 +288,6 @@ public class PrepService {
                 .findAllPersonPrepAndStatus(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(),pageable);
     }
 
-
-
-
-
-
     public PageDTO getAllPrepDtosByPerson(Page<Person> page){
 
         List<PrepDtos> htsClientDtosList =  page.stream()
@@ -344,6 +339,8 @@ public class PrepService {
             prepDtos.setPrepStatus("Status not available");
         } else {
             prepDtos.setPrepStatus(prepClient.getPrepStatus());
+            prepDtos.setDateConfirmedHiv(prepClient.getDateConfirmedHiv());
+            prepDtos.setCreatedBy(prepClient.getCreatedBy());
         }
 
         return prepDtos;

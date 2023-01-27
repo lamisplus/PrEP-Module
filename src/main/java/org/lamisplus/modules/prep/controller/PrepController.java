@@ -115,21 +115,25 @@ public class PrepController {
     }
 
     @GetMapping(PREP_URL_VERSION_ONE + "/persons/{personId}")
+    @ApiOperation("Get Prep Client by person Id")
     public ResponseEntity<PrepDtos> getPrepByPersonId(@PathVariable Long personId) {
         return ResponseEntity.ok(this.prepService.getPrepByPersonId(personId));
     }
 
     @GetMapping(PREP_URL_VERSION_ONE + "/activities/patients/{patientId}")
+    @ApiOperation("Get Prep Activities by patient Id")
     public List<TimelineVm> getActivities(@PathVariable Long patientId, @RequestParam(required = false, defaultValue = "false") Boolean full) {
         return patientActivityService.getTimelineVms (patientId, full);
     }
 
     @GetMapping(PREP_URL_VERSION_ONE + "/eligibility/open/patients/{patientId}")
+    @ApiOperation("Get Prep Eligible not enrolled by patient Id")
     public ResponseEntity<PrepEligibilityDto> getOpenEligibility(@PathVariable Long patientId) {
         return ResponseEntity.ok(prepService.getOpenEligibility (patientId));
     }
 
     @GetMapping(PREP_URL_VERSION_ONE + "/enrollment/open/patients/{patientId}")
+    @ApiOperation("Get Prep Enrollment not commenced by patient Id")
     public ResponseEntity<PrepEnrollmentDto> getOpenEnrollment(@PathVariable Long patientId) {
         return ResponseEntity.ok(prepService.getOpenEnrollment (patientId));
     }
