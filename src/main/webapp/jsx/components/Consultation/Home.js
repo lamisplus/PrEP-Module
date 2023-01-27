@@ -902,7 +902,7 @@ const ClinicVisit = (props) => {
               <option value=""> Select</option>
               {prepRegimen.map((value) => (
                       <option key={value.id} value={value.id}>
-                        {value.composition}
+                        {value.regimen}
                       </option>
                     ))}
               </Input>
@@ -922,8 +922,7 @@ const ClinicVisit = (props) => {
                     value={objValues.duration}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
-                    max={moment(new Date()).format("YYYY-MM-DD")}
+                   
                     required
                   />
                     

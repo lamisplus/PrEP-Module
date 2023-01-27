@@ -100,8 +100,10 @@ function PatientCard(props) {
     };
     const getAddress = (identifier) => {     
       const identifiers = identifier;
-      const address = identifiers.address.find(obj => obj.city);      
-      return address ? address.city : '';
+      const address = identifiers.address.find(obj => obj.city); 
+      const houseAddress= address.line[0]!==null ? address.line[0] :""      
+      const landMark= address.city!==null ? address.city :""    
+      return address ? houseAddress + " " + landMark : '';
     };
 
   
