@@ -336,7 +336,7 @@ public class PrepService {
                         currentUserOrganizationService.getCurrentUserOrganization(), person.getUuid())
                         .orElse(null);
         if(prepClient == null){
-            prepDtos.setPrepStatus("Status not available");
+            prepDtos.setPrepStatus("Not Available");
         } else {
             prepDtos.setPrepStatus(prepClient.getPrepStatus());
             prepDtos.setDateConfirmedHiv(prepClient.getDateConfirmedHiv());
