@@ -154,6 +154,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
           ).then(response => {
                   setSaving(false);
                   toast.success("Record save successful");
+                  props.PatientObject();
                   props.setActiveContent({...props.activeContent, route:'recent-history'})
 
               })

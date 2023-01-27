@@ -90,8 +90,8 @@ const useStyles = makeStyles((theme) => ({
 const BasicInfo = (props) => {
     const classes = useStyles();
     //let patientAge=""
-    const patientID= props.patientObj && props.patientObj.personResponseDto ? props.patientObj.personResponseDto.id : "";
-    const clientId = props.patientObj && props.patientObj ? props.patientObj.id : "";
+    const patientID= props.patientDetail && props.patientDetail.personResponseDto ? props.patientDetail.personResponseDto.id : "";
+    //const clientId = props.patientObj && props.patientObj ? props.patientObj.id : "";
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [counselingType, setCounselingType] = useState([]);
@@ -256,7 +256,7 @@ const BasicInfo = (props) => {
         e.preventDefault();
             setSaving(true);
             if(validate()){
-            objValues.htsClientId= clientId
+            //objValues.htsClientId= clientId
             objValues.drugUseHistory= drugHistory
             objValues.personalHivRiskAssessment= riskAssessment
             objValues.sexPartnerRisk= riskAssessmentPartner
@@ -267,7 +267,7 @@ const BasicInfo = (props) => {
             { headers: {"Authorization" : `Bearer ${token}`}},)
             .then(response => {
                 setSaving(false);
-                props.patientObj.prepEligibilityCount=1
+                props.patientObj.eligibilityCount=1
                 //props.setPatientObj(response.data)
                 toast.success("Prep Eligilibility save successful!", {position: toast.POSITION.BOTTOM_CENTER});
                 props.setActiveContent({...props.activeContent, route:'recent-history'})
@@ -303,7 +303,7 @@ const BasicInfo = (props) => {
                         <div className="row">
                         <div className="form-group  col-md-4">
                             <FormGroup>
-                                <Label>Visit Date *</Label>
+                                <Label>Visit Date {props.patientDetail && props.patientDetail.personResponseDto.dateOfRegistration}*</Label>
                                 <input
                                     type="date"
                                     className="form-control"
@@ -311,7 +311,7 @@ const BasicInfo = (props) => {
                                     id="visitDate"
                                     value={objValues.visitDate}
                                     onChange={handleInputChange}
-                                    min={props.patientObj.personResponseDto.dateOfRegistration}
+                                    min={props.patientDetail && props.patientDetail.personResponseDto.dateOfRegistration}
                                     max= {moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                 />
@@ -342,7 +342,7 @@ const BasicInfo = (props) => {
                                 ) : "" }
                             </FormGroup>
                         </div>
-                        {props.patientObj.personResponseDto.maritalStatus.display==='Married'   && (
+                        {props.patientDetail!==null && props.patientDetail.personResponseDto.maritalStatus.display==='Married'   && (
                         <div className="form-group  col-md-4">
                             <FormGroup>
                                 <Label> Number of own children {"<"}5 years</Label>
@@ -362,7 +362,7 @@ const BasicInfo = (props) => {
                             </FormGroup>
                         </div>
                         )}
-                        {props.patientObj.personResponseDto.sex==='Male' || props.patientObj.personResponseDto.sex==='male'  && (
+                        {props.patientObj.gender==='Male' || props.patientObj.gender==='male'  && (
                         <div className="form-group  col-md-4">
                             <FormGroup>
                                 <Label>Number of wives </Label>
@@ -1089,7 +1089,7 @@ const BasicInfo = (props) => {
                             <hr/>
                             <br/>
                             <div className="form-group  col-md-12 text-center pt-2 mb-4" style={{backgroundColor:'#014D88', width:'125%', height:'35px', color:'#fff', fontWeight:'bold'}} >Syndromic STI Screening</div>
-                            {props.patientObj.personResponseDto && props.patientObj.personResponseDto.sex==='Female' && (
+                            {props.patientDetail && props.patientDetail.personResponseDto.sex==='Female' && (
                             <>
                             <div className="form-group  col-md-4">
                                 <FormGroup>
@@ -1135,7 +1135,7 @@ const BasicInfo = (props) => {
                                 </FormGroup>
                             </div>
                             </>)}
-                            {props.patientObj.personResponseDto && props.patientObj.personResponseDto.sex==='Male' && (
+                            {props.patientObj.personResponseDto && props.patientDetail.personResponseDto.sex==='Male' && (
                             <>
                             <div className="form-group  col-md-4">
                                 <FormGroup>

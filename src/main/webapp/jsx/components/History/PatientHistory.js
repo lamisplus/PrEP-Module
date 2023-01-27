@@ -115,7 +115,7 @@ const PatientnHistory = (props) => {
                )
                .then((response) => {
                 setLoading(false)                       
-                    setRecentActivities(response.data[0].activities)
+                    setRecentActivities(response.data.activities)
                 })
 
                .catch((error) => {

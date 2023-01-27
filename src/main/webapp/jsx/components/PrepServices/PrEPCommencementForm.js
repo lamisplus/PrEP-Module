@@ -172,19 +172,6 @@ const PrEPCommencementForm = (props) => {
            //console.log(error);
            });          
     }
-    // const GetPatientPrepEligibility =(id)=>{
-    //     axios
-    //        .get(`${baseUrl}prep/enrollment/person/${props.patientObj.personId}`,
-    //            { headers: {"Authorization" : `Bearer ${token}`} }
-    //        )
-    //        .then((response) => {
-    //             //console.log(response.data.find((x)=> x.id===id));
-    //            //setObjValues(response.data.find((x)=> x.id===id));
-    //        })
-    //        .catch((error) => {
-    //        //console.log(error);
-    //        });          
-    // } 
             //Vital signs clinical decision support 
     const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
         bodyWeight: "",
@@ -236,7 +223,7 @@ const PrEPCommencementForm = (props) => {
            { headers: {"Authorization" : `Bearer ${token}`}},          
           ).then(response => {
                   setSaving(false);
-                  props.patientObj.commenced=true
+                  patientObj.prepStatus="Active"
                   toast.success("Record save successful", {position: toast.POSITION.BOTTOM_CENTER});
                   props.setActiveContent({...props.activeContent, route:'recent-history'})
                  
@@ -385,7 +372,7 @@ const PrEPCommencementForm = (props) => {
                                 </FormGroup>
                             )}
                         </div>
-                        {props.patientObj.personResponseDto.sex==='Female'  || props.patientObj.personResponseDto.sex==='female' || props.patientObj.personResponseDto.sex==='FEMALE' && (       
+                        {props.patientObj.gender==='Female'  || props.patientObj.gender==='female' || props.patientObj.gender==='FEMALE' && (       
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="">Pregnancy Status</Label>
@@ -470,8 +457,8 @@ const PrEPCommencementForm = (props) => {
                             
                         >
                         <option value=""> </option>
-                        <option value="Yes"> Yes</option>
-                        <option value="No"> No</option>
+                        <option value="true"> Yes</option>
+                        <option value="false"> No</option>
                         </Input>
                         {errors.reffered !=="" ? (
                                 <span className={classes.error}>{errors.reffered}</span>
@@ -479,7 +466,7 @@ const PrEPCommencementForm = (props) => {
                         </FormGroup>
                         
                         </div>
-                        {objValues.reffered==='Yes' && (
+                        {objValues.reffered==='true' && (
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="">Date referred</Label>

@@ -6,7 +6,7 @@ import { Menu, Popup } from "semantic-ui-react";
 
 function SubMenu(props) {
 
-    const patientObj = props.patientDetail 
+    const patientObj = props.patientObj 
     useEffect(() => {
         //Observation();
     }, [props.patientObj]);
@@ -34,35 +34,37 @@ function SubMenu(props) {
         props.setActiveContent({...props.activeContent, route:'patient-history'})
     }
 
-
     return (
          <div>
-            {patientObj && patientObj!==null ? (<>
+
                 <Menu size="mini" color={"black"} inverted >
                 <Menu.Item onClick={() => onClickHome()} >Home
                 </Menu.Item>                  
-                {patientObj.prepStatus==='Not Enrolled' || patientObj.prepStatus==='Not Commenced'  ?
+                { patientObj.eligibilityCount<=0 || patientObj.eligibilityCount ===null ?
                 (<>
-
-                    {patientObj.prepStatus==='Not Enrolled' && (<Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>)}
-                    {patientObj.prepStatus==='Not Commenced' && (<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
+                    <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibility Screening</Menu.Item>
+                   
                 </>)
                 :
                 (<>
-                    <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} > PrEP Eligibility Screening </Menu.Item>
-                    <Menu.Item onClick={() => onClickConsultation()} > PrEP Visit</Menu.Item>
-                    <Menu.Item onClick={() => loadPrEPDiscontinuationsInterruptions()} >PrEP Discontinuations & Interruptions</Menu.Item>
+                    {patientObj.prepStatus==='Not Enrolled' || patientObj.prepStatus==='Not Commenced' ? 
+                    (<>
+                        {(patientObj.eligibilityCount >0) && patientObj.prepStatus==='Not Enrolled' && (<Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>)}
+                        {( patientObj.eligibilityCount>0) && patientObj.prepStatus==='Not Commenced' && (<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
+                        
+                    </>) 
+                    : (<>
+                       
+                        <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} > PrEP Eligibility Screening </Menu.Item>
+                        <Menu.Item onClick={() => onClickConsultation()} > PrEP Visit</Menu.Item>
+                        <Menu.Item onClick={() => loadPrEPDiscontinuationsInterruptions()} >PrEP Discontinuations & Interruptions</Menu.Item>
+                    </>)
+                    }
+                    
                 </>)}
                 <Menu.Item onClick={() => loadPatientHistory(patientObj)} >History</Menu.Item>                    
                 </Menu>
-            </>)
-            :
-            (
-            <>
-            </>
-            )
-            }
-                         
+                   
         </div>
     );
 }

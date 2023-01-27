@@ -70,13 +70,14 @@ const PrEPRegistrationForm = (props) => {
         supporterPhone: "",
         supporterRelationshipType: "",
         uniqueId: "",
+        hivTestingPoint:""
     });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [prepRisk, setPrepRisk] = useState([]);
     const [relatives, setRelatives] = useState([]);
     const [patientDto, setPatientDto] = useState();
-
+    console.log(props)
     useEffect(() => {         
         GetPatientDTOObj();
         RELATIONSHIP();
@@ -130,7 +131,7 @@ const PrEPRegistrationForm = (props) => {
                { headers: {"Authorization" : `Bearer ${token}`} }
            )
            .then((response) => {
-            console.log(response.data)
+            //console.log(response.data)
                setPatientDto(response.data);
            })
            .catch((error) => {

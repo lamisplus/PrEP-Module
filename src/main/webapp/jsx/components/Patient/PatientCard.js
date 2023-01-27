@@ -146,7 +146,7 @@ function PatientCard(props) {
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Age : <b style={{color:'#0B72AA'}}>{calculate_age(moment(patientObj.personResponseDtodateOfBirth).format("DD-MM-YYYY"))}</b>
+                        Age : <b style={{color:'#0B72AA'}}>{calculate_age(moment(patientObj.personResponseDto.dateOfBirth).format("DD-MM-YYYY"))}</b>
                     </span>
                     </Col>
                     <Col md={4}>

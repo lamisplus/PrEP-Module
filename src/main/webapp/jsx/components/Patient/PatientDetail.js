@@ -89,19 +89,19 @@ function PatientCard(props) {
 		  </div>
       <Card >
         <CardContent>
-            <PatientCardDetail patientObj={patientObj}  setActiveContent={setActiveContent} patientDetail={patientDetail}/>            
-            <SubMenu patientObj={patientObj}  setActiveContent={setActiveContent} patientDetail={patientDetail}/>
+            <PatientCardDetail patientObj={patientDetail}  setActiveContent={setActiveContent} patientDetail={patientDetail}/>            
+            <SubMenu patientObj={patientObjLocation}  setActiveContent={setActiveContent} patientDetail={patientDetail}/>
             <br/>
-          {activeContent.route==='recent-history' &&(<RecentHistory patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
-          {activeContent.route==='biometrics' &&(<Biometrics patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
-          {activeContent.route==='consultation' &&( <ClinicVisit patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
+          {activeContent.route==='recent-history' &&(<RecentHistory patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
+          {activeContent.route==='biometrics' &&(<Biometrics patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
+          {activeContent.route==='consultation' &&( <ClinicVisit patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
           {/* {activeContent==='child-consultation' &&( <ChildConsultation patientObj={patientObj} setActiveContent={setActiveContent}/>)} */}
-          {activeContent.route==='prep-commencement' &&( <PrEPCommencementForm patientObj={patientDetail} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
-          {activeContent.route==='prep-interruptions' &&( <PrEPDiscontinuationsInterruptions patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
-          {activeContent.route==='prep-screening' &&( <PrEPEligibiltyScreeningForm patientObj={patientDetail} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
+          {activeContent.route==='prep-commencement' &&( <PrEPCommencementForm patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
+          {activeContent.route==='prep-interruptions' &&( <PrEPDiscontinuationsInterruptions patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId} PatientObject={PatientObject}/>)}
+          {activeContent.route==='prep-screening' &&( <PrEPEligibiltyScreeningForm patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId} patientDetail={patientDetail}/>)}
           {activeContent.route==='prep-visit' &&( <PrEPVisit />)}
-          {activeContent.route==='prep-registration' &&( <PrEPRegistrationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)} 
-          {activeContent.route==='patient-history' &&( <PatientHistory patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}         
+          {activeContent.route==='prep-registration' &&( <PrEPRegistrationForm patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)} 
+          {activeContent.route==='patient-history' &&( <PatientHistory patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent}/>)}         
           {/* History Pages */}
          
          </CardContent>
