@@ -16,4 +16,5 @@ public interface PrepClient {
     String getUniqueId();
     LocalDate getDateConfirmedHiv();
     String getCreatedBy();
+    Integer getEligibilityCount();
 }

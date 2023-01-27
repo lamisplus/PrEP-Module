@@ -341,6 +341,7 @@ public class PrepService {
             prepDtos.setPrepStatus(prepClient.getPrepStatus());
             prepDtos.setDateConfirmedHiv(prepClient.getDateConfirmedHiv());
             prepDtos.setCreatedBy(prepClient.getCreatedBy());
+            //prepDtos.setPrepEligibilityCount(prepClient.getEligibilityCount());
         }
 
         return prepDtos;
