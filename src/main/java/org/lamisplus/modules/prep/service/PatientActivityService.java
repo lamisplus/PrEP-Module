@@ -24,7 +24,7 @@ public class PatientActivityService {
 	private final BeanProvider beanProvider;
 	private final PersonRepository patientRepository;
 	
-	private List<PatientActivity> getActivitiesFor(Long patientId) {
+	public List<PatientActivity> getActivitiesFor(Long patientId) {
 		Person person = patientRepository.findById(patientId).orElse(null);
 		if (person != null) {
 			return beanProvider.getBeansOfType(PatientActivityProvider.class)

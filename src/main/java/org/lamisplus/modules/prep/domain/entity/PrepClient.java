@@ -17,4 +17,5 @@ public interface PrepClient {
     LocalDate getDateConfirmedHiv();
     String getCreatedBy();
     Integer getEligibilityCount();
+    Integer getCommencementCount();
 }

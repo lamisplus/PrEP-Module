@@ -423,7 +423,7 @@ public class PrepService {
     }
 
     public List<PatientActivity> getPrepPatientActivitiesById(Long id) {
-        return   patientActivityService.getActivities(id);
+        return patientActivityService.getActivities(id);
     }
 
     private PrepEnrollment enrollmentRequestDtoToEnrollment(PrepEnrollmentRequestDto prepEnrollmentRequestDto, String personUuid) {
@@ -584,8 +584,8 @@ public class PrepService {
 
         prepDto.setId(prepEnrollment.getId());
         prepDto.setExtra( prepEnrollment.getExtra() );
-        PersonResponseDto personResponseDto = personService.getDtoFromPerson(prepEnrollment.getPerson());
-        prepDto.setPersonResponseDto(personResponseDto);
+        //PersonResponseDto personResponseDto = personService.getDtoFromPerson(prepEnrollment.getPerson());
+        //prepDto.setPersonResponseDto(personResponseDto);
         prepDto.setDateStarted(prepEnrollment.getDateStarted());
         prepDto.setStatus(prepEnrollment.getStatus());
         return prepDto;
