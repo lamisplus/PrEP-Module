@@ -126,6 +126,12 @@ public class PrepController {
         return patientActivityService.getTimelineVms (patientId, full);
     }
 
+    @GetMapping(PREP_URL_VERSION_ONE + "/general-activities/patients/{patientId}")
+    @ApiOperation("Get all Prep Activities by patient Id")
+    public List<PatientActivity> getActivitiesFor(@PathVariable Long patientId) {
+        return patientActivityService.getActivitiesFor (patientId);
+    }
+
     @GetMapping(PREP_URL_VERSION_ONE + "/eligibility/open/patients/{patientId}")
     @ApiOperation("Get Prep Eligible not enrolled by patient Id")
     public ResponseEntity<PrepEligibilityDto> getOpenEligibility(@PathVariable Long patientId) {

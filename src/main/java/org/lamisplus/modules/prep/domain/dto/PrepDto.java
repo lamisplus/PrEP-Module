@@ -49,15 +49,4 @@ public class PrepDto implements Serializable {
     private Object extra;
 
     private String status;
-
-    private PersonResponseDto personResponseDto;
-
-//    //prep Discontinuations Interruptions
-//    private String interruptionType;
-//
-//    private LocalDate dateInterruption;
-//
-//    private LocalDate dateRestartPlacedBackMedication;
-//
-//    public Boolean prepCommenced;
 }
