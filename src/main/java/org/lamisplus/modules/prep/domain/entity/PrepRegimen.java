@@ -5,8 +5,11 @@ package org.lamisplus.modules.prep.domain.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 
 
 @Entity
@@ -34,5 +37,10 @@ public class PrepRegimen implements Serializable{
     @JsonIgnore
     @Column(name = "archived")
     private String archived;
+
+    @OneToMany(mappedBy = "regimen")
+    @JsonIgnore
+    @ToString.Exclude
+    private List<PrepClinic> allClinics;
 }
 

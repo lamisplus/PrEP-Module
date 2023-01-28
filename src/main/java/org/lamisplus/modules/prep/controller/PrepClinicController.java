@@ -31,8 +31,8 @@ public class PrepClinicController {
 
     @GetMapping(PREP_CLINIC_URL_VERSION_ONE +"/person/{personId}")
     @ApiOperation("Get Prep Clinic by person id")
-    public ResponseEntity<List<PrepClinicDto>> getPrepClinicByPersonId(@PathVariable Long personId) {
-        return new ResponseEntity<>(prepClinicService.getPrepClinicByPersonId(personId), HttpStatus.OK);
+    public ResponseEntity<List<PrepClinicDto>> getPrepClinicByPersonId(@PathVariable Long personId, @RequestParam(required = false, defaultValue = "false") Boolean last) {
+        return new ResponseEntity<>(prepClinicService.getPrepClinicByPersonId(personId, last), HttpStatus.OK);
     }
 
     @DeleteMapping(PREP_CLINIC_URL_VERSION_ONE+ "/{id}")
