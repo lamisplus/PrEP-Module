@@ -120,11 +120,19 @@ public class PrepClinicService {
         return clinicToClinicDto(prepClinic);
     }
 
-    public List<PrepClinicDto> getPrepClinicByPersonId(Long personId){
-        List<PrepClinic> prepClinics = prepClinicRepository
-                .findAllByPersonUuidAndFacilityIdAndArchived(getPerson(personId).getUuid(),
-                        currentUserOrganizationService.getCurrentUserOrganization(),
-                        UN_ARCHIVED);
+    public List<PrepClinicDto> getPrepClinicByPersonId(Long personId, Boolean last){
+        List<PrepClinic> prepClinics;
+        if(!last) {
+            prepClinics = prepClinicRepository
+                    .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(getPerson(personId).getUuid(),
+                            currentUserOrganizationService.getCurrentUserOrganization(),
+                            UN_ARCHIVED);
+        } else {
+            prepClinics = prepClinicRepository
+                    .findTopByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(getPerson(personId).getUuid(),
+                            currentUserOrganizationService.getCurrentUserOrganization(),
+                            UN_ARCHIVED);
+        }
         return prepClinics.stream()
                 .map(prepClinic -> clinicToClinicDto(prepClinic))
                 .collect(Collectors.toList());
@@ -260,6 +268,9 @@ public class PrepClinicService {
         prepClinicDto.setDateReferred( clinic.getDateReferred() );
         prepClinicDto.setPrepEnrollmentUuid( clinic.getPrepEnrollmentUuid() );
         prepClinicDto.setRegimenId( clinic.getRegimenId() );
+        if(clinic.getRegimenId() != 0L){
+            prepClinicDto.setRegimen(clinic.getRegimen().getRegimen());
+        }
         prepClinicDto.setUrinalysisResult( clinic.getUrinalysisResult() );
         prepClinicDto.setReferred( clinic.getReferred() );
         prepClinicDto.setNextAppointment( clinic.getNextAppointment() );

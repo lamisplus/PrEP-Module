@@ -110,6 +110,10 @@ public class PrepClinic extends Audit implements Serializable{
     @JoinColumn(name = "visit_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private Visit visit;
 
+    @ManyToOne
+    @JoinColumn(name = "regimen_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private PrepRegimen regimen;
+
     @Column(name = "next_appointment")
     private LocalDate nextAppointment;
 
