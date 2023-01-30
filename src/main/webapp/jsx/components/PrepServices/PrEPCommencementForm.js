@@ -108,6 +108,7 @@ const PrEPCommencementForm = (props) => {
         nextAppointment: "",
         pregnant: true,
         prepEnrollmentUuid: "",
+        duration:""
 
     });
     const [saving, setSaving] = useState(false);
@@ -223,7 +224,7 @@ const PrEPCommencementForm = (props) => {
            { headers: {"Authorization" : `Bearer ${token}`}},          
           ).then(response => {
                   setSaving(false);
-                  patientObj.prepStatus="Active"
+                  patientObj.commencementCount=1
                   toast.success("Record save successful", {position: toast.POSITION.BOTTOM_CENTER});
                   props.setActiveContent({...props.activeContent, route:'recent-history'})
                  
@@ -500,7 +501,7 @@ const PrEPCommencementForm = (props) => {
                         <option value=""> Select</option>
                         {prepRegimen.map((value) => (
                                 <option key={value.id} value={value.id}>
-                                    {value.composition}
+                                    {value.regimen}
                                 </option>
                                 ))}
             
@@ -511,6 +512,22 @@ const PrEPCommencementForm = (props) => {
                         </FormGroup>
                         
                         </div>
+                        <div className=" mb-3 col-md-6">
+                            <FormGroup>
+                            <Label >Date PrEP Given</Label>
+                            <Input
+                                type="number"
+                                name="duration"
+                                id="duration"
+                                value={objValues.duration}
+                                onChange={handleInputChange}
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                            
+                                required
+                            />
+                                
+                            </FormGroup>
+                        </div> 
                     </div>
                     
                     {saving ? <Spinner /> : ""}

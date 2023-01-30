@@ -186,7 +186,7 @@ const PrEPRegistrationForm = (props) => {
           )
               .then(response => {
                   setSaving(false);
-                  props.patientObj.prepStatus="Not Commenced"
+                  props.patientObj.prepCount=1
                   toast.success("Prep Enrollment save successful!", {position: toast.POSITION.BOTTOM_CENTER});
                   props.setActiveContent({...props.activeContent, route:'recent-history'})
               })
