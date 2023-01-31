@@ -77,7 +77,7 @@ public class PrepClinicService {
         prepClinic.setIsCommencement(true);
         prepClinic = prepClinicRepository.save(prepClinic);
         prepClinic.setPerson(person);
-        PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic);
+        PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic, null);
         //prepClinicDto.setStatus("COMMENCED");
         return prepClinicDto;
     }
@@ -100,7 +100,7 @@ public class PrepClinicService {
         prepClinic.setIsCommencement(false);
         prepClinic = prepClinicRepository.save(prepClinic);
         prepClinic.setPerson(person);
-        PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic);
+        PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic, null);
         //prepClinicDto.setStatus("COMMENCED");
         return prepClinicDto;
     }
@@ -117,7 +117,7 @@ public class PrepClinicService {
         PrepClinic prepClinic = prepClinicRepository
                 .findById(id)
                 .orElseThrow(()-> new EntityNotFoundException(PrepClinic.class, "id", String.valueOf(id)));
-        return clinicToClinicDto(prepClinic);
+        return clinicToClinicDto(prepClinic, null);
     }
 
     public List<PrepClinicDto> getPrepClinicByPersonId(Long personId, Boolean last){
@@ -134,7 +134,7 @@ public class PrepClinicService {
                             UN_ARCHIVED);
         }
         return prepClinics.stream()
-                .map(prepClinic -> clinicToClinicDto(prepClinic))
+                .map(prepClinic -> clinicToClinicDto(prepClinic, null))
                 .collect(Collectors.toList());
     }
 
@@ -146,7 +146,7 @@ public class PrepClinicService {
         prepClinic.setArchived(UN_ARCHIVED);
         prepClinic.setId(id);
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
-        return clinicToClinicDto(prepClinicRepository.save(prepClinic));
+        return clinicToClinicDto(prepClinicRepository.save(prepClinic), null);
     }
 
     private PrepClinic clinicDtoToClinic(PrepClinicDto prepClinicDto, String personUuid) {
@@ -197,6 +197,11 @@ public class PrepClinicService {
         prepClinic.setNotedSideEffects( prepClinicDto.getNotedSideEffects());
 
         prepClinic.setDuration( prepClinicDto.getDuration());
+
+        prepClinic.setPrepGiven( prepClinicDto.getPrepGiven());
+        prepClinic.setOtherDrugs( prepClinicDto.getOtherDrugs());
+        prepClinic.setHivTestResult( prepClinicDto.getHivTestResult());
+
 
         return prepClinic;
     }
@@ -249,9 +254,13 @@ public class PrepClinicService {
 
         prepClinic.setDuration( prepClinicRequestDto.getDuration());
 
+        prepClinic.setPrepGiven( prepClinicRequestDto.getHivTestResult());
+        prepClinic.setOtherDrugs( prepClinicRequestDto.getOtherDrugs());
+        prepClinic.setHivTestResult( prepClinicRequestDto.getHivTestResult());
+
         return prepClinic;
     }
-    private PrepClinicDto clinicToClinicDto(PrepClinic clinic) {
+    private PrepClinicDto clinicToClinicDto(PrepClinic clinic, Boolean last) {
         if ( clinic == null ) {
             return null;
         }
@@ -264,6 +273,9 @@ public class PrepClinicService {
         prepClinicDto.setWeight( clinic.getWeight() );
         prepClinicDto.setHeight( clinic.getHeight() );
         prepClinicDto.setPregnant( clinic.getPregnant() );
+        if(last != null && last){
+            prepClinicDto.setVisitCount(prepClinicRepository.countAllByPersonUuid(clinic.getPersonUuid()));
+        }
 
         prepClinicDto.setDateReferred( clinic.getDateReferred() );
         prepClinicDto.setPrepEnrollmentUuid( clinic.getPrepEnrollmentUuid() );
@@ -300,6 +312,10 @@ public class PrepClinicService {
 
         prepClinicDto.setDuration( clinic.getDuration());
 
+        prepClinicDto.setPrepGiven( clinic.getHivTestResult());
+        prepClinicDto.setOtherDrugs( clinic.getOtherDrugs());
+        prepClinicDto.setHivTestResult( clinic.getHivTestResult());
+
         return prepClinicDto;
     }
 
@@ -310,6 +326,6 @@ public class PrepClinicService {
                         .getCurrentUserOrganization(), UN_ARCHIVED)
                 .orElseThrow (() -> new EntityNotFoundException(PrepClinic.class, "id", String.valueOf (id)));
 
-        return this.clinicToClinicDto(prepClinic);
+        return this.clinicToClinicDto(prepClinic, null);
     }
 }

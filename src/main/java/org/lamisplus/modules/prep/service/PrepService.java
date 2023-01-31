@@ -499,6 +499,10 @@ public class PrepService {
 
         prepClinic.setDuration( prepClinicRequestDto.getDuration());
 
+        prepClinic.setPrepGiven( prepClinicRequestDto.getHivTestResult());
+        prepClinic.setOtherDrugs( prepClinicRequestDto.getOtherDrugs());
+        prepClinic.setHivTestResult( prepClinicRequestDto.getHivTestResult());
+
         return prepClinic;
     }
     private PrepClinicDto clinicToClinicDto(PrepClinic clinic) {
@@ -546,6 +550,10 @@ public class PrepService {
         prepClinicDto.setNotedSideEffects( clinic.getNotedSideEffects());
 
         prepClinicDto.setDuration( clinic.getDuration());
+
+        prepClinicDto.setPrepGiven( clinic.getPrepGiven());
+        prepClinicDto.setOtherDrugs( clinic.getOtherDrugs());
+        prepClinicDto.setHivTestResult( clinic.getHivTestResult());
 
         return prepClinicDto;
     }

@@ -153,6 +153,15 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "date_prep_given")
     private LocalDate datePrepGiven;
 
+    @Column(name = "prep_given")
+    private String prepGiven;
+
+    @Column(name = "other_drugs")
+    private String otherDrugs;
+
+    @Column(name = "hiv_test_result")
+    private String hivTestResult;
+
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "urinalysis", columnDefinition = "jsonb")
