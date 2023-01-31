@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
 const RecentHistory = (props) => {
   //console.log(props.patientObj)
   const [recentActivities, setRecentActivities] = useState([])
-  //const [loading, setLoading] = useState(true)
+  const [summary, setSummary] = useState(null)
   let history = useHistory();
   const [
     activeAccordionHeaderShadow,
@@ -38,10 +38,23 @@ const RecentHistory = (props) => {
     RecentActivities();
   }, [props.patientObj.personId]);
 
-  //Get list of LaboratoryHistory
+
   const RecentActivities =()=>{
     axios
        .get(`${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
+           { headers: {"Authorization" : `Bearer ${token}`} }
+       )
+       .then((response) => {
+          setRecentActivities(response.data)
+       })
+       .catch((error) => {
+       //console.log(error);
+       });
+   
+  }
+  const Summary =()=>{
+    axios
+       .get(`${baseUrl}prep-clinic/person/${props.patientObj.personId}?full=true`,
            { headers: {"Authorization" : `Bearer ${token}`} }
        )
        .then((response) => {
@@ -165,7 +178,7 @@ const RecentHistory = (props) => {
                     >
                       <div className="accordion-body-text">
                       <ul className="timeline">
-
+                        {activities}  
                             <li>
                               <div className="timeline-panel">
                               <div className={i % 2 == 0 ? "media me-2 media-info" : "media me-2 media-success"}>{ActivityName(data.name)}</div>
@@ -245,64 +258,64 @@ const RecentHistory = (props) => {
             <h4 className="card-title">Summary </h4>
           </div>
           <div className="row">
-            <div className="col-sm-6 col-md-6 col-lg-6">
-            <div className="card-body">
-              <div className="col-xl-12 col-lg-12 col-sm-12">
-              <div className="widget-stat card">
-                <div className="card-body p-4" style={{backgroundColor:"#E8F0FD"}}>
-                  <h4 className="card-title">Current Regimen Given</h4>
-                  <h3 class="text-info ">TDF(300mg)+3TC(150mg)</h3>
-                  <div className="progress mb-2">
-                    <div
-                      className="progress-bar progress-animated bg-primary"
-                      style={{ width: "100%" }}
-                    ></div>
-                  </div>
-                  <p class="text-success ">Next Appointment Date : 03/03/2023</p>
-                </div>
-              </div>
-              </div>
-              <div className="col-sm-12 col-md-12 col-lg-12">
-                <div className="widget-stat card">
-                  <div className="card-body p-4" >
-                  <div className="media ai-icon">
-                    <span className="me-3 bgl-primary text-primary">
-                      <svg
-                        id="icon-customers"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="30"
-                        height="30"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="feather feather-user"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                    </span>
-                    <div className="media-body">
-                      <p className="mb-1" ><span style={{fontSize:"14px"}} >Total Visit :</span> <span className="badge badge-primary">4</span></p>
-                      <p><span style={{fontSize:"10px", fontWeight:"bolder"}} >Last Visit Date : </span><span className="badge badge-dark">04/011/2022</span></p>
+  
+                <div className="col-sm-6 col-md-6 col-lg-6">
+                <div className="card-body">
+                  <div className="col-xl-12 col-lg-12 col-sm-12">
+                  <div className="widget-stat card">
+                    <div className="card-body p-4" style={{backgroundColor:"#E8F0FD"}}>
+                      <h4 className="card-title">Current Regimen Given</h4>
+                      <h3 class="text-info ">{""}</h3>
+                      <div className="progress mb-2">
+                        <div
+                          className="progress-bar progress-animated bg-primary"
+                          style={{ width: "100%" }}
+                        ></div>
+                      </div>
+                      <p class="text-success ">Next Appointment Date : {""}</p>
                     </div>
                   </div>
                   </div>
+                  <div className="col-sm-12 col-md-12 col-lg-12">
+                    <div className="widget-stat card">
+                      <div className="card-body p-4" >
+                      <div className="media ai-icon">
+                        <span className="me-3 bgl-primary text-primary">
+                          <svg
+                            id="icon-customers"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="30"
+                            height="30"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="feather feather-user"
+                          >
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                          </svg>
+                        </span>
+                        <div className="media-body">
+                          <p className="mb-1" ><span style={{fontSize:"14px"}} >Total Visit :</span> <span className="badge badge-primary">4</span></p>
+                          <p><span style={{fontSize:"10px", fontWeight:"bolder"}} >Last Visit Date : </span><span className="badge badge-dark">04/011/2022</span></p>
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            </div>
-            <div className="col-sm-6 col-md-6 col-lg-6">
-            <div className="card-body">
-                <PatientChart />
-            </div>
-            </div>
+                </div>
+                <div className="col-sm-6 col-md-6 col-lg-6">
+                <div className="card-body">
+                    <PatientChart />
+                </div>
+                </div>
           </div>
         </div>
       </div>
-     
  </div>
       
     </Fragment>

@@ -182,7 +182,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     <h2> PrEP Discontinuations & Interruptions</h2>
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                        <Label for="uniqueId">PrEP Interruptions </Label>
+                        <Label for="uniqueId">PrEP Interruptions <span style={{ color:"red"}}> *</span></Label>
                         <Input
                             type="select"
                             name="interruptionType"
@@ -207,7 +207,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     {(objValues.interruptionType==='PREP_STATUS_ADVERSE_DRUG_REACTION' || objValues.interruptionType==='PREP_STATUS_STOPPED' || objValues.interruptionType==='PREP_STATUS_LOSS_TO_FOLLOW_UP' ) && (
                         <div className="form-group mb-3 col-md-6">
                             <FormGroup>
-                            <Label for="uniqueId">Date of Interruption </Label>
+                            <Label for="uniqueId">Date of Interruption <span style={{ color:"red"}}> *</span></Label>
                             <Input
                                 type="date"
                                 name="interruptionDate"

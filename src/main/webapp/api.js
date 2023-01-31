@@ -1,4 +1,4 @@
-export const  token = (new URLSearchParams(window.location.search)).get("jwt")
-export const url = '/api/v1/'
-// export const url =  'http://localhost:8282/api/v1/';
-// export const  token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJndWVzdEBsYW1pc3BsdXMub3JnIiwiYXV0aCI6IlN1cGVyIEFkbWluIiwibmFtZSI6Ikd1ZXN0IEd1ZXN0IiwiZXhwIjoxNjc0ODQ2MzA3fQ.ODvLuFCL-cDRrtn42zEIGeSW11IYS-Nc6XiNNCbmXR9BO0DmY2bQwGYqCpOg0ymfoIAZlhnSHVJjiGJ7Pmgt6g';
+// export const  token = (new URLSearchParams(window.location.search)).get("jwt")
+// export const url = '/api/v1/'
+export const url =  'http://localhost:8282/api/v1/';
+export const  token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJndWVzdEBsYW1pc3BsdXMub3JnIiwiYXV0aCI6IlN1cGVyIEFkbWluIiwibmFtZSI6Ikd1ZXN0IEd1ZXN0IiwiZXhwIjoxNjc1MTYzNDUwfQ.alD8Lbx4SkTMnSF9J1Ru0d00Gfhv8vxVLPh4I9sAbQvgv1aKoQksE-lqT-TXWPlvXUeROTpFq-DwcunR1PN7TQ';
