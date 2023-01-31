@@ -9,7 +9,8 @@ import Height from "./Height";
 //import ViccinationStatus from "./ViccinationStatus";
 //import LegendEffectOpacity from "./LegendEffectOpacity";
 
-function RechartJs() {
+function RechartJs(props) {
+  console.log(props)
   return (
     <>
 
@@ -17,10 +18,10 @@ function RechartJs() {
         <Col xl={6} lg={6}>
           <Card>            
             <Card.Body>
-                <p>Weight                    
-                    <span className="float-end text-success">Normal</span>
+                <p><b>Weight</b>                    
+                    <span className="float-end text-success"></span>
                 </p>
-                <p><h5>45Kg</h5></p>                
+                <p><h5>{props.summary.weight}Kg</h5></p>                
               <Bmi />
             </Card.Body>
           </Card>
@@ -28,10 +29,10 @@ function RechartJs() {
         <Col xl={6} lg={6}>
           <Card>           
             <Card.Body>
-            <p>Height                    
-                    <span className="float-end text-success">Normal</span>
+            <p><b>Height</b>                    
+                    <span className="float-end text-success"></span>
                 </p>
-                <p><h5>140cm</h5></p>
+                <p><h5>{props.summary.height}cm</h5></p>
               <Height />
             </Card.Body>
           </Card>
@@ -39,10 +40,10 @@ function RechartJs() {
         <Col xl={12} lg={12}>
           <Card>            
             <Card.Body>
-            <p>BMI                   
-                    <span className="float-end text-danger">Below Normal</span>
+            <p><b>BMI</b>                   
+                    <span className="float-end text-danger"></span>
                 </p>
-                <p><h5>5.6 kg/m<sup>2</sup></h5></p>
+                <p><h5>{(props.summary.weight/((props.summary.height/100) * (props.summary.height/100))).toFixed(2)} kg/m<sup>2</sup></h5></p>
                 <Height />
             </Card.Body>
           </Card>

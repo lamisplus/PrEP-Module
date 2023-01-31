@@ -34,7 +34,7 @@ const RecentHistory = (props) => {
   ] = useState(0);
 
   useEffect(() => {
-
+    Summary()
     RecentActivities();
   }, [props.patientObj.personId]);
 
@@ -58,7 +58,7 @@ const RecentHistory = (props) => {
            { headers: {"Authorization" : `Bearer ${token}`} }
        )
        .then((response) => {
-          setRecentActivities(response.data[0].activities)
+          setSummary(response.data[0])
        })
        .catch((error) => {
        //console.log(error);
@@ -178,14 +178,16 @@ const RecentHistory = (props) => {
                     >
                       <div className="accordion-body-text">
                       <ul className="timeline">
-                        {activities}  
+                      {data.activities && data.activities.map((activity,index) => ( 
+                          
+                          <> 
                             <li>
                               <div className="timeline-panel">
                               <div className={i % 2 == 0 ? "media me-2 media-info" : "media me-2 media-success"}>{ActivityName(data.name)}</div>
                               <div className="media-body">
-                                <h5 className="mb-1">{data.name}</h5>
+                                <h5 className="mb-1">{activity.name}</h5>
                                 <small className="d-block">
-                                {data.date}
+                                {activity.date}
                                 </small>
                               </div>
                               <Dropdown className="dropdown">
@@ -213,33 +215,34 @@ const RecentHistory = (props) => {
                                 </svg>
                                 </Dropdown.Toggle>
                                 <Dropdown.Menu className="dropdown-menu">
-                                {data.viewable && ( <Dropdown.Item
+                                <Dropdown.Item
                                   className="dropdown-item"
-                                  onClick={()=>LoadViewPage(data,'view')}
+                                  onClick={()=>LoadViewPage(activity,'view')}
                                   >
                                   View
                                   </Dropdown.Item>
-                                )}
-                                {data.viewable && ( <Dropdown.Item
+                               
+                               <Dropdown.Item
                                   className="dropdown-item"
-                                  onClick={()=>LoadViewPage(data,'update')}
+                                  onClick={()=>LoadViewPage(activity,'update')}
                                   >
                                   Update
                                   </Dropdown.Item>
-                                )}
-                                  {data.deletable && (<Dropdown.Item
+                               
+                                 {/* <Dropdown.Item
                                   className="dropdown-item"
                                   to="/widget-basic"
                                   onClick={()=>LoadDeletePage(data)}
                                   >
                                   Delete
-                                  </Dropdown.Item>
-                                  )}
+                                  </Dropdown.Item> */}
+                                  
                                 </Dropdown.Menu>
                               </Dropdown>
                               </div>
                             </li>
-                                                   
+                            </>
+                       ))}                       
                       </ul>
                       </div>
                     </Accordion.Collapse>
@@ -258,21 +261,21 @@ const RecentHistory = (props) => {
             <h4 className="card-title">Summary </h4>
           </div>
           <div className="row">
-  
+                {summary && summary!==null && (<>
                 <div className="col-sm-6 col-md-6 col-lg-6">
                 <div className="card-body">
                   <div className="col-xl-12 col-lg-12 col-sm-12">
                   <div className="widget-stat card">
                     <div className="card-body p-4" style={{backgroundColor:"#E8F0FD"}}>
                       <h4 className="card-title">Current Regimen Given</h4>
-                      <h3 class="text-info ">{""}</h3>
+                      <h3 class="text-info ">{summary.regimen}</h3>
                       <div className="progress mb-2">
                         <div
                           className="progress-bar progress-animated bg-primary"
                           style={{ width: "100%" }}
                         ></div>
                       </div>
-                      <p class="text-success ">Next Appointment Date : {""}</p>
+                      <p class="text-success ">Next Appointment Date : {summary.nextAppointment}</p>
                     </div>
                   </div>
                   </div>
@@ -300,7 +303,7 @@ const RecentHistory = (props) => {
                         </span>
                         <div className="media-body">
                           <p className="mb-1" ><span style={{fontSize:"14px"}} >Total Visit :</span> <span className="badge badge-primary">4</span></p>
-                          <p><span style={{fontSize:"10px", fontWeight:"bolder"}} >Last Visit Date : </span><span className="badge badge-dark">04/011/2022</span></p>
+                          <p><span style={{fontSize:"10px", fontWeight:"bolder"}} >Last Visit Date : </span><span className="badge badge-dark">{summary.encounterDate}</span></p>
                         </div>
                       </div>
                       </div>
@@ -310,9 +313,10 @@ const RecentHistory = (props) => {
                 </div>
                 <div className="col-sm-6 col-md-6 col-lg-6">
                 <div className="card-body">
-                    <PatientChart />
+                    <PatientChart summary={summary}/>
                 </div>
                 </div>
+                </>)}
           </div>
         </div>
       </div>
