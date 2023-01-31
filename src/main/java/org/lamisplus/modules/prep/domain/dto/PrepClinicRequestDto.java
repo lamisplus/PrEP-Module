@@ -78,5 +78,9 @@ public class PrepClinicRequestDto implements Serializable{
     private String notedSideEffects;
 
     private Integer duration;
+
+    private String prepGiven;
+    private String otherDrugs;
+    private String hivTestResult;
 }
 
