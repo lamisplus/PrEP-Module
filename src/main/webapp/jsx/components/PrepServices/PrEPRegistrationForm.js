@@ -77,7 +77,7 @@ const PrEPRegistrationForm = (props) => {
     const [prepRisk, setPrepRisk] = useState([]);
     const [relatives, setRelatives] = useState([]);
     const [patientDto, setPatientDto] = useState();
-    console.log(props)
+    const [disabledField, setSisabledField] = useState(false);
     useEffect(() => {         
         GetPatientDTOObj();
         RELATIONSHIP();
@@ -85,6 +85,7 @@ const PrEPRegistrationForm = (props) => {
         EntryPoint();
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientPrepEnrollment(props.activeContent.id)
+            setSisabledField(props.activeContent.actionType==='view'?true : false)
         }
         //GetPatientPrepEnrollment
       }, []);
@@ -186,7 +187,7 @@ const PrEPRegistrationForm = (props) => {
           )
               .then(response => {
                   setSaving(false);
-                  props.patientObj.prepCount=1
+                  props.patientObj.prepCount="1"
                   toast.success("Prep Enrollment save successful!", {position: toast.POSITION.BOTTOM_CENTER});
                   props.setActiveContent({...props.activeContent, route:'recent-history'})
               })
@@ -206,7 +207,7 @@ const PrEPRegistrationForm = (props) => {
                             <h2>PrEP Enrollment </h2>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                <Label for="uniqueId">Unique Client's ID  * </Label>
+                                <Label for="uniqueId">Unique Client's ID <span style={{ color:"red"}}> *</span> </Label>
                                 <Input
                                     type="text"
                                     name="uniqueId"
@@ -238,7 +239,7 @@ const PrEPRegistrationForm = (props) => {
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                <Label >Date enrolled in PrEP *</Label>
+                                <Label >Date enrolled in PrEP <span style={{ color:"red"}}> *</span></Label>
                                 <Input
                                     className="form-control"
                                     type="date"
@@ -258,7 +259,7 @@ const PrEPRegistrationForm = (props) => {
 
                                 <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                <Label for="entryPointId">PrEP Risk Type*</Label>
+                                <Label for="entryPointId">PrEP Risk Type <span style={{ color:"red"}}> *</span></Label>
                                 <Input
                                     type="select"
                                     name="riskType"
@@ -324,7 +325,7 @@ const PrEPRegistrationForm = (props) => {
 
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
-                                    <Label >Date Referred for PrEP * </Label>
+                                    <Label >Date Referred for PrEP <span style={{ color:"red"}}> *</span> </Label>
                                     <Input
                                         className="form-control"
                                         type="date"
@@ -344,7 +345,7 @@ const PrEPRegistrationForm = (props) => {
                                 
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
-                                    <Label >PrEP Supporter *</Label>
+                                    <Label >PrEP Supporter <span style={{ color:"red"}}> *</span></Label>
                                     <Input
                                         className="form-control"
                                         type="text"
@@ -362,7 +363,7 @@ const PrEPRegistrationForm = (props) => {
                                 </div>
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
-                                    <Label >Relationship *</Label>
+                                    <Label >Relationship <span style={{ color:"red"}}> *</span></Label>
                                     <Input
                                         className="form-control"
                                         type="select"
@@ -423,32 +424,42 @@ const PrEPRegistrationForm = (props) => {
                 
                 {saving ? <Spinner /> : ""}
                 <br />
-            
-                <MatButton
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    className={classes.button}
-                    startIcon={<SaveIcon />}
-                    onClick={handleSubmit}
-                    >
-                    {!saving ? (
-                    <span style={{ textTransform: "capitalize" }}>Save</span>
-                    ) : (
-                    <span style={{ textTransform: "capitalize" }}>Saving...</span>
-                    )}
-                </MatButton>
-            
-            <MatButton
-                variant="contained"
-                className={classes.button}
-                startIcon={<CancelIcon />}
-                onClick={props.toggle}
-                
-            >
-                <span style={{ textTransform: "capitalize" }}>Cancel</span>
-            </MatButton>
-            
+                {props.activeContent && props.activeContent.actionType? (<>
+                        <MatButton
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        hidden={disabledField}
+                        className={classes.button}
+                        startIcon={<SaveIcon />}
+                        style={{backgroundColor:"#014d88"}}
+                        onClick={handleSubmit}
+                        disabled={saving}
+                        >
+                            {!saving ? (
+                            <span style={{ textTransform: "capitalize" }}>Update</span>
+                            ) : (
+                            <span style={{ textTransform: "capitalize" }}>Updating...</span>
+                            )}
+                    </MatButton>
+                    </>):(<>
+                        <MatButton
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            className={classes.button}
+                            startIcon={<SaveIcon />}
+                            style={{backgroundColor:"#014d88"}}
+                            onClick={handleSubmit}
+                            disabled={saving}
+                            >
+                                {!saving ? (
+                                <span style={{ textTransform: "capitalize" }}>Save</span>
+                                ) : (
+                                <span style={{ textTransform: "capitalize" }}>Saving...</span>
+                                )}
+                    </MatButton>
+                    </>)}
                 </form>
             </CardBody>
         </Card> 

@@ -40,17 +40,17 @@ function SubMenu(props) {
                 <Menu size="mini" color={"black"} inverted >
                 <Menu.Item onClick={() => onClickHome()} >Home
                 </Menu.Item>                  
-                { patientObj.eligibilityCount<=0 || patientObj.eligibilityCount ===null ?
+                { patientObj.eligibilityCount<=0 || patientObj.eligibilityCount===null ?
                 (<>
                     <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibility Screening</Menu.Item>
                    
                 </>)
                 :
                 (<>
-                    {patientObj.prepStatus==='Not Enrolled' || patientObj.prepStatus==='Not Commenced' ? 
+                    {patientObj.prepCount==='0' || patientObj.commencementCount===null ? 
                     (<>
-                        {(patientObj.eligibilityCount >0) && patientObj.prepStatus==='Not Enrolled' && (<Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>)}
-                        {(patientObj.commencementCount===null || patientObj.commencementCount<=0) && patientObj.prepStatus==='Not Commenced' && (<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
+                        {patientObj.prepCount==='0'  && (<Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>)}
+                        {(patientObj.commencementCount===null || patientObj.commencementCount<=0) && (<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
                         
                     </>) 
                     : (<>

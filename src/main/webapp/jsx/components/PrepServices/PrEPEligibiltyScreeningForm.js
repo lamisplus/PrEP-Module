@@ -2,9 +2,8 @@ import React, {useCallback, useEffect, useState} from "react";
 import axios from "axios";
 import {FormGroup, Label , CardBody, Spinner,Input,Form} from "reactstrap";
 import {makeStyles} from "@material-ui/core/styles";
-import {Card, CardContent} from "@material-ui/core";
-// import AddIcon from "@material-ui/icons/Add";
-// import CancelIcon from "@material-ui/icons/Cancel";
+import {Card, } from "@material-ui/core";
+import MatButton from '@material-ui/core/Button'
 import {toast} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
@@ -17,7 +16,7 @@ import {Label as LabelRibbon, Button, Message} from 'semantic-ui-react'
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import * as moment from 'moment';
-
+import SaveIcon from '@material-ui/icons/Save'
 
 
 const useStyles = makeStyles((theme) => ({
@@ -89,7 +88,7 @@ const useStyles = makeStyles((theme) => ({
 
 const BasicInfo = (props) => {
     const classes = useStyles();
-    //let patientAge=""
+    const [disabledField, setSisabledField] = useState(false);
     const patientID= props.patientDetail && props.patientDetail.personResponseDto ? props.patientDetail.personResponseDto.id : "";
     //const clientId = props.patientObj && props.patientObj ? props.patientObj.id : "";
     const [saving, setSaving] = useState(false);
@@ -117,10 +116,11 @@ const BasicInfo = (props) => {
             }
     )
     useEffect(() => { 
-
+        
         CounselingType();
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientPrepEligibility(props.activeContent.id)
+            setSisabledField(props.activeContent.actionType==='view'?true : false)
         }
     }, [props.patientObj]);
     const GetPatientPrepEligibility =(id)=>{
@@ -247,15 +247,16 @@ const BasicInfo = (props) => {
      const validate = () => {
         //PREP FORM VALIDATION
            temp.visitDate = objValues.visitDate? "" : "This field is required."
-           temp.sexPartners = objValues.sexPartners ? "" : "This field is required."
+           temp.sexPartner = objValues.sexPartner ? "" : "This field is required."
            
             setErrors({ ...temp })
         return Object.values(temp).every(x => x === "")
     }
     const handleSubmit =(e)=>{
         e.preventDefault();
-            setSaving(true);
+            
             if(validate()){
+                setSaving(true);
             //objValues.htsClientId= clientId
             objValues.drugUseHistory= drugHistory
             objValues.personalHivRiskAssessment= riskAssessment
@@ -263,33 +264,60 @@ const BasicInfo = (props) => {
             objValues.stiScreening= stiScreening
             objValues.personId= patientID
             objValues.uniqueId= patientID
-            axios.post(`${baseUrl}prep/eligibility`,objValues,
-            { headers: {"Authorization" : `Bearer ${token}`}},)
-            .then(response => {
-                setSaving(false);
-                props.patientObj.eligibilityCount=1
-                //props.setPatientObj(response.data)
-                toast.success("Prep Eligilibility save successful!", {position: toast.POSITION.BOTTOM_CENTER});
-                props.setActiveContent({...props.activeContent, route:'recent-history'})
-
-            })
-            .catch(error => {
-                setSaving(false);
-                if(error.response && error.response.data){
-                    let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                    if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
-                      toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
-                    }else{
-                      toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
-                    }
+                if(props.activeContent && props.activeContent.actionType){//Perform operation for updation action
+                    axios.put(`${baseUrl}prep/eligibility/${props.activeContent.id}`,objValues,
+                    { headers: {"Authorization" : `Bearer ${token}`}},)
+                    .then(response => {
+                        setSaving(false);
+                        props.patientObj.eligibilityCount= 1
+                        //props.setPatientObj(response.data)
+                        toast.success("Prep Eligilibility save successful!", {position: toast.POSITION.BOTTOM_CENTER});
+                        props.setActiveContent({...props.activeContent, route:'recent-history'})
+        
+                    })
+                    .catch(error => {
+                        setSaving(false);
+                        if(error.response && error.response.data){
+                            let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+                            if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
+                              toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
+                            }else{
+                              toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
+                            }
+                        }else{
+                            toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
+                        }
+                    });
                 }else{
-                    toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
+                    axios.post(`${baseUrl}prep/eligibility`,objValues,
+                    { headers: {"Authorization" : `Bearer ${token}`}},)
+                    .then(response => {
+                        setSaving(false);
+                        props.patientObj.eligibilityCount= 1
+                        //props.setPatientObj(response.data)
+                        toast.success("Prep Eligilibility save successful!", {position: toast.POSITION.BOTTOM_CENTER});
+                        props.setActiveContent({...props.activeContent, route:'recent-history'})
+        
+                    })
+                    .catch(error => {
+                        setSaving(false);
+                        if(error.response && error.response.data){
+                            let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+                            if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
+                              toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
+                            }else{
+                              toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
+                            }
+                        }else{
+                            toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
+                        }
+                    });
                 }
-            });
-        }else{
-            setSaving(false);
-            toast.error("All field are required ", {position: toast.POSITION.BOTTOM_CENTER});
-        }   
+           
+            }else{
+                setSaving(false);
+                toast.error("All field are required ", {position: toast.POSITION.BOTTOM_CENTER});
+            }   
     }
 
 
@@ -303,7 +331,7 @@ const BasicInfo = (props) => {
                         <div className="row">
                         <div className="form-group  col-md-4">
                             <FormGroup>
-                                <Label>Visit Date {props.patientDetail && props.patientDetail.personResponseDto.dateOfRegistration}*</Label>
+                                <Label>Visit Date <span style={{ color:"red"}}> *</span></Label>
                                 <input
                                     type="date"
                                     className="form-control"
@@ -314,6 +342,7 @@ const BasicInfo = (props) => {
                                     min={props.patientDetail && props.patientDetail.personResponseDto.dateOfRegistration}
                                     max= {moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                    disabled={disabledField}
                                 />
                                    
                                 {errors.visitDate !=="" ? (
@@ -323,26 +352,27 @@ const BasicInfo = (props) => {
                         </div>
                         <div className="form-group  col-md-4">
                             <FormGroup>
-                                <Label>Sex partners *</Label>
+                                <Label>Sex partners <span style={{ color:"red"}}> *</span></Label>
                                 <select
                                     className="form-control"
-                                    name="sexPartners"
-                                    id="sexPartners"
-                                    value={objValues.sexPartners}
+                                    name="sexPartner"
+                                    id="sexPartner"
+                                    value={objValues.sexPartner}
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                    disabled={disabledField}
                                 >
                                     <option value={""}></option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
                                     <option value="Both">Both</option>
                                 </select>
-                                {errors.sexPartners !=="" ? (
-                                <span className={classes.error}>{errors.sexPartners}</span>
+                                {errors.sexPartner !=="" ? (
+                                <span className={classes.error}>{errors.sexPartner}</span>
                                 ) : "" }
                             </FormGroup>
                         </div>
-                        {props.patientDetail!==null && props.patientDetail.personResponseDto.maritalStatus.display==='Married'   && (
+                        {/* {props.patientDetail!==null && props.patientDetail.personResponseDto.maritalStatus.display==='Married'   && (
                         <div className="form-group  col-md-4">
                             <FormGroup>
                                 <Label> Number of own children {"<"}5 years</Label>
@@ -361,7 +391,7 @@ const BasicInfo = (props) => {
                                 ) : "" }
                             </FormGroup>
                         </div>
-                        )}
+                        )} */}
                         {props.patientObj.gender==='Male' || props.patientObj.gender==='male'  && (
                         <div className="form-group  col-md-4">
                             <FormGroup>
@@ -373,6 +403,7 @@ const BasicInfo = (props) => {
                                     value={objValues.numWives}
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                    disabled={disabledField}
                                 />
                                 {errors.numWives !=="" ? (
                                 <span className={classes.error}>{errors.numWives}</span>
@@ -382,7 +413,7 @@ const BasicInfo = (props) => {
                         )}
                         <div className="form-group  col-md-4">
                             <FormGroup>
-                                <Label>Type of counseling *</Label>
+                                <Label>Type of counseling <span style={{ color:"red"}}> *</span></Label>
                                 <select
                                     className="form-control"
                                     name="counselingType"
@@ -390,6 +421,7 @@ const BasicInfo = (props) => {
                                     value={objValues.counselingType}
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                    disabled={disabledField}
                                 >
                                      <option value={""}>Select</option>
                                         {counselingType.map((value) => (
@@ -415,6 +447,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.unprotectedVaginalSexCasual}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -436,6 +469,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.unprotectedVaginalSexRegular}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -457,6 +491,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.uprotectedAnalSexWithCasual}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -478,6 +513,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.uprotectedAnalSexWithRegular}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -499,6 +535,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.stiHistory}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -520,6 +557,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.sharedNeedles}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -541,6 +579,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.moreThan1SexPartner}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -562,6 +601,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.analSexWithPartner}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -583,6 +623,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.unprotectedAnalSexWithPartner}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -604,6 +645,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.haveYouPaidForSex}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -625,6 +667,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.moreThanOneSexPartnerLastThreeMonths}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -646,6 +689,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.experienceCondomBreakage}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -667,6 +711,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessment.takenPartInSexualOrgy}
                                         onChange={handleInputChangeRiskAssessment}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -696,6 +741,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessmentPartner.haveSexWithHIVPositive}
                                         onChange={handleInputChangeRiskAssessmentPartner}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -718,6 +764,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessmentPartner.haveSexWithPartnerInjectDrug}
                                         onChange={handleInputChangeRiskAssessmentPartner}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -739,6 +786,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessmentPartner.haveSexWithPartnerWhoHasSexWithMen}
                                         onChange={handleInputChangeRiskAssessmentPartner}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -760,6 +808,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessmentPartner.haveSexWithPartnerTransgender}
                                         onChange={handleInputChangeRiskAssessmentPartner}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -781,6 +830,7 @@ const BasicInfo = (props) => {
                                         value={riskAssessmentPartner.sexWithPartnersWithoutCondoms}
                                         onChange={handleInputChangeRiskAssessmentPartner}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -837,6 +887,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.inject}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -858,6 +909,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.sniff}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -879,6 +931,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.fever}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -900,6 +953,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.smoke}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -922,6 +976,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.useDrugSexualPerformance}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -943,6 +998,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.hivTestedBefore}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -968,6 +1024,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.hivNegative}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -990,6 +1047,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.hivPositive}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1012,6 +1070,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.recommendHivRetest}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1033,6 +1092,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.clinicalSetting}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1054,6 +1114,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.reportHivRisk}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1075,6 +1136,7 @@ const BasicInfo = (props) => {
                                         value={drugHistory.hivExposure}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1101,6 +1163,7 @@ const BasicInfo = (props) => {
                                         value={stiScreening.vaginalDischarge}
                                         onChange={handleInputChangeStiScreening}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1123,6 +1186,7 @@ const BasicInfo = (props) => {
                                         value={stiScreening.lowerAbdominalPains}
                                         onChange={handleInputChangeStiScreening}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1147,6 +1211,7 @@ const BasicInfo = (props) => {
                                         value={stiScreening.urethralDischarge}
                                         onChange={handleInputChangeStiScreening}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1168,6 +1233,7 @@ const BasicInfo = (props) => {
                                         value={stiScreening.complaintsOfScrotal}
                                         onChange={handleInputChangeStiScreening}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1189,6 +1255,7 @@ const BasicInfo = (props) => {
                                         value={stiScreening.complaintsGenitalSore}
                                         onChange={handleInputChangeStiScreening}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1211,6 +1278,7 @@ const BasicInfo = (props) => {
                                         value={stiScreening.genitalScore}
                                         onChange={handleInputChangeStiScreening}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1232,6 +1300,7 @@ const BasicInfo = (props) => {
                                         value={stiScreening.swollenIguinal}
                                         onChange={handleInputChangeStiScreening}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1253,6 +1322,7 @@ const BasicInfo = (props) => {
                                         value={stiScreening.lowerAbdominalPains}
                                         onChange={handleInputChangeStiScreening}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1274,6 +1344,7 @@ const BasicInfo = (props) => {
                                         value={stiScreening.analItching}
                                         onChange={handleInputChangeStiScreening}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1295,6 +1366,7 @@ const BasicInfo = (props) => {
                                         value={stiScreening.analDischarge}
                                         onChange={handleInputChangeStiScreening}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
@@ -1315,8 +1387,43 @@ const BasicInfo = (props) => {
                             <br />
                             <div className="row">
                             <div className="form-group mb-3 col-md-12">
+                            {props.activeContent && props.activeContent.actionType? (<>
+                        <MatButton
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        hidden={disabledField}
+                        className={classes.button}
+                        startIcon={<SaveIcon />}
+                        style={{backgroundColor:"#014d88"}}
+                        onClick={handleSubmit}
+                        disabled={saving}
+                        >
+                            {!saving ? (
+                            <span style={{ textTransform: "capitalize" }}>Update</span>
+                            ) : (
+                            <span style={{ textTransform: "capitalize" }}>Updating...</span>
+                            )}
+                    </MatButton>
+                            </>):(<>
+                                <MatButton
+                                    type="submit"
+                                    variant="contained"
+                                    color="primary"
+                                    className={classes.button}
+                                    startIcon={<SaveIcon />}
+                                    style={{backgroundColor:"#014d88"}}
+                                    onClick={handleSubmit}
+                                    disabled={saving}
+                                    >
+                                        {!saving ? (
+                                        <span style={{ textTransform: "capitalize" }}>Save</span>
+                                        ) : (
+                                        <span style={{ textTransform: "capitalize" }}>Saving...</span>
+                                        )}
+                            </MatButton>
+                            </>)}
                            
-                            <Button content='Save' icon='right arrow' labelPosition='right' style={{backgroundColor:"#014d88", color:'#fff'}} onClick={handleSubmit}/>
                             </div>
                             </div>
                         </div>

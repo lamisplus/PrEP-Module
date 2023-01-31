@@ -141,7 +141,8 @@ const ClinicVisit = (props) => {
     weight: "",
     why: "",
     otherDrugs:"",
-    duration:""
+    duration:"",
+    prepGiven:""
   });
   const [urinalysisTest, setUrinalysisTest] = useState({
     urinalysisTest: "No",
@@ -165,7 +166,6 @@ const ClinicVisit = (props) => {
     result: "",
   })
 
-
   useEffect(() => {
     AdherenceLevel();
     SYNDROMIC_STI_SCREENING();
@@ -177,8 +177,23 @@ const ClinicVisit = (props) => {
     WHY_POOR_FAIR_ADHERENCE();
     PrepEligibilityObj();
     PrepRegimen();
-    //hiv/patient/3
+    if(props.activeContent && props.activeContent.id!=="" && props.activeContent.id!==null){
+      GetPatientVisit(props.activeContent.id)
+    }
   }, []);
+  const GetPatientVisit =(id)=>{
+    axios
+       .get(`${baseUrl}prep-clinic/${props.activeContent.id}`,
+           { headers: {"Authorization" : `Bearer ${token}`} }
+       )
+       .then((response) => {
+            //console.log(response.data.find((x)=> x.id===id));
+           setObjValues(response.data);
+       })
+       .catch((error) => {
+       //console.log(error);
+       });          
+}
     const GetPatientDTOObj =()=>{
       axios
         .get(`${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
@@ -430,7 +445,7 @@ const ClinicVisit = (props) => {
         //PatientDetaild();
         setSaving(false);
         toast.success("Clinic Visit save successful", {position: toast.POSITION.BOTTOM_CENTER});
-        props.setActiveContent({...props.activeContent, route:'recent-history'})
+        props.setActiveContent({...props.activeContent, route:'consultation', activeTab:"history"})
       })
       .catch(error => {
         setSaving(false);
@@ -473,7 +488,7 @@ const ClinicVisit = (props) => {
             <div className="row">
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Date of Visit *</FormLabelName>
+                  <FormLabelName >Date of Visit <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
                     type="date"
                     name="encounterDate"
@@ -576,7 +591,7 @@ const ClinicVisit = (props) => {
                    
                     <div className=" mb-3 col-md-5">
                         <FormGroup>
-                        <FormLabelName >Body Weight *</FormLabelName>
+                        <FormLabelName >Body Weight <span style={{ color:"red"}}> *</span></FormLabelName>
                         <InputGroup> 
                             <Input 
                                 type="number"
@@ -603,7 +618,7 @@ const ClinicVisit = (props) => {
                     </div>                                   
                     <div className="form-group mb-3 col-md-5">
                         <FormGroup>
-                        <FormLabelName >Height *</FormLabelName>
+                        <FormLabelName >Height <span style={{ color:"red"}}> *</span></FormLabelName>
                         <InputGroup> 
                         <InputGroupText
                                 addonType="append"
@@ -737,9 +752,9 @@ const ClinicVisit = (props) => {
                   <FormLabelName >Noted Side Effects </FormLabelName>
                   <Input
                     type="select"
-                    name="sideEffect"
-                    id="sideEffect"
-                    value={objValues.sideEffect}
+                    name="notedSideEffects"
+                    id="notedSideEffects"
+                    value={objValues.notedSideEffects}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
@@ -819,7 +834,7 @@ const ClinicVisit = (props) => {
               )}
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Level of Adherence *</FormLabelName>
+                  <FormLabelName >Level of Adherence <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
                     type="select"
                     name="adherenceLevel"
@@ -1163,7 +1178,7 @@ const ClinicVisit = (props) => {
                   value={objValues.nextAppointment}
                   onChange={handleInputChange}
                   style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                  // min={vital.encounterDate}
+                  min={objValues.encounterDate}
                   
                 />
                 {errors.nextAppointment !=="" ? (

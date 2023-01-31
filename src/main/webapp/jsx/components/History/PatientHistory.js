@@ -110,12 +110,12 @@ const PatientnHistory = (props) => {
         const PatientHistory =()=>{
             setLoading(true)
             axios
-               .get(`${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
+               .get(`${baseUrl}prep/general-activities/patients/${props.patientObj.personId}`,
                    { headers: {"Authorization" : `Bearer ${token}`} }
                )
                .then((response) => {
                 setLoading(false)                       
-                    setRecentActivities(response.data.activities)
+                    setRecentActivities(response.data)
                 })
 
                .catch((error) => {
@@ -223,7 +223,7 @@ const PatientnHistory = (props) => {
                             <Dropdown.Menu style={{ marginTop:"10px", }}>
                                 {row.viewable && ( <Dropdown.Item onClick={()=>LoadViewPage(row, 'view')}> <Icon name='eye' />View  </Dropdown.Item>)}
                                 {row.viewable && ( <Dropdown.Item  onClick={()=>LoadViewPage(row, 'update')}><Icon name='edit' />Edit</Dropdown.Item>)}
-                                {row.viewable && ( <Dropdown.Item  onClick={()=>LoadDeletePage(row, 'delete')}> <Icon name='trash' /> Delete</Dropdown.Item>)} 
+                                {/* {row.viewable && ( <Dropdown.Item  onClick={()=>LoadDeletePage(row, 'delete')}> <Icon name='trash' /> Delete</Dropdown.Item>)}  */}
                             </Dropdown.Menu>
                         </Dropdown>
                             </Button>

@@ -58,16 +58,16 @@ const styles = theme => ({
 
 function PatientCard(props) {
     let history = useHistory();
-    const [patientDetail, setPatientDetail] = useState(null)
+    const [patientDetail, setPatientDetail] = useState("")
     const [activeContent, setActiveContent] = useState({route:"recent-history", id:"", activeTab:"home", actionType:"create", obj:{}});
     const { classes } = props;
     const patientObjLocation = history.location && history.location.state ? history.location.state.patientObj : {}
-    let patientObj =""
+    //let patientObj =""
     const prepId = history.location && history.location.state ? history.location.state.prepId : {}
     //console.log(patientObj)
     useEffect(() => {
       PatientObject()
-     }, [patientObj]);
+     }, []);
      async function PatientObject() {
       axios
           .get(`${baseUrl}prep/persons/${patientObjLocation.personId}`,
@@ -75,7 +75,7 @@ function PatientCard(props) {
           )
           .then((response) => {
             setPatientDetail(response.data);
-            patientObj=response.data
+            //patientObj=response.data
           })
           .catch((error) => {    
           });        
