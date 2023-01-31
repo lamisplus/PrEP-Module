@@ -302,7 +302,7 @@ const RecentHistory = (props) => {
                           </svg>
                         </span>
                         <div className="media-body">
-                          <p className="mb-1" ><span style={{fontSize:"14px"}} >Total Visit :</span> <span className="badge badge-primary">4</span></p>
+                          <p className="mb-1" ><span style={{fontSize:"14px"}} >Total Visit :</span> <span className="badge badge-primary">{summary.visitCount}</span></p>
                           <p><span style={{fontSize:"10px", fontWeight:"bolder"}} >Last Visit Date : </span><span className="badge badge-dark">{summary.encounterDate}</span></p>
                         </div>
                       </div>

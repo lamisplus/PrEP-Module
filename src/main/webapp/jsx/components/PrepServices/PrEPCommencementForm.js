@@ -215,7 +215,7 @@ const PrEPCommencementForm = (props) => {
            setSaving(true);
            objValues.prepEnrollmentUuid=patientDto.uuid 
            if(props.activeContent && props.activeContent.actionType){//Perform operation for updation action
-            axios.put(`${baseUrl}prep/commencement/${props.activeContent.id}`,objValues,
+            axios.put(`${baseUrl}prep-clinic/${props.activeContent.id}`,objValues,
             { headers: {"Authorization" : `Bearer ${token}`}},          
              ).then(response => {
                    setSaving(false);
