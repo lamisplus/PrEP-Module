@@ -40,10 +40,6 @@
                                        ON UPDATE NO ACTION
                                        ON DELETE NO ACTION
                 NOT VALID,
-                CONSTRAINT fk_prep_eligibility_on_sexual_partner_fk FOREIGN KEY (sex_partner)
-                REFERENCES base_application_codeset (code) MATCH SIMPLE
-                                       ON UPDATE NO ACTION
-                                       ON DELETE NO ACTION,
                 CONSTRAINT fk_prep_eligibility_on_target_group_fk FOREIGN KEY (target_group)
                 REFERENCES base_application_codeset (code) MATCH SIMPLE
                                        ON UPDATE NO ACTION

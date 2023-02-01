@@ -18,9 +18,9 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
 
     Optional<PrepClinic> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
 
-    List<PrepClinic> findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(String personUuid, Long facilityId, int archived);
+    List<PrepClinic> findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(String personUuid, Long facilityId, int archived, Boolean isCommenced);
 
     List<PrepClinic> findAllByPrepEnrollmentUuid(String uuid);
 
-    List<PrepClinic> findTopByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(String personUuid, Long facilityId, int archived);
+    List<PrepClinic> findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(String personUuid, Long facilityId, int archived, Boolean isCommenced);
 }

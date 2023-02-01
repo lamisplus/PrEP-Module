@@ -120,21 +120,21 @@ public class PrepClinicService {
         return clinicToClinicDto(prepClinic, null);
     }
 
-    public List<PrepClinicDto> getPrepClinicByPersonId(Long personId, Boolean last){
+    public List<PrepClinicDto> getPrepClinicByPersonId(Long personId, Boolean isCommenced, Boolean last){
         List<PrepClinic> prepClinics;
         if(!last) {
             prepClinics = prepClinicRepository
-                    .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(getPerson(personId).getUuid(),
+                    .findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(getPerson(personId).getUuid(),
                             currentUserOrganizationService.getCurrentUserOrganization(),
-                            UN_ARCHIVED);
+                            UN_ARCHIVED, isCommenced);
         } else {
             prepClinics = prepClinicRepository
-                    .findTopByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(getPerson(personId).getUuid(),
+                    .findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(getPerson(personId).getUuid(),
                             currentUserOrganizationService.getCurrentUserOrganization(),
-                            UN_ARCHIVED);
+                            UN_ARCHIVED, isCommenced);
         }
         return prepClinics.stream()
-                .map(prepClinic -> clinicToClinicDto(prepClinic, null))
+                .map(prepClinic -> clinicToClinicDto(prepClinic, last))
                 .collect(Collectors.toList());
     }
 

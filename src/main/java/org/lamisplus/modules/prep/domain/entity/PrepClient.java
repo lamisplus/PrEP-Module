@@ -18,4 +18,5 @@ public interface PrepClient {
     String getCreatedBy();
     Integer getEligibilityCount();
     Integer getCommencementCount();
+    LocalDate getDateOfRegistration();
 }

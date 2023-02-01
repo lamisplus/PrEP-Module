@@ -99,6 +99,9 @@ public class PrepService {
         String enrollmentUuid = commencementRequestDto.getPrepEnrollmentUuid();
 
         Person person = this.getPerson(commencementRequestDto.getPersonId());
+        if(commencementRequestDto.getDatePrepStart() != null && commencementRequestDto.getEncounterDate() == null){
+            commencementRequestDto.setEncounterDate(commencementRequestDto.getDatePrepStart());
+        }
 
         PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(enrollmentUuid)
                 .orElseThrow(()-> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", enrollmentUuid));
