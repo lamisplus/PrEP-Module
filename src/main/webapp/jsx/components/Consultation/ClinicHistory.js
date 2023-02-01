@@ -105,7 +105,10 @@ const PatientnHistory = (props) => {
     // let patientHistoryObject = []
     useEffect(() => {
         PatientHistory()
-      }, [props.patientObj.id]);
+        if(props.activeContent.actionType==="view"){
+            PatientHistory()
+        }
+      }, [props.patientObj.id, props.activeContent.actionType]);
         ///GET LIST OF Patients
         const PatientHistory =()=>{
             setLoading(true)

@@ -14,7 +14,7 @@ const ClinicVisitPage = (props) => {
     
     useEffect ( () => {
       setKey(props.activeContent.activeTab)
-    }, [props.activeContent.id]);
+    }, [props.activeContent]);
 
 
   return (

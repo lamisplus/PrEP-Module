@@ -154,7 +154,7 @@ const BasicInfo = (props) => {
     }
 
     const handleInputChange = e => { 
-        //setErrors({...temp, [e.target.name]:""}) 
+        setErrors({...temp, [e.target.name]:""}) 
         setObjValues ({...objValues,  [e.target.name]: e.target.value});         
     }
     const [riskAssessment, setRiskAssessment]= useState(
@@ -215,7 +215,7 @@ const BasicInfo = (props) => {
         }
     )
     const handleInputChangeStiScreening = e => { 
-        //setErrors({...temp, [e.target.name]:""}) 
+        setErrors({...errors, [e.target.name]: ""}) 
         setStiScreening ({...stiScreening,  [e.target.name]: e.target.value});   
                 
     }
@@ -231,16 +231,16 @@ const BasicInfo = (props) => {
             Snort:"", 
             useDrugSexualPerformance:"",
             hivTestedBefore:"",
-            hivNegative:"",
-            hivPositive:"",
             recommendHivRetest:"",
             clinicalSetting:"", 
             reportHivRisk:"",
             hivExposure:"",
+            hivTestResultAtvisit:"",
+            lastTest:""
         }
     )
     const handleInputChangeDrugHistory = e => { 
-        //setErrors({...temp, [e.target.name]:""}) 
+        setErrors({...temp, [e.target.name]:""}) 
         setDrugHistory ({...drugHistory,  [e.target.name]: e.target.value});         
     }
      /*****  Validation  */
@@ -319,7 +319,7 @@ const BasicInfo = (props) => {
                 toast.error("All field are required ", {position: toast.POSITION.BOTTOM_CENTER});
             }   
     }
-
+console.log(props)
 
     return (
         <>
@@ -339,7 +339,7 @@ const BasicInfo = (props) => {
                                     id="visitDate"
                                     value={objValues.visitDate}
                                     onChange={handleInputChange}
-                                    min={props.patientDetail && props.patientDetail.personResponseDto.dateOfRegistration}
+                                    min={props.patientDetail && props.patientDetail.dateHivPositive!==null ? props.patientDetail.dateHivPositive : props.patientObj.dateOfRegistration}
                                     max= {moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                     disabled={disabledField}
@@ -990,7 +990,7 @@ const BasicInfo = (props) => {
                             </div>
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Have you had HIV testing before & When was your last test? {"<"}1mth 1-3mths 4-6mths {">"}6mths </Label>
+                                    <Label>Have you had HIV testing before ?</Label>
                                     <select
                                         className="form-control"
                                         name="hivTestedBefore"
@@ -1010,55 +1010,57 @@ const BasicInfo = (props) => {
                                     ) : "" }
                                 </FormGroup>
                             </div>
+                            <div className="form-group  col-md-4">
+                                <FormGroup>
+                                    <Label>When was your last test?     </Label>
+                                    <select
+                                        className="form-control"
+                                        name="lastTest"
+                                        id="lastTest"
+                                        value={drugHistory.lastTest}
+                                        onChange={handleInputChangeDrugHistory}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
+                                    >
+                                        <option value={""}></option>
+                                        <option value="1 Month">{"<"}1 Month</option>
+                                        <option value="1-3 Months">1-3 Months</option>
+                                        <option value="4-6Months">4-6 Months</option>
+                                        <option value="6Months">{">"}6 months</option>
+                                        
+                                    </select>
+                                    {errors.lastTest !=="" ? (
+                                    <span className={classes.error}>{errors.lastTest}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </div>
                             </div>
                             
                             <div className="row">
-                            <h3>HIV test result at visit</h3>
+
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>Negative</Label>
+                                    <Label>HIV test result at visit</Label>
                                     <select
                                         className="form-control"
-                                        name="hivNegative"
-                                        id="hivNegative"
-                                        value={drugHistory.hivNegative}
+                                        name="hivTestResultAtvisit"
+                                        id="hivTestResultAtvisit"
+                                        value={drugHistory.hivTestResultAtvisit}
                                         onChange={handleInputChangeDrugHistory}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         disabled={disabledField}
                                     >
                                         <option value={""}></option>
-                                        <option value="true">Yes</option>
-                                        <option value="false">No</option>
+                                        <option value="Positive">Positive</option>
+                                        <option value="Negative">Negative</option>
                                         
                                     </select>
-                                    {errors.hivNegative !=="" ? (
-                                    <span className={classes.error}>{errors.hivNegative}</span>
+                                    {errors.hivTestResultAtvisit !=="" ? (
+                                    <span className={classes.error}>{errors.hivTestResultAtvisit}</span>
                                     ) : "" }
                                 </FormGroup>
                             </div>
-                            
-                            <div className="form-group  col-md-4">
-                                <FormGroup>
-                                    <Label>Positive</Label>
-                                    <select
-                                        className="form-control"
-                                        name="hivPositive"
-                                        id="hivPositive"
-                                        value={drugHistory.hivPositive}
-                                        onChange={handleInputChangeDrugHistory}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        disabled={disabledField}
-                                    >
-                                        <option value={""}></option>
-                                        <option value="true">Yes</option>
-                                        <option value="false">No</option>
-                                        
-                                    </select>
-                                    {errors.hivPositive !=="" ? (
-                                    <span className={classes.error}>{errors.hivPositive}</span>
-                                    ) : "" }
-                                </FormGroup>
-                            </div>
+
                             </div>
                             <div className="form-group  col-md-3">
                                 <FormGroup>
