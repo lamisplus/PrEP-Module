@@ -1,16 +1,13 @@
 import React from "react";
 // import { Link } from 'react-router-dom';
 import { Row, Col, Card } from "react-bootstrap";
-
-import PageTitle from "../../../layouts/PageTitle";
-
 import Bmi from "./Bmi";
 import Height from "./Height";
 //import ViccinationStatus from "./ViccinationStatus";
 //import LegendEffectOpacity from "./LegendEffectOpacity";
 
 function RechartJs(props) {
-  console.log(props)
+
   return (
     <>
 

@@ -145,7 +145,7 @@ const ClinicVisit = (props) => {
     prepGiven:""
   });
   const [urinalysisTest, setUrinalysisTest] = useState({
-    urinalysisTest: "No",
+    urinalysisTest: "Yes",
     testDate: "",
     result: "",
   })
@@ -310,23 +310,28 @@ const ClinicVisit = (props) => {
         });
     }
     const handleInputChange = e => {
+      setErrors({...errors, [e.target.name]: ""}) 
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
       
     }
     const handleInputChangeUrinalysisTest= e => {
+      setErrors({...errors, [e.target.name]: ""}) 
       setUrinalysisTest({ ...urinalysisTest, [e.target.name]: e.target.value }); 
     }
     const handleInputChangeOtherTest = e => {
       setOtherTest({ ...otherTest, [e.target.name]: e.target.value }); 
     }
     const handleInputChangeHepatitisTest = e => {
+      setErrors({...errors, [e.target.name]: ""}) 
       setHepatitisTest({ ...hepatitisTest, [e.target.name]: e.target.value });
     }
     const handleInputChangeSyphilisTest = e => {
+      setErrors({...errors, [e.target.name]: ""}) 
       setSyphilisTest({ ...syphilisTest, [e.target.name]: e.target.value });
     }
   //Handle CheckBox 
   const handleCheckBoxSyphilisTest = e => {
+    setErrors({...errors, [e.target.name]: ""}) 
     if (e.target.checked) {
       setSyphilisTest({ ...syphilisTest, ["syphilisTest"]: "Yes" })
     } else {
@@ -334,6 +339,7 @@ const ClinicVisit = (props) => {
     }
   }
   const handleCheckBoxHepatitisTest = e => {
+    setErrors({...errors, [e.target.name]: ""}) 
     if (e.target.checked) {
       setHepatitisTest({ ...hepatitisTest, ["hepatitisTest"]: "Yes" })
     } else {
@@ -341,6 +347,7 @@ const ClinicVisit = (props) => {
     }
   }
   const handleCheckBoxOtherTest = e => {
+    setErrors({...errors, [e.target.name]: ""}) 
     if (e.target.checked) {
       setOtherTest({ ...otherTest, ["otherTest"]:"Yes" })
     } else {
@@ -348,6 +355,7 @@ const ClinicVisit = (props) => {
     }
   }
   const handleCheckBoxUrinalysisTest = e => {
+    setErrors({...errors, [e.target.name]: ""}) 
     if (e.target.checked) {
       setUrinalysisTest({ ...urinalysisTest, ["urinalysisTest"]: "Yes" })
     } else {
@@ -404,6 +412,7 @@ const ClinicVisit = (props) => {
       }
   }
   const handleInputValueCheckTemperature =(e)=>{
+
       if(e.target.name==="temperature" && (e.target.value < 35 || e.target.value>47)){      
       const message ="Temperature must not be greater than 47 and less than 35"
       setVitalClinicalSupport({...vitalClinicalSupport, temperature:message})
@@ -421,6 +430,9 @@ const ClinicVisit = (props) => {
     //temp.systolic = objValues.systolic ? "" : "This field is required"
     temp.height = objValues.height ? "" : "This field is required"
     temp.weight = objValues.weight ? "" : "This field is required"
+    temp.urinalysisTest = urinalysisTest.urinalysisTest ? "" : "This field is required"
+    temp.testDate = urinalysisTest.testDate ? "" : "This field is required"
+    temp.result = urinalysisTest.result ? "" : "This field is required"
     setErrors({
         ...temp
     })
@@ -445,7 +457,7 @@ const ClinicVisit = (props) => {
         //PatientDetaild();
         setSaving(false);
         toast.success("Clinic Visit save successful", {position: toast.POSITION.BOTTOM_CENTER});
-        props.setActiveContent({...props.activeContent, route:'consultation', activeTab:"history"})
+        props.setActiveContent({...props.activeContent, route:'consultation', activeTab:"history", actionType:"vview" })
       })
       .catch(error => {
         setSaving(false);
@@ -467,7 +479,7 @@ const ClinicVisit = (props) => {
       });
     }
   }
-//console.log(objValues)
+
 
   return (
     <div>
@@ -496,6 +508,7 @@ const ClinicVisit = (props) => {
                     value={objValues.encounterDate}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     onChange={handleInputChange}
+                    //min={props.patientDetail && props.patientDetail.dateHivPositive!==null ? props.patientDetail.dateHivPositive : props.patientDetail.personResponseDto.dateOfRegistration}
                     min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     required
@@ -976,7 +989,7 @@ const ClinicVisit = (props) => {
                     
                 </FormGroup>
               </div>
-              <div className=" mb-3 col-md-6">
+              {/* <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >PrEP Status</FormLabelName>
                   <Input
@@ -997,7 +1010,7 @@ const ClinicVisit = (props) => {
                   </Input>
                  
                 </FormGroup>
-              </div>
+              </div> */}
                
               <br /><br />
               <Label as='a' color='teal'  style={{width:'106%', height:'35px'}} ribbon>
@@ -1018,22 +1031,30 @@ const ClinicVisit = (props) => {
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     required
                   />
-                    
+                   {errors.testDate !=="" ? (
+                      <span className={classes.error}>{errors.testDate}</span>
+                  ) : "" } 
                 </FormGroup>
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Urinalysis Test Result</FormLabelName>
                   <Input
-                    type="text"
+                    type="select"
                     name="result"
                     id="result"
                     value={urinalysisTest.result}
                     onChange={handleInputChangeUrinalysisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
-                 />
-                   
+                 >
+                  <option value="">Select </option>
+                    <option value="Positive">Positive </option>
+                    <option value="Negative">Negative </option>
+                  </Input>
+                  {errors.result !=="" ? (
+                      <span className={classes.error}>{errors.result}</span>
+                  ) : "" }
                 </FormGroup>
               </div>
               </>)}
@@ -1131,7 +1152,7 @@ const ClinicVisit = (props) => {
                 <FormGroup>
                   <FormLabelName > Test  Date</FormLabelName>
                   <Input
-                    type="select"
+                    type="date"
                     name="testDate"
                     id="testDate"
                     value={otherTest.testDate}

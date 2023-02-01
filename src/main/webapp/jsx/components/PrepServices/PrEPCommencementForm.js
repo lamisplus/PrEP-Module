@@ -173,7 +173,7 @@ const PrEPCommencementForm = (props) => {
         height: "",
     })
     const handleInputChange = e => { 
-          
+        setErrors({...errors, [e.target.name]: ""})  
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
     }    
 
@@ -193,6 +193,7 @@ const PrEPCommencementForm = (props) => {
     }
     //to check the input value for clinical decision 
     const handleInputValueCheckHeight =(e)=>{
+        setErrors({...errors, [e.target.name]: ""}) 
         if(e.target.name==="height" && (e.target.value < 48.26 || e.target.value>216.408)){
         const message ="Height cannot be greater than 216.408 and less than 48.26"
         setVitalClinicalSupport({...vitalClinicalSupport, height:message})
@@ -201,6 +202,7 @@ const PrEPCommencementForm = (props) => {
         }
     }
     const handleInputValueCheckBodyWeight =(e)=>{
+        setErrors({...errors, [e.target.name]: ""}) 
         if(e.target.name==="bodyWeight" && (e.target.value < 3 || e.target.value>150)){      
         const message ="Body weight must not be greater than 150 and less than 3"
         setVitalClinicalSupport({...vitalClinicalSupport, bodyWeight:message})
@@ -548,6 +550,8 @@ const PrEPCommencementForm = (props) => {
                                 value={objValues.datePrepGiven}
                                 onChange={handleInputChange}
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
+                                max= {moment(new Date()).format("YYYY-MM-DD") }
                                 disabled={disabledField}
                             />
                                 

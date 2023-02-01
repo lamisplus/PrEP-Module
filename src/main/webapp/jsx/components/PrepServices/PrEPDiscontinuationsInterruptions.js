@@ -128,7 +128,8 @@ const PrEPEligibiltyScreeningForm = (props) => {
         //console.log(error);
         });    
     }
-    const handleInputChange = e => {        
+    const handleInputChange = e => { 
+        setErrors({...errors, [e.target.name]: ""})        
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
 
     }
