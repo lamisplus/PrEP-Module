@@ -1,6 +1,5 @@
 package org.lamisplus.modules.prep.repository;
 
-import io.micrometer.core.instrument.Tags;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.prep.domain.entity.PrepClinic;
 import org.springframework.data.jpa.repository.JpaRepository;

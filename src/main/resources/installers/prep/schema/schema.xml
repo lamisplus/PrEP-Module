@@ -64,7 +64,7 @@
                 visit_uuid character varying(255),
                 extra jsonb,
                 facility_id bigint NOT NULL,
-                prep_eligibility_uuid character varying NOT NULL,
+                prep_eligibility_uuid character varying,
                 status character varying,
                 date_enrolled date,
                 date_referred date,
