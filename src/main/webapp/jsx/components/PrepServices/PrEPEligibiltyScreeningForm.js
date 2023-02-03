@@ -192,7 +192,7 @@ const BasicInfo = (props) => {
         }
     )
     const handleInputChangeRiskAssessmentPartner = e => { 
-        //setErrors({...temp, [e.target.name]:""}) 
+        setErrors({...temp, [e.target.name]:""}) 
         setRiskAssessmentPartner ({...riskAssessmentPartner,  [e.target.name]: e.target.value});
                     
     }
@@ -240,7 +240,10 @@ const BasicInfo = (props) => {
         }
     )
     const handleInputChangeDrugHistory = e => { 
-        setErrors({...temp, [e.target.name]:""}) 
+        setErrors({...temp, [e.target.name]:""})
+        if(drugHistory.hivTestedBefore==="true"){
+            drugHistory.lastTest=""
+        } 
         setDrugHistory ({...drugHistory,  [e.target.name]: e.target.value});         
     }
      /*****  Validation  */
@@ -1010,9 +1013,10 @@ console.log(props)
                                     ) : "" }
                                 </FormGroup>
                             </div>
+                            {drugHistory.hivTestedBefore==="true" && (
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>When was your last test?     </Label>
+                                    <Label>When was your last test?    </Label>
                                     <select
                                         className="form-control"
                                         name="lastTest"
@@ -1034,6 +1038,7 @@ console.log(props)
                                     ) : "" }
                                 </FormGroup>
                             </div>
+                            )}
                             </div>
                             
                             <div className="row">

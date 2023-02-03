@@ -151,19 +151,20 @@ const ClinicVisit = (props) => {
   })
 
   const [syphilisTest, setSyphilisTest] = useState({
-    syphilisTest: "No",
+    syphilisTest: "Yes",
     testDate: "",
     result: "",
   })
   const [hepatitisTest, setHepatitisTest] = useState({
-    hepatitisTest: "No",
+    hepatitisTest: "Yes",
     testDate: "",
     result: "",
   })
   const [otherTest, setOtherTest] = useState({
-    otherTest: "No",
+    otherTest: "Yes",
     testDate: "",
     result: "",
+    name: "",
   })
 
   useEffect(() => {
@@ -680,7 +681,7 @@ const ClinicVisit = (props) => {
                     </div>
               </div>
               <div className="row">
-              <div className="form-group mb-3 col-md-12">
+              <div className="form-group mb-3 col-md-8">
                   <FormGroup>
                   <FormLabelName >Blood Pressure</FormLabelName>
                   <InputGroup>
@@ -698,6 +699,12 @@ const ClinicVisit = (props) => {
                           onKeyUp={handleInputValueCheckSystolic}
                           style={{border: "1px solid #014D88", borderRadius:"0rem"}} 
                       />
+                      {vitalClinicalSupport.systolic !=="" ? (
+                      <span className={classes.error}>{vitalClinicalSupport.systolic}</span>
+                      ) : ""}
+                       {errors.systolic !=="" ? (
+                      <span className={classes.error}>{errors.systolic}</span>
+                  ) : "" }  
                       <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
                       diastolic(mmHg)
                       </InputGroupText>
@@ -715,12 +722,8 @@ const ClinicVisit = (props) => {
                       
                       
                   </InputGroup>
-                  {vitalClinicalSupport.systolic !=="" ? (
-                  <span className={classes.error}>{vitalClinicalSupport.systolic}</span>
-                  ) : ""}
-                  {errors.systolic !=="" ? (
-                      <span className={classes.error}>{errors.systolic}</span>
-                  ) : "" }  
+                  
+                 
                   {vitalClinicalSupport.diastolic !=="" ? (
                   <span className={classes.error}>{vitalClinicalSupport.diastolic}</span>
                   ) : ""}
@@ -1028,8 +1031,8 @@ const ClinicVisit = (props) => {
                     value={urinalysisTest.testDate}
                     onChange={handleInputChangeUrinalysisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
-                    required
                   />
                    {errors.testDate !=="" ? (
                       <span className={classes.error}>{errors.testDate}</span>
@@ -1074,8 +1077,8 @@ const ClinicVisit = (props) => {
                     value={hepatitisTest.testDate}
                     onChange={handleInputChangeHepatitisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
-                    required
                   />
                 </FormGroup>
               </div>
@@ -1117,6 +1120,7 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChangeSyphilisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
+                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                   />
                     
@@ -1148,7 +1152,22 @@ const ClinicVisit = (props) => {
               </Label>
               <br /><br />
               {otherTest.otherTest==='Yes' && (<> 
-              <div className=" mb-3 col-md-6">
+                <div className=" mb-3 col-md-4">
+                <FormGroup>
+                  <FormLabelName > Test  Name</FormLabelName>
+                  <Input
+                    type="text"
+                    name="testDate"
+                    id="testDate"
+                    value={otherTest.testDate}
+                    onChange={handleInputChangeOtherTest}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    required
+                  />
+                   
+                </FormGroup>
+              </div>
+              <div className=" mb-3 col-md-4">
                 <FormGroup>
                   <FormLabelName > Test  Date</FormLabelName>
                   <Input
@@ -1159,12 +1178,13 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChangeOtherTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     required
+                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                   />
                    
                 </FormGroup>
               </div>
-              <div className=" mb-3 col-md-6">
+              <div className=" mb-3 col-md-4">
                 <FormGroup>
                   <FormLabelName > Test  Result</FormLabelName>
                   <Input

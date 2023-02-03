@@ -109,11 +109,12 @@ const PatientnHistory = (props) => {
             PatientHistory()
         }
       }, [props.patientObj.id, props.activeContent.actionType]);
+      console.log(props.patientObj)
         ///GET LIST OF Patients
         const PatientHistory =()=>{
             setLoading(true)
             axios
-               .get(`${baseUrl}prep-clinic/person/${props.patientObj.personId}?last=false`,
+               .get(`${baseUrl}prep-clinic/person/${props.patientObj.personId}?isCommenced=false&last=false`,
                    { headers: {"Authorization" : `Bearer ${token}`} }
                )
                .then((response) => {
