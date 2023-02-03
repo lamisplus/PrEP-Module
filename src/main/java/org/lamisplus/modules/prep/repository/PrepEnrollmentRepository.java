@@ -91,15 +91,13 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "WHERE el.archived=?1 GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
             " LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND pet.archived=?1" +
             " LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived=?1" +
-            " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration, " +
-            "(CASE " +
-            "WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active' " +
-            "ELSE" +
-            " 'Defaulted' " +
-            "END) status " +
-            "FROM prep_clinic pc " +
-            "WHERE pc.archived=0 " +
-            "GROUP BY person_uuid, duration, status ) prepc ON prepc.person_uuid=p.uuid " +
+            " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration,  \n" +
+            " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'" +
+            " ELSE  'Defaulted' END) status FROM prep_clinic pc" +
+            " INNER JOIN (SELECT MAX(pc.encounter_date) encounter_date, pc.person_uuid" +
+            " FROM prep_clinic pc GROUP BY pc.person_uuid) max_p ON max_p.encounter_date=pc.encounter_date " +
+            " AND max_p.person_uuid=pc.person_uuid WHERE pc.archived=?1 " +
+            " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
             "LEFT JOIN (" +
             "SELECT pi.id, pi.person_uuid, MAX(pi.interruption_date)interruption_date , pi.interruption_type " +
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
@@ -129,15 +127,13 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "WHERE el.archived=?1 GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
             " LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND pet.archived=?1" +
             " LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived=?1" +
-            " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration, " +
-            "(CASE " +
-            "WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active' " +
-            "ELSE" +
-            " 'Defaulted' " +
-            "END) status " +
-            "FROM prep_clinic pc " +
-            "WHERE pc.archived=0 " +
-            "GROUP BY person_uuid, duration, status ) prepc ON prepc.person_uuid=p.uuid " +
+            " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration,  \n" +
+            " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'" +
+            " ELSE  'Defaulted' END) status FROM prep_clinic pc" +
+            " INNER JOIN (SELECT MAX(pc.encounter_date) encounter_date, pc.person_uuid" +
+            " FROM prep_clinic pc GROUP BY pc.person_uuid) max_p ON max_p.encounter_date=pc.encounter_date " +
+            " AND max_p.person_uuid=pc.person_uuid WHERE pc.archived=?1 " +
+            " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
             "LEFT JOIN (" +
             "SELECT pi.id, pi.person_uuid, MAX(pi.interruption_date)interruption_date , pi.interruption_type " +
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
@@ -163,15 +159,13 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "WHERE el.archived=?1 GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
             " LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND pet.archived=?1" +
             " LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived=?1" +
-            " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration, " +
-            "(CASE " +
-            "WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active' " +
-            "ELSE" +
-            " 'Defaulted' " +
-            "END) status " +
-            "FROM prep_clinic pc " +
-            "WHERE pc.archived=0 " +
-            "GROUP BY person_uuid, duration, status ) prepc ON prepc.person_uuid=p.uuid " +
+            " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration,  \n" +
+            " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'" +
+            " ELSE  'Defaulted' END) status FROM prep_clinic pc" +
+            " INNER JOIN (SELECT MAX(pc.encounter_date) encounter_date, pc.person_uuid" +
+            " FROM prep_clinic pc GROUP BY pc.person_uuid) max_p ON max_p.encounter_date=pc.encounter_date " +
+            " AND max_p.person_uuid=pc.person_uuid WHERE pc.archived=?1 " +
+            " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
             "LEFT JOIN (" +
             "SELECT pi.id, pi.person_uuid, MAX(pi.interruption_date)interruption_date , pi.interruption_type " +
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
