@@ -42,15 +42,45 @@ const useStyles = makeStyles(theme => ({
     button: {
         margin: theme.spacing(1)
     },
-
     root: {
-        '& > *': {
-            margin: theme.spacing(1)
-        }
+        flexGrow: 1,
+        "& .card-title":{
+            color:'#fff',
+            fontWeight:'bold'
+        },
+        "& .form-control":{
+            borderRadius:'0.25rem',
+            height:'41px'
+        },
+        "& .card-header:first-child": {
+            borderRadius: "calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0"
+        },
+        "& .dropdown-toggle::after": {
+            display: " block !important"
+        },
+        "& select":{
+            "-webkit-appearance": "listbox !important"
+        },
+        "& p":{
+            color:'red'
+        },
+        "& label":{
+            fontSize:'14px',
+            color:'#014d88',
+            fontWeight:'bold'
+        },
     },
     input: {
         display: 'none'
-    } 
+    },
+    error: {
+        color: "#f85032",
+        fontSize: "11px",
+      },
+      success: {
+        color: "#4BB543 ",
+        fontSize: "11px",
+      }, 
 }))
 
 const PrEPRegistrationForm = (props) => {
@@ -70,7 +100,8 @@ const PrEPRegistrationForm = (props) => {
         supporterPhone: "",
         supporterRelationshipType: "",
         uniqueId: "",
-        hivTestingPoint:""
+        hivTestingPoint:"",
+        dateOfLastHivNegativeTest:""
     });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
@@ -177,7 +208,7 @@ const PrEPRegistrationForm = (props) => {
     /**** Submit Button Processing  */
     const handleSubmit = (e) => {        
         e.preventDefault();
-        if(validate) {   
+        if(validate()) {   
           objValues.personId=props.patientObj.personId
           objValues.prepEligibilityUuid=patientDto.uuid 
           setSaving(true);
@@ -195,6 +226,8 @@ const PrEPRegistrationForm = (props) => {
                   setSaving(false);
                   toast.error("Something went wrong");
               });
+        }else{
+            toast.error("All fields are required ", {position: toast.POSITION.BOTTOM_CENTER});
         }
     }
 
@@ -268,7 +301,7 @@ const PrEPRegistrationForm = (props) => {
                                     value={objValues.riskType}
                                     required
                                 >
-                                <option value=""> Select</option>
+                                    <option value=""> Select</option>
                                     {prepRisk.map((value) => (
                                         <option key={value.id} value={value.code}>
                                             {value.display}
@@ -294,6 +327,7 @@ const PrEPRegistrationForm = (props) => {
                                     value={objValues.dateOfLastHivNegativeTest}
                                     
                                 >
+                                     <option value=""> Select</option>
                                       {entryPoint.map((value) => (
                                             <option key={value.id} value={value.id}>
                                                 {value.display}

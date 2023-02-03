@@ -37,7 +37,7 @@ function SubMenu(props) {
     return (
          <div>
 
-                <Menu size="mini" color={"black"} inverted >
+                <Menu size="large" color={"black"} inverted >
                 <Menu.Item onClick={() => onClickHome()} >Home
                 </Menu.Item>                  
                 { patientObj.eligibilityCount<=0 || patientObj.eligibilityCount===null ?

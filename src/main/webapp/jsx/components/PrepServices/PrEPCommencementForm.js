@@ -484,7 +484,7 @@ const PrEPCommencementForm = (props) => {
                             value={objValues.referred}
                             disabled={disabledField}
                         >
-                        <option value=""> </option>
+                        <option value="">Select </option>
                         <option value="true"> Yes</option>
                         <option value="false"> No</option>
                         </Input>
