@@ -1326,7 +1326,7 @@ console.log(props)
                                         className="form-control"
                                         name="analpain"
                                         id="analpain"
-                                        value={stiScreening.lowerAbdominalPains}
+                                        value={stiScreening.analpain}
                                         onChange={handleInputChangeStiScreening}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         disabled={disabledField}
@@ -1412,24 +1412,24 @@ console.log(props)
                             <span style={{ textTransform: "capitalize" }}>Updating...</span>
                             )}
                     </MatButton>
-                            </>):(<>
-                                <MatButton
-                                    type="submit"
-                                    variant="contained"
-                                    color="primary"
-                                    className={classes.button}
-                                    startIcon={<SaveIcon />}
-                                    style={{backgroundColor:"#014d88"}}
-                                    onClick={handleSubmit}
-                                    disabled={saving}
-                                    >
-                                        {!saving ? (
-                                        <span style={{ textTransform: "capitalize" }}>Save</span>
-                                        ) : (
-                                        <span style={{ textTransform: "capitalize" }}>Saving...</span>
-                                        )}
-                            </MatButton>
-                            </>)}
+                    </>):(<>
+                    <MatButton
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        className={classes.button}
+                        startIcon={<SaveIcon />}
+                        style={{backgroundColor:"#014d88"}}
+                        onClick={handleSubmit}
+                        disabled={saving}
+                        >
+                            {!saving ? (
+                            <span style={{ textTransform: "capitalize" }}>Save</span>
+                            ) : (
+                            <span style={{ textTransform: "capitalize" }}>Saving...</span>
+                            )}
+                    </MatButton>
+                    </>)}
                            
                             </div>
                             </div>
