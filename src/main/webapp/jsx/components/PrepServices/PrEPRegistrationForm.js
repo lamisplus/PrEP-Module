@@ -196,7 +196,7 @@ const PrEPRegistrationForm = (props) => {
         temp.dateEnrolled = objValues.dateEnrolled ? "" : "This field is required"
         temp.dateReferred = objValues.dateReferred ? "" : "This field is required"
         temp.riskType = objValues.riskType ? "" : "This field is required"
-        temp.supporterName = objValues.supporterName ? "" : "This field is required"
+        //temp.supporterName = objValues.supporterName ? "" : "This field is required"
         temp.supporterPhone = objValues.supporterPhone ? "" : "This field is required"
         temp.supporterRelationshipType = objValues.supporterRelationshipType ? "" : "This field is required"
         temp.uniqueId = objValues.uniqueId ? "" : "This field is required"
@@ -379,7 +379,7 @@ const PrEPRegistrationForm = (props) => {
                                 
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
-                                    <Label >PrEP Supporter <span style={{ color:"red"}}> *</span></Label>
+                                    <Label >PrEP Supporter </Label>
                                     <Input
                                         className="form-control"
                                         type="text"
