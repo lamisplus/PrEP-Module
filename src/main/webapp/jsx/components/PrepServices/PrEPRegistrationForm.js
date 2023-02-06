@@ -324,7 +324,7 @@ const PrEPRegistrationForm = (props) => {
                                     name="hivTestingPoint"
                                     id="hivTestingPoint"
                                     onChange={handleInputChange}
-                                    value={objValues.dateOfLastHivNegativeTest}
+                                    value={objValues.hivTestingPoint}
                                     
                                 >
                                      <option value=""> Select</option>
