@@ -452,6 +452,9 @@ public class PrepService {
 
         prepEnrollment.setAncUniqueArtNo( prepEnrollmentRequestDto.getAncUniqueArtNo() );
 
+        prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
+        prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
+
         return prepEnrollment;
     }
     private PrepClinic clinicRequestDtoToClinic(PrepClinicRequestDto prepClinicRequestDto, String personUuid) {
@@ -583,6 +586,9 @@ public class PrepService {
         enrollmentDto.setCommenced(true);
 
         enrollmentDto.setAncUniqueArtNo(enrollment.getAncUniqueArtNo());
+
+        enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
+        enrollmentDto.setDateOfLastHivNegativeTest(enrollment.getDateOfLastHivNegativeTest());
 
         return enrollmentDto;
     }
