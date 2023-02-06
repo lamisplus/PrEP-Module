@@ -251,6 +251,7 @@ const BasicInfo = (props) => {
         //PREP FORM VALIDATION
            temp.visitDate = objValues.visitDate? "" : "This field is required."
            temp.sexPartner = objValues.sexPartner ? "" : "This field is required."
+           temp.hivTestResultAtvisit = objValues.hivTestResultAtvisit ? "" : "This field is required."
            
             setErrors({ ...temp })
         return Object.values(temp).every(x => x === "")
