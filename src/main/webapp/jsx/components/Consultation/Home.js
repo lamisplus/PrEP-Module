@@ -434,6 +434,10 @@ const ClinicVisit = (props) => {
     temp.urinalysisTest = urinalysisTest.urinalysisTest ? "" : "This field is required"
     temp.testDate = urinalysisTest.testDate ? "" : "This field is required"
     temp.result = urinalysisTest.result ? "" : "This field is required"
+    temp.regimenId = objValues.regimenId ? "" : "This field is required"
+    temp.duration = objValues.duration ? "" : "This field is required"
+    temp.datePrepGiven = urinalysisTest.datePrepGiven ? "" : "This field is required"
+
     setErrors({
         ...temp
     })
@@ -897,9 +901,8 @@ const ClinicVisit = (props) => {
                  
                 </FormGroup>
               </div> 
-              )}
-              
-              <div className="form-group mb-3 col-md-6">
+              )}              
+              {/* <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >PrEP Given</FormLabelName>
                   <Input
@@ -917,11 +920,10 @@ const ClinicVisit = (props) => {
                   </Input>
                  
                 </FormGroup>
-              </div>
-              {objValues.prepGiven==='Yes' && (<> 
+              </div> */} 
               <div className="form-group mb-3 col-md-6">
               <FormGroup>
-              <FormLabelName for="">PrEP Regimen</FormLabelName>
+              <FormLabelName for="">PrEP Regimen <span style={{ color:"red"}}> *</span></FormLabelName>
               <Input
                   type="select"
                   name="regimenId"
@@ -945,7 +947,7 @@ const ClinicVisit = (props) => {
               </div> 
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Duration </FormLabelName>
+                  <FormLabelName >Duration <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
                     type="number"
                     name="duration"
@@ -956,12 +958,14 @@ const ClinicVisit = (props) => {
                    
                     required
                   />
-                    
+                  {errors.duration !=="" ? (
+                      <span className={classes.error}>{errors.duration}</span>
+                  ) : "" }   
                 </FormGroup>
               </div>     
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Date PrEP Given</FormLabelName>
+                  <FormLabelName >Date PrEP Given <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
                     type="date"
                     name="datePrepGiven"
@@ -973,10 +977,12 @@ const ClinicVisit = (props) => {
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     required
                   />
-                    
+                  {errors.datePrepGiven !=="" ? (
+                      <span className={classes.error}>{errors.datePrepGiven}</span>
+                  ) : "" }   
                 </FormGroup>
               </div> 
-              </>)}
+            
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Other Drugs</FormLabelName>
@@ -1023,7 +1029,7 @@ const ClinicVisit = (props) => {
               {urinalysisTest.urinalysisTest==='Yes' && (<> 
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Urinalysis Test Date</FormLabelName>
+                  <FormLabelName >Urinalysis Test Date <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
                     type="date"
                     name="testDate"
@@ -1041,7 +1047,7 @@ const ClinicVisit = (props) => {
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Urinalysis Test Result</FormLabelName>
+                  <FormLabelName >Urinalysis Test Result <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
                     type="select"
                     name="result"
