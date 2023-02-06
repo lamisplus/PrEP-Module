@@ -150,9 +150,9 @@ public class PrepService {
         prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         //prepInterruption.setArchived(UN_ARCHIVED);
         //prepInterruption.setPerson(person);
-        LOG.info("prepInterruption {}", prepInterruption);
+        //log.info("prepInterruption {}", prepInterruption);
         prepInterruption = prepInterruptionRepository.save(prepInterruption);
-        LOG.info("prepInterruption after saving {}", prepInterruption);
+        //LOG.info("prepInterruption after saving {}", prepInterruption);
         prepInterruption.setPerson(person);
         PrepInterruptionDto prepInterruptionDto = this.interruptionToInterruptionDto(prepInterruption);
         return prepInterruptionDto;
