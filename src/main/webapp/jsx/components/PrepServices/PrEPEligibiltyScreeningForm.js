@@ -269,7 +269,7 @@ const BasicInfo = (props) => {
             objValues.personId= patientID
             objValues.uniqueId= patientID
                 if(props.activeContent && props.activeContent.actionType){//Perform operation for updation action
-                    axios.put(`${baseUrl}prep/eligibility/${props.activeContent.id}`,objValues,
+                    axios.put(`${baseUrl}prep-eligibility/${props.activeContent.id}`,objValues,
                     { headers: {"Authorization" : `Bearer ${token}`}},)
                     .then(response => {
                         setSaving(false);
