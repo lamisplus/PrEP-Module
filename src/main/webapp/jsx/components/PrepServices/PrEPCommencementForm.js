@@ -169,7 +169,7 @@ const PrEPCommencementForm = (props) => {
     }
             //Vital signs clinical decision support 
     const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
-        bodyWeight: "",
+        weight: "",
         height: "",
     })
     const handleInputChange = e => { 
@@ -203,11 +203,11 @@ const PrEPCommencementForm = (props) => {
     }
     const handleInputValueCheckBodyWeight =(e)=>{
         setErrors({...errors, [e.target.name]: ""}) 
-        if(e.target.name==="bodyWeight" && (e.target.value < 3 || e.target.value>150)){      
+        if(e.target.name==="weight" && (e.target.value < 3 || e.target.value>150)){      
         const message ="Body weight must not be greater than 150 and less than 3"
-        setVitalClinicalSupport({...vitalClinicalSupport, bodyWeight:message})
+        setVitalClinicalSupport({...vitalClinicalSupport, weight:message})
         }else{
-        setVitalClinicalSupport({...vitalClinicalSupport, bodyWeight:""})
+        setVitalClinicalSupport({...vitalClinicalSupport, weight:""})
         }
     }
     /**** Submit Button Processing  */

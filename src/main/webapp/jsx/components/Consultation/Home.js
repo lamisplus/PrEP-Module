@@ -85,7 +85,7 @@ const useStyles = makeStyles(theme => ({
 const ClinicVisit = (props) => {
   //let patientObj = props.patientObj ? props.patientObj : {}
   const [errors, setErrors] = useState({});
-  //const [clinicVisitList, setClinicVisitList] = useState([])
+  const [disabledField, setSisabledField] = useState(false);
   const [patientDto, setPatientDto] = useState();
   let temp = { ...errors }
   const classes = useStyles()
@@ -180,8 +180,10 @@ const ClinicVisit = (props) => {
     PrepRegimen();
     if(props.activeContent && props.activeContent.id!=="" && props.activeContent.id!==null){
       GetPatientVisit(props.activeContent.id)
+      setSisabledField(props.activeContent.actionType==='view'?true : false)
     }
-  }, []);
+  }, [props.activeContent]);
+  console.log(props.activeContent)
   const GetPatientVisit =(id)=>{
     axios
        .get(`${baseUrl}prep-clinic/${props.activeContent.id}`,
@@ -436,7 +438,7 @@ const ClinicVisit = (props) => {
     temp.result = urinalysisTest.result ? "" : "This field is required"
     temp.regimenId = objValues.regimenId ? "" : "This field is required"
     temp.duration = objValues.duration ? "" : "This field is required"
-    temp.datePrepGiven = urinalysisTest.datePrepGiven ? "" : "This field is required"
+    temp.datePrepGiven = objValues.datePrepGiven ? "" : "This field is required"
 
     setErrors({
         ...temp
@@ -454,7 +456,38 @@ const ClinicVisit = (props) => {
     objValues.urinalysis = urinalysisTest
     objValues.otherTestsDone = otherTest
     objValues.prepEnrollmentUuid= patientDto.uuid
-    axios.post(`${baseUrl}prep/clinic-visit`, objValues,
+    if(props.activeContent && props.activeContent.actionType){//Perform operation for updation action
+      axios.put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues,
+        { headers: { "Authorization": `Bearer ${token}` } },
+
+      )
+        .then(response => {
+          //PatientDetaild();
+          setSaving(false);
+          toast.success("Clinic Visit save successful", {position: toast.POSITION.BOTTOM_CENTER});
+          props.setActiveContent({...props.activeContent, route:'consultation', activeTab:"history", actionType:"vview" })
+        })
+        .catch(error => {
+          setSaving(false);
+          
+          if(error.response && error.response.data){
+            let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+            if(error.response.data.apierror && error.response.data.apierror.message!==""){
+                toast.error(error.response.data.apierror.message, {position: toast.POSITION.BOTTOM_CENTER});
+            }else if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
+              toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
+            }else{
+                toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
+            }
+
+        }else{
+            toast.error("Something went wrong. Please try again...",  {position: toast.POSITION.BOTTOM_CENTER});
+        }
+          
+        });
+
+    }else{
+      axios.post(`${baseUrl}prep/clinic-visit`, objValues,
       { headers: { "Authorization": `Bearer ${token}` } },
 
     )
@@ -482,6 +515,7 @@ const ClinicVisit = (props) => {
       }
         
       });
+    }
     }
   }
 
@@ -516,7 +550,7 @@ const ClinicVisit = (props) => {
                     //min={props.patientDetail && props.patientDetail.dateHivPositive!==null ? props.patientDetail.dateHivPositive : props.patientDetail.personResponseDto.dateOfRegistration}
                     min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
-                    required
+                    disabled={disabledField}
                   />
                  {errors.encounterDate !=="" ? (
                       <span className={classes.error}>{errors.encounterDate}</span>
@@ -539,6 +573,7 @@ const ClinicVisit = (props) => {
                                 value={objValues.pulse}
                                 onKeyUp={handleInputValueCheckPulse} 
                                 style={{border: "1px solid #014D88", borderRadius:"0rem"}}
+                                disabled={disabledField}
                             />
                             <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
                                 bmp
@@ -566,6 +601,7 @@ const ClinicVisit = (props) => {
                                 value={objValues.respiratoryRate}
                                 onKeyUp={handleInputValueCheckRespiratoryRate} 
                                 style={{border: "1px solid #014D88", borderRadius:"0rem"}}
+                                disabled={disabledField}
                             />
                             <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
                                 bmp
@@ -593,6 +629,7 @@ const ClinicVisit = (props) => {
                                 value={objValues.temperature}
                                 onKeyUp={handleInputValueCheckTemperature} 
                                 style={{border: "1px solid #014D88", borderRadius:"0rem"}}
+                                disabled={disabledField}
                             />
                             <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
                                 <sup>o</sup>c
@@ -621,6 +658,7 @@ const ClinicVisit = (props) => {
                                 value={objValues.weight}
                                 onKeyUp={handleInputValueCheckweight} 
                                 style={{border: "1px solid #014D88", borderRadius:"0rem"}}
+                                disabled={disabledField}
                             />
                             <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
                                 kg
@@ -654,6 +692,7 @@ const ClinicVisit = (props) => {
                                 max="216.408"
                                 onKeyUp={handleInputValueCheckHeight} 
                                 style={{border: "1px solid #014D88", borderRadius:"0rem"}}
+                                disabled={disabledField}
                             />
                                 <InputGroupText
                                 addonType="append"
@@ -702,13 +741,9 @@ const ClinicVisit = (props) => {
                           value={objValues.systolic}
                           onKeyUp={handleInputValueCheckSystolic}
                           style={{border: "1px solid #014D88", borderRadius:"0rem"}} 
+                          disabled={disabledField}
                       />
-                      {vitalClinicalSupport.systolic !=="" ? (
-                      <span className={classes.error}>{vitalClinicalSupport.systolic}</span>
-                      ) : ""}
-                       {errors.systolic !=="" ? (
-                      <span className={classes.error}>{errors.systolic}</span>
-                  ) : "" }  
+                     
                       <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
                       diastolic(mmHg)
                       </InputGroupText>
@@ -722,11 +757,17 @@ const ClinicVisit = (props) => {
                           value={objValues.diastolic}
                           onKeyUp={handleInputValueCheckDiastolic} 
                           style={{border: "1px solid #014D88", borderRadius:"0rem"}}
+                          disabled={disabledField}
                           />
                       
                       
                   </InputGroup>
-                  
+                  {vitalClinicalSupport.systolic !=="" ? (
+                      <span className={classes.error}>{vitalClinicalSupport.systolic}</span>
+                      ) : ""}
+                       {errors.systolic !=="" ? (
+                      <span className={classes.error}>{errors.systolic}</span>
+                  ) : "" }  
                  
                   {vitalClinicalSupport.diastolic !=="" ? (
                   <span className={classes.error}>{vitalClinicalSupport.diastolic}</span>
@@ -755,7 +796,7 @@ const ClinicVisit = (props) => {
                     value={objValues.hivTestResult}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                   >
                     <option value="">Select </option>
                     {htsResult.map((value) => (
@@ -777,7 +818,7 @@ const ClinicVisit = (props) => {
                     value={objValues.notedSideEffects}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                   >
                     <option value="">Select </option>
                     {prepSideEffect.map((value) => (
@@ -819,7 +860,7 @@ const ClinicVisit = (props) => {
                     value={objValues.stiScreening}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                   >
                     <option value="">Select </option>
                     <option value="true">Yes </option>
@@ -839,7 +880,7 @@ const ClinicVisit = (props) => {
                     value={objValues.syndromicStiScreening}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                   >
                     <option value="">Select </option>
                     {sti.map((value) => (
@@ -862,7 +903,7 @@ const ClinicVisit = (props) => {
                     value={objValues.adherenceLevel}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                   >
                     <option value="">Select </option>
 
@@ -888,7 +929,7 @@ const ClinicVisit = (props) => {
                     value={objValues.whyAdherenceLevelPoor}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                   >
                     <option value="">Select </option>
 
@@ -930,7 +971,7 @@ const ClinicVisit = (props) => {
                   id="regimenId"
                   onChange={handleInputChange}
                   value={objValues.regimenId}
-                  
+                  disabled={disabledField}
               >
               <option value=""> Select</option>
               {prepRegimen.map((value) => (
@@ -956,7 +997,7 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                    
-                    required
+                    disabled={disabledField}
                   />
                   {errors.duration !=="" ? (
                       <span className={classes.error}>{errors.duration}</span>
@@ -975,7 +1016,7 @@ const ClinicVisit = (props) => {
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
-                    required
+                    disabled={disabledField}
                   />
                   {errors.datePrepGiven !=="" ? (
                       <span className={classes.error}>{errors.datePrepGiven}</span>
@@ -993,7 +1034,7 @@ const ClinicVisit = (props) => {
                     value={objValues.otherDrugs}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                  />
                     
                 </FormGroup>
@@ -1039,6 +1080,7 @@ const ClinicVisit = (props) => {
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
+                    disabled={disabledField}
                   />
                    {errors.testDate !=="" ? (
                       <span className={classes.error}>{errors.testDate}</span>
@@ -1055,7 +1097,7 @@ const ClinicVisit = (props) => {
                     value={urinalysisTest.result}
                     onChange={handleInputChangeUrinalysisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                  >
                   <option value="">Select </option>
                     <option value="Positive">Positive </option>
@@ -1085,6 +1127,7 @@ const ClinicVisit = (props) => {
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
+                    disabled={disabledField}
                   />
                 </FormGroup>
               </div>
@@ -1099,7 +1142,7 @@ const ClinicVisit = (props) => {
                     
                     onChange={handleInputChangeHepatitisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                   >
                     <option value="">Select </option>
                     <option value="Positive">Positive </option>
@@ -1125,7 +1168,7 @@ const ClinicVisit = (props) => {
                     value={syphilisTest.testDate}
                     onChange={handleInputChangeSyphilisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                     min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                   />
@@ -1142,7 +1185,7 @@ const ClinicVisit = (props) => {
                     value={syphilisTest.result}
                     onChange={handleInputChangeSyphilisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                   >
                     <option value="">Select </option>
                     <option value="Positive">Positive </option>
@@ -1168,7 +1211,7 @@ const ClinicVisit = (props) => {
                     value={otherTest.testDate}
                     onChange={handleInputChangeOtherTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                   />
                    
                 </FormGroup>
@@ -1183,7 +1226,7 @@ const ClinicVisit = (props) => {
                     value={otherTest.testDate}
                     onChange={handleInputChangeOtherTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                     min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                   />
@@ -1200,7 +1243,7 @@ const ClinicVisit = (props) => {
                     value={otherTest.prepGiven}
                     onChange={handleInputChangeOtherTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
+                    disabled={disabledField}
                   >
                     <option value="">Select </option>
                     <option value="Positive">Positive </option>
@@ -1226,7 +1269,7 @@ const ClinicVisit = (props) => {
                   onChange={handleInputChange}
                   style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                   min={objValues.encounterDate}
-                  
+                  disabled={disabledField}
                 />
                 {errors.nextAppointment !=="" ? (
                         <span className={classes.error}>{errors.nextAppointment}</span>
@@ -1234,22 +1277,42 @@ const ClinicVisit = (props) => {
               </div>
            </div>
             <br />
-            <MatButton
-              type="submit"
-              variant="contained"
-              color="primary"
-              className={classes.button}
-              disabled={saving}
-              startIcon={<SaveIcon />}
-              style={{backgroundColor:"#014d88"}}
-              onClick={handleSubmit}
-            >
-              {!saving ? (
-                <span style={{ textTransform: "capitalize" }}>Save</span>
-              ) : (
-                <span style={{ textTransform: "capitalize" }}>Saving...</span>
-              )}
-            </MatButton>
+            {props.activeContent && props.activeContent.actionType? (<>
+                        <MatButton
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        hidden={disabledField}
+                        className={classes.button}
+                        startIcon={<SaveIcon />}
+                        style={{backgroundColor:"#014d88"}}
+                        onClick={handleSubmit}
+                        disabled={saving}
+                        >
+                            {!saving ? (
+                            <span style={{ textTransform: "capitalize" }}>Update</span>
+                            ) : (
+                            <span style={{ textTransform: "capitalize" }}>Updating...</span>
+                            )}
+                    </MatButton>
+                    </>):(<>
+                        <MatButton
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            className={classes.button}
+                            startIcon={<SaveIcon />}
+                            style={{backgroundColor:"#014d88"}}
+                            onClick={handleSubmit}
+                            disabled={saving}
+                            >
+                                {!saving ? (
+                                <span style={{ textTransform: "capitalize" }}>Save</span>
+                                ) : (
+                                <span style={{ textTransform: "capitalize" }}>Saving...</span>
+                                )}
+                    </MatButton>
+                    </>)}
           </Segment>
         </Grid.Column>
       </Grid>
