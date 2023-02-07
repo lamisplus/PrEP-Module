@@ -48,4 +48,8 @@ public class PrepEnrollmentDto implements Serializable {
     private String status;
 
     private String ancUniqueArtNo;
+
+    String hivTestingPoint;
+
+    LocalDate dateOfLastHivNegativeTest;
 }

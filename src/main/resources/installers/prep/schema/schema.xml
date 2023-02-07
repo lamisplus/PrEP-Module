@@ -73,6 +73,8 @@
                 supporter_name character varying,
                 supporter_relationship_type character varying,
                 anc_unique_art_no character varying,
+                hiv_testing_point character varying,
+                date_last_hiv_negative_test date,
                 archived integer NOT NULL,
                 created_by character varying(255) NOT NULL,
                 date_created timestamp without time zone NOT NULL,

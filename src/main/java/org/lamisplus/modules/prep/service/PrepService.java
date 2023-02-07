@@ -150,9 +150,9 @@ public class PrepService {
         prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         //prepInterruption.setArchived(UN_ARCHIVED);
         //prepInterruption.setPerson(person);
-        LOG.info("prepInterruption {}", prepInterruption);
+        //log.info("prepInterruption {}", prepInterruption);
         prepInterruption = prepInterruptionRepository.save(prepInterruption);
-        LOG.info("prepInterruption after saving {}", prepInterruption);
+        //LOG.info("prepInterruption after saving {}", prepInterruption);
         prepInterruption.setPerson(person);
         PrepInterruptionDto prepInterruptionDto = this.interruptionToInterruptionDto(prepInterruption);
         return prepInterruptionDto;
@@ -452,6 +452,9 @@ public class PrepService {
 
         prepEnrollment.setAncUniqueArtNo( prepEnrollmentRequestDto.getAncUniqueArtNo() );
 
+        prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
+        prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
+
         return prepEnrollment;
     }
     private PrepClinic clinicRequestDtoToClinic(PrepClinicRequestDto prepClinicRequestDto, String personUuid) {
@@ -583,6 +586,9 @@ public class PrepService {
         enrollmentDto.setCommenced(true);
 
         enrollmentDto.setAncUniqueArtNo(enrollment.getAncUniqueArtNo());
+
+        enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
+        enrollmentDto.setDateOfLastHivNegativeTest(enrollment.getDateOfLastHivNegativeTest());
 
         return enrollmentDto;
     }

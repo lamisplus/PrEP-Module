@@ -106,6 +106,12 @@ public class PrepEnrollment extends Audit implements Serializable {
     @Column(name = "date_referred")
     private LocalDate dateReferred;
 
+    @Column(name = "hiv_testing_point")
+    private String hivTestingPoint;
+
+    @Column(name = "date_last_hiv_negative_test")
+    private LocalDate dateOfLastHivNegativeTest;
+
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){

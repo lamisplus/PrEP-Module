@@ -19,6 +19,7 @@ import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
 import org.lamisplus.modules.prep.repository.PrepInterruptionRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -116,6 +117,8 @@ public class PrepEnrollmentService {
         prepEnrollment.setStatus("Enrolled");
 
         prepEnrollment.setAncUniqueArtNo( enrollmentDto.getAncUniqueArtNo() );
+        prepEnrollment.setHivTestingPoint(enrollmentDto.getHivTestingPoint());
+        prepEnrollment.setDateOfLastHivNegativeTest(enrollmentDto.getDateOfLastHivNegativeTest());
 
         return prepEnrollment;
     }
@@ -142,6 +145,9 @@ public class PrepEnrollmentService {
         prepEnrollment.setStatus("ENROLLED");
 
         prepEnrollment.setAncUniqueArtNo( prepEnrollmentRequestDto.getAncUniqueArtNo() );
+
+        prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
+        prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
 
         return prepEnrollment;
     }
@@ -170,6 +176,9 @@ public class PrepEnrollmentService {
         enrollmentDto.setCommenced(true);
 
         enrollmentDto.setAncUniqueArtNo(enrollment.getAncUniqueArtNo());
+
+        enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
+        enrollmentDto.setDateOfLastHivNegativeTest(enrollment.getDateOfLastHivNegativeTest());
 
         return enrollmentDto;
     }

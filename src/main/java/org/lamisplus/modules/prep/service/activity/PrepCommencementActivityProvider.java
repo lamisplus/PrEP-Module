@@ -29,6 +29,6 @@ public class PrepCommencementActivityProvider implements PatientActivityProvider
 	private PatientActivity buildPatientActivity(PrepClinic prepClinic) {
 		String name = "Prep Commencement";
 		assert prepClinic.getId() != null;
-		return new PatientActivity(prepClinic.getId(), name, prepClinic.getDatePrepStart(), "", "prep-commencement");
+		return new PatientActivity(prepClinic.getId(), name, prepClinic.getEncounterDate(), "", "prep-commencement");
 	}
 }
