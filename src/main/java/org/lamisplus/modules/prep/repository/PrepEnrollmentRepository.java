@@ -108,7 +108,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
             "p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
-            "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, he.person_uuid, he.date_confirmed_hiv ", nativeQuery = true)
+            "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, he.person_uuid, he.date_confirmed_hiv, pet.id ORDER BY pet.id DESC ", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
 
 
@@ -142,7 +142,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " WHERE p.archived=?1 AND p.facility_id=?2 AND p.uuid=?3" +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display,he.person_uuid, he.date_confirmed_hiv, " +
             "p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
-            "p.other_name, p.hospital_number, p.date_of_birth, prepc.status ", nativeQuery = true)
+            "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, pet.id ORDER BY pet.id DESC ", nativeQuery = true)
     Optional<PrepClient> findPersonPrepAndStatusByPatientUuid(Integer archived, Long facilityId, String personUuid);
     @Query(value = "SELECT p.date_of_registration AS dateOfRegistration, prepc.commencementCount, el.eligibility_count as eligibilityCount, pet.created_by as createdBy, pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,    " +
             " p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,    " +
@@ -174,7 +174,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " WHERE p.archived=?1 AND p.facility_id=?2 "+
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
             "p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
-            "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, he.person_uuid, he.date_confirmed_hiv ", nativeQuery = true)
+            "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, he.person_uuid, he.date_confirmed_hiv, pet.id ORDER BY pet.id DESC ", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
 
     List<PrepEnrollment> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
