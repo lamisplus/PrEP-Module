@@ -23,7 +23,7 @@ public class PrepEnrollmentDto implements Serializable {
 
     private LocalDate dateOfRegistration;
 
-    @NotBlank(message = "prepEligibilityUuid is mandatory")
+    //@NotBlank(message = "prepEligibilityUuid is mandatory")
     public String prepEligibilityUuid;
 
     //@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -49,7 +49,7 @@ public class PrepEnrollmentDto implements Serializable {
 
     private String ancUniqueArtNo;
 
-    String hivTestingPoint;
+    private String hivTestingPoint;
 
-    LocalDate dateOfLastHivNegativeTest;
+    private LocalDate dateOfLastHivNegativeTest;
 }

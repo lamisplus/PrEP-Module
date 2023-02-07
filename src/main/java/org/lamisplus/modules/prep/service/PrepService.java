@@ -26,10 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.lamisplus.modules.base.util.Constants.ArchiveStatus.ARCHIVED;
@@ -59,6 +56,7 @@ public class PrepService {
         PrepEligibility prepEligibility = this.prepEligibilityRequestDtoToPrepEligibility(prepEligibilityRequestDto, person.getUuid());
 
         prepEligibility.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
+        prepEligibility.setUuid(UUID.randomUUID().toString());
         prepEligibility = prepEligibilityRepository.save(prepEligibility);
         prepEligibility.setPerson(person);
         PrepEligibilityDto prepEligibilityDto =  this.prepEligibilityToPrepEligibilityDto(prepEligibility);
@@ -88,6 +86,7 @@ public class PrepService {
         prepEnrollment = this.enrollmentRequestDtoToEnrollment(prepEnrollmentRequestDto, prepEligibility.getPersonUuid());
 
         prepEnrollment.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
+        prepEligibility.setUuid(UUID.randomUUID().toString());
         prepEnrollment = prepEnrollmentRepository.save(prepEnrollment);
         prepEnrollment.setPerson(prepEligibility.getPerson());
         PrepEnrollmentDto prepEnrollmentDto = this.enrollmentToEnrollmentDto(prepEnrollment);

@@ -77,11 +77,16 @@ public class PrepEnrollmentService {
         PrepEnrollment prepEnrollment = prepEnrollmentRepository
                 .findByIdAndArchivedAndFacilityId(id, UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization())
                 .orElseThrow(()-> new EntityNotFoundException(PrepEnrollment.class, "id", ""+id));
+        String prepEligibilityUuid= prepEnrollment.getPrepEligibilityUuid();
+        System.out.println("prepEligibilityUuid - " + prepEligibilityUuid);
+        String uuid = prepEnrollment.getUuid();
         prepEnrollment = enrollmentDtoToEnrollment(prepEnrollmentDto, prepEnrollment.getPersonUuid());
         prepEnrollment.setArchived(UN_ARCHIVED);
+        prepEnrollment.setUuid(uuid);
+        prepEnrollment.setPrepEligibilityUuid(prepEligibilityUuid);
         prepEnrollment.setId(id);
         prepEnrollment.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
-        return enrollmentToEnrollmentDto(prepEnrollment);
+        return enrollmentToEnrollmentDto(prepEnrollmentRepository.save(prepEnrollment));
     }
 
     public PrepEnrollmentDto getOpenEnrollment(Long personId){

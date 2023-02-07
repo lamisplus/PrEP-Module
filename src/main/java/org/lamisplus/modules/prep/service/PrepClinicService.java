@@ -142,9 +142,15 @@ public class PrepClinicService {
         PrepClinic prepClinic = prepClinicRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
                 .orElseThrow(()-> new EntityNotFoundException(PrepClinic.class, "id", String.valueOf(id)));
+        String uuid = prepClinic.getUuid();
+        String enrollmentUuid = prepClinic.getPrepEnrollmentUuid();
+        Boolean iscommencement = prepClinic.getIsCommencement();
         prepClinic = clinicDtoToClinic(prepClinicDto, prepClinic.getPersonUuid());
         prepClinic.setArchived(UN_ARCHIVED);
         prepClinic.setId(id);
+        prepClinic.setUuid(uuid);
+        prepClinic.setIsCommencement(iscommencement);
+        prepClinic.setPrepEnrollmentUuid(enrollmentUuid);
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         return clinicToClinicDto(prepClinicRepository.save(prepClinic), null);
     }
@@ -280,7 +286,7 @@ public class PrepClinicService {
         prepClinicDto.setDateReferred( clinic.getDateReferred() );
         prepClinicDto.setPrepEnrollmentUuid( clinic.getPrepEnrollmentUuid() );
         prepClinicDto.setRegimenId( clinic.getRegimenId() );
-        if(clinic.getRegimenId() != 0L){
+        if(clinic.getRegimenId() != 0L && clinic.getRegimen() != null){
             prepClinicDto.setRegimen(clinic.getRegimen().getRegimen());
         }
         prepClinicDto.setUrinalysisResult( clinic.getUrinalysisResult() );
