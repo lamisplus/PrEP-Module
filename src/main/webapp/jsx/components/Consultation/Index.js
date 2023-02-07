@@ -1,7 +1,7 @@
 import React, {useState, Fragment, useEffect } from "react";
 import { Row, Col, Card,  Tab, Tabs, } from "react-bootstrap";
 import ConsultationPage from './Home';
-import ClinicHistoryPage from "./ViewUpdate/ClinicHistory";
+import ClinicHistoryPage from "./ClinicHistory";
 
 const divStyle = {
   borderRadius: "2px",
@@ -14,7 +14,7 @@ const ClinicVisitPage = (props) => {
     
     useEffect ( () => {
       setKey(props.activeContent.activeTab)
-    }, [props.activeContent.id]);
+    }, [props.activeContent]);
 
 
   return (
@@ -33,7 +33,7 @@ const ClinicVisitPage = (props) => {
                 >
 
                   <Tab eventKey="home" title="CLINIC VISIT ">                   
-                    <ConsultationPage patientObj={patientObj} setActiveContent={props.setActiveContent}/>
+                    <ConsultationPage patientObj={patientObj} setActiveContent={props.setActiveContent} activeContent={props.activeContent}/>
                   </Tab>  
                   <Tab eventKey="history" title=" HISTORY">                   
                     <ClinicHistoryPage patientObj={patientObj} activeContent={props.activeContent} setActiveContent={props.setActiveContent} />

@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import { Link } from 'react-router-dom'
@@ -9,44 +9,16 @@ import PatientCardDetail from './PatientCard'
 import { useHistory } from "react-router-dom";
 import SubMenu from './SubMenu';
 import RecentHistory from './../History/RecentHistory';
+import PatientHistory from './../History/PatientHistory'
 import ClinicVisit from '../Consultation/Index'
-import Pharmacy from './../Pharmacy/Index';
-import Laboratory from './../Laboratory/index';
-import AncPnc from './../PmtctServices/AncPnc';
-import AncEnrollement from './../PmtctServices/AncEnrollement';
-import LabourDelivery from './../PmtctServices/LabourDelivery';
 import PrEPCommencementForm from './../PrepServices/PrEPCommencementForm';
 import PrEPDiscontinuationsInterruptions from './../PrepServices/PrEPDiscontinuationsInterruptions';
 import PrEPEligibiltyScreeningForm from './../PrepServices/PrEPEligibiltyScreeningForm';
 import PrEPVisit from './../PrepServices/PrEPVisit';
 import PrEPRegistrationForm from './../PrepServices/PrEPRegistrationForm';
-import EnhancedAdherenceCounseling from '../EnhancedAdherenceCounseling/Index';
-import CervicalCancer from './../CervicalCancer/Index';
-import ClientStatusUpdate from './../ClientStatusUpdate/ClientStatusUpdate'
-//import AdultClinicEvaluationFrom from '../InitailClinicEvaluation/index__'
-import AdultClinicEvaluationForm from '../InitailClinicEvaluation/Adult/Index'
-import ViewAdultClinicEvaluationForm from '../InitailClinicEvaluation/ViewAdultHistory/Index'
-import ChildClinicEvaluationForm from '../InitailClinicEvaluation/ChildClinicEvaluationForm'
-import MentalHealthScreening from '../MentalHealthScreening/index'
-import LabHistory from './../Laboratory/LabHistory'
-import PatientHistory from './../History/PatientHistory'
-import ArtCommencement from './../ArtCommencement/ArtCommencement'
-import ArtCommencementPage from './../ArtCommencement/ArtCommencementPage'
-//History of patient
-import ViewMentalHealthScreening from './../MentalHealthScreening/ViewMhs'
-import ViewAdultClinicEvaluationFrom from './../InitailClinicEvaluation/ViewAdultClinicEvaluationFrom'
-import ViewArtCommencement from './../ArtCommencement/ViewArtCommencement'
-import FirstEac from './../EnhancedAdherenceCounseling/ViewEAC/FirstEac'
-import SecondEac from './../EnhancedAdherenceCounseling/ViewEAC/SecondEac'
-import ThirdEac from './../EnhancedAdherenceCounseling/ViewEAC/ThirdEac'
-import ViewLaboratory from './../Laboratory/ViewLaboratory'
-import PharmacyRefillUpdate from './../Pharmacy/PharmacyRefillUpdate'
 import Biometrics from './Biometric'
-import TrackingForm from './../TrackingForm/Index'
-import FirstEacPage from './../EnhancedAdherenceCounseling/FirstEAC'
-import EACOUTCOME from '../EnhancedAdherenceCounseling/EacOutCome'
-import EACSESSION from './../EnhancedAdherenceCounseling/SessionList'
-import NEWEACSESSION from './../EnhancedAdherenceCounseling/NewSessions'
+import axios from "axios";
+import { url as baseUrl, token } from "./../../../api";
 
 const styles = theme => ({
   root: {
@@ -86,61 +58,52 @@ const styles = theme => ({
 
 function PatientCard(props) {
     let history = useHistory();
-    const [art, setArt] = useState(false);
+    const [patientDetail, setPatientDetail] = useState("")
     const [activeContent, setActiveContent] = useState({route:"recent-history", id:"", activeTab:"home", actionType:"create", obj:{}});
     const { classes } = props;
-    const patientObj = history.location && history.location.state ? history.location.state.patientObj : {}
-    
+    const patientObjLocation = history.location && history.location.state ? history.location.state.patientObj : {}
+    //let patientObj =""
+    const prepId = history.location && history.location.state ? history.location.state.prepId : {}
+    //console.log(patientObj)
+    useEffect(() => {
+      PatientObject()
+     }, []);
+     async function PatientObject() {
+      axios
+          .get(`${baseUrl}prep/persons/${patientObjLocation.personId}`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+          )
+          .then((response) => {
+            setPatientDetail(response.data);
+            //patientObj=response.data
+          })
+          .catch((error) => {    
+          });        
+    }
   return (
     <div className={classes.root}>
       <div className="row page-titles mx-0" style={{marginTop:"0px", marginBottom:"-10px"}}>
 			<ol className="breadcrumb">
-				<li className="breadcrumb-item active"><h4> <Link to={"/"} >HIV /</Link> Patient Dashboard</h4></li>
+				<li className="breadcrumb-item active"><h4> <Link to={"/"} >PrEP /</Link> Patient Dashboard</h4></li>
 			</ol>
 		  </div>
       <Card >
         <CardContent>
-            <PatientCardDetail patientObj={patientObj} setArt={setArt} setActiveContent={setActiveContent}/>            
-            <SubMenu patientObj={patientObj} art={art} setActiveContent={setActiveContent}/>
+            <PatientCardDetail patientObj={patientDetail}  setActiveContent={setActiveContent} patientDetail={patientDetail}/>            
+            <SubMenu patientObj={patientObjLocation}  setActiveContent={setActiveContent} patientDetail={patientDetail}/>
             <br/>
-          {activeContent.route==='recent-history' &&(<RecentHistory patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='biometrics' &&(<Biometrics patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='consultation' &&( <ClinicVisit patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
+          {activeContent.route==='recent-history' &&(<RecentHistory patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
+          {activeContent.route==='biometrics' &&(<Biometrics patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
+          {activeContent.route==='consultation' &&( <ClinicVisit patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
           {/* {activeContent==='child-consultation' &&( <ChildConsultation patientObj={patientObj} setActiveContent={setActiveContent}/>)} */}
-          {activeContent.route==='pharmacy' &&( <Pharmacy patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='laboratory' &&( <Laboratory patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='anc-pnc' &&( <AncPnc patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='anc-enrollment' &&( <AncEnrollement patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='labour-delivery' &&( <LabourDelivery patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='prep-commencement' &&( <PrEPCommencementForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='prep-interruptions' &&( <PrEPDiscontinuationsInterruptions patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='prep-screening' &&( <PrEPEligibiltyScreeningForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
+          {activeContent.route==='prep-commencement' &&( <PrEPCommencementForm patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)}
+          {activeContent.route==='prep-interruptions' &&( <PrEPDiscontinuationsInterruptions patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId} PatientObject={PatientObject}/>)}
+          {activeContent.route==='prep-screening' &&( <PrEPEligibiltyScreeningForm patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId} patientDetail={patientDetail}/>)}
           {activeContent.route==='prep-visit' &&( <PrEPVisit />)}
-          {activeContent.route==='prep-registration' &&( <PrEPRegistrationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)} 
-          {activeContent.route==='counseling' &&( <EnhancedAdherenceCounseling patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='cervical-cancer' &&( <CervicalCancer patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='status-update' &&( <ClientStatusUpdate patientObj={patientObj} setActiveContent={setActiveContent}/>)}
-          {activeContent.route==='adult-evaluation' &&( <AdultClinicEvaluationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='child-evaluation' &&( <ChildClinicEvaluationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='mhs' &&( <MentalHealthScreening patientObj={patientObj} setActiveContent={setActiveContent}/>)}
-          {activeContent.route==='lab-history' &&( <LabHistory patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent} />)}
-          {activeContent.route==='patient-history' &&( <PatientHistory patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='art-commencement' &&( <ArtCommencement patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='art-commencementPage' &&( <ArtCommencementPage patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
+          {activeContent.route==='prep-registration' &&( <PrEPRegistrationForm patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent} prepId={prepId}/>)} 
+          {activeContent.route==='patient-history' &&( <PatientHistory patientObj={patientObjLocation} setActiveContent={setActiveContent} activeContent={activeContent}/>)}         
           {/* History Pages */}
-          {activeContent.route==='mental-health-view' &&( <ViewMentalHealthScreening patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='adult-clinic-eveluation-view' &&( <ViewAdultClinicEvaluationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='art-commencement-view' &&( <ViewArtCommencement patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='first-eac-history' &&( <FirstEac patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='second-eac-history' &&( <SecondEac patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='completed-eac-history' &&( <ThirdEac patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='lab-view' &&( <ViewLaboratory patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='pharmacy-update' &&( <PharmacyRefillUpdate patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='tracking-form' &&( <TrackingForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='first-eac' &&( <FirstEacPage patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='eac-outcome' &&( <EACOUTCOME patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='eac-session' &&( <EACSESSION patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
-          {activeContent.route==='new-eac-session' &&( <NEWEACSESSION patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)}
+         
          </CardContent>
       </Card>
     </div>

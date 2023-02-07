@@ -1,7 +1,0 @@
-applicationInfo:
-  buildDate: "@timestamp@"
-  buildId: "@pom.version@-@build.revision@"
-
-build:
-  number: "@build.revision@"
-
