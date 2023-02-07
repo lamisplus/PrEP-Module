@@ -85,7 +85,7 @@ const useStyles = makeStyles(theme => ({
 
 const PrEPRegistrationForm = (props) => {
 
-    const patientObj = props.patientObj;
+    ///const patientObj = props.patientObj;
     const [entryPoint, setEntryPoint] = useState([]);
     //let history = useHistory();
     const classes = useStyles()
@@ -211,24 +211,44 @@ const PrEPRegistrationForm = (props) => {
         if(validate()) {   
           objValues.personId=props.patientObj.personId
           objValues.prepEligibilityUuid=patientDto.uuid 
+          console.log(objValues)
           setSaving(true);
-          axios.post(`${baseUrl}prep/enrollment`,objValues,
-           { headers: {"Authorization" : `Bearer ${token}`}},
-          
-          )
-              .then(response => {
-                  setSaving(false);
-                  props.patientObj.prepCount="1"
-                  toast.success("Prep Enrollment save successful!", {position: toast.POSITION.BOTTOM_CENTER});
-                  props.setActiveContent({...props.activeContent, route:'recent-history'})
-              })
-              .catch(error => {
-                  setSaving(false);
-                  toast.error("Something went wrong");
-              });
-        }else{
-            toast.error("All fields are required ", {position: toast.POSITION.BOTTOM_CENTER});
-        }
+          if(props.activeContent && props.activeContent.actionType){
+            axios.put(`${baseUrl}prep-enrollment/${props.activeContent.id}`,objValues,
+            { headers: {"Authorization" : `Bearer ${token}`}},
+            
+            )
+                .then(response => {
+                    setSaving(false);
+                    props.patientObj.prepCount="1"
+                    toast.success("Prep Enrollment save successful!", {position: toast.POSITION.BOTTOM_CENTER});
+                    props.setActiveContent({...props.activeContent, route:'recent-history'})
+                })
+                .catch(error => {
+                    setSaving(false);
+                    toast.error("Something went wrong");
+                });
+            }else{
+                
+            axios.post(`${baseUrl}prep/enrollment`,objValues,
+            { headers: {"Authorization" : `Bearer ${token}`}},
+            
+            )
+                .then(response => {
+                    setSaving(false);
+                    props.patientObj.prepCount="1"
+                    toast.success("Prep Enrollment save successful!", {position: toast.POSITION.BOTTOM_CENTER});
+                    props.setActiveContent({...props.activeContent, route:'recent-history'})
+                })
+                .catch(error => {
+                    setSaving(false);
+                    toast.error("Something went wrong");
+                });
+            }
+            }else{
+                toast.error("All fields are required ", {position: toast.POSITION.BOTTOM_CENTER});
+            }
+        
     }
 
   return (      
@@ -247,7 +267,7 @@ const PrEPRegistrationForm = (props) => {
                                     id="uniqueId"
                                     onChange={handleInputChange}
                                     value={objValues.uniqueId}
-                                    required
+                                    disabled={disabledField}
                                 />
                                 {errors.uniqueId !=="" ? (
                                     <span className={classes.error}>{errors.uniqueId}</span>
@@ -263,7 +283,7 @@ const PrEPRegistrationForm = (props) => {
                                     id="ancUniqueArtNo"
                                     onChange={handleInputChange}
                                     value={objValues.ancUniqueArtNo}
-                                    required
+                                    disabled={disabledField}
                                 />
                                 {errors.ancUniqueArtNo !=="" ? (
                                     <span className={classes.error}>{errors.ancUniqueArtNo}</span>
@@ -283,6 +303,7 @@ const PrEPRegistrationForm = (props) => {
                                     style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                     min={patientDto && patientDto.visitDate ?patientDto.visitDate :""}
                                     max= {moment(new Date()).format("YYYY-MM-DD") }
+                                    disabled={disabledField}
                                 />
                                     {errors.dateEnrolled !=="" ? (
                                         <span className={classes.error}>{errors.dateEnrolled}</span>
@@ -299,7 +320,7 @@ const PrEPRegistrationForm = (props) => {
                                     id="riskType"
                                     onChange={handleInputChange}
                                     value={objValues.riskType}
-                                    required
+                                    disabled={disabledField}
                                 >
                                     <option value=""> Select</option>
                                     {prepRisk.map((value) => (
@@ -325,7 +346,7 @@ const PrEPRegistrationForm = (props) => {
                                     id="hivTestingPoint"
                                     onChange={handleInputChange}
                                     value={objValues.hivTestingPoint}
-                                    
+                                    disabled={disabledField}
                                 >
                                      <option value=""> Select</option>
                                       {entryPoint.map((value) => (
@@ -349,7 +370,7 @@ const PrEPRegistrationForm = (props) => {
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         max= {moment(new Date()).format("YYYY-MM-DD") }
-                                        
+                                        disabled={disabledField}
                                     />
                                      {errors.dateOfLastHivNegativeTest !=="" ? (
                                         <span className={classes.error}>{errors.dateOfLastHivNegativeTest}</span>
@@ -370,6 +391,7 @@ const PrEPRegistrationForm = (props) => {
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
                                         min={patientDto && patientDto.visitDate ?patientDto.visitDate :""}
                                         max= {moment(new Date()).format("YYYY-MM-DD") }
+                                        disabled={disabledField}
                                     />
                                     {errors.dateReferred !=="" ? (
                                         <span className={classes.error}>{errors.dateReferred}</span>
@@ -388,7 +410,7 @@ const PrEPRegistrationForm = (props) => {
                                         value={objValues.supporterName}
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        //disabled={locationState.actionType==='update'? false : true}
+                                        disabled={disabledField}
                                     />
                                     {errors.supporterName !=="" ? (
                                         <span className={classes.error}>{errors.supporterName}</span>
@@ -406,7 +428,7 @@ const PrEPRegistrationForm = (props) => {
                                         value={objValues.supporterRelationshipType}
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        //disabled={locationState.actionType==='update'? false : true}
+                                        disabled={disabledField}
                                     >
                                         <option value=""> Select</option>
                     
@@ -445,8 +467,8 @@ const PrEPRegistrationForm = (props) => {
                                         masks={{ng: '...-...-....', at: '(....) ...-....'}}
                                         value={objValues.supporterPhone}
                                         onChange={(e)=>{checkPhoneNumberBasic(e,'supporterPhone')}}
-                                        //onChange={(e)=>{handleInputChangeBasic(e,'phoneNumber')}}
-                                                />
+                                        disabled={disabledField}
+                                         />
                                     {errors.supporterPhone !=="" ? (
                                         <span className={classes.error}>{errors.supporterPhone}</span>
                                     ) : "" }

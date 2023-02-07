@@ -9,25 +9,20 @@ import axios from "axios";
 import { url as baseUrl, token } from "../../../api";
 //import { Alert } from "react-bootstrap";
 import {  Card,Accordion } from "react-bootstrap";
-import { useHistory } from "react-router-dom";
+import {  Modal } from "react-bootstrap";
 import "react-widgets/dist/css/react-widgets.css";
 import { toast} from "react-toastify";
 import PatientChart from './../Patient/PatientChart/Index'
+import {Button } from 'semantic-ui-react'
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-      width: '100%',
-  },
-  heading: {
-      fontSize: theme.typography.pxToRem(15),
-      fontWeight: 'bolder',
-  },
-}));
 const RecentHistory = (props) => {
   //console.log(props.patientObj)
   const [recentActivities, setRecentActivities] = useState([])
   const [summary, setSummary] = useState(null)
-  let history = useHistory();
+  const [saving, setSaving] = useState(false)
+  const [open, setOpen] = React.useState(false)
+  const [record, setRecord] = useState(null)
+  const toggle = () => setOpen(!open);
   const [
     activeAccordionHeaderShadow,
     setActiveAccordionHeaderShadow,
@@ -70,12 +65,12 @@ const RecentHistory = (props) => {
   const ActivityName =(name)=> {
       if(name==='HIV Enrollment'){
         return "HE"
-      }else if(name==='Pharmacy refill'){
-        return "PR"
-      }else if(name==='Clinical evaluation'){
-        return "CE"
-      }else if(name==='Clinic visit follow up'){
-        return "CV"
+      }else if(name==='Prep Clinic'){
+        return "PC"
+      }else if(name==='Prep Enrollment'){
+        return "PE"
+      }else if(name==='Prep Eligibility'){
+        return "PE"
       }else if(name==='ART Commencement'){
         return "AC"
       }else {
@@ -102,36 +97,115 @@ const RecentHistory = (props) => {
     }
     
 }
-  const LoadDeletePage =(row)=>{
-      
-      if(row.path==='Mental-health'){        
-          //props.setActiveContent({...props.activeContent, route:'mental-health-view', id:row.id})
-          axios
-          .delete(`${baseUrl}observation/${row.id}`,
-              { headers: {"Authorization" : `Bearer ${token}`} }
-          )
-          .then((response) => {
-              toast.success("Record Deleted Successfully");
-              RecentActivities()
-          })
-          .catch((error) => {
-              if(error.response && error.response.data){
-                  let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                  toast.error(errorMessage);
-                }
-                else{
-                  toast.error("Something went wrong. Please try again...");
-                }
-          });  
-      }else{
+const LoadModal =(row)=>{
+  toggle()
+  setRecord(row)
+}
+const LoadDeletePage =(row)=>{
+  
+  if(row.path==='prep-eligibility'){ 
+      setSaving(true)       
+      //props.setActiveContent({...props.activeContent, route:'mental-health-view', id:row.id})
+      axios
+      .delete(`${baseUrl}prep-eligibility/${row.id}`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+      )
+      .then((response) => {
+          setSaving(false)
+          toast.success("Record Deleted Successfully");
+          RecentActivities()
+      })
+      .catch((error) => {
+          setSaving(false)
+          if(error.response && error.response.data){
+              let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+              toast.error(errorMessage);
+            }
+            else{
+              toast.error("Something went wrong. Please try again...");
+            }
+      });  
+  }else if(row.path==='prep-clinic'){
+      setSaving(true)
+      //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
+      axios
+      .delete(`${baseUrl}prep-clinic/${row.id}`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+      )
+      .then((response) => {
+          setSaving(false)
+          toast.success("Record Deleted Successfully");
+          RecentActivities()
+          toggle()
+      })
+      .catch((error) => {
+          setSaving(false)
+          if(error.response && error.response.data){
+              let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+              toast.error(errorMessage);
+            }
+            else{
+              toast.error("Something went wrong. Please try again...");
+            }
+      });
 
-      }
-      
+  }else if(row.path==='prep-enrollment'){
+      setSaving(true)
+      //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
+      axios
+      .delete(`${baseUrl}prep-enrollment/${row.id}`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+      )
+      .then((response) => {
+          setSaving(false)
+          toast.success("Record Deleted Successfully");
+          RecentActivities()
+          toggle()
+      })
+      .catch((error) => {
+          setSaving(false)
+          if(error.response && error.response.data){
+              let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+              toast.error(errorMessage);
+            }
+            else{
+              toast.error("Something went wrong. Please try again...");
+            }
+      });
+
+  }else if(row.path==='prep-enrollment2'){
+      setSaving(true)
+      //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
+      axios
+      .delete(`${baseUrl}prep-enrollment/${row.id}`,
+          { headers: {"Authorization" : `Bearer ${token}`} }
+      )
+      .then((response) => {
+          setSaving(false)
+          toast.success("Record Deleted Successfully");
+          RecentActivities()
+          toggle()
+      })
+      .catch((error) => {
+          setSaving(false)
+          if(error.response && error.response.data){
+              let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+              toast.error(errorMessage);
+            }
+            else{
+              toast.error("Something went wrong. Please try again...");
+            }
+      });
+
+  }else{
+
   }
-  const redirectLink=()=>{
-    props.setActiveContent({...props.activeContent, route:'recent-history'})
-  }
-  const index= 1
+  
+}
+  // const redirectLink=()=>{
+  //   props.setActiveContent({...props.activeContent, route:'recent-history'})
+  // }
+  //const index= 1
 
   return (
     <Fragment>
@@ -229,13 +303,13 @@ const RecentHistory = (props) => {
                                   Update
                                   </Dropdown.Item>
                                
-                                 {/* <Dropdown.Item
+                                 <Dropdown.Item
                                   className="dropdown-item"
                                   to="/widget-basic"
-                                  onClick={()=>LoadDeletePage(data)}
+                                  onClick={()=>LoadModal(activity)}
                                   >
                                   Delete
-                                  </Dropdown.Item> */}
+                                  </Dropdown.Item>
                                   
                                 </Dropdown.Menu>
                               </Dropdown>
@@ -320,8 +394,25 @@ const RecentHistory = (props) => {
           </div>
         </div>
       </div>
- </div>
-      
+    </div>
+    <Modal show={open} toggle={toggle} className="fade" size="md"
+            aria-labelledby="contained-modal-title-vcenter"
+            centered backdrop="static">
+            <Modal.Header >
+        <Modal.Title id="contained-modal-title-vcenter">
+            Notification!
+        </Modal.Title>
+        </Modal.Header>
+            <Modal.Body>
+                <h4>Are you Sure you want to delete <b>{record && record.name}</b></h4>
+                
+            </Modal.Body>
+        <Modal.Footer>
+            <Button onClick={()=>LoadDeletePage(record)}  style={{backgroundColor:"red", color:"#fff"}} disabled={saving}>{saving===false ? "Yes": "Deleting..."}</Button>
+            <Button onClick={toggle} style={{backgroundColor:"#014d88", color:"#fff"}} disabled={saving}>No</Button>
+            
+        </Modal.Footer>
+        </Modal>  
     </Fragment>
   );
 };

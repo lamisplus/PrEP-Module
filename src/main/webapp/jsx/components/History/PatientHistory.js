@@ -26,10 +26,10 @@ import ViewColumn from '@material-ui/icons/ViewColumn';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-widgets/dist/css/react-widgets.css';
 import { makeStyles } from '@material-ui/core/styles'
-import { useHistory } from "react-router-dom";
+//import { useHistory } from "react-router-dom";
 //import {Menu,MenuList,MenuButton,MenuItem,} from "@reach/menu-button";
 import "@reach/menu-button/styles.css";
-
+import {  Modal } from "react-bootstrap";
 import { Dropdown,Button, Menu, Icon } from 'semantic-ui-react'
 
 
@@ -101,8 +101,10 @@ const useStyles = makeStyles(theme => ({
 const PatientnHistory = (props) => {
     const [recentActivities, setRecentActivities] = useState([])
     const [loading, setLoading] = useState(true)
-    // let history = useHistory();
-    // let patientHistoryObject = []
+    const [saving, setSaving] = useState(false)
+    const [open, setOpen] = React.useState(false)
+    const [record, setRecord] = useState(null)
+     const toggle = () => setOpen(!open);
     useEffect(() => {
         PatientHistory()
       }, [props.patientObj.id]);
@@ -143,19 +145,27 @@ const PatientnHistory = (props) => {
         }
         
     }
+    const LoadModal =(row)=>{
+        toggle()
+        setRecord(row)
+    }
     const LoadDeletePage =(row)=>{
         
-        if(row.path==='Mental-health'){        
+        if(row.path==='prep-eligibility'){ 
+            setSaving(true)       
             //props.setActiveContent({...props.activeContent, route:'mental-health-view', id:row.id})
             axios
-            .delete(`${baseUrl}observation/${row.id}`,
+            .delete(`${baseUrl}prep-eligibility/${row.id}`,
                 { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
+                setSaving(false)
                 toast.success("Record Deleted Successfully");
                 PatientHistory()
+                toggle()
             })
             .catch((error) => {
+                setSaving(false)
                 if(error.response && error.response.data){
                     let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
                     toast.error(errorMessage);
@@ -164,17 +174,69 @@ const PatientnHistory = (props) => {
                     toast.error("Something went wrong. Please try again...");
                   }
             });  
-        }else if(row.path==='Art-commence'){
+        }else if(row.path==='prep-clinic'){
+            setSaving(true)
             //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
             axios
-            .delete(`${baseUrl}hiv/art/commencement/${row.id}`,
+            .delete(`${baseUrl}prep-clinic/${row.id}`,
                 { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
+                setSaving(false)
                 toast.success("Record Deleted Successfully");
                 PatientHistory()
+                toggle()
             })
             .catch((error) => {
+                setSaving(false)
+                if(error.response && error.response.data){
+                    let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+                    toast.error(errorMessage);
+                  }
+                  else{
+                    toast.error("Something went wrong. Please try again...");
+                  }
+            });
+
+        }else if(row.path==='prep-enrollment'){
+            setSaving(true)
+            //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
+            axios
+            .delete(`${baseUrl}prep-enrollment/${row.id}`,
+                { headers: {"Authorization" : `Bearer ${token}`} }
+            )
+            .then((response) => {
+                setSaving(false)
+                toast.success("Record Deleted Successfully");
+                PatientHistory()
+                toggle()
+            })
+            .catch((error) => {
+                setSaving(false)
+                if(error.response && error.response.data){
+                    let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+                    toast.error(errorMessage);
+                  }
+                  else{
+                    toast.error("Something went wrong. Please try again...");
+                  }
+            });
+
+        }else if(row.path==='prep-enrollment2'){
+            setSaving(true)
+            //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
+            axios
+            .delete(`${baseUrl}prep-enrollment/${row.id}`,
+                { headers: {"Authorization" : `Bearer ${token}`} }
+            )
+            .then((response) => {
+                setSaving(false)
+                toast.success("Record Deleted Successfully");
+                PatientHistory()
+                toggle()
+            })
+            .catch((error) => {
+                setSaving(false)
                 if(error.response && error.response.data){
                     let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
                     toast.error(errorMessage);
@@ -223,7 +285,7 @@ const PatientnHistory = (props) => {
                             <Dropdown.Menu style={{ marginTop:"10px", }}>
                                 {row.viewable && ( <Dropdown.Item onClick={()=>LoadViewPage(row, 'view')}> <Icon name='eye' />View  </Dropdown.Item>)}
                                 {row.viewable && ( <Dropdown.Item  onClick={()=>LoadViewPage(row, 'update')}><Icon name='edit' />Edit</Dropdown.Item>)}
-                                {/* {row.viewable && ( <Dropdown.Item  onClick={()=>LoadDeletePage(row, 'delete')}> <Icon name='trash' /> Delete</Dropdown.Item>)}  */}
+                                <Dropdown.Item  onClick={()=>LoadModal(row, 'delete')}> <Icon name='trash' /> Delete</Dropdown.Item>)
                             </Dropdown.Menu>
                         </Dropdown>
                             </Button>
@@ -250,11 +312,28 @@ const PatientnHistory = (props) => {
                           debounceInterval: 400
                       }}
             />
-         
+        <Modal show={open} toggle={toggle} className="fade" size="md"
+            aria-labelledby="contained-modal-title-vcenter"
+            centered backdrop="static">
+            <Modal.Header >
+        <Modal.Title id="contained-modal-title-vcenter">
+            Notification!
+        </Modal.Title>
+        </Modal.Header>
+            <Modal.Body>
+                <h4>Are you Sure you want to delete <b>{record && record.name}</b></h4>
+                
+            </Modal.Body>
+        <Modal.Footer>
+            <Button onClick={()=>LoadDeletePage(record)}  style={{backgroundColor:"red", color:"#fff"}} disabled={saving}>{saving===false ? "Yes": "Deleting..."}</Button>
+            <Button onClick={toggle} style={{backgroundColor:"#014d88", color:"#fff"}} disabled={saving}>No</Button>
+            
+        </Modal.Footer>
+        </Modal>    
     </div>
   );
 }
-
+    
 export default PatientnHistory;
 
 

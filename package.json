@@ -126,7 +126,7 @@
   "scripts": {
     "start": "react-scripts start",
     "jsreport": "jsreport-start",
-    "build": "react-scripts  build && xcopy /s /y build src\\main\\resources\\views\\static\\prep",
+    "build": "react-scripts build && xcopy /s /y build src\\main\\resources\\views\\static\\prep",
     "serve": "serve -s build",
     "run-build": "react-scripts build && serve",
     "test": "react-scripts test --env=jsdom",
