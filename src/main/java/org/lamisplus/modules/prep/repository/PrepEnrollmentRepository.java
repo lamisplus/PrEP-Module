@@ -144,7 +144,8 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
             "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, pet.id ORDER BY pet.id DESC ", nativeQuery = true)
     Optional<PrepClient> findPersonPrepAndStatusByPatientUuid(Integer archived, Long facilityId, String personUuid);
-    @Query(value = "SELECT p.date_of_registration AS dateOfRegistration, prepc.commencementCount, el.eligibility_count as eligibilityCount, pet.created_by as createdBy, pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,    " +
+    @Query(value = "SELECT p.date_of_registration AS dateOfRegistration, prepc.commencementCount, el.eligibility_count as eligibilityCount, " +
+            "pet.created_by as createdBy, pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,    " +
             " p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,    " +
             " INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, he.date_confirmed_hiv as dateConfirmedHiv,  " +
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
