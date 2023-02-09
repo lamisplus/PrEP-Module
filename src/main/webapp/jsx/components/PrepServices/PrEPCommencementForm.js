@@ -540,7 +540,7 @@ const PrEPCommencementForm = (props) => {
                         </FormGroup>
                         
                         </div>
-                        <div className=" mb-3 col-md-6">
+                        {/* <div className=" mb-3 col-md-6">
                             <FormGroup>
                             <Label >Date PrEP Given</Label>
                             <Input
@@ -556,7 +556,7 @@ const PrEPCommencementForm = (props) => {
                             />
                                 
                             </FormGroup>
-                        </div> 
+                        </div>  */}
                         <div className=" mb-3 col-md-6">
                             <FormGroup>
                             <Label >Duration</Label>

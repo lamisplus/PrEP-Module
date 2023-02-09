@@ -38,8 +38,10 @@ function SubMenu(props) {
          <div>
 
                 <Menu size="large" color={"black"} inverted >
-                <Menu.Item onClick={() => onClickHome()} >Home
-                </Menu.Item>                  
+                { patientObj.createdBy!=="ETL"  ? //
+                (<>
+                <Menu.Item onClick={() => onClickHome()} >Home</Menu.Item>
+                                  
                 { patientObj.eligibilityCount<=0 || patientObj.eligibilityCount===null ?
                 (<>
                     <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibility Screening</Menu.Item>
@@ -64,7 +66,17 @@ function SubMenu(props) {
                     }
                     
                 </>)}
-                <Menu.Item onClick={() => loadPatientHistory(patientObj)} >History</Menu.Item>                    
+                <Menu.Item onClick={() => loadPatientHistory(patientObj)} >History</Menu.Item>   
+                </>)
+                :
+
+                (<>
+                <Menu.Item onClick={() => onClickHome()} >Home</Menu.Item>
+                <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibility Screening</Menu.Item>
+                <Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>
+                <Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>
+                <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} > PrEP Eligibility Screening </Menu.Item>
+                </>) }                
                 </Menu>
                    
         </div>
