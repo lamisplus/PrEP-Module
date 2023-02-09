@@ -323,7 +323,7 @@ const BasicInfo = (props) => {
                 toast.error("All field are required ", {position: toast.POSITION.BOTTOM_CENTER});
             }   
     }
-console.log(props)
+
 
     return (
         <>
@@ -1046,7 +1046,7 @@ console.log(props)
 
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>HIV test result at visit</Label>
+                                    <Label>HIV test result at visit <span style={{ color:"red"}}> *</span></Label>
                                     <select
                                         className="form-control"
                                         name="hivTestResultAtvisit"

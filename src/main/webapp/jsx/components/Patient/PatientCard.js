@@ -3,23 +3,23 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+//import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import ExpansionPanelActions from '@material-ui/core/ExpansionPanelActions';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+//import ExpansionPanelActions from '@material-ui/core/ExpansionPanelActions';
+//import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { Link } from 'react-router-dom'
 import ButtonMui from "@material-ui/core/Button";
 import { TiArrowBack } from 'react-icons/ti'
 //import Chip from '@material-ui/core/Chip';
 import Divider from '@material-ui/core/Divider';
-import { Button } from 'semantic-ui-react';
+//import { Button } from 'semantic-ui-react';
 import {Label,} from "semantic-ui-react";
 import 'semantic-ui-css/semantic.min.css';
 import { Col, Row } from "reactstrap";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
 import moment from "moment";
-import axios from "axios";
+//import axios from "axios";
 import { url as baseUrl, token } from "./../../../api";
 import Typography from '@material-ui/core/Typography';
 // import CaptureBiometric from './CaptureBiometric';
@@ -87,7 +87,7 @@ function PatientCard(props) {
               }
               return age_now + " year(s)";
     };
-
+    //console.log(patientObj)
     const getHospitalNumber = (identifier) => {     
       const identifiers = identifier;
       const hospitalNumber = identifiers.identifier.find(obj => obj.type === 'HospitalNumber');       
@@ -155,7 +155,7 @@ function PatientCard(props) {
                     <span>
                         {" "}
                         Gender :{" "}
-                        <b style={{color:'#0B72AA'}}>{patientObj.personResponseDtosex && patientObj.personResponseDto.sex!==null ?  patientObj.sex : '' }</b>
+                        <b style={{color:'#0B72AA'}}>{patientObj.personResponseDto && patientObj.personResponseDto.sex!==null ?  patientObj.personResponseDto.sex : '' }</b>
                     </span>
                     </Col>
                     <Col md={4} className={classes.root2}>

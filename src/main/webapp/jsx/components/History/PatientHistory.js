@@ -108,7 +108,7 @@ const PatientnHistory = (props) => {
     useEffect(() => {
         PatientHistory()
       }, [props.patientObj.id]);
-        ///GET LIST OF Patients
+        ///GET LIST OF Patients        
         const PatientHistory =()=>{
             setLoading(true)
             axios
@@ -285,7 +285,7 @@ const PatientnHistory = (props) => {
                             <Dropdown.Menu style={{ marginTop:"10px", }}>
                                 {row.viewable && ( <Dropdown.Item onClick={()=>LoadViewPage(row, 'view')}> <Icon name='eye' />View  </Dropdown.Item>)}
                                 {row.viewable && ( <Dropdown.Item  onClick={()=>LoadViewPage(row, 'update')}><Icon name='edit' />Edit</Dropdown.Item>)}
-                                <Dropdown.Item  onClick={()=>LoadModal(row, 'delete')}> <Icon name='trash' /> Delete</Dropdown.Item>)
+                                <Dropdown.Item  onClick={()=>LoadModal(row, 'delete')}> <Icon name='trash' /> Delete</Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>
                             </Button>

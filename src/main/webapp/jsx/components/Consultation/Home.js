@@ -438,7 +438,7 @@ const ClinicVisit = (props) => {
     temp.result = urinalysisTest.result ? "" : "This field is required"
     temp.regimenId = objValues.regimenId ? "" : "This field is required"
     temp.duration = objValues.duration ? "" : "This field is required"
-    temp.datePrepGiven = objValues.datePrepGiven ? "" : "This field is required"
+    //temp.datePrepGiven = objValues.datePrepGiven ? "" : "This field is required"
 
     setErrors({
         ...temp
@@ -1004,7 +1004,7 @@ const ClinicVisit = (props) => {
                   ) : "" }   
                 </FormGroup>
               </div>     
-              <div className=" mb-3 col-md-6">
+              {/* <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Date PrEP Given <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
@@ -1022,8 +1022,7 @@ const ClinicVisit = (props) => {
                       <span className={classes.error}>{errors.datePrepGiven}</span>
                   ) : "" }   
                 </FormGroup>
-              </div> 
-            
+              </div>  */}
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Other Drugs</FormLabelName>
