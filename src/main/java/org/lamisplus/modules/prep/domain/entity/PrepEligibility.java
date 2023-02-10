@@ -101,7 +101,7 @@ public class PrepEligibility  extends Audit implements Serializable {
     @Column(name = "facility_id")
     private Long facilityId;
 
-    @Column(name = "uuid")
+    @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     private String uuid;
 
     @Column(name = "archived")
