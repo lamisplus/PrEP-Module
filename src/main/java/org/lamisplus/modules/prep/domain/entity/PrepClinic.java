@@ -70,8 +70,8 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "regimen_id")
     private long regimenId;
 
-    @Column(name = "regimen_type_id")
-    private long regimenTypeId;
+    /*@Column(name = "regimen_type_id")
+    private long regimenTypeId;*/
 
     @Column(name = "archived")
     private Integer archived;
