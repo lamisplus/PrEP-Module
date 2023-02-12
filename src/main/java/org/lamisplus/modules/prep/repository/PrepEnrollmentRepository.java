@@ -103,10 +103,10 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
             "GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi ON prepi.person_uuid = p.uuid " +
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
-            " WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "LEFT JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit " +
             "FROM prep_eligibility el WHERE el.archived=0 " +
             "GROUP BY person_uuid, el.drug_use_history->>'hivTestResultAtvisit') el_max ON el_max.person_uuid = p.uuid " +
+            " WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
