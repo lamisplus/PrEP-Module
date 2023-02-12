@@ -71,7 +71,6 @@ function PatientCard(props) {
   useEffect(() => {
     setpatientObj(props.patientDetail);
   }, [props.patientDetail]);
-
     const calculate_age = dob => {
       var today = new Date();
       var dateParts = dob.split("-");

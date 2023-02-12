@@ -222,11 +222,11 @@ const PatientnHistory = (props) => {
                   }
             });
 
-        }else if(row.path==='prep-enrollment2'){
+        }else if(row.path==='prep-commencement'){
             setSaving(true)
             //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
             axios
-            .delete(`${baseUrl}prep-enrollment/${row.id}`,
+            .delete(`${baseUrl}prep-clinic/${row.id}`,
                 { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {

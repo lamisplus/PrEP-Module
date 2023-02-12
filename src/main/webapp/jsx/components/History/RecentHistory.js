@@ -32,7 +32,6 @@ const RecentHistory = (props) => {
     Summary()
     RecentActivities();
   }, [props.patientObj.personId]);
-  console.log(props.patientObj)
 
   const RecentActivities =()=>{
     axios
@@ -102,7 +101,6 @@ const RecentHistory = (props) => {
     setRecord(row)
   }
 const LoadDeletePage =(row)=>{
-  
   if(row.path==='prep-eligibility'){ 
       setSaving(true)       
       //props.setActiveContent({...props.activeContent, route:'mental-health-view', id:row.id})
@@ -173,11 +171,11 @@ const LoadDeletePage =(row)=>{
             }
       });
 
-  }else if(row.path==='prep-enrollment2'){
+  }else if(row.path==='prep-commencement'){
       setSaving(true)
       //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
       axios
-      .delete(`${baseUrl}prep-enrollment/${row.id}`,
+      .delete(`${baseUrl}prep-clinic/${row.id}`,
           { headers: {"Authorization" : `Bearer ${token}`} }
       )
       .then((response) => {
