@@ -78,11 +78,11 @@ public class PrepEnrollmentService {
                 .findByIdAndArchivedAndFacilityId(id, UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization())
                 .orElseThrow(()-> new EntityNotFoundException(PrepEnrollment.class, "id", ""+id));
         String prepEligibilityUuid= prepEnrollment.getPrepEligibilityUuid();
-        System.out.println("prepEligibilityUuid - " + prepEligibilityUuid);
-        String uuid = prepEnrollment.getUuid();
+        //System.out.println("prepEligibilityUuid - " + prepEligibilityUuid);
+        //String uuid = prepEnrollment.getUuid();
         prepEnrollment = enrollmentDtoToEnrollment(prepEnrollmentDto, prepEnrollment.getPersonUuid());
         prepEnrollment.setArchived(UN_ARCHIVED);
-        prepEnrollment.setUuid(uuid);
+        //prepEnrollment.setUuid(uuid);
         prepEnrollment.setPrepEligibilityUuid(prepEligibilityUuid);
         prepEnrollment.setId(id);
         prepEnrollment.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());

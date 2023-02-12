@@ -84,7 +84,7 @@ public class PrepInterruption extends Audit implements Serializable {
     @Column(name = "archived")
     private Integer archived=0;
 
-    @Column(name = "uuid")
+    @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     private String uuid;
 
     @Column(name = "facility_id")
