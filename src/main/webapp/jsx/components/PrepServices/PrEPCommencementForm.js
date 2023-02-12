@@ -245,6 +245,7 @@ const PrEPCommencementForm = (props) => {
              ).then(response => {
                    setSaving(false);
                    patientObj.commencementCount=1
+                   props.PatientObject();
                    toast.success("Record save successful", {position: toast.POSITION.BOTTOM_CENTER});
                    props.setActiveContent({...props.activeContent, route:'recent-history'})
                   
