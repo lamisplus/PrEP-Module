@@ -76,7 +76,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "WHERE p.archived=?1 AND p.facility_id=?2  " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth", nativeQuery = true)
     List<PrepClient> findAllPersonPrep(Integer archived, Long facilityId);
-    @Query(value = "SELECT p.date_of_registration AS dateOfRegistration, prepc.commencementCount, el.eligibility_count as eligibilityCount, pet.created_by as createdBy, pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,    " +
+    @Query(value = "SELECT el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration AS dateOfRegistration, prepc.commencementCount, el.eligibility_count as eligibilityCount, pet.created_by as createdBy, pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,    " +
             " p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,    " +
             " INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, he.date_confirmed_hiv as dateConfirmedHiv,  " +
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
@@ -102,17 +102,22 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "SELECT pi.id, pi.person_uuid, MAX(pi.interruption_date)interruption_date , pi.interruption_type " +
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
             "GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi ON prepi.person_uuid = p.uuid " +
-            "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type" +
+            "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
+            "LEFT JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit " +
+            "FROM prep_eligibility el WHERE el.archived=0 " +
+            "GROUP BY person_uuid, el.drug_use_history->>'hivTestResultAtvisit') el_max ON el_max.person_uuid = p.uuid " +
             " WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
-            "p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
-            "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, he.person_uuid, he.date_confirmed_hiv, pet.id ORDER BY pet.id DESC ", nativeQuery = true)
+            "el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration, prepc.commencementCount, el.eligibility_count, " +
+            "pet.created_by, pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
+            "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, he.person_uuid, " +
+            "he.date_confirmed_hiv, pet.id ORDER BY pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
 
 
-    @Query(value = "SELECT p.date_of_registration AS dateOfRegistration, prepc.commencementCount, el.eligibility_count as eligibilityCount, pet.created_by as createdBy, pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,    " +
+    @Query(value = "SELECT el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration AS dateOfRegistration, prepc.commencementCount, el.eligibility_count as eligibilityCount, pet.created_by as createdBy, pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,    " +
             " p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,    " +
             " INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, he.date_confirmed_hiv as dateConfirmedHiv,  " +
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
@@ -138,15 +143,19 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "SELECT pi.id, pi.person_uuid, MAX(pi.interruption_date)interruption_date , pi.interruption_type " +
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
             "GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi ON prepi.person_uuid = p.uuid " +
-            "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type" +
+            "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
+            "LEFT JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit " +
+            "FROM prep_eligibility el WHERE el.archived=0 " +
+            "GROUP BY person_uuid, el.drug_use_history->>'hivTestResultAtvisit') el_max ON el_max.person_uuid = p.uuid " +
             " WHERE p.archived=?1 AND p.facility_id=?2 AND p.uuid=?3" +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display,he.person_uuid, he.date_confirmed_hiv, " +
-            "p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
-            "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, pet.id ORDER BY pet.id DESC ", nativeQuery = true)
+            "el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, " +
+            "p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
+            "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, pet.id ORDER BY pet.date_created DESC NULLS LAST", nativeQuery = true)
     Optional<PrepClient> findPersonPrepAndStatusByPatientUuid(Integer archived, Long facilityId, String personUuid);
-    @Query(value = "SELECT p.date_of_registration AS dateOfRegistration, prepc.commencementCount, el.eligibility_count as eligibilityCount, " +
+    @Query(value = "SELECT el_max.HIVResultAtVisit, p.date_of_registration AS dateOfRegistration, prepc.commencementCount, el.eligibility_count as eligibilityCount, " +
             "pet.created_by as createdBy, pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,    " +
-            " p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,    " +
+            " pet.date_created, p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,    " +
             " INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, he.date_confirmed_hiv as dateConfirmedHiv,  " +
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
             "(CASE " +
@@ -171,11 +180,16 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "SELECT pi.id, pi.person_uuid, MAX(pi.interruption_date)interruption_date , pi.interruption_type " +
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
             "GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi ON prepi.person_uuid = p.uuid " +
-            "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type" +
+            "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
+            "LEFT JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit " +
+            "FROM prep_eligibility el WHERE el.archived=0 " +
+            "GROUP BY person_uuid, el.drug_use_history->>'hivTestResultAtvisit') el_max ON el_max.person_uuid = p.uuid " +
             " WHERE p.archived=?1 AND p.facility_id=?2 "+
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
-            "p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
-            "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, he.person_uuid, he.date_confirmed_hiv, pet.id ORDER BY pet.id DESC ", nativeQuery = true)
+            "el_max.HIVResultAtVisit, p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, " +
+            "pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
+            "pet.date_created, p.other_name, p.hospital_number, p.date_of_birth, " +
+            "prepc.status, he.person_uuid, he.date_confirmed_hiv, pet.id ORDER BY pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
 
     List<PrepEnrollment> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);

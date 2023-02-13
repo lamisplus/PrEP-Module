@@ -19,4 +19,5 @@ public interface PrepClient {
     Integer getEligibilityCount();
     Integer getCommencementCount();
     LocalDate getDateOfRegistration();
+    String getHIVResultAtVisit();
 }
