@@ -112,10 +112,23 @@ const PrEPEligibiltyScreeningForm = (props) => {
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [prepStatus, setPrepStatus] = useState([]);
-
+    const [patientDto, setPatientDto] = useState();
     useEffect(() => {         
         PREP_STATUS();
+        GetPatientDTOObj();
     }, []);
+    const GetPatientDTOObj =()=>{
+        axios
+           .get(`${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+               { headers: {"Authorization" : `Bearer ${token}`} }
+           )
+           .then((response) => {
+               setPatientDto(response.data);
+           })
+           .catch((error) => {
+           //console.log(error);
+           });          
+    }
     const PREP_STATUS =()=>{
         axios
         .get(`${baseUrl}application-codesets/v2/PREP_STATUS`,
@@ -213,6 +226,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                                 type="date"
                                 name="interruptionDate"
                                 id="interruptionDate"
+                                min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
                                 onChange={handleInputChange}
                                 value={objValues.interruptionDate}
