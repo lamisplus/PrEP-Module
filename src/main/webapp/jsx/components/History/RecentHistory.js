@@ -12,7 +12,7 @@ import {  Card,Accordion } from "react-bootstrap";
 import {  Modal } from "react-bootstrap";
 import "react-widgets/dist/css/react-widgets.css";
 import { toast} from "react-toastify";
-import PatientChart from './../Patient/PatientChart/Index'
+
 import {Button } from 'semantic-ui-react'
 
 const RecentHistory = (props) => {
@@ -32,7 +32,6 @@ const RecentHistory = (props) => {
     Summary()
     RecentActivities();
   }, [props.patientObj.personId]);
-
 
   const RecentActivities =()=>{
     axios
@@ -78,31 +77,30 @@ const RecentHistory = (props) => {
       }
   }
 
-  const LoadViewPage =(row,action)=>{
-        
-    if(row.path==='prep-eligibility'){        
-        props.setActiveContent({...props.activeContent, route:'prep-screening', id:row.id, actionType:action})
+    const LoadViewPage =(row,action)=>{
+          
+      if(row.path==='prep-eligibility'){        
+          props.setActiveContent({...props.activeContent, route:'prep-screening', id:row.id, actionType:action})
 
-    }else if(row.path==='prep-enrollment'){
-        props.setActiveContent({...props.activeContent, route:'prep-registration', id:row.id, actionType:action})
+      }else if(row.path==='prep-enrollment'){
+          props.setActiveContent({...props.activeContent, route:'prep-registration', id:row.id, actionType:action})
 
-    }else if(row.path==='prep-clinic'){//prep-commencement 
-        props.setActiveContent({...props.activeContent, route:'consultation', id:row.id, actionType:action})
+      }else if(row.path==='prep-clinic'){//prep-commencement 
+          props.setActiveContent({...props.activeContent, route:'consultation', id:row.id, actionType:action})
 
-    }else if(row.path==='prep-commencement'){
-        props.setActiveContent({...props.activeContent, route:'prep-commencement', id:row.id, actionType:action})
+      }else if(row.path==='prep-commencement'){
+          props.setActiveContent({...props.activeContent, route:'prep-commencement', id:row.id, actionType:action})
 
-    }else{
+      }else{
 
-    }
-    
-}
-const LoadModal =(row)=>{
-  toggle()
-  setRecord(row)
-}
+      }
+      
+  }
+  const LoadModal =(row)=>{
+    toggle()
+    setRecord(row)
+  }
 const LoadDeletePage =(row)=>{
-  
   if(row.path==='prep-eligibility'){ 
       setSaving(true)       
       //props.setActiveContent({...props.activeContent, route:'mental-health-view', id:row.id})
@@ -114,6 +112,7 @@ const LoadDeletePage =(row)=>{
           setSaving(false)
           toast.success("Record Deleted Successfully");
           RecentActivities()
+          toggle()
       })
       .catch((error) => {
           setSaving(false)
@@ -173,11 +172,11 @@ const LoadDeletePage =(row)=>{
             }
       });
 
-  }else if(row.path==='prep-enrollment2'){
+  }else if(row.path==='prep-commencement'){
       setSaving(true)
       //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
       axios
-      .delete(`${baseUrl}prep-enrollment/${row.id}`,
+      .delete(`${baseUrl}prep-clinic/${row.id}`,
           { headers: {"Authorization" : `Bearer ${token}`} }
       )
       .then((response) => {
@@ -338,56 +337,76 @@ const LoadDeletePage =(row)=>{
                 {summary && summary!==null && (<>
                 <div className="col-sm-6 col-md-6 col-lg-6">
                 <div className="card-body">
+                  
+                  <div className="col-sm-12 col-md-12 col-lg-12">
+                    <div className="card overflow-hidden">
+                  <div className="social-graph-wrapper widget-facebook">
+                    <span className="s-icon">
+                      <span style={{fontSize:"16px"}}>Total Clinic Visit : {summary.visitCount}</span>
+                    </span>
+                  </div>
+                  <div className="row">
+                    <div className="col-6 border-right">
+                      <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                        <h4 className="m-1">
+                          <span className="counter"><b>{summary.encounterDate}</b></span> 
+                        </h4>
+                        <p className="m-0"><b>Last Visit </b></p>
+                      </div>
+                    </div>
+                   
+                    <div className="col-6">
+                      <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                        <h4 className="m-1">
+                          <span className="counter"><b>{summary.nextAppointment}</b></span>
+                        </h4>
+                        <p className="m-0"><b>Next Visit</b></p>
+                      </div>
+                    </div>
+                   
+                  </div>
+                </div>
+                  </div>
                   <div className="col-xl-12 col-lg-12 col-sm-12">
                   <div className="widget-stat card">
-                    <div className="card-body p-4" style={{backgroundColor:"#E8F0FD"}}>
-                      <h4 className="card-title">Current Regimen Given</h4>
-                      <h3 class="text-info ">{summary.regimen}</h3>
-                      <div className="progress mb-2">
-                        <div
-                          className="progress-bar progress-animated bg-primary"
-                          style={{ width: "100%" }}
-                        ></div>
-                      </div>
-                      <p class="text-success ">Next Appointment Date : {summary.nextAppointment}</p>
+                    <div className="card-body p-4" style={{backgroundColor:"#fff"}}>
+                      <h4 className="card-title" style={{fontSize:"15px"}}><b>Current Regimen Given</b></h4>
+                      <h4 class="text-info ">{summary.regimen}</h4>
+                     
                     </div>
                   </div>
-                  </div>
-                  <div className="col-sm-12 col-md-12 col-lg-12">
-                    <div className="widget-stat card">
-                      <div className="card-body p-4" >
-                      <div className="media ai-icon">
-                        <span className="me-3 bgl-primary text-primary">
-                          <svg
-                            id="icon-customers"
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="30"
-                            height="30"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="feather feather-user"
-                          >
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                          </svg>
-                        </span>
-                        <div className="media-body">
-                          <p className="mb-1" ><span style={{fontSize:"14px"}} >Total Visit :</span> <span className="badge badge-primary">{summary.visitCount}</span></p>
-                          <p><span style={{fontSize:"10px", fontWeight:"bolder"}} >Last Visit Date : </span><span className="badge badge-dark">{summary.encounterDate}</span></p>
-                        </div>
-                      </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
                 </div>
                 <div className="col-sm-6 col-md-6 col-lg-6">
                 <div className="card-body">
-                    <PatientChart summary={summary}/>
+                    <div className="card overflow-hidden">
+                  <div className="social-graph-wrapper widget-linkedin">
+                    <span className="s-icon">
+                    <span style={{fontSize:"16px", }}>BMI : {(summary.weight/((summary.height/100) * (summary.height/100))).toFixed(2)} kg/m<sup>2</sup></span>
+                    </span>
+                  </div>
+                  <div className="row">
+
+                    <div className="col-6 border-right">
+                      <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                        <h4 className="m-1">
+                          <span className="counter">{summary.weight} Kg</span> 
+                        </h4>
+                        <p className="m-0"><b>Weight </b></p>
+                      </div>
+                    </div>
+                    <div className="col-6">
+                      <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                        <h4 className="m-1">
+                          <span className="counter">{summary.height} cm</span>
+                        </h4>
+                        <p className="m-0"><b>Height </b></p>
+                      </div>
+                    </div>
+                    
+                  </div>
+                </div>
                 </div>
                 </div>
                 </>)}

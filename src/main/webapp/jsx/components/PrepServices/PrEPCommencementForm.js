@@ -245,6 +245,7 @@ const PrEPCommencementForm = (props) => {
              ).then(response => {
                    setSaving(false);
                    patientObj.commencementCount=1
+                   props.PatientObject();
                    toast.success("Record save successful", {position: toast.POSITION.BOTTOM_CENTER});
                    props.setActiveContent({...props.activeContent, route:'recent-history'})
                   
@@ -540,7 +541,7 @@ const PrEPCommencementForm = (props) => {
                         </FormGroup>
                         
                         </div>
-                        <div className=" mb-3 col-md-6">
+                        {/* <div className=" mb-3 col-md-6">
                             <FormGroup>
                             <Label >Date PrEP Given</Label>
                             <Input
@@ -556,7 +557,7 @@ const PrEPCommencementForm = (props) => {
                             />
                                 
                             </FormGroup>
-                        </div> 
+                        </div>  */}
                         <div className=" mb-3 col-md-6">
                             <FormGroup>
                             <Label >Duration</Label>

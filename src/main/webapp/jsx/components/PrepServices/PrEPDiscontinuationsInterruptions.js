@@ -9,10 +9,10 @@ import CancelIcon from '@material-ui/icons/Cancel'
 import axios from "axios";
 import { toast} from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
-import { useHistory } from "react-router-dom";
-import {  Modal, Button } from "react-bootstrap";
+// import { useHistory } from "react-router-dom";
+// import {  Modal, Button } from "react-bootstrap";
 import "react-widgets/dist/css/react-widgets.css";
-import { DateTimePicker } from "react-widgets";
+// import { DateTimePicker } from "react-widgets";
 // import Moment from "moment";
 // import momentLocalizer from "react-widgets-moment";
 import moment from "moment";
@@ -112,10 +112,23 @@ const PrEPEligibiltyScreeningForm = (props) => {
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [prepStatus, setPrepStatus] = useState([]);
-
+    const [patientDto, setPatientDto] = useState();
     useEffect(() => {         
         PREP_STATUS();
+        GetPatientDTOObj();
     }, []);
+    const GetPatientDTOObj =()=>{
+        axios
+           .get(`${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+               { headers: {"Authorization" : `Bearer ${token}`} }
+           )
+           .then((response) => {
+               setPatientDto(response.data);
+           })
+           .catch((error) => {
+           //console.log(error);
+           });          
+    }
     const PREP_STATUS =()=>{
         axios
         .get(`${baseUrl}application-codesets/v2/PREP_STATUS`,
@@ -213,6 +226,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                                 type="date"
                                 name="interruptionDate"
                                 id="interruptionDate"
+                                min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
                                 onChange={handleInputChange}
                                 value={objValues.interruptionDate}
