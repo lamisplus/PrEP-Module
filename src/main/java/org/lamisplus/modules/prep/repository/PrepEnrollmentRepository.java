@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -193,4 +194,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
     Page<PrepClient> findAllPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
 
     List<PrepEnrollment> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
+
+    Optional<PrepEnrollment> findByDateEnrolledAndPersonUuid(LocalDate dateEnrolled, String personUuid);
 }
