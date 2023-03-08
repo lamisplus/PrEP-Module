@@ -274,7 +274,7 @@ const BasicInfo = (props) => {
                     .then(response => {
                         setSaving(false);
                         props.patientObj.eligibilityCount= 1
-                        props.patientObj.HIVResultAtVisit = drugHistory.hivTestResultAtvisit
+                        props.patientObj.hivresultAtVisit = drugHistory.hivTestResultAtvisit
                         props.PatientObject();
                         toast.success("Prep Eligilibility save successful!", {position: toast.POSITION.BOTTOM_CENTER});
                         props.setActiveContent({...props.activeContent, route:'recent-history'})
@@ -300,6 +300,7 @@ const BasicInfo = (props) => {
                         setSaving(false);
                         props.patientObj.eligibilityCount= 1
                         //props.setPatientObj(response.data)
+                        props.patientObj.hivresultAtVisit = drugHistory.hivTestResultAtvisit
                         toast.success("Prep Eligilibility save successful!", {position: toast.POSITION.BOTTOM_CENTER});
                         props.setActiveContent({...props.activeContent, route:'recent-history'})
         

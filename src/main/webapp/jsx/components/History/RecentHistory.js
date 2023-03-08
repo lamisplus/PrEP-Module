@@ -112,6 +112,7 @@ const LoadDeletePage =(row)=>{
           setSaving(false)
           toast.success("Record Deleted Successfully");
           RecentActivities()
+          toggle()
       })
       .catch((error) => {
           setSaving(false)
