@@ -1205,9 +1205,9 @@ const ClinicVisit = (props) => {
                   <FormLabelName > Test  Name</FormLabelName>
                   <Input
                     type="text"
-                    name="testDate"
-                    id="testDate"
-                    value={otherTest.testDate}
+                    name="name"
+                    id="name"
+                    value={otherTest.name}
                     onChange={handleInputChangeOtherTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     disabled={disabledField}
