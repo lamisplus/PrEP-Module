@@ -149,7 +149,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
 
     const validate = () => {
         let temp = { ...errors }
-        temp.interruptionDate = objValues.interruptionDate ? "" : "This field is required"
+        //temp.interruptionDate = objValues.interruptionDate ? "" : "This field is required"
         temp.interruptionType = objValues.interruptionType ? "" : "This field is required"
         setErrors({
             ...temp
@@ -186,6 +186,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
         }
           
     }
+
 
   return (      
       <div>                   
@@ -407,6 +408,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         ) : "" }
                         </FormGroup>
                     </div>
+                    {objValues.linkToArt==='true' && (
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label >Date link to ART</Label>
@@ -426,6 +428,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         ) : "" }    
                         </FormGroup>
                     </div>
+                    )}
                     </>)}
                     
                 </div>
