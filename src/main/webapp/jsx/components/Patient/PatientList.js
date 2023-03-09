@@ -119,7 +119,7 @@ const Patients = (props) => {
                         .then(result => {
                             
                             resolve({
-                                data: result.data.records.filter(x=> x.prepStatus=== "Not Enrolled").map((row) => ({
+                                data: result.data.records.map((row) => ({
                                     name:row.firstName + " " + row.surname,
                                     hospital_number: row.hospitalNumber,
                                     clientCode: row.uniqueId,
@@ -211,7 +211,6 @@ const Patients = (props) => {
                 ),
             }}
     />
-        />
        
     </div>
   );

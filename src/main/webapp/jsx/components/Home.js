@@ -52,9 +52,9 @@ const Home = () => {
                   <Tab eventKey="home" title="Find Patients">                   
                     <Dashboard />
                   </Tab>
-                  <Tab eventKey="prep-patient" title="PrEP Patients">                   
+                  {/* <Tab eventKey="prep-patient" title="PrEP Patients">                   
                     <PrepPatients />
-                  </Tab>                    
+                  </Tab>                     */}
                 </Tabs>
               </div>
             </Card.Body>
