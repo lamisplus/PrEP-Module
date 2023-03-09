@@ -109,7 +109,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "INNER JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid " +
             "FROM prep_eligibility el WHERE el.archived=0 " +
             "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
-            " WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
+            " WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 OR p.full_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
