@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -103,9 +104,11 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
             "GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi ON prepi.person_uuid = p.uuid " +
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
-            "LEFT JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit " +
+            "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
+            "FROM prep_eligibility el " +
+            "INNER JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid " +
             "FROM prep_eligibility el WHERE el.archived=0 " +
-            "GROUP BY person_uuid, el.drug_use_history->>'hivTestResultAtvisit') el_max ON el_max.person_uuid = p.uuid " +
+            "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
             " WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
@@ -144,9 +147,11 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
             "GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi ON prepi.person_uuid = p.uuid " +
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
-            "LEFT JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit " +
+            "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
+            "FROM prep_eligibility el " +
+            "INNER JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid " +
             "FROM prep_eligibility el WHERE el.archived=0 " +
-            "GROUP BY person_uuid, el.drug_use_history->>'hivTestResultAtvisit') el_max ON el_max.person_uuid = p.uuid " +
+            "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
             " WHERE p.archived=?1 AND p.facility_id=?2 AND p.uuid=?3" +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display,he.person_uuid, he.date_confirmed_hiv, " +
             "el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, " +
@@ -181,9 +186,11 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
             "GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi ON prepi.person_uuid = p.uuid " +
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
-            "LEFT JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit " +
+            "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
+            "FROM prep_eligibility el " +
+            "INNER JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid " +
             "FROM prep_eligibility el WHERE el.archived=0 " +
-            "GROUP BY person_uuid, el.drug_use_history->>'hivTestResultAtvisit') el_max ON el_max.person_uuid = p.uuid " +
+            "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
             " WHERE p.archived=?1 AND p.facility_id=?2 "+
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
             "el_max.HIVResultAtVisit, p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, " +
@@ -193,4 +200,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
     Page<PrepClient> findAllPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
 
     List<PrepEnrollment> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
+
+    Optional<PrepEnrollment> findByDateEnrolledAndPersonUuid(LocalDate dateEnrolled, String personUuid);
 }

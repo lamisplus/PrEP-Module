@@ -57,6 +57,16 @@ public class PrepService {
 
         prepEligibility.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());
+
+        //Check if client eligibility on same date exist and throw an error
+        prepEligibilityRepository
+                .findByVisitDateAndPersonUuid(prepEligibilityRequestDto.getVisitDate(),
+                        person.getUuid()).ifPresent(prepEligibility1 -> {
+                    throw new RecordExistException(PrepEligibility.class, "Client Eligibility",
+                            String.valueOf(prepEligibility1.getVisitDate()));
+                });
+
+
         prepEligibility = prepEligibilityRepository.save(prepEligibility);
         prepEligibility.setPerson(person);
         PrepEligibilityDto prepEligibilityDto =  this.prepEligibilityToPrepEligibilityDto(prepEligibility);
@@ -87,6 +97,15 @@ public class PrepService {
 
         prepEnrollment.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());
+
+        //Check if client Enrollment on same date exist and throw an error
+        prepEnrollmentRepository
+                .findByDateEnrolledAndPersonUuid(prepEnrollmentRequestDto.getDateEnrolled(),
+                        person.getUuid()).ifPresent(prepEnroll -> {
+                    throw new RecordExistException(PrepEnrollment.class, "Client Enrollment",
+                            String.valueOf(prepEnroll.getDateEnrolled()));
+                });
+
         prepEnrollment = prepEnrollmentRepository.save(prepEnrollment);
         prepEnrollment.setPerson(prepEligibility.getPerson());
         PrepEnrollmentDto prepEnrollmentDto = this.enrollmentToEnrollmentDto(prepEnrollment);
@@ -146,12 +165,18 @@ public class PrepService {
         Person person = this.getPerson(interruptionRequestDto.getPersonId());
         PrepInterruption prepInterruption = interruptionRequestDtoInterruption(interruptionRequestDto, person.getUuid());
 
+
         prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
-        //prepInterruption.setArchived(UN_ARCHIVED);
-        //prepInterruption.setPerson(person);
-        //log.info("prepInterruption {}", prepInterruption);
+
+        //Check if client Interruption on same date exist and throw an error
+        prepInterruptionRepository
+                .findByInterruptionDateAndPersonUuid(interruptionRequestDto.getInterruptionDate(),
+                        person.getUuid()).ifPresent(prepInterruption1 -> {
+                            throw new RecordExistException(PrepInterruption.class, "Client Discontinuation",
+                                    String.valueOf(interruptionRequestDto.getInterruptionDate()));
+                });
+
         prepInterruption = prepInterruptionRepository.save(prepInterruption);
-        //LOG.info("prepInterruption after saving {}", prepInterruption);
         prepInterruption.setPerson(person);
         PrepInterruptionDto prepInterruptionDto = this.interruptionToInterruptionDto(prepInterruption);
         return prepInterruptionDto;
