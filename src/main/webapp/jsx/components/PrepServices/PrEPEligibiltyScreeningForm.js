@@ -268,7 +268,7 @@ const BasicInfo = (props) => {
             objValues.stiScreening= stiScreening
             objValues.personId= patientID
             objValues.uniqueId= patientID
-                if(props.activeContent && props.activeContent.actionType){//Perform operation for updation action
+                if(props.activeContent && props.activeContent.actionType==="update"){//Perform operation for updation action
                     axios.put(`${baseUrl}prep-eligibility/${props.activeContent.id}`,objValues,
                     { headers: {"Authorization" : `Bearer ${token}`}},)
                     .then(response => {
@@ -1397,7 +1397,7 @@ const BasicInfo = (props) => {
                             <br />
                             <div className="row">
                             <div className="form-group mb-3 col-md-12">
-                            {props.activeContent && props.activeContent.actionType? (<>
+                            {props.activeContent && props.activeContent.actionType ==="update"? (<>
                         <MatButton
                         type="submit"
                         variant="contained"

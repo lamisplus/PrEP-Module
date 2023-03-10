@@ -1304,7 +1304,7 @@ const ClinicVisit = (props) => {
               </div>
            </div>
             <br />
-            {props.activeContent && props.activeContent.actionType? (<>
+            {props.activeContent && props.activeContent.actionType==="update"? (<>
                         <MatButton
                         type="submit"
                         variant="contained"

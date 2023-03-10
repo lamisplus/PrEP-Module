@@ -481,7 +481,7 @@ const PrEPRegistrationForm = (props) => {
                 
                 {saving ? <Spinner /> : ""}
                 <br />
-                {props.activeContent && props.activeContent.actionType? (<>
+                {props.activeContent && props.activeContent.actionType==="update"? (<>
                         <MatButton
                         type="submit"
                         variant="contained"
