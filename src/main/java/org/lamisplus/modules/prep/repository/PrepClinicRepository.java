@@ -5,6 +5,7 @@ import org.lamisplus.modules.prep.domain.entity.PrepClinic;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,4 +23,6 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
     List<PrepClinic> findAllByPrepEnrollmentUuid(String uuid);
 
     List<PrepClinic> findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(String personUuid, Long facilityId, int archived, Boolean isCommenced);
+
+    Optional<PrepClinic> findByEncounterDateAndPersonUuid(LocalDate encounterDate, String uuid);
 }
