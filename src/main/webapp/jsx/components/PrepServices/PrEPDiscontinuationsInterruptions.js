@@ -176,9 +176,11 @@ const PrEPEligibiltyScreeningForm = (props) => {
                   setSaving(false);
                   if(error.response && error.response.data){
                     let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                    
+                    if(error.response.data.apierror){
+                      toast.error(error.response.data.apierror.message , {position: toast.POSITION.BOTTOM_CENTER});
+                    }else{
                       toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
-
+                    }
                 }else{
                     toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
                 }
