@@ -469,19 +469,18 @@ const ClinicVisit = (props) => {
         })
         .catch(error => {
           setSaving(false);
-          
           if(error.response && error.response.data){
             let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-            if(error.response.data.apierror && error.response.data.apierror.message!==""){
-                toast.error(error.response.data.apierror.message, {position: toast.POSITION.BOTTOM_CENTER});
+            //console.log(errorMessage)
+            if(errorMessage!==""){
+                toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
             }else if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
               toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
             }else{
-                toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
+              toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
             }
-
         }else{
-            toast.error("Something went wrong. Please try again...",  {position: toast.POSITION.BOTTOM_CENTER});
+            toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
         }
           
         });
