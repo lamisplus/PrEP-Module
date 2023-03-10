@@ -216,7 +216,7 @@ const PrEPCommencementForm = (props) => {
         if(validate()){
            setSaving(true);
            objValues.prepEnrollmentUuid=patientDto.uuid 
-           if(props.activeContent && props.activeContent.actionType){//Perform operation for updation action
+           if(props.activeContent && props.activeContent.actionType==="update"){//Perform operation for updation action
             axios.put(`${baseUrl}prep-clinic/${props.activeContent.id}`,objValues,
             { headers: {"Authorization" : `Bearer ${token}`}},          
              ).then(response => {
@@ -229,15 +229,15 @@ const PrEPCommencementForm = (props) => {
                .catch(error => {
                    setSaving(false);
                    if(error.response && error.response.data){
-                     let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                     if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
-                       toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
-                     }else{
-                       toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
-                     }
-                 }else{
-                     toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
-                 }
+                    let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+                    if(error.response.data.apierror){
+                      toast.error(error.response.data.apierror.message , {position: toast.POSITION.BOTTOM_CENTER});
+                    }else{
+                      toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
+                    }
+                }else{
+                    toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
+                }
                });
             }else{
             axios.post(`${baseUrl}prep/commencement`,objValues,
@@ -254,11 +254,8 @@ const PrEPCommencementForm = (props) => {
                    setSaving(false);
                    if(error.response && error.response.data){
                     let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                    //console.log(errorMessage)
-                    if(errorMessage!==""){
-                        toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
-                    }else if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
-                      toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
+                    if(error.response.data.apierror){
+                      toast.error(error.response.data.apierror.message , {position: toast.POSITION.BOTTOM_CENTER});
                     }else{
                       toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
                     }

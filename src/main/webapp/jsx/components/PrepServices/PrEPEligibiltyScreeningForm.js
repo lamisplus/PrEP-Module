@@ -268,7 +268,7 @@ const BasicInfo = (props) => {
             objValues.stiScreening= stiScreening
             objValues.personId= patientID
             objValues.uniqueId= patientID
-                if(props.activeContent && props.activeContent.actionType){//Perform operation for updation action
+                if(props.activeContent && props.activeContent.actionType==="update"){//Perform operation for updation action
                     axios.put(`${baseUrl}prep-eligibility/${props.activeContent.id}`,objValues,
                     { headers: {"Authorization" : `Bearer ${token}`}},)
                     .then(response => {
@@ -284,8 +284,8 @@ const BasicInfo = (props) => {
                         setSaving(false);
                         if(error.response && error.response.data){
                             let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                            if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
-                              toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
+                            if(error.response.data.apierror){
+                              toast.error(error.response.data.apierror.message , {position: toast.POSITION.BOTTOM_CENTER});
                             }else{
                               toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
                             }
@@ -1397,7 +1397,7 @@ const BasicInfo = (props) => {
                             <br />
                             <div className="row">
                             <div className="form-group mb-3 col-md-12">
-                            {props.activeContent && props.activeContent.actionType? (<>
+                            {props.activeContent && props.activeContent.actionType ==="update"? (<>
                         <MatButton
                         type="submit"
                         variant="contained"
