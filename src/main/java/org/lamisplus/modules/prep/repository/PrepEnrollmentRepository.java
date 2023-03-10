@@ -82,6 +82,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, he.date_confirmed_hiv as dateConfirmedHiv,  " +
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
             "(CASE " +
+            "WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
             "WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
             "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
             "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
@@ -125,6 +126,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, he.date_confirmed_hiv as dateConfirmedHiv,  " +
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
             "(CASE " +
+            "WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
             "WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
             "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
             "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
@@ -164,6 +166,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, he.date_confirmed_hiv as dateConfirmedHiv,  " +
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
             "(CASE " +
+            "WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
             "WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
             "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
             "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +

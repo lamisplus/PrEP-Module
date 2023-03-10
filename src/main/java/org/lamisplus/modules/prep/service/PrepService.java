@@ -62,7 +62,7 @@ public class PrepService {
         prepEligibilityRepository
                 .findByVisitDateAndPersonUuid(prepEligibilityRequestDto.getVisitDate(),
                         person.getUuid()).ifPresent(prepEligibility1 -> {
-                    throw new RecordExistException(PrepEligibility.class, "Client Eligibility",
+                    throw new RecordExistException(PrepEligibility.class, "Encounter date",
                             String.valueOf(prepEligibility1.getVisitDate()));
                 });
 
@@ -102,7 +102,7 @@ public class PrepService {
         prepEnrollmentRepository
                 .findByDateEnrolledAndPersonUuid(prepEnrollmentRequestDto.getDateEnrolled(),
                         person.getUuid()).ifPresent(prepEnroll -> {
-                    throw new RecordExistException(PrepEnrollment.class, "Client Enrollment",
+                    throw new RecordExistException(PrepEnrollment.class, "Encounter date",
                             String.valueOf(prepEnroll.getDateEnrolled()));
                 });
 
@@ -172,7 +172,7 @@ public class PrepService {
         prepInterruptionRepository
                 .findByInterruptionDateAndPersonUuid(interruptionRequestDto.getInterruptionDate(),
                         person.getUuid()).ifPresent(prepInterruption1 -> {
-                            throw new RecordExistException(PrepInterruption.class, "Client Discontinuation",
+                            throw new RecordExistException(PrepInterruption.class, "Encounter date",
                                     String.valueOf(interruptionRequestDto.getInterruptionDate()));
                 });
 
