@@ -74,7 +74,7 @@ function SubMenu(props) {
                 (<>
                 {/* This menu will show only if the patient is migrated  and check if the patient last HIV test result is not positive*/}
                 <Menu.Item onClick={() => onClickHome()} >Home</Menu.Item>
-                <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibility Screening</Menu.Item>
+                {patientObj.hivresultAtVisit ==="Negative" && (<Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibility Screening</Menu.Item>)}
                 {patientObj.hivresultAtVisit ==="Negative" && (<Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>)}
                 {patientObj.hivresultAtVisit ==="Negative" && (<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
                 {patientObj.hivresultAtVisit ==="Negative" && (<Menu.Item onClick={() => onClickConsultation()} > PrEP Visit</Menu.Item>)}
