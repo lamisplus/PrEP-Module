@@ -191,7 +191,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
             "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
             "FROM prep_eligibility el " +
-            "INNER JOIN (DISTINCT SELECT MAX(el.visit_date) as max_date, el.person_uuid " +
+            "INNER JOIN (SELECT DISTINCT MAX(el.visit_date) as max_date, el.person_uuid " +
             "FROM prep_eligibility el WHERE el.archived=0 " +
             "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
             " WHERE p.archived=?1 AND p.facility_id=?2 "+
