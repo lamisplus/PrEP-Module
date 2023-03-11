@@ -82,6 +82,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, he.date_confirmed_hiv as dateConfirmedHiv,  " +
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
             "(CASE " +
+            "WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
             "WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
             "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
             "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
@@ -95,7 +96,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration,  \n" +
             " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'" +
             " ELSE  'Defaulted' END) status FROM prep_clinic pc" +
-            " INNER JOIN (SELECT MAX(pc.encounter_date) encounter_date, pc.person_uuid" +
+            " INNER JOIN (SELECT DISTINCT MAX(pc.encounter_date) encounter_date, pc.person_uuid" +
             " FROM prep_clinic pc GROUP BY pc.person_uuid) max_p ON max_p.encounter_date=pc.encounter_date " +
             " AND max_p.person_uuid=pc.person_uuid WHERE pc.archived=?1 " +
             " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
@@ -106,10 +107,10 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
             "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
             "FROM prep_eligibility el " +
-            "INNER JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid " +
+            "INNER JOIN (SELECT DISTINCT MAX(el.visit_date) as max_date, el.person_uuid " +
             "FROM prep_eligibility el WHERE el.archived=0 " +
             "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
-            " WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
+            " WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 OR p.full_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
@@ -125,6 +126,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, he.date_confirmed_hiv as dateConfirmedHiv,  " +
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
             "(CASE " +
+            "WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
             "WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
             "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
             "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
@@ -138,7 +140,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration,  \n" +
             " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'" +
             " ELSE  'Defaulted' END) status FROM prep_clinic pc" +
-            " INNER JOIN (SELECT MAX(pc.encounter_date) encounter_date, pc.person_uuid" +
+            " INNER JOIN (SELECT DISTINCT MAX(pc.encounter_date) encounter_date, pc.person_uuid" +
             " FROM prep_clinic pc GROUP BY pc.person_uuid) max_p ON max_p.encounter_date=pc.encounter_date " +
             " AND max_p.person_uuid=pc.person_uuid WHERE pc.archived=?1 " +
             " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
@@ -149,7 +151,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
             "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
             "FROM prep_eligibility el " +
-            "INNER JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid " +
+            "INNER JOIN (SELECT DISTINCT MAX(el.visit_date) as max_date, el.person_uuid " +
             "FROM prep_eligibility el WHERE el.archived=0 " +
             "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
             " WHERE p.archived=?1 AND p.facility_id=?2 AND p.uuid=?3" +
@@ -164,6 +166,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, he.date_confirmed_hiv as dateConfirmedHiv,  " +
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
             "(CASE " +
+            "WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
             "WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
             "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
             "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
@@ -177,7 +180,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration,  \n" +
             " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'" +
             " ELSE  'Defaulted' END) status FROM prep_clinic pc" +
-            " INNER JOIN (SELECT MAX(pc.encounter_date) encounter_date, pc.person_uuid" +
+            " INNER JOIN (SELECT DISTINCT MAX(pc.encounter_date) encounter_date, pc.person_uuid" +
             " FROM prep_clinic pc GROUP BY pc.person_uuid) max_p ON max_p.encounter_date=pc.encounter_date " +
             " AND max_p.person_uuid=pc.person_uuid WHERE pc.archived=?1 " +
             " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
@@ -188,7 +191,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
             "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
             "FROM prep_eligibility el " +
-            "INNER JOIN (SELECT MAX(el.visit_date) as max_date, el.person_uuid " +
+            "INNER JOIN (SELECT DISTINCT MAX(el.visit_date) as max_date, el.person_uuid " +
             "FROM prep_eligibility el WHERE el.archived=0 " +
             "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
             " WHERE p.archived=?1 AND p.facility_id=?2 "+
