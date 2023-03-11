@@ -536,7 +536,7 @@ public class PrepService {
 
         prepClinic.setDuration( prepClinicRequestDto.getDuration());
 
-        prepClinic.setPrepGiven( prepClinicRequestDto.getHivTestResult());
+        prepClinic.setPrepGiven( prepClinicRequestDto.getPrepGiven());
         prepClinic.setOtherDrugs( prepClinicRequestDto.getOtherDrugs());
         prepClinic.setHivTestResult( prepClinicRequestDto.getHivTestResult());
 
