@@ -171,6 +171,10 @@ public class PrepEnrollmentService {
         enrollmentDto.setExtra( enrollment.getExtra() );
         enrollmentDto.setUuid(enrollment.getUuid());
 
+        if(enrollment.getCreatedBy().equals("ETL")){
+            if(enrollment.getDateEnrolled() == null && enrollment.getDateStarted() != null)
+            enrollmentDto.setDateEnrolled( enrollment.getDateStarted() );
+        }
         enrollmentDto.setDateEnrolled( enrollment.getDateEnrolled() );
         enrollmentDto.setDateReferred( enrollment.getDateReferred() );
         enrollmentDto.setRiskType( enrollment.getRiskType() );
