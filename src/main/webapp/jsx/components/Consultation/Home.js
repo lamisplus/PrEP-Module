@@ -1105,7 +1105,7 @@ const ClinicVisit = (props) => {
                     value={urinalysisTest.testDate}
                     onChange={handleInputChangeUrinalysisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
+                    min={objValues.encounterDate}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     disabled={disabledField}
                   />
@@ -1152,7 +1152,7 @@ const ClinicVisit = (props) => {
                     value={hepatitisTest.testDate}
                     onChange={handleInputChangeHepatitisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
+                    min={objValues.encounterDate}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     disabled={disabledField}
                   />
@@ -1196,7 +1196,7 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChangeSyphilisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     disabled={disabledField}
-                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
+                    min={objValues.encounterDate}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                   />
                     
@@ -1254,7 +1254,7 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChangeOtherTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     disabled={disabledField}
-                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
+                    min={objValues.encounterDate}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                   />
                    

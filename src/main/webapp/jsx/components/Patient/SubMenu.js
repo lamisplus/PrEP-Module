@@ -74,11 +74,11 @@ function SubMenu(props) {
                 (<>
                 {/* This menu will show only if the patient is migrated  and check if the patient last HIV test result is not positive*/}
                 <Menu.Item onClick={() => onClickHome()} >Home</Menu.Item>
-                {(patientObj.hivresultAtVisit ==="Negative" && patientObj.hivresultAtVisit !==null) && (<Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibility Screening</Menu.Item>)}
-                {(patientObj.hivresultAtVisit ==="Negative" && patientObj.hivresultAtVisit !==null) &&(<Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>)}
-                {(patientObj.hivresultAtVisit ==="Negative" && patientObj.hivresultAtVisit !==null) &&(<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
-                {(patientObj.hivresultAtVisit ==="Negative" && patientObj.hivresultAtVisit !==null) &&(<Menu.Item onClick={() => onClickConsultation()} > PrEP Visit</Menu.Item>)}
-                {(patientObj.hivresultAtVisit ==="Negative" && patientObj.hivresultAtVisit !==null) &&(<Menu.Item onClick={() => loadPrEPDiscontinuationsInterruptions()} >PrEP Discontinuations & Interruptions</Menu.Item>)}
+                {(patientObj.hivresultAtVisit ==="Negative" || patientObj.hivresultAtVisit ===null) && (<Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()} >PrEP Eligibility Screening</Menu.Item>)}
+                {(patientObj.hivresultAtVisit ==="Negative" || patientObj.hivresultAtVisit ===null) && patientObj.prepCount==='0' && (<Menu.Item onClick={() => loadPrEPRegistrationForm()} >PrEP Enrollment</Menu.Item>)}
+                {(patientObj.hivresultAtVisit ==="Negative" || patientObj.hivresultAtVisit ===null) && (patientObj.commencementCount===null || patientObj.commencementCount<=0) &&(<Menu.Item onClick={() => loadPrEPCommencementForm()} >PrEP Commencement</Menu.Item>)}
+                {(patientObj.hivresultAtVisit ==="Negative" || patientObj.hivresultAtVisit ===null) &&(<Menu.Item onClick={() => onClickConsultation()} > PrEP Visit</Menu.Item>)}
+                {(patientObj.hivresultAtVisit ==="Negative" || patientObj.hivresultAtVisit ===null) &&(<Menu.Item onClick={() => loadPrEPDiscontinuationsInterruptions()} >PrEP Discontinuations & Interruptions</Menu.Item>)}
                 <Menu.Item onClick={() => loadPatientHistory(patientObj)} >History</Menu.Item>     
                 </>) }                
                 </Menu>
