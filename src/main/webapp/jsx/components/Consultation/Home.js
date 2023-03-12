@@ -204,6 +204,7 @@ const ClinicVisit = (props) => {
         )
         .then((response) => {
             setPatientDto(response.data);
+            console.log(response.data);
         })
         .catch((error) => {
         //console.log(error);

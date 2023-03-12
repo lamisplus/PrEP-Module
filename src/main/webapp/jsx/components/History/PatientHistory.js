@@ -140,6 +140,9 @@ const PatientnHistory = (props) => {
         }else if(row.path==='prep-commencement'){
             props.setActiveContent({...props.activeContent, route:'prep-commencement', id:row.id, actionType:action})
 
+        }else if(row.path==='prep-interruption'){
+            props.setActiveContent({...props.activeContent, route:'prep-interruptions', id:row.id, actionType:action})
+
         }else{
 
         }
@@ -227,6 +230,30 @@ const PatientnHistory = (props) => {
             //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
             axios
             .delete(`${baseUrl}prep-clinic/${row.id}`,
+                { headers: {"Authorization" : `Bearer ${token}`} }
+            )
+            .then((response) => {
+                setSaving(false)
+                toast.success("Record Deleted Successfully");
+                PatientHistory()
+                toggle()
+            })
+            .catch((error) => {
+                setSaving(false)
+                if(error.response && error.response.data){
+                    let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+                    toast.error(errorMessage);
+                  }
+                  else{
+                    toast.error("Something went wrong. Please try again...");
+                  }
+            });
+
+        }else if(row.path==='prep-interruption'){
+            setSaving(true)
+            //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
+            axios
+            .delete(`${baseUrl}prep-interruption/${row.id}`,
                 { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
