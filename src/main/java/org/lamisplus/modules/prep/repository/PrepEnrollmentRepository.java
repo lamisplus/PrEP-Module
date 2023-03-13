@@ -101,8 +101,13 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " AND max_p.person_uuid=pc.person_uuid WHERE pc.archived=?1 " +
             " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
             "LEFT JOIN (" +
-            "SELECT pi.id, pi.person_uuid, MAX(pi.interruption_date)interruption_date , pi.interruption_type " +
+            "SELECT pi.id, pi.person_uuid, pi.interruption_date , pi.interruption_type " +
+            "FROM prep_interruption pi " +
+            "INNER JOIN (SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date)interruption_date " +
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
+            "GROUP BY pi.person_uuid)pit ON pit.interruption_date=pi.interruption_date " +
+            "AND pit.person_uuid=pi.person_uuid " +
+            "WHERE pi.archived=?1 " +
             "GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi ON prepi.person_uuid = p.uuid " +
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
             "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
@@ -145,8 +150,13 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " AND max_p.person_uuid=pc.person_uuid WHERE pc.archived=?1 " +
             " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
             "LEFT JOIN (" +
-            "SELECT pi.id, pi.person_uuid, MAX(pi.interruption_date)interruption_date , pi.interruption_type " +
+            "SELECT pi.id, pi.person_uuid, pi.interruption_date , pi.interruption_type " +
+            "FROM prep_interruption pi " +
+            "INNER JOIN (SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date)interruption_date " +
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
+            "GROUP BY pi.person_uuid)pit ON pit.interruption_date=pi.interruption_date " +
+            "AND pit.person_uuid=pi.person_uuid " +
+            "WHERE pi.archived=?1 " +
             "GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi ON prepi.person_uuid = p.uuid " +
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
             "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
@@ -185,8 +195,13 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " AND max_p.person_uuid=pc.person_uuid WHERE pc.archived=?1 " +
             " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
             "LEFT JOIN (" +
-            "SELECT pi.id, pi.person_uuid, MAX(pi.interruption_date)interruption_date , pi.interruption_type " +
+            "SELECT pi.id, pi.person_uuid, pi.interruption_date , pi.interruption_type " +
+            "FROM prep_interruption pi " +
+            "INNER JOIN (SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date)interruption_date " +
             "FROM prep_interruption pi WHERE pi.archived=?1 " +
+            "GROUP BY pi.person_uuid)pit ON pit.interruption_date=pi.interruption_date " +
+            "AND pit.person_uuid=pi.person_uuid " +
+            "WHERE pi.archived=?1 " +
             "GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi ON prepi.person_uuid = p.uuid " +
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
             "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
