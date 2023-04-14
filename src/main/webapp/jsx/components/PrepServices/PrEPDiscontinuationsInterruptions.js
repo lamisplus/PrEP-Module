@@ -108,7 +108,8 @@ const PrEPEligibiltyScreeningForm = (props) => {
         interruptionDate: "",
         interruptionReason: "",
         sourceOfDeathInfo: "",
-        dateSeroconverted:""
+        dateSeroconverted:"",
+        reasonStopped:""
       });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
@@ -185,6 +186,10 @@ const PrEPEligibiltyScreeningForm = (props) => {
             objValues.interruptionDate =  objValues.dateRestartPlacedBackMedication
          }else if(objValues.interruptionDate==="" && objValues.dateClientReferredOut!==""){
             objValues.interruptionDate =  objValues.dateClientReferredOut
+         }else if(objValues.interruptionDate==="" && objValues.dateClientDied!==""){
+            objValues.interruptionDate =  objValues.dateClientDied
+         }else{
+            //objValues.interruptionDate = objValues.interruptionDate
          }
          if(validate()){
           setSaving(true);
@@ -294,6 +299,25 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             </FormGroup>
                         </div>
                     )}
+                     {objValues.interruptionType==='PREP_STATUS_STOPPED' && (
+                    <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                        <Label for="uniqueId">Reason Stopped </Label>
+                        <Input
+                            type="text"
+                            name="reasonStopped"
+                            id="reasonStopped"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            onChange={handleInputChange}
+                            value={objValues.reasonStopped}
+                            required
+                        />
+                        {errors.reasonStopped !=="" ? (
+                            <span className={classes.error}>{errors.reasonStopped}</span>
+                        ) : "" } 
+                        </FormGroup>
+                    </div>
+                     )}
                     {objValues.interruptionType==='PREP_STATUS_TRANSFER_OUT' && (
                     <>
                     <div className="form-group mb-3 col-md-6">
