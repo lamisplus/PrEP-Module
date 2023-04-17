@@ -117,6 +117,8 @@ public class PrepInterruptionService {
         prepInterruption.setDateRestartPlacedBackMedication(interruptionRequestDto.getDateRestartPlacedBackMedication());
         prepInterruption.setLinkToArt(interruptionRequestDto.getLinkToArt());
 
+        prepInterruption.setReasonStopped(interruptionRequestDto.getReasonStopped());
+
         return prepInterruption;
     }
 
@@ -141,6 +143,8 @@ public class PrepInterruptionService {
         prepInterruption.setDateRestartPlacedBackMedication(interruptionDto.getDateRestartPlacedBackMedication());
         prepInterruption.setLinkToArt(interruptionDto.getLinkToArt());
 
+        prepInterruption.setReasonStopped(interruptionDto.getReasonStopped());
+
         return prepInterruption;
     }
 
@@ -164,6 +168,8 @@ public class PrepInterruptionService {
         prepInterruptionDto.setDateSeroConverted(prepInterruption.getDateSeroConverted());
         prepInterruptionDto.setDateRestartPlacedBackMedication(prepInterruption.getDateRestartPlacedBackMedication());
         prepInterruptionDto.setLinkToArt(prepInterruption.getLinkToArt());
+
+        prepInterruptionDto.setReasonStopped(prepInterruption.getReasonStopped());
 
 
         return prepInterruptionDto;

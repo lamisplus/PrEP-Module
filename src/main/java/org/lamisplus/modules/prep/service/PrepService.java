@@ -658,6 +658,8 @@ public class PrepService {
         prepInterruption.setDateRestartPlacedBackMedication(interruptionRequestDto.getDateRestartPlacedBackMedication());
         prepInterruption.setLinkToArt(interruptionRequestDto.getLinkToArt());
 
+        prepInterruption.setReasonStopped(interruptionRequestDto.getReasonStopped());
+
         return prepInterruption;
     }
 
@@ -680,6 +682,8 @@ public class PrepService {
         prepInterruptionDto.setDateSeroConverted(prepInterruption.getDateSeroConverted());
         prepInterruptionDto.setDateRestartPlacedBackMedication(prepInterruption.getDateRestartPlacedBackMedication());
         prepInterruptionDto.setLinkToArt(prepInterruption.getLinkToArt());
+
+        prepInterruptionDto.setReasonStopped(prepInterruption.getReasonStopped());
 
 
         return prepInterruptionDto;
