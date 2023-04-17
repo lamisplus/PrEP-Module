@@ -107,7 +107,9 @@ const PrEPEligibiltyScreeningForm = (props) => {
         facilityReferredTo: "",
         interruptionDate: "",
         interruptionReason: "",
-        sourceOfDeathInfo: ""
+        sourceOfDeathInfo: "",
+        dateSeroconverted:"",
+        reasonStopped:""
       });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
@@ -116,6 +118,10 @@ const PrEPEligibiltyScreeningForm = (props) => {
     useEffect(() => {         
         PREP_STATUS();
         GetPatientDTOObj();
+        if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
+            GetPatientInterruption(props.activeContent.id)
+            //setSisabledField(props.activeContent.actionType==='view'?true : false)
+        }
     }, []);
     const GetPatientDTOObj =()=>{
         axios
@@ -124,6 +130,19 @@ const PrEPEligibiltyScreeningForm = (props) => {
            )
            .then((response) => {
                setPatientDto(response.data);
+           })
+           .catch((error) => {
+           //console.log(error);
+           });          
+    }
+    const GetPatientInterruption =(id)=>{
+        axios
+           .get(`${baseUrl}prep-interruption/${props.patientObj.personId}`,
+               { headers: {"Authorization" : `Bearer ${token}`} }
+           )
+           .then((response) => {
+                //console.log(response.data.find((x)=> x.id===id));
+               setObjValues(response.data.find((x)=> x.id===id));
            })
            .catch((error) => {
            //console.log(error);
@@ -159,10 +178,23 @@ const PrEPEligibiltyScreeningForm = (props) => {
     /**** Submit Button Processing  */
     const handleSubmit = (e) => {        
         e.preventDefault();
-         //console.log(objValues)
+         //console.log(objValues.interruptionDate)
+         //objValues.interruptionDate =  objValues.interruptionDate!=="" ? objValues.interruptionDate : objValues.dateSeroconverted
+         if(objValues.interruptionDate==="" && objValues.dateSeroconverted!==""){
+            objValues.interruptionDate =  objValues.dateSeroconverted
+         }else if(objValues.interruptionDate==="" && objValues.dateRestartPlacedBackMedication!==""){
+            objValues.interruptionDate =  objValues.dateRestartPlacedBackMedication
+         }else if(objValues.interruptionDate==="" && objValues.dateClientReferredOut!==""){
+            objValues.interruptionDate =  objValues.dateClientReferredOut
+         }else if(objValues.interruptionDate==="" && objValues.dateClientDied!==""){
+            objValues.interruptionDate =  objValues.dateClientDied
+         }else{
+            //objValues.interruptionDate = objValues.interruptionDate
+         }
          if(validate()){
           setSaving(true);
-          axios.post(`${baseUrl}prep/interruption`,objValues,
+          if(props.activeContent && props.activeContent.actionType==="update"){
+          axios.post(`${baseUrl}prep/interruption/${props.activeContent.id}`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},
           
           ).then(response => {
@@ -185,6 +217,32 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
                 }
               });
+            }else{
+                axios.post(`${baseUrl}prep/interruption`,objValues,
+                { headers: {"Authorization" : `Bearer ${token}`}},
+                
+                ).then(response => {
+                        setSaving(false);
+                        toast.success("Record save successful");
+                        props.PatientObject();
+                        props.setActiveContent({...props.activeContent, route:'recent-history'})
+
+                    })
+                    .catch(error => {
+                        setSaving(false);
+                        if(error.response && error.response.data){
+                            let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+                            if(error.response.data.apierror){
+                            toast.error(error.response.data.apierror.message , {position: toast.POSITION.BOTTOM_CENTER});
+                            }else{
+                            toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
+                            }
+                        }else{
+                            toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
+                        }
+                    });
+
+            }
         }
           
     }
@@ -241,6 +299,25 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             </FormGroup>
                         </div>
                     )}
+                     {objValues.interruptionType==='PREP_STATUS_STOPPED' && (
+                    <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                        <Label for="uniqueId">Reason Stopped </Label>
+                        <Input
+                            type="text"
+                            name="reasonStopped"
+                            id="reasonStopped"
+                            max= {moment(new Date()).format("YYYY-MM-DD") }
+                            onChange={handleInputChange}
+                            value={objValues.reasonStopped}
+                            required
+                        />
+                        {errors.reasonStopped !=="" ? (
+                            <span className={classes.error}>{errors.reasonStopped}</span>
+                        ) : "" } 
+                        </FormGroup>
+                    </div>
+                     )}
                     {objValues.interruptionType==='PREP_STATUS_TRANSFER_OUT' && (
                     <>
                     <div className="form-group mb-3 col-md-6">
@@ -250,6 +327,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             type="date"
                             name="dateClientReferredOut"
                             id="dateClientReferredOut"
+                            min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
                             value={objValues.dateClientReferredOut}
@@ -289,6 +367,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             type="date"
                             name="dateClientDied"
                             id="dateClientDied"
+                            min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
                             value={objValues.dateClientDied}
@@ -307,6 +386,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             type="text"
                             name="causeOfDeath"
                             id="causeOfDeath"
+                            min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
                             value={objValues.causeOfDeath}
@@ -360,7 +440,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             type="date"
                             name="dateRestartPlacedBackMedication"
                             id="dateRestartPlacedBackMedication"
-                            //min="1983-12-31"
+                            min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             value={objValues.dateRestartPlacedBackMedication}
                             onChange={handleInputChange}
@@ -381,6 +461,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             type="date"
                             name="dateSeroconverted"
                             id="dateSeroconverted"
+                            min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             onChange={handleInputChange}
                             value={objValues.dateSeroconverted}
@@ -420,6 +501,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             name="dateLinkToArt"
                             id="dateLinkToArt"
                             //min="1983-12-31"
+                            min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
                             max= {moment(new Date()).format("YYYY-MM-DD") }
                             value={objValues.dateLinkToArt}
                             onChange={handleInputChange}
