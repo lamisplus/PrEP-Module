@@ -104,6 +104,9 @@ public class PrepInterruption extends Audit implements Serializable {
     @Column(name = "link_to_art")
     private Boolean linkToArt;
 
+    @Column(name = "reason_stopped")
+    private String reasonStopped;
+
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){
