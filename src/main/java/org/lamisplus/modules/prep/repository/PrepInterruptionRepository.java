@@ -2,11 +2,14 @@ package org.lamisplus.modules.prep.repository;
 
 import io.micrometer.core.instrument.Tags;
 import org.lamisplus.modules.patient.domain.entity.Person;
+import org.lamisplus.modules.prep.domain.entity.PrepClinic;
 import org.lamisplus.modules.prep.domain.entity.PrepInterruption;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +22,12 @@ public interface PrepInterruptionRepository extends JpaRepository<PrepInterrupti
     List<PrepInterruption> findAllByPersonAndArchived(Person person, int archived);
 
     Optional<PrepInterruption> findByInterruptionDateAndPersonUuid(LocalDate interruptionDate, String personUuid);
+
+    //For central sync
+    List<PrepInterruption> findAllByFacilityId(Long facilityId);
+    @Query(value = "SELECT * FROM prep_interruption WHERE date_modified > ?1 AND facility_id=?2 ",
+            nativeQuery = true
+    )
+    List<PrepInterruption> getAllDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
+    Optional<PrepInterruption> findByUuid(String uuid);
 }

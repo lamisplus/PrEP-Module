@@ -2,6 +2,7 @@ package org.lamisplus.modules.prep.repository;
 
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.prep.domain.entity.PrepClient;
+import org.lamisplus.modules.prep.domain.entity.PrepClinic;
 import org.lamisplus.modules.prep.domain.entity.PrepEnrollment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -220,4 +222,11 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
     List<PrepEnrollment> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
 
     Optional<PrepEnrollment> findByDateEnrolledAndPersonUuid(LocalDate dateEnrolled, String personUuid);
+
+    //For central sync
+    List<PrepEnrollment> findAllByFacilityId(Long facilityId);
+    @Query(value = "SELECT * FROM prep_enrollment WHERE date_modified > ?1 AND facility_id=?2 ",
+            nativeQuery = true
+    )
+    List<PrepEnrollment> getAllDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
 }
