@@ -197,7 +197,7 @@ const PrEPRegistrationForm = (props) => {
         temp.dateReferred = objValues.dateReferred ? "" : "This field is required"
         temp.riskType = objValues.riskType ? "" : "This field is required"
         //temp.supporterName = objValues.supporterName ? "" : "This field is required"
-        temp.supporterPhone = objValues.supporterPhone ? "" : "This field is required"
+        //temp.supporterPhone = objValues.supporterPhone ? "" : "This field is required"
         //temp.supporterRelationshipType = objValues.supporterRelationshipType ? "" : "This field is required"
         temp.uniqueId = objValues.uniqueId ? "" : "This field is required"
         setErrors({

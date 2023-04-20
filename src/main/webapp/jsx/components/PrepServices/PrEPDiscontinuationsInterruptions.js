@@ -109,14 +109,17 @@ const PrEPEligibiltyScreeningForm = (props) => {
         interruptionReason: "",
         sourceOfDeathInfo: "",
         dateSeroconverted:"",
-        reasonStopped:""
+        reasonStopped:"",
+        reasonStoppedOthers:""
       });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [prepStatus, setPrepStatus] = useState([]);
+    const [reasonStooped, setReasonStooped] = useState([]);
     const [patientDto, setPatientDto] = useState();
     useEffect(() => {         
         PREP_STATUS();
+        PREP_STATUS_STOPPED_REASON();
         GetPatientDTOObj();
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientInterruption(props.activeContent.id)
@@ -155,6 +158,18 @@ const PrEPEligibiltyScreeningForm = (props) => {
         )
         .then((response) => {
             setPrepStatus(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
+    const PREP_STATUS_STOPPED_REASON =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/PREP_STATUS_STOPPED_REASON`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setReasonStooped(response.data);
         })
         .catch((error) => {
         //console.log(error);
@@ -266,8 +281,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             value={objValues.interruptionType}
                             required
                         >
-                         <option value="">Select</option>
-
+                        <option value="">Select</option>
                         {prepStatus.map((value) => (
                             <option key={value.id} value={value.code}>
                                 {value.display}
@@ -300,23 +314,51 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         </div>
                     )}
                      {objValues.interruptionType==='PREP_STATUS_STOPPED' && (
-                    <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                        <Label for="uniqueId">Reason Stopped </Label>
-                        <Input
-                            type="text"
-                            name="reasonStopped"
-                            id="reasonStopped"
-                            max= {moment(new Date()).format("YYYY-MM-DD") }
-                            onChange={handleInputChange}
-                            value={objValues.reasonStopped}
-                            required
-                        />
-                        {errors.reasonStopped !=="" ? (
-                            <span className={classes.error}>{errors.reasonStopped}</span>
-                        ) : "" } 
-                        </FormGroup>
-                    </div>
+                        <>
+                        <div className="form-group mb-3 col-md-6">
+                            <FormGroup>
+                            <Label for="uniqueId">Reason Stopped </Label>
+                            <Input
+                                type="select"
+                                name="reasonStopped"
+                                id="reasonStopped"
+                                max= {moment(new Date()).format("YYYY-MM-DD") }
+                                onChange={handleInputChange}
+                                value={objValues.reasonStopped}
+                                
+                            >
+                                <option value="">Select</option>
+                                {reasonStooped.map((value) => (
+                                    <option key={value.id} value={value.display}>
+                                        {value.display}
+                                    </option>
+                                ))}
+                            </Input>
+                            {errors.reasonStopped !=="" ? (
+                                <span className={classes.error}>{errors.reasonStopped}</span>
+                            ) : "" } 
+                            </FormGroup>
+                        </div>
+                        {objValues.reasonStopped ==='Others (Pls specify)' && (
+                        <div className="form-group mb-3 col-md-6">
+                            <FormGroup>
+                            <Label for="uniqueId">Other Reason Stopped </Label>
+                            <Input
+                                type="text"
+                                name="reasonStoppedOthers"
+                                id="reasonStoppedOthers"
+                                max= {moment(new Date()).format("YYYY-MM-DD") }
+                                onChange={handleInputChange}
+                                value={objValues.reasonStoppedOthers}
+                                
+                            ></Input>
+                            {errors.reasonStoppedOther !=="" ? (
+                                <span className={classes.error}>{errors.reasonStopped}</span>
+                            ) : "" } 
+                            </FormGroup>
+                        </div>
+                        )}
+                        </>
                      )}
                     {objValues.interruptionType==='PREP_STATUS_TRANSFER_OUT' && (
                     <>
