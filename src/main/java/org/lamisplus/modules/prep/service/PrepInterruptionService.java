@@ -118,6 +118,7 @@ public class PrepInterruptionService {
         prepInterruption.setLinkToArt(interruptionRequestDto.getLinkToArt());
 
         prepInterruption.setReasonStopped(interruptionRequestDto.getReasonStopped());
+        prepInterruption.setReasonStoppedOthers(interruptionRequestDto.getReasonStoppedOthers());
 
         return prepInterruption;
     }
@@ -144,6 +145,7 @@ public class PrepInterruptionService {
         prepInterruption.setLinkToArt(interruptionDto.getLinkToArt());
 
         prepInterruption.setReasonStopped(interruptionDto.getReasonStopped());
+        prepInterruption.setReasonStoppedOthers(interruptionDto.getReasonStoppedOthers());
 
         return prepInterruption;
     }
@@ -170,6 +172,7 @@ public class PrepInterruptionService {
         prepInterruptionDto.setLinkToArt(prepInterruption.getLinkToArt());
 
         prepInterruptionDto.setReasonStopped(prepInterruption.getReasonStopped());
+        prepInterruptionDto.setReasonStoppedOthers(prepInterruption.getReasonStoppedOthers());
 
 
         return prepInterruptionDto;
