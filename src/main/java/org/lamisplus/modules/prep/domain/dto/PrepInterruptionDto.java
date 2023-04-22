@@ -25,4 +25,5 @@ public class PrepInterruptionDto implements Serializable {
     private Boolean linkToArt;
 
     private String reasonStopped;
+    private String reasonStoppedOthers;
 }
