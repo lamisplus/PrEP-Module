@@ -241,9 +241,10 @@ const BasicInfo = (props) => {
     )
     const handleInputChangeDrugHistory = e => { 
         setErrors({...temp, [e.target.name]:""})
-        // if(drugHistory.hivTestedBefore==="true"){
-        //     drugHistory.lastTest=""
-        // } 
+        if(drugHistory.hivTestedBefore==="true"){
+            drugHistory.lastTest=""
+            setDrugHistory ({...drugHistory,  ['lastTest']: ''}); 
+        } 
         setDrugHistory ({...drugHistory,  [e.target.name]: e.target.value});         
     }
      /*****  Validation  */
