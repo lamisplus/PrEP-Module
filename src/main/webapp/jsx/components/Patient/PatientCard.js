@@ -160,13 +160,13 @@ function PatientCard(props) {
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Phone Number : <b style={{color:'#0B72AA'}}>{getPhoneNumber(patientObj.personResponseDto.contactPoint)}</b>
+                        Phone Number : <b style={{color:'#0B72AA'}}>{patientObj.personResponseDto.contactPoint!==null ? getPhoneNumber(patientObj.personResponseDto.contactPoint) : ""}</b>
                     </span>
                     </Col>
                     <Col md={4} className={classes.root2}>
                     <span>
                         {" "}
-                        Address : <b style={{color:'#0B72AA'}}>{getAddress(patientObj.personResponseDto.address)} </b>
+                        Address : <b style={{color:'#0B72AA'}}>{patientObj.personResponseDto.address!==null ? getAddress(patientObj.personResponseDto.address) : ""} </b>
                     </span>
                     </Col>
                     {patientObj.prepStatus!==null && (

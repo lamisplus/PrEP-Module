@@ -133,7 +133,7 @@ const Patients = (props) => {
                                         <div>
                                             <Link
                                                 to={{
-                                                    pathname: "/patient-history",
+                                                    pathname: "/patient-dashboard",
                                                     state: {patientObj: row}
                                                 }}
                                                 

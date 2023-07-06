@@ -109,15 +109,20 @@ const PrEPEligibiltyScreeningForm = (props) => {
         interruptionReason: "",
         sourceOfDeathInfo: "",
         dateSeroconverted:"",
-        reasonStopped:""
+        reasonStopped:"",
+        reasonStoppedOthers:""
       });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [prepStatus, setPrepStatus] = useState([]);
+    const [reasonStooped, setReasonStooped] = useState([]);
+    const [causeOfDeath, setCauseOfDeath] = useState([]);
     const [patientDto, setPatientDto] = useState();
     useEffect(() => {         
         PREP_STATUS();
+        PREP_STATUS_STOPPED_REASON();
         GetPatientDTOObj();
+        CAUSE_DEATH();
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientInterruption(props.activeContent.id)
             //setSisabledField(props.activeContent.actionType==='view'?true : false)
@@ -160,12 +165,73 @@ const PrEPEligibiltyScreeningForm = (props) => {
         //console.log(error);
         });    
     }
+    const CAUSE_DEATH =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/CAUSE_DEATH`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setCauseOfDeath(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
+    //
+    const PREP_STATUS_STOPPED_REASON =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/PREP_STATUS_STOPPED_REASON`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setReasonStooped(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
     const handleInputChange = e => { 
-        setErrors({...errors, [e.target.name]: ""})        
+        setErrors({...errors, [e.target.name]: ""}) 
+        if(e.target.name==='interruptionType' && e.target.value!=='PREP_STATUS_STOPPED'){
+            objValues.reasonStopped=""
+            objValues.reasonStoppedOthers=""
+            setObjValues ({...objValues,  ['reasonStopped']: ""});
+            setObjValues ({...objValues,  ['reasonStoppedOthers']: ""});
+            setObjValues ({...objValues,  [e.target.name]: e.target.value});
+        } 
+        if(e.target.name==='interruptionType' && e.target.value!=='PREP_STATUS_DEAD'){
+            objValues.causeOfDeath=""
+            objValues.sourceOfDeathInfo=""
+            objValues.dateClientDied=""
+            //objValues.dateClientDied
+            setObjValues ({...objValues,  ['causeOfDeath']: ""});
+            setObjValues ({...objValues,  ['sourceOfDeathInfo']: ""});
+            setObjValues ({...objValues,  ['dateClientDied']: ""});
+            setObjValues ({...objValues,  [e.target.name]: e.target.value});
+        }
+        if(e.target.name==='interruptionType' && e.target.value!=='PREP_STATUS_RESTART'){
+            objValues.dateRestartPlacedBackMedication=""
+            setObjValues ({...objValues,  ['dateRestartPlacedBackMedication']: ""});
+            setObjValues ({...objValues,  [e.target.name]: e.target.value});
+        }
+        if(e.target.name==='interruptionType' && e.target.value!=='PREP_STATUS_TRANSFER_OUT'){
+            objValues.dateClientReferredOut=""
+            objValues.facilityReferredTo=""
+            setObjValues ({...objValues,  ['facilityReferredTo']: ""});
+            setObjValues ({...objValues,  ['dateClientReferredOut']: ""});
+            setObjValues ({...objValues,  [e.target.name]: e.target.value});
+        }
+        if(e.target.name==='interruptionType' && e.target.value!=='PREP_STATUS_SEROCONVERTED'){
+            objValues.linkToArt=""
+            objValues.dateSeroconverted=""
+            setObjValues ({...objValues,  ['dateSeroconverted']: ""});
+            setObjValues ({...objValues,  ['linkToArt']: ""});
+            setObjValues ({...objValues,  [e.target.name]: e.target.value});
+        }     
+        //     
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
 
     }
-
     const validate = () => {
         let temp = { ...errors }
         //temp.interruptionDate = objValues.interruptionDate ? "" : "This field is required"
@@ -266,8 +332,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             value={objValues.interruptionType}
                             required
                         >
-                         <option value="">Select</option>
-
+                        <option value="">Select</option>
                         {prepStatus.map((value) => (
                             <option key={value.id} value={value.code}>
                                 {value.display}
@@ -300,23 +365,51 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         </div>
                     )}
                      {objValues.interruptionType==='PREP_STATUS_STOPPED' && (
-                    <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                        <Label for="uniqueId">Reason Stopped </Label>
-                        <Input
-                            type="text"
-                            name="reasonStopped"
-                            id="reasonStopped"
-                            max= {moment(new Date()).format("YYYY-MM-DD") }
-                            onChange={handleInputChange}
-                            value={objValues.reasonStopped}
-                            required
-                        />
-                        {errors.reasonStopped !=="" ? (
-                            <span className={classes.error}>{errors.reasonStopped}</span>
-                        ) : "" } 
-                        </FormGroup>
-                    </div>
+                        <>
+                        <div className="form-group mb-3 col-md-6">
+                            <FormGroup>
+                            <Label for="uniqueId">Reason Stopped </Label>
+                            <Input
+                                type="select"
+                                name="reasonStopped"
+                                id="reasonStopped"
+                                max= {moment(new Date()).format("YYYY-MM-DD") }
+                                onChange={handleInputChange}
+                                value={objValues.reasonStopped}
+                                
+                            >
+                                <option value="">Select</option>
+                                {reasonStooped.map((value) => (
+                                    <option key={value.id} value={value.display}>
+                                        {value.display}
+                                    </option>
+                                ))}
+                            </Input>
+                            {errors.reasonStopped !=="" ? (
+                                <span className={classes.error}>{errors.reasonStopped}</span>
+                            ) : "" } 
+                            </FormGroup>
+                        </div>
+                        {objValues.reasonStopped ==='Others (Pls specify)' && (
+                        <div className="form-group mb-3 col-md-6">
+                            <FormGroup>
+                            <Label for="uniqueId">Other Reason Stopped </Label>
+                            <Input
+                                type="text"
+                                name="reasonStoppedOthers"
+                                id="reasonStoppedOthers"
+                                max= {moment(new Date()).format("YYYY-MM-DD") }
+                                onChange={handleInputChange}
+                                value={objValues.reasonStoppedOthers}
+                                
+                            ></Input>
+                            {errors.reasonStoppedOther !=="" ? (
+                                <span className={classes.error}>{errors.reasonStopped}</span>
+                            ) : "" } 
+                            </FormGroup>
+                        </div>
+                        )}
+                        </>
                      )}
                     {objValues.interruptionType==='PREP_STATUS_TRANSFER_OUT' && (
                     <>
@@ -383,7 +476,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <FormGroup>
                         <Label for="uniqueId">Cause of death</Label>
                         <Input
-                            type="text"
+                            type="select"
                             name="causeOfDeath"
                             id="causeOfDeath"
                             min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
@@ -391,7 +484,14 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             onChange={handleInputChange}
                             value={objValues.causeOfDeath}
                             required
-                        />
+                        >
+                            <option value="">Select</option>
+                                {causeOfDeath.map((value) => (
+                                    <option key={value.id} value={value.display}>
+                                        {value.display}
+                                    </option>
+                                ))}
+                        </Input>
                         {errors.causeOfDeath !=="" ? (
                             <span className={classes.error}>{errors.causeOfDeath}</span>
                         ) : "" } 
@@ -471,7 +571,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             <span className={classes.error}>{errors.dateSeroconverted}</span>
                         ) : "" }
                         </FormGroup>
-                    </div>
+                    </div> 
                     <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label >Link to ART</Label>

@@ -29,4 +29,7 @@ public class PrepInterruptionRequestDto implements Serializable {
     private LocalDate dateSeroConverted;
     private LocalDate dateRestartPlacedBackMedication;
     private Boolean linkToArt;
+
+    private String reasonStopped;
+    private String reasonStoppedOthers;
 }

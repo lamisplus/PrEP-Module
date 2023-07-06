@@ -322,6 +322,19 @@ public class PrepService {
                 .findAllPersonPrepAndStatus(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(),pageable);
     }
 
+    public Page<PrepClient> findOnlyPrepPersonPage(String searchValue, int pageNo, int pageSize) {
+        Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        if(!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")){
+            searchValue = searchValue.replaceAll("\\s", "");
+            String queryParam = "%"+searchValue+"%";
+            return prepEnrollmentRepository
+                    .findOnlyPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId,  queryParam, pageable);
+        }
+        return prepEnrollmentRepository
+                .findOnlyPersonPrepAndStatus(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(),pageable);
+    }
+
     public PageDTO getAllPrepDtosByPerson(Page<Person> page){
 
         List<PrepDtos> htsClientDtosList =  page.stream()
@@ -658,6 +671,9 @@ public class PrepService {
         prepInterruption.setDateRestartPlacedBackMedication(interruptionRequestDto.getDateRestartPlacedBackMedication());
         prepInterruption.setLinkToArt(interruptionRequestDto.getLinkToArt());
 
+        prepInterruption.setReasonStopped(interruptionRequestDto.getReasonStopped());
+        prepInterruption.setReasonStoppedOthers(interruptionRequestDto.getReasonStoppedOthers());
+
         return prepInterruption;
     }
 
@@ -680,6 +696,9 @@ public class PrepService {
         prepInterruptionDto.setDateSeroConverted(prepInterruption.getDateSeroConverted());
         prepInterruptionDto.setDateRestartPlacedBackMedication(prepInterruption.getDateRestartPlacedBackMedication());
         prepInterruptionDto.setLinkToArt(prepInterruption.getLinkToArt());
+
+        prepInterruptionDto.setReasonStopped(prepInterruption.getReasonStopped());
+        prepInterruptionDto.setReasonStoppedOthers(prepInterruption.getReasonStoppedOthers());
 
 
         return prepInterruptionDto;
