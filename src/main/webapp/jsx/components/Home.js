@@ -1,12 +1,8 @@
 import React, {useState, Fragment } from "react";
 import { Row, Col, Card,  Tab, Tabs, } from "react-bootstrap";
-import Dashboard from './Patient/PatientList'
-// import VisualisationHome from './Visualisation/Index'
-import PrepPatients from './Patient/PrepPatients'
-// import { Link } from 'react-router-dom'
-// import Button from '@material-ui/core/Button';
-// import { FaUserPlus } from "react-icons/fa";
-//import PageTitle from "./../layouts/PageTitle";
+import PatientList from './Patient/PatientList'
+
+
 const divStyle = {
   borderRadius: "2px",
   fontSize: 14,
@@ -50,7 +46,7 @@ const Home = () => {
                 >
                   
                   <Tab eventKey="home" title="Find Patients">                   
-                    <Dashboard />
+                    <PatientList />
                   </Tab>
                   {/* <Tab eventKey="prep-patient" title="PrEP Patients">                   
                     <PrepPatients />

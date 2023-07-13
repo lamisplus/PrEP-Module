@@ -12,9 +12,7 @@ import SaveIcon from '@material-ui/icons/Save'
 import axios from "axios";
 import moment from "moment";
 import { toast } from "react-toastify";
-import { Accordion, Alert } from "react-bootstrap";
-import PerfectScrollbar from "react-perfect-scrollbar";
-
+import Select from 'react-select'
 
 const useStyles = makeStyles(theme => ({
   card: {
@@ -97,6 +95,8 @@ const ClinicVisit = (props) => {
   const [htsResult, setHtsResult] = useState([]);
   const [prepRegimen, setprepRegimen] = useState([]);
   const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
+  const [labTestOptions, setLabTestOptions] = useState([]);
+  let testsOptions =[]
   //Vital signs clinical decision support 
   const [vitalClinicalSupport, setVitalClinicalSupport] = 
             useState({
@@ -165,6 +165,8 @@ const ClinicVisit = (props) => {
     testDate: "",
     result: "",
     name: "",
+    labTestGroupId: "",
+    labTestId: "",
   })
 
   useEffect(() => {
@@ -178,12 +180,33 @@ const ClinicVisit = (props) => {
     WHY_POOR_FAIR_ADHERENCE();
     PrepEligibilityObj();
     PrepRegimen();
+    TestGroup();
     if(props.activeContent && props.activeContent.id!=="" && props.activeContent.id!==null){
       GetPatientVisit(props.activeContent.id)
       setSisabledField(props.activeContent.actionType==='view'?true : false)
     }
   }, [props.activeContent]);
-  console.log(props.activeContent)
+  //Get list of Test Group
+  const TestGroup =()=>{
+      axios
+          .get(`${baseUrl}laboratory/labtestgroups`,
+              { headers: {"Authorization" : `Bearer ${token}`} }
+          )
+          .then((response) => {
+            response.data.map((x)=> {                    
+              x.labTests.map((x2)=>{
+                  testsOptions.push({ value: x2.id, label: x2.labTestName,testGroupId:x.id, testGroupName:x.groupName, sampleType:x2.sampleType },)
+              })
+              //console.log(testsOptions)
+          })
+            setLabTestOptions(testsOptions);                
+              
+          })
+          .catch((error) => {
+          //console.log(error);
+          });
+      
+  }
   const GetPatientVisit =(id)=>{
     axios
        .get(`${baseUrl}prep-clinic/${props.activeContent.id}`,
@@ -204,6 +227,7 @@ const ClinicVisit = (props) => {
         )
         .then((response) => {
             setPatientDto(response.data);
+            console.log(response.data);
         })
         .catch((error) => {
         //console.log(error);
@@ -423,6 +447,7 @@ const ClinicVisit = (props) => {
       setVitalClinicalSupport({...vitalClinicalSupport, temperature:""})
       }
   }
+
   //Validations of the forms
   const validate = () => {        
     temp.encounterDate = objValues.encounterDate ? "" : "This field is required"
@@ -546,7 +571,6 @@ const ClinicVisit = (props) => {
     }
     }
   }
-
 
   return (
     <div>
@@ -1105,7 +1129,7 @@ const ClinicVisit = (props) => {
                     value={urinalysisTest.testDate}
                     onChange={handleInputChangeUrinalysisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
+                    min={objValues.encounterDate}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     disabled={disabledField}
                   />
@@ -1152,7 +1176,7 @@ const ClinicVisit = (props) => {
                     value={hepatitisTest.testDate}
                     onChange={handleInputChangeHepatitisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
+                    min={objValues.encounterDate}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     disabled={disabledField}
                   />
@@ -1196,7 +1220,7 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChangeSyphilisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     disabled={disabledField}
-                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
+                    min={objValues.encounterDate}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                   />
                     
@@ -1232,14 +1256,21 @@ const ClinicVisit = (props) => {
                 <FormGroup>
                   <FormLabelName > Test  Name</FormLabelName>
                   <Input
-                    type="text"
+                    type="select"
                     name="name"
                     id="name"
                     value={otherTest.name}
                     onChange={handleInputChangeOtherTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     disabled={disabledField}
-                  />
+                  >
+                    <option value="">Select </option>
+                    {labTestOptions.map((value) => (
+                        <option key={value.id} value={value.label}>
+                            {value.label}
+                        </option>
+                    ))}
+                  </Input>
                    
                 </FormGroup>
               </div>
@@ -1254,7 +1285,7 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChangeOtherTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     disabled={disabledField}
-                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
+                    min={objValues.encounterDate}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                   />
                    
@@ -1264,18 +1295,14 @@ const ClinicVisit = (props) => {
                 <FormGroup>
                   <FormLabelName > Test  Result</FormLabelName>
                   <Input
-                    type="select"
+                    type="text"
                     name="reult"
                     id="result"
                     value={otherTest.prepGiven}
                     onChange={handleInputChangeOtherTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     disabled={disabledField}
-                  >
-                    <option value="">Select </option>
-                    <option value="Positive">Positive </option>
-                    <option value="Negative">Negative </option>
-                  </Input>
+                  ></Input>
                  
                 </FormGroup>
               </div>

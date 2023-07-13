@@ -106,6 +106,8 @@ const ClinicVisit = (props) => {
   //ADR array Object 
   const [adrObj, setAdrObj] = useState({ adr: "", adrOnsetDate: "" });
   const [adrList, setAdrList] = useState([]);
+  const [labTestOptions, setLabTestOptions] = useState([]);
+  let testsOptions =[]
   //Vital signs clinical decision support 
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
                                                                     bodyWeight: "",
@@ -173,13 +175,35 @@ const ClinicVisit = (props) => {
     VitalSigns()
     GetPatientObj();
     ClinicVisitListHistory();
+    TestGroup();
     if(props.activeContent.id!==null){
-     
       GetVisitById(props.activeContent.id)
       setVisitId(props.activeContent.id)
     }
   }, []);
-     //GET LIST Drug Refill
+  //Get list of Test Group
+  const TestGroup =()=>{
+    axios
+        .get(`${baseUrl}laboratory/labtestgroups`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+          console.log(response.data);
+          response.data.map((x)=> {                    
+            x.labTests.map((x2)=>{
+                testsOptions.push({ value: x2.id, label: x2.labTestName,testGroupId:x.id, testGroupName:x.groupName, sampleType:x2.sampleType },)
+            })
+            //console.log(testsOptions)
+        })
+          setLabTestOptions(testsOptions);                
+            
+        })
+        .catch((error) => {
+        //console.log(error);
+        });
+    
+}
+     //GET LIST Visit  History
      async function ClinicVisitListHistory() {
       setLoading(true)
       axios

@@ -53,50 +53,6 @@ ThirdStateCheck: forwardRef((props, ref) => <Remove {...props} ref={ref} />),
 ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 };
 
-const useStyles = makeStyles(theme => ({
-    card: {
-        margin: theme.spacing(20),
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center'
-    },
-    form: {
-        width: '100%', // Fix IE 11 issue.
-        marginTop: theme.spacing(3)
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2)
-    },
-    cardBottom: {
-        marginBottom: 20
-    },
-    Select: {
-        height: 45,
-        width: 350
-    },
-    button: {
-        margin: theme.spacing(1)
-    },
-
-    root: {
-        '& > *': {
-            margin: theme.spacing(1)
-        }
-    },
-    input: {
-        display: 'none'
-    },
-    error: {
-        color: "#f85032",
-        fontSize: "11px",
-    },
-    success: {
-        color: "#4BB543 ",
-        fontSize: "11px",
-    }, 
-}))
-
-
 
 const PatientnHistory = (props) => {
     const [recentActivities, setRecentActivities] = useState([])
@@ -139,6 +95,9 @@ const PatientnHistory = (props) => {
 
         }else if(row.path==='prep-commencement'){
             props.setActiveContent({...props.activeContent, route:'prep-commencement', id:row.id, actionType:action})
+
+        }else if(row.path==='prep-interruption'){
+            props.setActiveContent({...props.activeContent, route:'prep-interruptions', id:row.id, actionType:action})
 
         }else{
 
@@ -227,6 +186,30 @@ const PatientnHistory = (props) => {
             //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
             axios
             .delete(`${baseUrl}prep-clinic/${row.id}`,
+                { headers: {"Authorization" : `Bearer ${token}`} }
+            )
+            .then((response) => {
+                setSaving(false)
+                toast.success("Record Deleted Successfully");
+                PatientHistory()
+                toggle()
+            })
+            .catch((error) => {
+                setSaving(false)
+                if(error.response && error.response.data){
+                    let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+                    toast.error(errorMessage);
+                  }
+                  else{
+                    toast.error("Something went wrong. Please try again...");
+                  }
+            });
+
+        }else if(row.path==='prep-interruption'){
+            setSaving(true)
+            //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
+            axios
+            .delete(`${baseUrl}prep-interruption/${row.id}`,
                 { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {

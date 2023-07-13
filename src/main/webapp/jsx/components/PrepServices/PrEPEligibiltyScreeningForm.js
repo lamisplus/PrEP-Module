@@ -241,9 +241,10 @@ const BasicInfo = (props) => {
     )
     const handleInputChangeDrugHistory = e => { 
         setErrors({...temp, [e.target.name]:""})
-        // if(drugHistory.hivTestedBefore==="true"){
-        //     drugHistory.lastTest=""
-        // } 
+        if(drugHistory.hivTestedBefore==="true"){
+            drugHistory.lastTest=""
+            setDrugHistory ({...drugHistory,  ['lastTest']: ''}); 
+        } 
         setDrugHistory ({...drugHistory,  [e.target.name]: e.target.value});         
     }
      /*****  Validation  */
@@ -309,8 +310,8 @@ const BasicInfo = (props) => {
                         setSaving(false);
                         if(error.response && error.response.data){
                             let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                            if(error.response.data.apierror && error.response.data.apierror.message!=="" && error.response.data.apierror && error.response.data.apierror.subErrors[0].message!==""){
-                              toast.error(error.response.data.apierror.message + " : " + error.response.data.apierror.subErrors[0].field + " " + error.response.data.apierror.subErrors[0].message, {position: toast.POSITION.BOTTOM_CENTER});
+                            if(error.response.data.apierror){
+                              toast.error(error.response.data.apierror.message , {position: toast.POSITION.BOTTOM_CENTER});
                             }else{
                               toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
                             }

@@ -173,7 +173,11 @@ const PrEPCommencementForm = (props) => {
         height: "",
     })
     const handleInputChange = e => { 
-        setErrors({...errors, [e.target.name]: ""})  
+        setErrors({...errors, [e.target.name]: ""}) 
+        if(e.target.name==='referred' && e.target.value==='false'){
+            objValues.datereferred=''
+            setObjValues ({...objValues,  ['datereferred']: ''});
+        } 
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
     }    
 
