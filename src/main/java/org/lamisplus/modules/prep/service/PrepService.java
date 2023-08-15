@@ -633,6 +633,7 @@ public class PrepService {
 
         enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
         enrollmentDto.setDateOfLastHivNegativeTest(enrollment.getDateOfLastHivNegativeTest());
+        enrollmentDto.setTargetGroup(enrollment.getTargetGroup());
 
         return enrollmentDto;
     }
