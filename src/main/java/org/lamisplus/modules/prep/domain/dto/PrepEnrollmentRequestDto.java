@@ -45,4 +45,6 @@ public class PrepEnrollmentRequestDto implements Serializable {
     private String hivTestingPoint;
 
     private LocalDate dateOfLastHivNegativeTest;
+
+    private String targetGroup;
 }

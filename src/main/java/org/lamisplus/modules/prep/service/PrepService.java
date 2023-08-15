@@ -499,6 +499,8 @@ public class PrepService {
         prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
         prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
 
+        prepEnrollment.setTargetGroup( prepEnrollmentRequestDto.getTargetGroup() );
+
         return prepEnrollment;
     }
     private PrepClinic clinicRequestDtoToClinic(PrepClinicRequestDto prepClinicRequestDto, String personUuid) {

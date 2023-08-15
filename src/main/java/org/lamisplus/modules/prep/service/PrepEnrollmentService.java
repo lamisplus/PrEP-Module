@@ -155,6 +155,8 @@ public class PrepEnrollmentService {
         prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
         prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
 
+        prepEnrollment.setTargetGroup( prepEnrollmentRequestDto.getTargetGroup() );
+
         return prepEnrollment;
     }
 
