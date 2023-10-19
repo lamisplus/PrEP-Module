@@ -96,6 +96,10 @@ const ClinicVisit = (props) => {
   const [prepRegimen, setprepRegimen] = useState([]);
   const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
   const [labTestOptions, setLabTestOptions] = useState([]);
+  const [urineTestResult, setUrineTestResult] = useState([]);
+  const [otherTestResult, setOtherTestResult] = useState([]);
+  const [sphylisTestResult, setSphylisTestResult] = useState([]);
+  const [hepaTestResult, setHepaTestResult] = useState([]);
   let testsOptions =[]
   //Vital signs clinical decision support 
   const [vitalClinicalSupport, setVitalClinicalSupport] = 
@@ -154,6 +158,7 @@ const ClinicVisit = (props) => {
     syphilisTest: "Yes",
     testDate: "",
     result: "",
+    others:""
   })
   const [hepatitisTest, setHepatitisTest] = useState({
     hepatitisTest: "Yes",
@@ -165,8 +170,7 @@ const ClinicVisit = (props) => {
     testDate: "",
     result: "",
     name: "",
-    labTestGroupId: "",
-    labTestId: "",
+    otherTestName:""
   })
 
   useEffect(() => {
@@ -181,6 +185,10 @@ const ClinicVisit = (props) => {
     PrepEligibilityObj();
     PrepRegimen();
     TestGroup();
+    PREP_URINALYSIS_RESULT();
+    PREP_OTHER_TEST();
+    HEPATITIS_SCREENING_RESULT();
+    SYPHILIS_RESULT();
     if(props.activeContent && props.activeContent.id!=="" && props.activeContent.id!==null){
       GetPatientVisit(props.activeContent.id)
       setSisabledField(props.activeContent.actionType==='view'?true : false)
@@ -323,6 +331,67 @@ const ClinicVisit = (props) => {
         });
 
     }
+    //PREP_URINALYSIS_RESULT
+    const PREP_URINALYSIS_RESULT = () => {
+      axios
+        .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`,
+          { headers: { "Authorization": `Bearer ${token}` } }
+        )
+        .then((response) => {
+          //console.log(response.data);
+          setUrineTestResult(response.data);
+        })
+        .catch((error) => {
+          //console.log(error);
+        });
+
+    }
+    //PREP_OTHER_TEST
+    const PREP_OTHER_TEST = () => {
+      axios
+        .get(`${baseUrl}application-codesets/v2/PREP_OTHER_TEST`,
+          { headers: { "Authorization": `Bearer ${token}` } }
+        )
+        .then((response) => {
+          //console.log(response.data);
+          setOtherTestResult(response.data);
+        })
+        .catch((error) => {
+          //console.log(error);
+        });
+
+    }
+    //SYPHILIS_RESULT
+    const SYPHILIS_RESULT = () => {
+      axios
+        .get(`${baseUrl}application-codesets/v2/SYPHILIS_RESULT`,
+          { headers: { "Authorization": `Bearer ${token}` } }
+        )
+        .then((response) => {
+          //console.log(response.data);
+          setSphylisTestResult(response.data);
+        })
+        .catch((error) => {
+          //console.log(error);
+        });
+
+    }
+    //HEPATITIS_SCREENING_RESULT
+    const HEPATITIS_SCREENING_RESULT = () => {
+      axios
+        .get(`${baseUrl}application-codesets/v2/HEPATITIS_SCREENING_RESULT`,
+          { headers: { "Authorization": `Bearer ${token}` } }
+        )
+        .then((response) => {
+          //console.log(response.data);
+          setHepaTestResult(response.data);
+        })
+        .catch((error) => {
+          //console.log(error);
+        });
+
+    }
+    
     ///Level of Adherence
     async function AdherenceLevel() {
       axios
@@ -347,6 +416,12 @@ const ClinicVisit = (props) => {
     }
     const handleInputChangeOtherTest = e => {
       setOtherTest({ ...otherTest, [e.target.name]: e.target.value }); 
+      if(e.target.name ==='name' && e.target.value!=='Other (specify)'){
+        otherTest.otherTestName=""
+        setOtherTest({ ...otherTest, ['otherTestName']: "" });
+        setOtherTest({ ...otherTest, [e.target.name]: e.target.value });
+      }
+      setOtherTest({ ...otherTest, [e.target.name]: e.target.value }); 
     }
     const handleInputChangeHepatitisTest = e => {
       setErrors({...errors, [e.target.name]: ""}) 
@@ -355,6 +430,14 @@ const ClinicVisit = (props) => {
     const handleInputChangeSyphilisTest = e => {
       setErrors({...errors, [e.target.name]: ""}) 
       setSyphilisTest({ ...syphilisTest, [e.target.name]: e.target.value });
+      //Others
+      if(e.target.name ==='result' && e.target.value!=='Others'){
+        syphilisTest.others=""
+        setSyphilisTest({ ...syphilisTest, ['others']: "" });
+        setSyphilisTest({ ...syphilisTest, [e.target.name]: e.target.value });
+        setOtherTest({ ...otherTest, [e.target.name]: e.target.value }); 
+      }
+        setSyphilisTest({ ...syphilisTest, [e.target.name]: e.target.value }); 
     }
   //Handle CheckBox 
   const handleCheckBoxSyphilisTest = e => {
@@ -1151,8 +1234,11 @@ const ClinicVisit = (props) => {
                     disabled={disabledField}
                  >
                   <option value="">Select </option>
-                    <option value="Positive">Positive </option>
-                    <option value="Negative">Negative </option>
+                    {urineTestResult.map((value) => (
+                      <option key={value.id} value={value.display}>
+                        {value.display}
+                      </option>
+                    ))}
                   </Input>
                   {errors.result !=="" ? (
                       <span className={classes.error}>{errors.result}</span>
@@ -1196,8 +1282,11 @@ const ClinicVisit = (props) => {
                     disabled={disabledField}
                   >
                     <option value="">Select </option>
-                    <option value="Positive">Positive </option>
-                    <option value="Negative">Negative </option>
+                    {hepaTestResult.map((value) => (
+                      <option key={value.id} value={value.display}>
+                        {value.display}
+                      </option>
+                    ))}
                   </Input>
                  
                 </FormGroup>
@@ -1239,12 +1328,32 @@ const ClinicVisit = (props) => {
                     disabled={disabledField}
                   >
                     <option value="">Select </option>
-                    <option value="Positive">Positive </option>
-                    <option value="Negative">Negative </option>
+                    {sphylisTestResult.map((value) => (
+                      <option key={value.id} value={value.display}>
+                        {value.display}
+                      </option>
+                    ))}
                   </Input>
                  
                 </FormGroup>
               </div>
+              {syphilisTest.result==='Others' && (
+                <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName >Syphilis Test Result (Others)</FormLabelName>
+                  <Input
+                    type="text"
+                    name="others"
+                    id="others"
+                    value={syphilisTest.others}
+                    onChange={handleInputChangeSyphilisTest}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    disabled={disabledField}
+                  />
+                    
+                </FormGroup>
+              </div>
+              )}
               </>)}
               <br /><br />
               <Label as='a' color='black'  style={{width:'106%', height:'35px'}} ribbon>
@@ -1255,7 +1364,7 @@ const ClinicVisit = (props) => {
                 <div className=" mb-3 col-md-4">
                 <FormGroup>
                   <FormLabelName > Test  Name</FormLabelName>
-                  <Input
+                  {/* <Input
                     type="select"
                     name="name"
                     id="name"
@@ -1270,10 +1379,43 @@ const ClinicVisit = (props) => {
                             {value.label}
                         </option>
                     ))}
+                  </Input> */}
+                  <Input
+                    type="select"
+                    name="name"
+                    id="name"
+                    value={otherTest.name}
+                    onChange={handleInputChangeOtherTest}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    disabled={disabledField}
+                 >
+                  <option value="">Select </option>
+                    {otherTestResult.map((value) => (
+                      <option key={value.id} value={value.display}>
+                        {value.display}
+                      </option>
+                    ))}
                   </Input>
+                </FormGroup>
+              </div>
+              {otherTest.name==='Other (specify)' && (
+              <div className=" mb-3 col-md-4">
+                <FormGroup>
+                  <FormLabelName > Other Test  Name</FormLabelName>
+                  <Input
+                    type="text"
+                    name="otherTestName"
+                    id="otherTestName"
+                    value={otherTest.otherTestName}
+                    onChange={handleInputChangeOtherTest}
+                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                    disabled={disabledField}
+
+                  />
                    
                 </FormGroup>
               </div>
+              )}
               <div className=" mb-3 col-md-4">
                 <FormGroup>
                   <FormLabelName > Test  Date</FormLabelName>
