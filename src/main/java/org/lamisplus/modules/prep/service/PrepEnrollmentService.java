@@ -124,6 +124,7 @@ public class PrepEnrollmentService {
         prepEnrollment.setAncUniqueArtNo( enrollmentDto.getAncUniqueArtNo() );
         prepEnrollment.setHivTestingPoint(enrollmentDto.getHivTestingPoint());
         prepEnrollment.setDateOfLastHivNegativeTest(enrollmentDto.getDateOfLastHivNegativeTest());
+        prepEnrollment.setTargetGroup(enrollmentDto.getTargetGroup());
 
         return prepEnrollment;
     }
@@ -153,6 +154,8 @@ public class PrepEnrollmentService {
 
         prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
         prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
+
+        prepEnrollment.setTargetGroup( prepEnrollmentRequestDto.getTargetGroup() );
 
         return prepEnrollment;
     }
@@ -188,6 +191,7 @@ public class PrepEnrollmentService {
 
         enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
         enrollmentDto.setDateOfLastHivNegativeTest(enrollment.getDateOfLastHivNegativeTest());
+        enrollmentDto.setTargetGroup(enrollmentDto.getTargetGroup());
 
         return enrollmentDto;
     }
