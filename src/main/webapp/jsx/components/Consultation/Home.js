@@ -1438,7 +1438,7 @@ const ClinicVisit = (props) => {
                   <FormLabelName > Test  Result</FormLabelName>
                   <Input
                     type="text"
-                    name="reult"
+                    name="result"
                     id="result"
                     value={otherTest.prepGiven}
                     onChange={handleInputChangeOtherTest}
