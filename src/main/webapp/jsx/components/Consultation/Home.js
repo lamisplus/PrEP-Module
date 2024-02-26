@@ -100,6 +100,7 @@ const ClinicVisit = (props) => {
   const [otherTestResult, setOtherTestResult] = useState([]);
   const [sphylisTestResult, setSphylisTestResult] = useState([]);
   const [hepaTestResult, setHepaTestResult] = useState([]);
+  const [pregnant, setpregnant] = useState([]);
   let testsOptions =[]
   //Vital signs clinical decision support 
   const [vitalClinicalSupport, setVitalClinicalSupport] = 
@@ -189,11 +190,26 @@ const ClinicVisit = (props) => {
     PREP_OTHER_TEST();
     HEPATITIS_SCREENING_RESULT();
     SYPHILIS_RESULT();
+    PREGANACY_STATUS();
     if(props.activeContent && props.activeContent.id!=="" && props.activeContent.id!==null){
       GetPatientVisit(props.activeContent.id)
       setSisabledField(props.activeContent.actionType==='view'?true : false)
     }
   }, [props.activeContent]);
+
+  const PREGANACY_STATUS =()=>{
+    axios
+    .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`,
+        { headers: {"Authorization" : `Bearer ${token}`} }
+    )
+    .then((response) => {
+        setpregnant(response.data);
+    })
+    .catch((error) => {
+    //console.log(error);
+    });    
+}
+
   //Get list of Test Group
   const TestGroup =()=>{
       axios
@@ -912,6 +928,27 @@ const ClinicVisit = (props) => {
                   ) : "" }          
                   </FormGroup>
               </div>
+                <div>
+                  <FormGroup>
+                    <Label for="">Pregnancy Status</Label>
+                    <Input
+                      type="select"
+                      name="pregnant"
+                      id="pregnant"
+                      onChange={handleInputChange}
+                      value={objValues.pregnant}
+                      disabled={disabledField}
+                    >
+                      <option value="1"> </option>
+                      {pregnant.map((value) => (
+                        <option key={value.id} value={value.code}>
+                          {value.display}
+                        </option>
+                      ))}
+
+                    </Input>
+                  </FormGroup>
+                </div>
 
               </div>
             </div>
