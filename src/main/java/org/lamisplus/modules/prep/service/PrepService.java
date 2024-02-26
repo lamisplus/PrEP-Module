@@ -162,6 +162,7 @@ public class PrepService {
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepClinic.setIsCommencement(false);
         prepClinic = prepClinicRepository.save(prepClinic);
+        prepClinic.setPregnant(clinicRequestDto.getPregnant());
         prepClinic.setPerson(person);
         PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic);
         return prepClinicDto;
