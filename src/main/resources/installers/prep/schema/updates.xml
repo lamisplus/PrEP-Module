@@ -28,18 +28,26 @@
                 ADD COLUMN reason_stopped_others character varying;
         </sql>
     </changeSet>
-    <changeSet failOnError="true" author="Peter Abiodun" id="prep-updates-2">
+    <changeSet failOnError="true" author="Peter Abiodun" id="prep-regimen-update">
         <preConditions onFail="MARK_RAN">
-            <sqlCheck expectedResult="0">
-                SELECT COUNT(*)
-                FROM pg_attribute
-                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'prep_interruption')
-                  AND attname = 'reason_stopped_others';
+            <sqlCheck expectedResult="1">
+                SELECT *
+                FROM prep_regimen
+                WHERE regimen = 'TDF(300mg)+3TC(150mg)';
             </sqlCheck>
         </preConditions>
         <sql>
-            ALTER TABLE IF EXISTS prep_interruption
-                ADD COLUMN reason_stopped_others character varying;
+            UPDATE prep_regimen
+                SET regimen = 'TDF(300mg)+3TC(300mg)'
+                AND code = 'TDF(300mg)+3TC(300mg)'
+            WHERE regimen = 'TDF(300mg)+3TC(150mg)';
+
+            INSERT INTO prep_regimen(regimen, composition, description, archived, code)
+            VALUES ('CAB-LA(600mg/3mL)', 'Cabotegravir', 'Pre-Exposure Prophylaxis Injectable (PrEP Injectable)', 1, 'CAB-LA(600mg/3mL)');
+            ALTER TABLE prep_regimen
+                ADD COLUMN prep_type character varying;
+            UPDATE prep_regimen SET prep_type = 'ORAL' WHERE regimen = 'TDF(300mg)+3TC(300mg)';
+            UPDATE prep_regimen SET prep_type = 'INJECTABLE' WHERE regimen = 'CAB-LA(600mg/3mL)';
         </sql>
     </changeSet>
 </databaseChangeLog>

@@ -151,6 +151,7 @@ public class PrepClinicService {
         prepClinic.setUuid(uuid);
         prepClinic.setIsCommencement(iscommencement);
         prepClinic.setPrepEnrollmentUuid(enrollmentUuid);
+        prepClinic.setPregnant(prepClinicDto.getPregnant());
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         return clinicToClinicDto(prepClinicRepository.save(prepClinic), null);
     }
