@@ -145,7 +145,7 @@ const PrEPCommencementForm = (props) => {
     }
     const PREGANACY_STATUS =()=>{
         axios
-        .get(`${baseUrl}application-codesets/v2/PREGANACY_STATUS`,
+        .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`,
             { headers: {"Authorization" : `Bearer ${token}`} }
         )
         .then((response) => {
@@ -272,7 +272,7 @@ const PrEPCommencementForm = (props) => {
             }          
     }
     
-
+console.log(props.patientObj.gender)
 
   return (      
         <div >      
@@ -404,7 +404,7 @@ const PrEPCommencementForm = (props) => {
                                 </FormGroup>
                             )}
                         </div>
-                        {props.patientObj.gender==='Female'  || props.patientObj.gender==='female' || props.patientObj.gender==='FEMALE' && (       
+                        {(props.patientObj.gender==='Female'  || props.patientObj.gender==='female' || props.patientObj.gender==='FEMALE') && (       
                         <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                         <Label for="">Pregnancy Status</Label>

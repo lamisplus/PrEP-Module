@@ -179,7 +179,7 @@ const Patients = (props) => {
                     margingLeft: '250px',
                 },
                 filtering: false,
-                exportButton: false,
+                exportButton: true,
                 searchFieldAlignment: 'left',
                 pageSizeOptions:[10,20,100],
                 pageSize:10,

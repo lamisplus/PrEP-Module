@@ -153,8 +153,8 @@ public class PrepService {
         PrepClinic prepClinic = this.clinicRequestDtoToClinic(clinicRequestDto, person.getUuid());
 
         //Check if client clinic on same date exist and throw an error
-        prepClinicRepository.findByEncounterDateAndPersonUuid(clinicRequestDto.getEncounterDate(),
-                        person.getUuid()).ifPresent(prepEnroll -> {
+        prepClinicRepository.findByEncounterDateAndPersonUuidAndIsCommencement(clinicRequestDto.getEncounterDate(),
+                        person.getUuid(), false).ifPresent(prepEnroll -> {
                     throw new RecordExistException(PrepClinic.class, "Encounter date",
                             String.valueOf(clinicRequestDto.getEncounterDate()));
                 });
