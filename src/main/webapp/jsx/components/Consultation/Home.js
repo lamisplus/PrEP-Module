@@ -176,14 +176,31 @@ const ClinicVisit = (props) => {
 
    // console.log("objValues", objValues)
     useEffect(() => {
-        setUrinalysisTest({...urinalysisTest, testDate: objValues.urinalysis?.testDate,
-          result: objValues.urinalysis?.result, urinalysisTest: objValues.urinalysis?.urinalysisTest});
-        setSyphilisTest({...syphilisTest, testDate: objValues.syphilis?.testDate,
-            result: objValues.syphilis?.result, syphilisTest: objValues.syphilis?.syphilisTest, others: objValues.syphilis?.others});
-        setHepatitisTest({...hepatitisTest, testDate: objValues.hepatitis?.testDate,
-            result: objValues.hepatitis?.result, hepatitisTest: objValues.hepatitis?.hepatitisTest});
-        setOtherTest({...otherTest, testDate: objValues.otherTestsDone?.testDate,
-            result: objValues.otherTestsDone?.result, name: objValues.otherTestsDone?.name, otherTestName: objValues.otherTestsDone?.otherTestName, otherTest: objValues.otherTestsDone?.otherTest});
+        // Check if the fields exist in objValues first
+        if (objValues.urinalysis.testDate && objValues.urinalysis.result && objValues.urinalysis.urinalysisTest) {
+            setUrinalysisTest({...urinalysisTest, testDate: objValues.urinalysis.testDate,
+                result: objValues.urinalysis.result, urinalysisTest: objValues.urinalysis.urinalysisTest});
+        }
+        if (objValues.syphilis.testDate && objValues.syphilis.result && objValues.syphilis.syphilisTest) {
+            setSyphilisTest({...syphilisTest, testDate: objValues.syphilis.testDate,
+                result: objValues.syphilis.result, syphilisTest: objValues.syphilis.syphilisTest, others: objValues.syphilis.others});
+        }
+        if (objValues.hepatitis.testDate && objValues.hepatitis.result && objValues.hepatitis.hepatitisTest) {
+            setHepatitisTest({...hepatitisTest, testDate: objValues.hepatitis.testDate,
+                result: objValues.hepatitis.result, hepatitisTest: objValues.hepatitis.hepatitisTest});
+        }
+        if (objValues.otherTestsDone.testDate && objValues.otherTestsDone.result && objValues.otherTestsDone.name) {
+            setOtherTest({...otherTest, testDate: objValues.otherTestsDone.testDate,
+                result: objValues.otherTestsDone.result, name: objValues.otherTestsDone.name, otherTestName: objValues.otherTestsDone.otherTestName, otherTest: objValues.otherTestsDone.otherTest});
+        }
+        // setUrinalysisTest({...urinalysisTest, testDate: objValues.urinalysis?.testDate,
+        //   result: objValues.urinalysis?.result, urinalysisTest: objValues.urinalysis?.urinalysisTest});
+        // setSyphilisTest({...syphilisTest, testDate: objValues.syphilis?.testDate,
+        //     result: objValues.syphilis?.result, syphilisTest: objValues.syphilis?.syphilisTest, others: objValues.syphilis?.others});
+        // setHepatitisTest({...hepatitisTest, testDate: objValues.hepatitis?.testDate,
+        //     result: objValues.hepatitis?.result, hepatitisTest: objValues.hepatitis?.hepatitisTest});
+        // setOtherTest({...otherTest, testDate: objValues.otherTestsDone?.testDate,
+        //     result: objValues.otherTestsDone?.result, name: objValues.otherTestsDone?.name, otherTestName: objValues.otherTestsDone?.otherTestName, otherTest: objValues.otherTestsDone?.otherTest});
     }, [objValues]);
 
   useEffect(() => {
@@ -562,7 +579,10 @@ const ClinicVisit = (props) => {
   //Validations of the forms
   const validate = () => {        
     temp.encounterDate = objValues.encounterDate ? "" : "This field is required"
-    temp.pregnant = objValues.pregnant ? "" : "This field is required"
+    // temp.pregnant = (isFemale() && objValues.pregnant === null) ? "" : "This field is required"
+      if (isFemale()){
+          temp.pregnant = objValues.pregnant ? "" : "This field is required";
+      }
     temp.nextAppointment = objValues.nextAppointment ? "" : "This field is required"
     temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
 
@@ -579,7 +599,7 @@ const ClinicVisit = (props) => {
     setErrors({
         ...temp
     })
-    return Object.values(temp).every(x => x == "")
+    return Object.values(temp).every(x => x === "")
   }
   /**** Submit Button Processing  */
   const handleSubmit = (e) => {
@@ -594,7 +614,6 @@ const ClinicVisit = (props) => {
     objValues.prepEnrollmentUuid= patientDto.uuid
 
     if(props.activeContent && props.activeContent.actionType==='update'){//Perform operation for updation action
-        console.log("inside update condition", props.activeContent.actionType )
       axios.put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues,
         { headers: { "Authorization": `Bearer ${token}` } },
 
@@ -626,7 +645,6 @@ const ClinicVisit = (props) => {
 
     )
       .then(response => {
-          console.log("inside response" )
         //PatientDetaild();
         setSaving(false);
          setObjValues({
@@ -684,6 +702,10 @@ const ClinicVisit = (props) => {
       });
     }
     }
+  }
+
+  const isFemale = () => {
+      return props.patientObj.gender.toLowerCase() === "female";
   }
 
   return (
@@ -943,7 +965,7 @@ const ClinicVisit = (props) => {
                   ) : "" }          
                   </FormGroup>
               </div>
-                {props.patientObj.gender === "Female" && <div className="form-group mb-3 col-md-4">
+                {isFemale() && <div className="form-group mb-3 col-md-4">
                   <FormGroup>
                   <FormLabelName >Pregnancy Status <span style={{ color:"red"}}> *</span></FormLabelName>
                     <Input
