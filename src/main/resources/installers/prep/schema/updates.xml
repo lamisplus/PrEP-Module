@@ -28,4 +28,18 @@
                 ADD COLUMN reason_stopped_others character varying;
         </sql>
     </changeSet>
+    <changeSet failOnError="true" author="Peter Abiodun" id="prep-updates-2">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM pg_attribute
+                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'prep_interruption')
+                  AND attname = 'reason_stopped_others';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE IF EXISTS prep_interruption
+                ADD COLUMN reason_stopped_others character varying;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

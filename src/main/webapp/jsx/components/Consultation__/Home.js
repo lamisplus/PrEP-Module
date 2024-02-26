@@ -96,6 +96,7 @@ const ClinicVisit = (props) => {
   const [prepRegimen, setprepRegimen] = useState([]);
   const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
   const [labTestOptions, setLabTestOptions] = useState([]);
+  const [pregnant, setpregnant] = useState([]);
   let testsOptions =[]
   //Vital signs clinical decision support 
   const [vitalClinicalSupport, setVitalClinicalSupport] = 
@@ -447,6 +448,19 @@ const ClinicVisit = (props) => {
       setVitalClinicalSupport({...vitalClinicalSupport, temperature:""})
       }
   }
+
+  const PREGANACY_STATUS =()=>{
+    axios
+    .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`,
+        { headers: {"Authorization" : `Bearer ${token}`} }
+    )
+    .then((response) => {
+        setpregnant(response.data);
+    })
+    .catch((error) => {
+    //console.log(error);
+    });    
+}
 
   //Validations of the forms
   const validate = () => {        
@@ -830,6 +844,27 @@ const ClinicVisit = (props) => {
                   </FormGroup>
               </div>
 
+              </div>
+              <div>
+              <FormGroup>
+                        <Label for="">Pregnancy Status</Label>
+                        <Input
+                            type="select"
+                            name="pregnant"
+                            id="pregnant"
+                            onChange={handleInputChange}
+                            value={objValues.pregnant}  
+                            disabled={disabledField}
+                        >
+                        <option value="1"> </option>
+                        {pregnant.map((value) => (
+                            <option key={value.id} value={value.code}>
+                                {value.display}
+                            </option>
+                        ))}
+                        
+                        </Input>
+                        </FormGroup>
               </div>
             </div>
             <Label as='a' color='black'  style={{width:'106%', height:'35px'}} ribbon>
