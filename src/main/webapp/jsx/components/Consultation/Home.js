@@ -174,6 +174,18 @@ const ClinicVisit = (props) => {
     otherTestName:""
   })
 
+   // console.log("objValues", objValues)
+    useEffect(() => {
+        setUrinalysisTest({...urinalysisTest, testDate: objValues.urinalysis?.testDate,
+          result: objValues.urinalysis?.result, urinalysisTest: objValues.urinalysis?.urinalysisTest});
+        setSyphilisTest({...syphilisTest, testDate: objValues.syphilis?.testDate,
+            result: objValues.syphilis?.result, syphilisTest: objValues.syphilis?.syphilisTest, others: objValues.syphilis?.others});
+        setHepatitisTest({...hepatitisTest, testDate: objValues.hepatitis?.testDate,
+            result: objValues.hepatitis?.result, hepatitisTest: objValues.hepatitis?.hepatitisTest});
+        setOtherTest({...otherTest, testDate: objValues.otherTestsDone?.testDate,
+            result: objValues.otherTestsDone?.result, name: objValues.otherTestsDone?.name, otherTestName: objValues.otherTestsDone?.otherTestName, otherTest: objValues.otherTestsDone?.otherTest});
+    }, [objValues]);
+
   useEffect(() => {
     AdherenceLevel();
     SYNDROMIC_STI_SCREENING();
@@ -208,15 +220,6 @@ const ClinicVisit = (props) => {
     .catch((error) => {
     //console.log(error);
     });    
-  }
-  const isFemale =()=>{
-    // null check first
-     if (props.patientObj.personResponseDto
-      && props.patientObj.personResponseDto.gender 
-      && props.patientObj.personResponseDto.gender.display) {
-      return props.patientObj.personResponseDto.gender.display.toLowerCase() === "female" ? true : false;
-    }
-    return false;
   }
 
   //Get list of Test Group
@@ -260,7 +263,7 @@ const ClinicVisit = (props) => {
         )
         .then((response) => {
             setPatientDto(response.data);
-            console.log(response.data);
+            // console.log(response.data);
         })
         .catch((error) => {
         //console.log(error);
@@ -431,7 +434,7 @@ const ClinicVisit = (props) => {
         });
     }
     const handleInputChange = e => {
-      setErrors({...errors, [e.target.name]: ""}) 
+      setErrors({...errors, [e.target.name]: ""})
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
       
     }
@@ -559,7 +562,7 @@ const ClinicVisit = (props) => {
   //Validations of the forms
   const validate = () => {        
     temp.encounterDate = objValues.encounterDate ? "" : "This field is required"
-
+    temp.pregnant = objValues.pregnant ? "" : "This field is required"
     temp.nextAppointment = objValues.nextAppointment ? "" : "This field is required"
     temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
 
@@ -589,7 +592,9 @@ const ClinicVisit = (props) => {
     objValues.urinalysis = urinalysisTest
     objValues.otherTestsDone = otherTest
     objValues.prepEnrollmentUuid= patientDto.uuid
+
     if(props.activeContent && props.activeContent.actionType==='update'){//Perform operation for updation action
+        console.log("inside update condition", props.activeContent.actionType )
       axios.put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues,
         { headers: { "Authorization": `Bearer ${token}` } },
 
@@ -621,6 +626,7 @@ const ClinicVisit = (props) => {
 
     )
       .then(response => {
+          console.log("inside response" )
         //PatientDetaild();
         setSaving(false);
          setObjValues({
@@ -937,7 +943,7 @@ const ClinicVisit = (props) => {
                   ) : "" }          
                   </FormGroup>
               </div>
-                {isFemale() && <div>
+                {props.patientObj.gender === "Female" && <div className="form-group mb-3 col-md-4">
                   <FormGroup>
                   <FormLabelName >Pregnancy Status <span style={{ color:"red"}}> *</span></FormLabelName>
                     <Input
@@ -956,6 +962,9 @@ const ClinicVisit = (props) => {
                       ))}
 
                     </Input>
+                      {errors.pregnant !=="" ? (
+                          <span className={classes.error}>{errors.pregnant}</span>
+                      ) : "" }
                   </FormGroup>
                 </div>}
 
@@ -1256,6 +1265,7 @@ const ClinicVisit = (props) => {
                     name="testDate"
                     id="testDate"
                     value={urinalysisTest.testDate}
+                    // defaultValue={objValues.urinalysis?.testDate}
                     onChange={handleInputChangeUrinalysisTest}
                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                     min={objValues.encounterDate}
