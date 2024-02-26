@@ -208,7 +208,16 @@ const ClinicVisit = (props) => {
     .catch((error) => {
     //console.log(error);
     });    
-}
+  }
+  const isFemale =()=>{
+    // null check first
+     if (props.patientObj.personResponseDto
+      && props.patientObj.personResponseDto.gender 
+      && props.patientObj.personResponseDto.gender.display) {
+      return props.patientObj.personResponseDto.gender.display.toLowerCase() === "female" ? true : false;
+    }
+    return false;
+  }
 
   //Get list of Test Group
   const TestGroup =()=>{
@@ -928,9 +937,9 @@ const ClinicVisit = (props) => {
                   ) : "" }          
                   </FormGroup>
               </div>
-                <div>
+                {isFemale() && <div>
                   <FormGroup>
-                    <Label for="">Pregnancy Status</Label>
+                  <FormLabelName >Pregnancy Status <span style={{ color:"red"}}> *</span></FormLabelName>
                     <Input
                       type="select"
                       name="pregnant"
@@ -939,7 +948,7 @@ const ClinicVisit = (props) => {
                       value={objValues.pregnant}
                       disabled={disabledField}
                     >
-                      <option value="1"> </option>
+                      <option value="1">Select Pregnancy Status</option>
                       {pregnant.map((value) => (
                         <option key={value.id} value={value.code}>
                           {value.display}
@@ -948,7 +957,7 @@ const ClinicVisit = (props) => {
 
                     </Input>
                   </FormGroup>
-                </div>
+                </div>}
 
               </div>
             </div>
