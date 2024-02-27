@@ -148,7 +148,11 @@ const ClinicVisit = (props) => {
     why: "",
     otherDrugs:"",
     duration:"",
-    prepGiven:""
+    prepGiven:"",
+      prepType:"",
+      prepDistributionSetting:"",
+
+
   });
   const [urinalysisTest, setUrinalysisTest] = useState({
     urinalysisTest: "Yes",
@@ -1188,50 +1192,94 @@ const ClinicVisit = (props) => {
                   </Input>
                  
                 </FormGroup>
-              </div> */} 
-              <div className="form-group mb-3 col-md-6">
-              <FormGroup>
-              <FormLabelName for="">PrEP Regimen <span style={{ color:"red"}}> *</span></FormLabelName>
-              <Input
-                  type="select"
-                  name="regimenId"
-                  id="regimenId"
-                  onChange={handleInputChange}
-                  value={objValues.regimenId}
-                  disabled={disabledField}
-              >
-              <option value=""> Select</option>
-              {prepRegimen.map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.regimen}
-                      </option>
-                    ))}
-              </Input>
-              {errors.regimenId !=="" ? (
-                      <span className={classes.error}>{errors.regimenId}</span>
-                  ) : "" } 
-              </FormGroup>
-              
-              </div> 
-              <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName >Duration <span style={{ color:"red"}}> *</span></FormLabelName>
-                  <Input
-                    type="number"
-                    name="duration"
-                    id="duration"
-                    value={objValues.duration}
-                    onChange={handleInputChange}
-                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                   
-                    disabled={disabledField}
-                  />
-                  {errors.duration !=="" ? (
-                      <span className={classes.error}>{errors.duration}</span>
-                  ) : "" }   
-                </FormGroup>
-              </div>     
-              {/* <div className=" mb-3 col-md-6">
+              </div> */}
+                <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                        <FormLabelName for="">PrEP Regimen <span style={{color: "red"}}> *</span></FormLabelName>
+                        <Input
+                            type="select"
+                            name="regimenId"
+                            id="regimenId"
+                            onChange={handleInputChange}
+                            value={objValues.regimenId}
+                            disabled={disabledField}
+                        >
+                            <option value=""> Select</option>
+                            {prepRegimen.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                    {value.regimen}
+                                </option>
+                            ))}
+                        </Input>
+                        {errors.regimenId !== "" ? (
+                            <span className={classes.error}>{errors.regimenId}</span>
+                        ) : ""}
+                    </FormGroup>
+                    <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                            <Label for="">Prep Distribution settings</Label>
+                            <Input
+                                type="select"
+                                name="prepDistributionSetting"
+                                id="prepDistributionSetting"
+                                onChange={handleInputChange}
+                                value={objValues.prepDistributionSetting}
+                                // disabled={disabledField}
+                            >
+                                <option value="1"></option>
+                                {pregnant.map((value) => (
+                                    <option key={value.id} value={value.code}>
+                                        {value.display}
+                                    </option>
+                                ))}
+
+                            </Input>
+                        </FormGroup>
+
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                            <Label for="">Prep Type</Label>
+                            <Input
+                                type="select"
+                                name="prepType"
+                                id="prepType"
+                                onChange={handleInputChange}
+                                value={objValues.prepType}
+                                // disabled={disabledField}
+                            >
+                                <option value="1"></option>
+                                {pregnant.map((value) => (
+                                    <option key={value.id} value={value.code}>
+                                        {value.display}
+                                    </option>
+                                ))}
+
+                            </Input>
+                        </FormGroup>
+
+                    </div>
+
+                </div>
+                <div className=" mb-3 col-md-6">
+                    <FormGroup>
+                        <FormLabelName>Duration <span style={{color: "red"}}> *</span></FormLabelName>
+                        <Input
+                            type="number"
+                            name="duration"
+                            id="duration"
+                            value={objValues.duration}
+                            onChange={handleInputChange}
+                            style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+
+                            disabled={disabledField}
+                        />
+                        {errors.duration !== "" ? (
+                            <span className={classes.error}>{errors.duration}</span>
+                        ) : ""}
+                    </FormGroup>
+                </div>
+                {/* <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >Date PrEP Given <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
@@ -1250,22 +1298,22 @@ const ClinicVisit = (props) => {
                   ) : "" }   
                 </FormGroup>
               </div>  */}
-              <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName >Other Drugs</FormLabelName>
-                  <Input
-                    type="text"
-                    name="otherDrugs"
-                    id="otherDrugs"
-                    value={objValues.otherDrugs}
-                    onChange={handleInputChange}
-                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    disabled={disabledField}
-                 />
-                    
-                </FormGroup>
-              </div>
-              {/* <div className=" mb-3 col-md-6">
+                <div className=" mb-3 col-md-6">
+                    <FormGroup>
+                        <FormLabelName>Other Drugs</FormLabelName>
+                        <Input
+                            type="text"
+                            name="otherDrugs"
+                            id="otherDrugs"
+                            value={objValues.otherDrugs}
+                            onChange={handleInputChange}
+                            style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                            disabled={disabledField}
+                        />
+
+                    </FormGroup>
+                </div>
+                {/* <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >PrEP Status</FormLabelName>
                   <Input
