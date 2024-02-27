@@ -101,6 +101,7 @@ const ClinicVisit = (props) => {
   const [sphylisTestResult, setSphylisTestResult] = useState([]);
   const [hepaTestResult, setHepaTestResult] = useState([]);
   const [pregnant, setpregnant] = useState([]);
+  const [prepEntryPoint, setPrepEntryPoints] = useState([]);
   let testsOptions =[]
   //Vital signs clinical decision support 
   const [vitalClinicalSupport, setVitalClinicalSupport] = 
@@ -220,6 +221,7 @@ const ClinicVisit = (props) => {
     HEPATITIS_SCREENING_RESULT();
     SYPHILIS_RESULT();
     PREGANACY_STATUS();
+    PREP_ENTRY_POINT();
     if(props.activeContent && props.activeContent.id!=="" && props.activeContent.id!==null){
       GetPatientVisit(props.activeContent.id)
       setSisabledField(props.activeContent.actionType==='view'?true : false)
@@ -233,6 +235,19 @@ const ClinicVisit = (props) => {
     )
     .then((response) => {
         setpregnant(response.data);
+    })
+    .catch((error) => {
+    //console.log(error);
+    });    
+  }
+
+  const PREP_ENTRY_POINT =()=>{
+    axios
+    .get(`${baseUrl}application-codesets/v2/PREP_ENTRY_POINT`,
+        { headers: {"Authorization" : `Bearer ${token}`} }
+    )
+    .then((response) => {
+        setPrepEntryPoints(response.data);
     })
     .catch((error) => {
     //console.log(error);
