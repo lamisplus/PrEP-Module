@@ -38,8 +38,8 @@
         </preConditions>
         <sql>
             UPDATE prep_regimen
-                SET regimen = 'TDF(300mg)+3TC(300mg)'
-                AND code = 'TDF(300mg)+3TC(300mg)'
+                SET regimen = 'TDF(300mg)+3TC(300mg)',
+                code = 'TDF(300mg)+3TC(300mg)'
             WHERE regimen = 'TDF(300mg)+3TC(150mg)';
 
             INSERT INTO prep_regimen(regimen, composition, description, archived, code)
