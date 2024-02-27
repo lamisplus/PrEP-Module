@@ -31,7 +31,7 @@
     <changeSet failOnError="true" author="Peter Abiodun" id="prep-regimen-update">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="1">
-                SELECT *
+                SELECT COUNT(*)
                 FROM prep_regimen
                 WHERE regimen = 'TDF(300mg)+3TC(150mg)';
             </sqlCheck>
