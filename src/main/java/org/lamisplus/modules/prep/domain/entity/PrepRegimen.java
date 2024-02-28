@@ -33,6 +33,8 @@ public class PrepRegimen implements Serializable{
 
     @Column(name = "description")
     private String description;
+    @Column(name = "prep_type")
+    private String prepType;
 
     @JsonIgnore
     @Column(name = "archived")

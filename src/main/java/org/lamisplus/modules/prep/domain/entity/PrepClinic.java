@@ -156,6 +156,9 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "prep_given")
     private String prepGiven;
 
+    @Column(name = "prep_distribution_setting")
+    private String prepDistributionSetting;
+
     @Column(name = "other_drugs")
     private String otherDrugs;
 

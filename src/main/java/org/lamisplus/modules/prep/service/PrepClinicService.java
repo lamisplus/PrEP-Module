@@ -152,6 +152,7 @@ public class PrepClinicService {
         prepClinic.setIsCommencement(iscommencement);
         prepClinic.setPrepEnrollmentUuid(enrollmentUuid);
         prepClinic.setPregnant(prepClinicDto.getPregnant());
+        prepClinic.setPrepDistributionSetting(prepClinicDto.getPrepDistributionSetting());
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         return clinicToClinicDto(prepClinicRepository.save(prepClinic), null);
     }
@@ -170,6 +171,7 @@ public class PrepClinicService {
         prepClinic.setWeight( prepClinicDto.getWeight() );
         prepClinic.setHeight( prepClinicDto.getHeight() );
         prepClinic.setPregnant( prepClinicDto.getPregnant() );
+        prepClinic.setPrepDistributionSetting( prepClinicDto.getPrepDistributionSetting() );
 
         prepClinic.setDateReferred( prepClinicDto.getDateReferred() );
         prepClinic.setPrepEnrollmentUuid( prepClinicDto.getPrepEnrollmentUuid() );
@@ -226,6 +228,7 @@ public class PrepClinicService {
         prepClinic.setWeight( prepClinicRequestDto.getWeight() );
         prepClinic.setHeight( prepClinicRequestDto.getHeight() );
         prepClinic.setPregnant( prepClinicRequestDto.getPregnant() );
+        prepClinic.setPrepDistributionSetting( prepClinicRequestDto.getPrepDistributionSetting());
 
         prepClinic.setDateReferred( prepClinicRequestDto.getDateReferred() );
         prepClinic.setPrepEnrollmentUuid( prepClinicRequestDto.getPrepEnrollmentUuid() );
@@ -280,6 +283,7 @@ public class PrepClinicService {
         prepClinicDto.setWeight( clinic.getWeight() );
         prepClinicDto.setHeight( clinic.getHeight() );
         prepClinicDto.setPregnant( clinic.getPregnant() );
+        prepClinicDto.setPrepDistributionSetting( clinic.getPrepDistributionSetting() );
         if(last != null && last){
             prepClinicDto.setVisitCount(prepClinicRepository.countAllByPersonUuid(clinic.getPersonUuid()));
         }

@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {
     Card, CardBody, FormGroup, Label, Input, InputGroup,
-    InputGroupText,
+    InputGroupText, Label as FormLabelName,
 } from 'reactstrap';
 import MatButton from '@material-ui/core/Button'
 import {makeStyles} from '@material-ui/core/styles'
@@ -105,18 +105,23 @@ const PrEPCommencementForm = (props) => {
         prepEnrollmentUuid: "",
         duration: "",
         prepDistributionSetting: "",
-        prepType: ""
+        // prepType: ""
 
     });
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [pregnant, setpregnant] = useState([]);
     const [patientDto, setPatientDto] = useState();
+    const [prepEntryPoint, setPrepEntryPoints] = useState([]);
+    const [prepType, setPrepType] = useState([]);
+    const [selectedPrepType, setSelectedPrepType] = useState("");
 
     useEffect(() => {
         PREGANACY_STATUS();
         GetPatientDTOObj();
         PrepRegimen();
+        PREP_ENTRY_POINT();
+        PREP_TYPE();
         if (props.activeContent.id && props.activeContent.id !== "" && props.activeContent.id !== null) {
             GetPatientCommercement(props.activeContent.id)
             setSisabledField(props.activeContent.actionType === 'view' ? true : false)
@@ -134,6 +139,36 @@ const PrEPCommencementForm = (props) => {
                 //console.log(error);
             });
     }
+
+    const PREP_ENTRY_POINT = () => {
+        axios
+            .get(`${baseUrl}application-codesets/v2/PrEP_ENTRY_POINT`,
+                {headers: {"Authorization": `Bearer ${token}`}}
+            )
+            .then((response) => {
+                setPrepEntryPoints(response.data);
+                console.log("prep", prepEntryPoint)
+            })
+            .catch((error) => {
+                //console.log(error);
+            });
+    }
+
+
+    const PREP_TYPE = () => {
+        axios
+            .get(`${baseUrl}application-codesets/v2/PrEP_TYPE`,
+                {headers: {"Authorization": `Bearer ${token}`}}
+            )
+            .then((response) => {
+                setPrepType(response.data);
+                console.log("prep", prepType)
+            })
+            .catch((error) => {
+                //console.log(error);
+            });
+    }
+
     const GetPatientCommercement = (id) => {
         axios
             .get(`${baseUrl}prep/commencement/person/${props.patientObj.personId}`,
@@ -176,8 +211,16 @@ const PrEPCommencementForm = (props) => {
         weight: "",
         height: "",
     })
+
+    useEffect(() => {
+        const type = prepRegimen.find(regimen => Number(regimen.id) === Number(objValues.regimenId))?.prepType;
+        const typeDisplay = prepType.find(prepType => prepType.code === type)?.display;
+        setSelectedPrepType(typeDisplay ? typeDisplay : "");
+
+    }, [objValues.regimenId]);
     const handleInputChange = e => {
         setErrors({...errors, [e.target.name]: ""})
+
         if (e.target.name === 'referred' && e.target.value === 'false') {
             objValues.datereferred = ''
             setObjValues({...objValues, ['datereferred']: ''});
@@ -572,23 +615,20 @@ const PrEPCommencementForm = (props) => {
                                 </FormGroup>
 
                             </div>
+
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="">Prep Distribution settings</Label>
+                                    <FormLabelName for="">Prep Type <span
+                                        style={{color: "red"}}> *</span></FormLabelName>
                                     <Input
-                                        type="select"
-                                        name="prepDistributionSetting"
-                                        id="prepDistributionSetting"
-                                        onChange={handleInputChange}
-                                        value={objValues.prepDistributionSetting}
+                                        type="text"
+                                        name="prepType"
+                                        id="prepType"
+                                        disabled
+                                        // onChange={handleInputChange}
+                                        value={selectedPrepType}
                                         // disabled={disabledField}
                                     >
-                                        <option value="1"></option>
-                                        {pregnant.map((value) => (
-                                            <option key={value.id} value={value.code}>
-                                                {value.display}
-                                            </option>
-                                        ))}
 
                                     </Input>
                                 </FormGroup>
@@ -596,25 +636,25 @@ const PrEPCommencementForm = (props) => {
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="">Prep Type</Label>
+                                    <FormLabelName for="">Prep Distribution Setting <span
+                                        style={{color: "red"}}> *</span></FormLabelName>
                                     <Input
                                         type="select"
-                                        name="prepType"
-                                        id="prepType"
+                                        name="prepDistributionSetting"
+                                        id="prepDistributionSetting"
                                         onChange={handleInputChange}
-                                        value={objValues.prepType}
-                                        // disabled={disabledField}
+                                        value={objValues.prepDistributionSetting}
+                                        disabled={disabledField}
                                     >
                                         <option value="1"></option>
-                                        {pregnant.map((value) => (
-                                            <option key={value.id} value={value.code}>
+                                        {prepEntryPoint.map((value) => (
+                                            <option key={value.code} value={value.code}>
                                                 {value.display}
                                             </option>
                                         ))}
 
                                     </Input>
                                 </FormGroup>
-
                             </div>
 
                             {/* <div className=" mb-3 col-md-6">
@@ -673,7 +713,7 @@ const PrEPCommencementForm = (props) => {
                                 )}
                             </MatButton>
                         </>) : (<>
-                        <MatButton
+                            <MatButton
                                 type="submit"
                                 variant="contained"
                                 color="primary"

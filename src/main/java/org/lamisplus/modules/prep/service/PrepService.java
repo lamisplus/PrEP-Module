@@ -517,6 +517,7 @@ public class PrepService {
         prepClinic.setWeight( prepClinicRequestDto.getWeight() );
         prepClinic.setHeight( prepClinicRequestDto.getHeight() );
         prepClinic.setPregnant( prepClinicRequestDto.getPregnant() );
+        prepClinic.setPrepDistributionSetting( prepClinicRequestDto.getPrepDistributionSetting() );
 
         prepClinic.setDateReferred( prepClinicRequestDto.getDateReferred() );
         prepClinic.setPrepEnrollmentUuid( prepClinicRequestDto.getPrepEnrollmentUuid() );
@@ -571,6 +572,7 @@ public class PrepService {
         prepClinicDto.setWeight( clinic.getWeight() );
         prepClinicDto.setHeight( clinic.getHeight() );
         prepClinicDto.setPregnant( clinic.getPregnant() );
+        prepClinicDto.setPrepDistributionSetting( clinic.getPrepDistributionSetting() );
 
         prepClinicDto.setDateReferred( clinic.getDateReferred() );
         prepClinicDto.setPrepEnrollmentUuid( clinic.getPrepEnrollmentUuid() );

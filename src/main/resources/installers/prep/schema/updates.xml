@@ -46,8 +46,12 @@
             VALUES ('CAB-LA(600mg/3mL)', 'Cabotegravir', 'Pre-Exposure Prophylaxis Injectable (PrEP Injectable)', 1, 'CAB-LA(600mg/3mL)');
             ALTER TABLE prep_regimen
                 ADD COLUMN prep_type character varying;
-            UPDATE prep_regimen SET prep_type = 'ORAL' WHERE regimen = 'TDF(300mg)+3TC(300mg)';
-            UPDATE prep_regimen SET prep_type = 'INJECTABLE' WHERE regimen = 'CAB-LA(600mg/3mL)';
+            UPDATE prep_regimen SET prep_type = 'PREP_TYPE_ORAL' WHERE regimen = 'TDF(300mg)+3TC(300mg)';
+            UPDATE prep_regimen SET prep_type = 'PREP_TYPE_INJECTIBLES' WHERE regimen = 'CAB-LA(600mg/3mL)';
+
+            ALTER TABLE prep_clinic
+                ADD COLUMN prep_distribution_setting character varying;
+
         </sql>
     </changeSet>
 </databaseChangeLog>
