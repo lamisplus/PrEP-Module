@@ -9,7 +9,7 @@ menus:
     state: PrEP
     url: /across/resources/static/prep/index.html
 umdLocation: /across/resources/static/prep/index.html
-#gitHubLink: https://api.github.com/repos/lamisplus/Prep-Module/releases/latest
+gitHubLink: https://api.github.com/repos/lamisplus/Prep-Module/releases/latest
 webModules:
   - breadcrumb: PrEP
     name: PrepModule

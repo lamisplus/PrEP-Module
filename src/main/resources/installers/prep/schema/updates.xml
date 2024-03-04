@@ -41,16 +41,15 @@
                 SET regimen = 'TDF(300mg)+3TC(300mg)',
                 code = 'TDF(300mg)+3TC(300mg)'
             WHERE regimen = 'TDF(300mg)+3TC(150mg)';
-
-            INSERT INTO prep_regimen(regimen, composition, description, archived, code)
-            VALUES ('CAB-LA(600mg/3mL)', 'Cabotegravir', 'Pre-Exposure Prophylaxis Injectable (PrEP Injectable)', 1, 'CAB-LA(600mg/3mL)');
             ALTER TABLE prep_regimen
                 ADD COLUMN prep_type character varying;
-            UPDATE prep_regimen SET prep_type = 'PREP_TYPE_ORAL' WHERE regimen = 'TDF(300mg)+3TC(300mg)';
-            UPDATE prep_regimen SET prep_type = 'PREP_TYPE_INJECTIBLES' WHERE regimen = 'CAB-LA(600mg/3mL)';
-
             ALTER TABLE prep_clinic
                 ADD COLUMN prep_distribution_setting character varying;
+
+            INSERT INTO prep_regimen(regimen, composition, description, archived, code, prep_type)
+            VALUES ('IM CAB-LA(600mg/3mL)', 'IM Cabotegravir', 'Pre-Exposure Prophylaxis Injectable (PrEP Injectable)', 1, 'CAB-LA(600mg/3mL)', 'PREP_TYPE_INJECTIBLES');
+            UPDATE prep_regimen SET prep_type = 'PREP_TYPE_ORAL' WHERE regimen = 'TDF(300mg)+3TC(300mg)';
+
 
         </sql>
     </changeSet>
