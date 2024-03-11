@@ -50,7 +50,17 @@
             VALUES ('IM CAB-LA(600mg/3mL)', 'IM Cabotegravir', 'Pre-Exposure Prophylaxis Injectable (PrEP Injectable)', 1, 'CAB-LA(600mg/3mL)', 'PREP_TYPE_INJECTIBLES');
             UPDATE prep_regimen SET prep_type = 'PREP_TYPE_ORAL' WHERE regimen = 'TDF(300mg)+3TC(300mg)';
 
-
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Taiwo Gboyegun" id="family-planning-update">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_clinic" columnName="family_planning" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic
+                ADD family_planning VARCHAR(255);
         </sql>
     </changeSet>
 </databaseChangeLog>

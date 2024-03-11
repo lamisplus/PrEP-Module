@@ -1,0 +1,21 @@
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<databaseChangeLog-->
+<!--        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"-->
+<!--        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
+<!--        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">-->
+
+<!--    <property name="autoIncrement" value="true"/>-->
+
+<!--    <changeSet failOnError="true" author="Taiwo Gboyegun" id="20240308-001">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <columnExists tableName="prep_clinic" columnName="family_planning" />-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <sql>-->
+<!--            ALTER TABLE prep_clinic-->
+<!--                ADD family_planning VARCHAR(255);-->
+<!--        </sql>-->
+<!--    </changeSet>-->
+
+<!--</databaseChangeLog>-->

@@ -101,6 +101,7 @@ const ClinicVisit = (props) => {
     const [otherTestResult, setOtherTestResult] = useState([]);
     const [sphylisTestResult, setSphylisTestResult] = useState([]);
     const [hepaTestResult, setHepaTestResult] = useState([]);
+    const [familyPlanningMethod, setFamilyPlanningMethod] = useState([]);
     const [pregnant, setpregnant] = useState([]);
     const [prepEntryPoint, setPrepEntryPoints] = useState([]);
     const [prepType, setPrepType] = useState([]);
@@ -154,6 +155,7 @@ const ClinicVisit = (props) => {
         prepGiven: "",
         // prepType: "",
         prepDistributionSetting: "",
+        familyPlanning: "",
 
 
     });
@@ -245,6 +247,7 @@ const ClinicVisit = (props) => {
         PREGANACY_STATUS();
         PREP_ENTRY_POINT();
         PREP_TYPE();
+        FAMILY_PLANNING_METHOD();
         if (props.activeContent && props.activeContent.id !== "" && props.activeContent.id !== null) {
             GetPatientVisit(props.activeContent.id)
             setSisabledField(props.activeContent.actionType === 'view' ? true : false)
@@ -494,6 +497,21 @@ const ClinicVisit = (props) => {
                 //console.log(error);
             });
 
+    }
+
+    // FAMILY_PLANNING_METHOD
+    const FAMILY_PLANNING_METHOD = () => {
+        axios
+            .get(`${baseUrl}application-codesets/v2/FAMILY_PLANNING_METHOD`,
+                {headers: {"Authorization": `Bearer ${token}`}}
+            )
+            .then((response) => {
+                //console.log(response.data);
+                setFamilyPlanningMethod(response.data);
+            })
+            .catch((error) => {
+                //console.log(error);
+            });
     }
 
     ///Level of Adherence
@@ -1403,6 +1421,7 @@ const ClinicVisit = (props) => {
                   ) : "" }   
                 </FormGroup>
               </div>  */}
+
                             <div className=" mb-3 col-md-6">
                                 <FormGroup>
                                     <FormLabelName>Other Drugs</FormLabelName>
@@ -1441,6 +1460,28 @@ const ClinicVisit = (props) => {
                 </FormGroup>
               </div> */}
 
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <FormLabelName for="">Family Planning<span
+                                        style={{color: "red"}}> *</span></FormLabelName>
+                                    <Input
+                                        type="select"
+                                        name="familyPlanning"
+                                        id="familyPlanning"
+                                        onChange={handleInputChange}
+                                        value={objValues.familyPlanning}
+                                        disabled={disabledField}
+                                    >
+                                        <option value="1"></option>
+                                        {familyPlanningMethod.map((value) => (
+                                            <option key={value.id} value={value.code}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+
+                                    </Input>
+                                </FormGroup>
+                            </div>
                             <br/><br/>
                             <Label as='a' color='teal' style={{width: '106%', height: '35px'}} ribbon>
                                 <h4 style={{color: '#fff'}}><input type="checkbox" name="urinalysisTest" value="Yes"

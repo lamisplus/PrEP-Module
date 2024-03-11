@@ -151,6 +151,7 @@ public class PrepClinicService {
         prepClinic.setUuid(uuid);
         prepClinic.setIsCommencement(iscommencement);
         prepClinic.setPrepEnrollmentUuid(enrollmentUuid);
+        prepClinic.setFamilyPlanning(prepClinicDto.getFamilyPlanning());
         prepClinic.setPregnant(prepClinicDto.getPregnant());
         prepClinic.setPrepDistributionSetting(prepClinicDto.getPrepDistributionSetting());
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
@@ -170,6 +171,7 @@ public class PrepClinicService {
         prepClinic.setDateInitialAdherenceCounseling( prepClinicDto.getDateInitialAdherenceCounseling() );
         prepClinic.setWeight( prepClinicDto.getWeight() );
         prepClinic.setHeight( prepClinicDto.getHeight() );
+        prepClinic.setFamilyPlanning( prepClinicDto.getFamilyPlanning());
         prepClinic.setPregnant( prepClinicDto.getPregnant() );
         prepClinic.setPrepDistributionSetting( prepClinicDto.getPrepDistributionSetting() );
 
