@@ -95,6 +95,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
     const patientObj = props.patientObj;
     //let history = useHistory();
     const classes = useStyles()
+    const [disabledField, setDisabledField] = useState(false);
     const [objValues, setObjValues] = useState({
         dateInterruption: "",
         why: "",
@@ -125,7 +126,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
         CAUSE_DEATH();
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientInterruption(props.activeContent.id)
-            //setSisabledField(props.activeContent.actionType==='view'?true : false)
+            setDisabledField(props.activeContent.actionType==='view'? true : false)
         }
     }, []);
     const GetPatientDTOObj =()=>{
@@ -142,7 +143,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
     }
     const GetPatientInterruption =(id)=>{
         axios
-           .get(`${baseUrl}prep-interruption/${props.patientObj.personId}`,
+           .get(`${baseUrl}prep-interruption/${props.activeContent.id}`,
                { headers: {"Authorization" : `Bearer ${token}`} }
            )
            .then((response) => {
@@ -260,7 +261,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
          if(validate()){
           setSaving(true);
           if(props.activeContent && props.activeContent.actionType==="update"){
-          axios.post(`${baseUrl}prep/interruption/${props.activeContent.id}`,objValues,
+          axios.put(`${baseUrl}prep/interruption/${props.activeContent.id}`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},
           
           ).then(response => {

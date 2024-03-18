@@ -519,6 +519,7 @@ public class PrepService {
         prepClinic.setPregnant( prepClinicRequestDto.getPregnant() );
         prepClinic.setPrepDistributionSetting( prepClinicRequestDto.getPrepDistributionSetting() );
         prepClinic.setFamilyPlanning(prepClinicRequestDto.getFamilyPlanning());
+        prepClinic.setDateOfFamilyPlanning(prepClinicRequestDto.getDateOfFamilyPlanning());
 
         prepClinic.setDateReferred( prepClinicRequestDto.getDateReferred() );
         prepClinic.setPrepEnrollmentUuid( prepClinicRequestDto.getPrepEnrollmentUuid() );
@@ -602,6 +603,8 @@ public class PrepService {
         prepClinicDto.setSyphilis( clinic.getSyphilis());
         prepClinicDto.setOtherTestsDone( clinic.getOtherTestsDone());
         prepClinicDto.setSyndromicStiScreening( clinic.getSyndromicStiScreening());
+        prepClinicDto.setFamilyPlanning(clinic.getFamilyPlanning());
+        prepClinicDto.setDateOfFamilyPlanning(clinic.getDateOfFamilyPlanning());
 
         prepClinicDto.setRiskReductionServices( clinic.getRiskReductionServices());
         prepClinicDto.setNotedSideEffects( clinic.getNotedSideEffects());

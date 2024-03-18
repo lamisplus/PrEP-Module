@@ -267,7 +267,7 @@ const PatientnHistory = (props) => {
 
                             <Dropdown.Menu style={{ marginTop:"10px", }}>
                                 {row.viewable && ( <Dropdown.Item onClick={()=>LoadViewPage(row, 'view')}> <Icon name='eye' />View  </Dropdown.Item>)}
-                                {row.viewable && ( <Dropdown.Item  onClick={()=>LoadViewPage(row, 'update')}><Icon name='edit' />Edit</Dropdown.Item>)}
+                                {row.editable && ( <Dropdown.Item  onClick={()=>LoadViewPage(row, 'update')}><Icon name='edit' />Edit</Dropdown.Item>)}
                                 <Dropdown.Item  onClick={()=>LoadModal(row, 'delete')}> <Icon name='trash' /> Delete</Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>

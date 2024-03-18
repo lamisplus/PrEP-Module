@@ -82,6 +82,7 @@ public class PrepClinicRequestDto implements Serializable{
     private String prepGiven;
     private String prepDistributionSetting;
     private String familyPlanning;
+    private LocalDate dateOfFamilyPlanning;
     private String otherDrugs;
     private String hivTestResult;
 }

@@ -63,4 +63,26 @@
                 ADD family_planning VARCHAR(255);
         </sql>
     </changeSet>
+    <changeSet failOnError="true" author="Peter Abiodun" id="update-other-tests-fix-distr-sett-FP">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_clinic" columnName="date_of_family_planning" />
+            </not>
+            <columnExists tableName="prep_clinic" columnName="prep_distribution_setting" />
+            <columnExists tableName="prep_clinic" columnName="other_tests_done" />
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic
+                ADD date_of_family_planning date;
+            UPDATE prep_clinic SET prep_distribution_setting = NULL where prep_distribution_setting = '1';
+            UPDATE prep_clinic SET pregnant = NULL where pregnant = '1';
+
+            UPDATE prep_clinic
+            SET other_tests_done = jsonb_set(other_tests_done, '{name}', (SELECT to_jsonb(code) FROM base_application_codeset WHERE codeset_group = 'PREP_OTHER_TEST' and display = other_tests_done->> 'name' LIMIT 1), true)
+            WHERE other_tests_done is not null and other_tests_done ->> 'name' != '';
+
+            UPDATE prep_clinic SET other_tests_done = jsonb_build_array(other_tests_done)
+            WHERE other_tests_done IS NOT NULL;
+        </sql>
+    </changeSet>
 </databaseChangeLog>
