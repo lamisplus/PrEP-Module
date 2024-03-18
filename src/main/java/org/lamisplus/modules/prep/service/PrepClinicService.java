@@ -151,6 +151,8 @@ public class PrepClinicService {
         prepClinic.setUuid(uuid);
         prepClinic.setIsCommencement(iscommencement);
         prepClinic.setPrepEnrollmentUuid(enrollmentUuid);
+        prepClinic.setFamilyPlanning(prepClinicDto.getFamilyPlanning());
+        prepClinic.setDateOfFamilyPlanning(prepClinicDto.getDateOfFamilyPlanning());
         prepClinic.setPregnant(prepClinicDto.getPregnant());
         prepClinic.setPrepDistributionSetting(prepClinicDto.getPrepDistributionSetting());
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
@@ -170,6 +172,8 @@ public class PrepClinicService {
         prepClinic.setDateInitialAdherenceCounseling( prepClinicDto.getDateInitialAdherenceCounseling() );
         prepClinic.setWeight( prepClinicDto.getWeight() );
         prepClinic.setHeight( prepClinicDto.getHeight() );
+        prepClinic.setFamilyPlanning( prepClinicDto.getFamilyPlanning());
+        prepClinic.setDateOfFamilyPlanning( prepClinicDto.getDateOfFamilyPlanning());
         prepClinic.setPregnant( prepClinicDto.getPregnant() );
         prepClinic.setPrepDistributionSetting( prepClinicDto.getPrepDistributionSetting() );
 
@@ -240,6 +244,8 @@ public class PrepClinicService {
         prepClinic.setNextAppointment( prepClinicRequestDto.getNextAppointment() );
         prepClinic.setEncounterDate( prepClinicRequestDto.getEncounterDate() );
         prepClinic.setExtra( prepClinicRequestDto.getExtra() );
+        prepClinic.setFamilyPlanning(prepClinic.getFamilyPlanning());
+        prepClinic.setDateOfFamilyPlanning(prepClinic.getDateOfFamilyPlanning());
 
         prepClinic.setDatePrepStart( prepClinicRequestDto.getDatePrepStart());
         //Clinic
@@ -287,6 +293,8 @@ public class PrepClinicService {
         if(last != null && last){
             prepClinicDto.setVisitCount(prepClinicRepository.countAllByPersonUuid(clinic.getPersonUuid()));
         }
+        prepClinicDto.setDateOfFamilyPlanning(clinic.getDateOfFamilyPlanning());
+        prepClinicDto.setFamilyPlanning(clinic.getFamilyPlanning());
 
         prepClinicDto.setDateReferred( clinic.getDateReferred() );
         prepClinicDto.setPrepEnrollmentUuid( clinic.getPrepEnrollmentUuid() );

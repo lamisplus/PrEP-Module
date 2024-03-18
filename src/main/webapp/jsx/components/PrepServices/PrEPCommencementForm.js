@@ -92,7 +92,7 @@ const PrEPCommencementForm = (props) => {
         height: "",
         personId: patientObj.personId,
         prepClientId: props.prepId,
-        regimenId: "",
+        regimenId: null,
         urinalysisResult: "",
         prepEligibilityUuid: "",
         weight: "",
@@ -105,7 +105,7 @@ const PrEPCommencementForm = (props) => {
         prepEnrollmentUuid: "",
         duration: "",
         prepDistributionSetting: "",
-        // prepType: ""
+        prepType: ""
 
     });
     const [saving, setSaving] = useState(false);
@@ -214,10 +214,16 @@ const PrEPCommencementForm = (props) => {
 
     useEffect(() => {
         const type = prepRegimen.find(regimen => Number(regimen.id) === Number(objValues.regimenId))?.prepType;
-        const typeDisplay = prepType.find(prepType => prepType.code === type)?.display;
-        setSelectedPrepType(typeDisplay ? typeDisplay : "");
+        const typeDisplay = prepType.find(prepType => prepType.code === type);
+        setSelectedPrepType(typeDisplay ? typeDisplay.display : "");
 
     }, [objValues.regimenId]);
+    // useEffect(() => {
+    //     const type = prepRegimen.find(regimen => Number(regimen.id) === Number(objValues.regimenId))?.prepType;
+    //     const typeDisplay = prepType.find(prepType => prepType.code === type);
+    //     setSelectedPrepType(typeDisplay ? typeDisplay.display : "");
+
+    // }, [objValues.regimenId]);
     const handleInputChange = e => {
         setErrors({...errors, [e.target.name]: ""})
 
@@ -236,6 +242,7 @@ const PrEPCommencementForm = (props) => {
         temp.height = objValues.height ? "" : "This field is required"
         temp.weight = objValues.weight ? "" : "This field is required"
         temp.referred = objValues.referred ? "" : "This field is required"
+        temp.prepDistributionSetting = objValues.prepDistributionSetting ? "" : "This field is required"
         //temp.datereferred = objValues.datereferred ? "" : "This field is required"
         setErrors({
             ...temp
@@ -486,7 +493,7 @@ const PrEPCommencementForm = (props) => {
                                             value={objValues.pregnant}
                                             disabled={disabledField}
                                         >
-                                            <option value="1"></option>
+                                            <option value=""></option>
                                             {pregnant.map((value) => (
                                                 <option key={value.id} value={value.code}>
                                                     {value.display}
@@ -646,7 +653,7 @@ const PrEPCommencementForm = (props) => {
                                         value={objValues.prepDistributionSetting}
                                         disabled={disabledField}
                                     >
-                                        <option value="1"></option>
+                                        <option value=""></option>
                                         {prepEntryPoint.map((value) => (
                                             <option key={value.code} value={value.code}>
                                                 {value.display}
@@ -654,6 +661,9 @@ const PrEPCommencementForm = (props) => {
                                         ))}
 
                                     </Input>
+                                    {errors.prepDistributionSetting !== "" ? (
+                                        <span className={classes.error}>{errors.prepDistributionSetting}</span>
+                                    ) : ""}
                                 </FormGroup>
                             </div>
 

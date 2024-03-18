@@ -9,6 +9,7 @@ import javax.persistence.Column;
 import javax.persistence.FetchType;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 
 @Builder(toBuilder = true)
@@ -89,6 +90,8 @@ public class PrepClinicDto implements Serializable{
 
     private String prepGiven;
     private String prepDistributionSetting;
+    private String familyPlanning;
+    private LocalDate dateOfFamilyPlanning;
     private String otherDrugs;
     private String hivTestResult;
 }

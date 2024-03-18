@@ -1,6 +1,7 @@
 package org.lamisplus.modules.prep.domain.entity;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.vladmihalcea.hibernate.type.array.IntArrayType;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
@@ -159,6 +160,12 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "prep_distribution_setting")
     private String prepDistributionSetting;
 
+    @Column(name = "family_planning")
+     private String familyPlanning;
+
+    @Column(name = "date_of_family_planning")
+    private LocalDate dateOfFamilyPlanning;
+
     @Column(name = "other_drugs")
     private String otherDrugs;
 
@@ -180,9 +187,14 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "syphilis", columnDefinition = "jsonb")
     private Object syphilis;
 
+//    @Type(type = "jsonb")
+//    @Basic(fetch = FetchType.LAZY)
+//    @Column(name = "other_tests_done", columnDefinition = "jsonb")
+//    private Object otherTestsDone;
+
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
-    @Column(name = "other_tests_done", columnDefinition = "jsonb")
+    @Column(name = "other_tests_done", columnDefinition = "jsonb", nullable = true)
     private Object otherTestsDone;
 
     @Type(type = "jsonb")

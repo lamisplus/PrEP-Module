@@ -81,6 +81,8 @@ public class PrepInterruptionService {
     }
 
     public PrepInterruptionDto getInterruptionById(Long id){
+        Long userOrgId = currentUserOrganizationService.getCurrentUserOrganization();
+        log.info("USER ORG UNIT ID :" + userOrgId);
         PrepInterruption interruption = prepInterruptionRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
                 .orElseThrow(()-> new EntityNotFoundException(PrepInterruption.class, "id", String.valueOf(id)));
