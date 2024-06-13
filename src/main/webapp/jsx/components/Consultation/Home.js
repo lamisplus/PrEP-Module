@@ -109,6 +109,16 @@ const ClinicVisit = (props) => {
     const [prepType, setPrepType] = useState([]);
     const [selectedPrepType, setSelectedPrepType] = useState("");
     let testsOptions = []
+
+    const [hivTestValue, setHivTestValue] = useState('');
+    const [hivTestResultDate, setHivTestResultDate] = useState('');
+
+
+    useEffect(() => {
+        handleInputChange({ target: { name: 'hivTestResult', value: hivTestValue } });
+        handleInputChange({ target: { name: 'hivTestResultDate', value: hivTestResultDate } });
+    }, [hivTestValue]);
+
     //Vital signs clinical decision support
     const [vitalClinicalSupport, setVitalClinicalSupport] =
         useState({
@@ -156,7 +166,8 @@ const ClinicVisit = (props) => {
         duration: "",
         prepGiven: "",
         hivTestResult: "",
-        // prepType: "",
+        hivTestResultDate:"",
+         prepType: "",
         prepDistributionSetting: "",
         familyPlanning: "",
         dateOfFamilyPlanning: ""
@@ -184,7 +195,7 @@ const ClinicVisit = (props) => {
     const [otherTest, setOtherTest] = useState([])
 
     useEffect(async () =>  {
-        
+        console.log("Hafiz",objValues.personId);
         // Check if the fields exist in objValues first
         if (objValues.urinalysis.testDate && objValues.urinalysis.result && objValues.urinalysis.urinalysisTest) {
             setUrinalysisTest({
@@ -245,6 +256,7 @@ const ClinicVisit = (props) => {
         //PatientDetaild();
         PREP_STATUS();
         HTS_RESULT();
+        LAST_HIV_TEST_RESULT();
         PREP_SIDE_EFFECTS();
         GetPatientDTOObj();
         WHY_POOR_FAIR_ADHERENCE();
@@ -298,6 +310,7 @@ const ClinicVisit = (props) => {
             )
             .then((response) => {
                 setPrepType(response.data);
+                console.log("Danmanu",response.data);
             })
             .catch((error) => {
                 
@@ -386,6 +399,7 @@ const ClinicVisit = (props) => {
             )
             .then((response) => {
                 setprepRegimen(response.data);
+                console.log("Victor Ajor",response.data);
             })
             .catch((error) => {
                 
@@ -426,6 +440,29 @@ const ClinicVisit = (props) => {
             })
             .catch((error) => {
                 
+            });
+    }
+    const LAST_HIV_TEST_RESULT = () => {
+        axios
+            .get(`${baseUrl}hts/persons/${objValues.personId}/current-hts`,
+                {headers: {"Authorization": `Bearer ${token}`}}
+            )
+            .then((response) => {
+                var lastHivTest= response.data.hivTestResult;
+
+                if (lastHivTest !== null && lastHivTest !== undefined) {
+                    setHivTestValue(response.data.hivTestResult);
+                    console.log("response.data",response.data);
+                    setHivTestResultDate(response.data.test1.date);
+                    objValues.hivTestResultDate=response.data.hivTestResult;
+                    objValues.hivTestResultDate=response.data.test1.date;
+
+                } else {
+                    setHivTestValue('NOT DONE');
+                }
+            })
+            .catch((error) => {
+
             });
     }
     const WHY_POOR_FAIR_ADHERENCE = () => {
@@ -546,11 +583,12 @@ const ClinicVisit = (props) => {
     }
     useEffect(() => {
         const type = prepRegimen.find(regimen => Number(regimen.id) === Number(objValues.regimenId))?.prepType;
-        const typeDisplay = prepType.find(prepType => prepType.code === type)?.display;
-        setSelectedPrepType(typeDisplay ? typeDisplay : "");
+        // const typeDisplay = prepType.find(prepType =>
+        //     prepType.code === type)?.display;
+
+        //setSelectedPrepType(typeDisplay ? typeDisplay : "");
 
     }, [objValues.regimenId]);
-
     const handleInputChange = e => {
 
         setErrors({...errors, [e.target.name]: ""})
@@ -775,6 +813,8 @@ const ClinicVisit = (props) => {
         if (validate()) {
             setSaving(true)
             //objValues.visitDate = vital.encounterDate
+            objValues.hivTestResultDate=hivTestResultDate;
+            objValues.hivTestResult= hivTestValue;
             objValues.syphilis = syphilisTest
             objValues.hepatitis = hepatitisTest
             objValues.urinalysis = urinalysisTest
@@ -1224,23 +1264,39 @@ const ClinicVisit = (props) => {
                         <div className="row">
                             <div className=" mb-3 col-md-6">
                                 <FormGroup>
-                                    <FormLabelName>HIV Test Result </FormLabelName>
+                                    <FormLabelName>Result of Last HIV Test </FormLabelName>
                                     <Input
-                                        type="select"
+                                        type="text"
                                         name="hivTestResult"
                                         id="hivTestResult"
-                                        value={objValues.hivTestResult}
-                                        onChange={handleInputChange}
+                                        value={hivTestValue}
+                                        onChange={(e) => {
+                                            setHivTestValue(e.target.value);
+                                            handleInputChange(e);
+                                        }}
                                         style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
-                                        disabled={disabledField}
-                                    >
-                                        <option value="">Select</option>
-                                        {htsResult.map((value) => (
-                                            <option key={value.id} value={value.code}>
-                                                {value.display}
-                                            </option>
-                                        ))}
-                                    </Input>
+                                        disabled={true}
+                                    />
+
+
+                                </FormGroup>
+                            </div>
+                            <div className=" mb-3 col-md-6">
+                                <FormGroup>
+                                    <FormLabelName>Date of Last HIV Test </FormLabelName>
+                                    <Input
+                                        type="Date"
+                                        name="hivTestResultDate"
+                                        id="hivTestResultDate"
+                                        value={hivTestResultDate}
+                                        onChange={(e) => {
+                                            setHivTestValue(e.target.value);
+                                            handleInputChange(e);
+                                        }}
+                                        style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                                        disabled={true}
+                                    />
+
 
                                 </FormGroup>
                             </div>
@@ -1429,25 +1485,30 @@ const ClinicVisit = (props) => {
                                     <FormLabelName for="">Prep Type <span
                                         style={{color: "red"}}> *</span></FormLabelName>
                                     <Input
-                                        type="text"
+                                        type="select"
                                         name="prepType"
                                         id="prepType"
-                                        disabled
-                                        // onChange={handleInputChange}
-                                        value={selectedPrepType}
-                                        // disabled={disabledField}
+                                        // disabled
+                                        value={objValues.prepType}
+                                        onChange={handleInputChange}
+                                        value={objValues.prepType}
+                                        disabled={disabledField}
                                     >
-
-
+                                        <option value=""> Select</option>
+                                        {prepType.map((value) => (
+                                            <option key={value.id} value={value.id}>
+                                                {value.display}
+                                            </option>
+                                        ))}
                                     </Input>
-                                </FormGroup>
+                            </FormGroup>
 
-                            </div>
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                    <FormLabelName for="">Prep Distribution Setting <span
-                                        style={{color: "red"}}> *</span></FormLabelName>
-                                    <Input
+                        </div>
+                        <div className="form-group mb-3 col-md-6">
+                            <FormGroup>
+                                <FormLabelName for="">Prep Distribution Setting <span
+                                    style={{color: "red"}}> *</span></FormLabelName>
+                                <Input
                                         type="select"
                                         name="prepDistributionSetting"
                                         id="prepDistributionSetting"
@@ -1585,7 +1646,7 @@ const ClinicVisit = (props) => {
 
                                 </FormGroup>
                             </div>
-                            
+
                             <br/><br/>
                             <Label as='a' color='teal' style={{width: '106%', height: '35px'}} ribbon>
                                 <h4 style={{color: '#fff'}}><input type="checkbox" name="urinalysisTest" value="Yes"
@@ -1758,95 +1819,95 @@ const ClinicVisit = (props) => {
                                 )}
                             </>)}
                             <br/><br/>
-                            <Label as='a' color='black' style={{ width: '106%', height: '35px' }} ribbon>
-                                <h4 style={{ color: '#fff' }}>
+                            <Label as='a' color='black' style={{width: '106%', height: '35px'}} ribbon>
+                                <h4 style={{color: '#fff'}}>
                                     <input type="checkbox" name="otherTest" value="Yes"
-                                    onChange={handleCheckBoxOtherTest}
-                                    defaultChecked={true}
-                                    checked={otherTest.length > 0} /> 
-                                    Other Test 
+                                           onChange={handleCheckBoxOtherTest}
+                                           defaultChecked={true}
+                                           checked={otherTest.length > 0}/>
+                                    Other Test
                                 </h4>
                             </Label>
                             <br/><br/>
                             {/* {otherTest.otherTest === 'Yes' && (<> */}
                             {otherTest.length > 0 && otherTest.map((eachTest) => (
-                            <div className="row" key={eachTest.localId}>
-                                <div className=" mb-1 col-md-4">
-                                    <FormGroup>
-                                        <FormLabelName> Test Name</FormLabelName>
-                                        
-                                        <Input
-                                            type="select"
-                                            name="name"
-                                            id="name"
-                                            value={eachTest.name}
-                                            onChange={(e) => handleInputChangeOtherTest(e, eachTest.localId)}
-                                            style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
-                                            disabled={disabledField}
-                                        >
-                                            <option value="">Select</option>
-                                            {otherTestResult.map((value) => (
-                                                <option key={value.id} value={value.code}>
-                                                    {value.display}
-                                                </option>
-                                            ))}
-                                        </Input>
-                                    </FormGroup>
-                                </div>
-                                {eachTest.name === 'PREP_OTHER_TEST_OTHER_(SPECIFY)' && (
+                                <div className="row" key={eachTest.localId}>
                                     <div className=" mb-1 col-md-4">
                                         <FormGroup>
-                                            <FormLabelName> Other Test Name</FormLabelName>
+                                            <FormLabelName> Test Name</FormLabelName>
+
                                             <Input
-                                                type="text"
-                                                name="otherTestName"
-                                                id="otherTestName"
-                                                value={eachTest.otherTestName}
+                                                type="select"
+                                                name="name"
+                                                id="name"
+                                                value={eachTest.name}
                                                 onChange={(e) => handleInputChangeOtherTest(e, eachTest.localId)}
                                                 style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
                                                 disabled={disabledField}
+                                            >
+                                                <option value="">Select</option>
+                                                {otherTestResult.map((value) => (
+                                                    <option key={value.id} value={value.code}>
+                                                        {value.display}
+                                                    </option>
+                                                ))}
+                                            </Input>
+                                        </FormGroup>
+                                    </div>
+                                    {eachTest.name === 'PREP_OTHER_TEST_OTHER_(SPECIFY)' && (
+                                        <div className=" mb-1 col-md-4">
+                                            <FormGroup>
+                                                <FormLabelName> Other Test Name</FormLabelName>
+                                                <Input
+                                                    type="text"
+                                                    name="otherTestName"
+                                                    id="otherTestName"
+                                                    value={eachTest.otherTestName}
+                                                    onChange={(e) => handleInputChangeOtherTest(e, eachTest.localId)}
+                                                    style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                                                    disabled={disabledField}
 
+                                                />
+
+                                            </FormGroup>
+                                        </div>
+                                    )}
+                                    <div className=" mb-1 col-md-4">
+                                        <FormGroup>
+                                            <FormLabelName> Test Date</FormLabelName>
+                                            <Input
+                                                type="date"
+                                                name="testDate"
+                                                id="testDate"
+                                                value={eachTest.testDate}
+                                                onChange={(e) => handleInputChangeOtherTest(e, eachTest.localId)}
+                                                style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                                                disabled={disabledField}
+                                                min={objValues.encounterDate}
+                                                max={moment(new Date()).format("YYYY-MM-DD")}
                                             />
 
                                         </FormGroup>
                                     </div>
-                                )}
-                                <div className=" mb-1 col-md-4">
-                                    <FormGroup>
-                                        <FormLabelName> Test Date</FormLabelName>
-                                        <Input
-                                            type="date"
-                                            name="testDate"
-                                            id="testDate"
-                                            value={eachTest.testDate}
-                                            onChange={(e) => handleInputChangeOtherTest(e, eachTest.localId)}
-                                            style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
-                                            disabled={disabledField}
-                                            min={objValues.encounterDate}
-                                            max={moment(new Date()).format("YYYY-MM-DD")}
-                                        />
+                                    <div className=" mb-1 col-md-4">
+                                        <FormGroup>
+                                            <FormLabelName> Test Result</FormLabelName>
+                                            <Input
+                                                type="text"
+                                                name="result"
+                                                id="result"
+                                                value={eachTest.result}
+                                                onChange={(e) => handleInputChangeOtherTest(e, eachTest.localId)}
+                                                style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                                                disabled={disabledField}
+                                            ></Input>
 
-                                    </FormGroup>
-                                </div>
-                                <div className=" mb-1 col-md-4">
-                                    <FormGroup>
-                                        <FormLabelName> Test Result</FormLabelName>
-                                        <Input
-                                            type="text"
-                                            name="result"
-                                            id="result"
-                                            value={eachTest.result}
-                                            onChange={(e) => handleInputChangeOtherTest(e, eachTest.localId)}
-                                            style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
-                                            disabled={disabledField}
-                                        ></Input>
+                                        </FormGroup>
+                                    </div>
+                                    {/* add material ui divider  */}
+                                    {otherTest.length > 1 && <Divider component="li" style={{marginBottom: "10px"}}/>}
 
-                                    </FormGroup>
-                                </div>
-                                {/* add material ui divider  */}
-                                {otherTest.length > 1 && <Divider component="li" style={{marginBottom: "10px"}} />}
-                            
-                            </div>))}
+                                </div>))}
                             {otherTest.length > 0 && <div>
                                 <MatButton
                                     type="button"

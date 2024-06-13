@@ -85,4 +85,17 @@
             WHERE other_tests_done IS NOT NULL;
         </sql>
     </changeSet>
+    <changeSet id="adding-hiv-test-result-date-col" author="HafizDanmanu">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_clinic" columnName="hiv_test_result_date" />
+            </not>
+
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic
+                ADD hiv_test_result_date date;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

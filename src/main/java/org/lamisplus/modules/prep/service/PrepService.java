@@ -614,6 +614,7 @@ public class PrepService {
         prepClinicDto.setPrepGiven( clinic.getPrepGiven());
         prepClinicDto.setOtherDrugs( clinic.getOtherDrugs());
         prepClinicDto.setHivTestResult( clinic.getHivTestResult());
+        prepClinicDto.setHivTestResultDate(clinic.getHivTestResultDate());
 
         return prepClinicDto;
     }
