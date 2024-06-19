@@ -85,6 +85,38 @@
             WHERE other_tests_done IS NOT NULL;
         </sql>
     </changeSet>
+    <changeSet failOnError="true" author="Peter Abiodun" id="update-prep-eligibility-cabla">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_eligibility" columnName="assessment_for_pep_indication" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_eligibility
+                ADD COLUMN IF NOT EXISTS assessment_for_pep_indication JSONB,
+                ADD COLUMN IF NOT EXISTS assessment_for_acute_hiv_infection JSONB,
+                ADD COLUMN IF NOT EXISTS assessment_for_prep_eligibility JSONB,
+                ADD COLUMN IF NOT EXISTS services_received_by_client JSONB,
+                ADD COLUMN IF NOT EXISTS population_type VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS visit_type VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS pregnancy_status VARCHAR(255);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Peter Abiodun" id="update-prep-clinic-population-type">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_clinic" columnName="date_of_liver_function_test_results" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic
+                ADD COLUMN IF NOT EXISTS date_of_liver_function_test_results DATE,
+                ADD COLUMN IF NOT EXISTS prep_type VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS population_type VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS liver_function_test_result VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS history_of_drug_to_drug_interaction VARCHAR(255);
+        </sql>
+    </changeSet>
     <changeSet id="adding-hiv-test-result-date-col" author="HafizDanmanu">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -94,7 +126,8 @@
         </preConditions>
         <sql>
             ALTER TABLE prep_clinic
-                ADD hiv_test_result_date date;
+                ADD hiv_test_result_date date,
+                ADD months_of_refill integer;
         </sql>
     </changeSet>
 

@@ -72,6 +72,26 @@ public class PrepEligibility  extends Audit implements Serializable {
     @Column(name = "sex_partner_risk", columnDefinition = "jsonb")
     private  Object sexPartnerRisk;
 
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "assessment_for_pep_indication", columnDefinition = "jsonb")
+    private  Object assessmentForPepIndication;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "assessment_for_acute_hiv_infection", columnDefinition = "jsonb")
+    private  Object assessmentForAcuteHivInfection;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "assessment_for_prep_eligibility", columnDefinition = "jsonb")
+    private  Object assessmentForPrepEligibility;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "services_received_by_client", columnDefinition = "jsonb")
+    private  Object servicesReceivedByClient;
+
     @Column(name = "person_uuid")
     private String personUuid;
 
@@ -92,6 +112,13 @@ public class PrepEligibility  extends Audit implements Serializable {
 
     @Column(name = "target_group")
     private String targetGroup;
+
+    @Column(name = "population_type")
+    private String populationType;
+    @Column(name = "visit_type")
+    private String visitType;
+    @Column(name = "pregnancy_status")
+    private String pregnancyStatus;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)

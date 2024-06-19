@@ -86,6 +86,7 @@ const PrEPCommencementForm = (props) => {
     const classes = useStyles()
     const [disabledField, setSisabledField] = useState(false);
     const [prepRegimen, setprepRegimen] = useState([]);
+    const [historyOfDrugToDrugInteraction, setHistoryOfDrugToDrugInteraction] = useState([])
     const [objValues, setObjValues] = useState({
         dateInitialAdherenceCounseling: "",
         datePrepStart: "",
@@ -105,7 +106,12 @@ const PrEPCommencementForm = (props) => {
         prepEnrollmentUuid: "",
         duration: "",
         prepDistributionSetting: "",
-        prepType: ""
+        prepType: "",
+        monthsOfRefill: "",
+        liverFunctionTestResults: "",
+        dateLiverFunctionTestResults: "",
+        historyOfDrugToDrugInteraction: ""
+        
 
     });
     const [saving, setSaving] = useState(false);
@@ -115,6 +121,7 @@ const PrEPCommencementForm = (props) => {
     const [prepEntryPoint, setPrepEntryPoints] = useState([]);
     const [prepType, setPrepType] = useState([]);
     const [selectedPrepType, setSelectedPrepType] = useState("");
+    const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
 
     useEffect(() => {
         PREGANACY_STATUS();
@@ -122,12 +129,14 @@ const PrEPCommencementForm = (props) => {
         PrepRegimen();
         PREP_ENTRY_POINT();
         PREP_TYPE();
+        LiverFunctionTestResult();
+        HistoryOfDrugToDrugInteraction();
         if (props.activeContent.id && props.activeContent.id !== "" && props.activeContent.id !== null) {
             GetPatientCommercement(props.activeContent.id)
             setSisabledField(props.activeContent.actionType === 'view' ? true : false)
         }
     }, []);
-    const PrepRegimen = () => {
+    const PrepRegimen = async() => {
         axios
             .get(`${baseUrl}prep-regimen`,
                 {headers: {"Authorization": `Bearer ${token}`}}
@@ -155,7 +164,7 @@ const PrEPCommencementForm = (props) => {
     }
 
 
-    const PREP_TYPE = () => {
+    const PREP_TYPE = async () => {
         axios
             .get(`${baseUrl}application-codesets/v2/PrEP_TYPE`,
                 {headers: {"Authorization": `Bearer ${token}`}}
@@ -167,6 +176,33 @@ const PrEPCommencementForm = (props) => {
             .catch((error) => {
                 //console.log(error);
             });
+    }
+
+
+    const LiverFunctionTestResult =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setLiverFunctionTestResult(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
+
+    const HistoryOfDrugToDrugInteraction =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/HISTORY_OF_DRUG_TO_DRUG_INTERACTION`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setHistoryOfDrugToDrugInteraction(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
     }
 
     const GetPatientCommercement = (id) => {
@@ -212,12 +248,17 @@ const PrEPCommencementForm = (props) => {
         height: "",
     })
 
-    useEffect(() => {
+    useEffect(async () => {
+        if (prepRegimen.length < 1 || prepType.length < 1) {
+            await PrepRegimen();
+            await PREP_TYPE();
+        }
         const type = prepRegimen.find(regimen => Number(regimen.id) === Number(objValues.regimenId))?.prepType;
         const typeDisplay = prepType.find(prepType => prepType.code === type);
-        setSelectedPrepType(typeDisplay ? typeDisplay.display : "");
+        setSelectedPrepType(typeDisplay ? typeDisplay.code : "");
 
-    }, [objValues.regimenId]);
+    }, [props.activeContent.id, prepType]);
+
     // useEffect(() => {
     //     const type = prepRegimen.find(regimen => Number(regimen.id) === Number(objValues.regimenId))?.prepType;
     //     const typeDisplay = prepType.find(prepType => prepType.code === type);
@@ -230,8 +271,13 @@ const PrEPCommencementForm = (props) => {
         if (e.target.name === 'referred' && e.target.value === 'false') {
             objValues.datereferred = ''
             setObjValues({...objValues, ['datereferred']: ''});
+        } else if (e.target.name === 'monthsOfRefill') {
+            const durationInDays = (Number(e.target.value) * 30)
+            setObjValues({...objValues, duration: durationInDays})
+
+        } else {
+            setObjValues({...objValues, [e.target.name]: e.target.value});
         }
-        setObjValues({...objValues, [e.target.name]: e.target.value});
     }
 
     const validate = () => {
@@ -326,7 +372,27 @@ const PrEPCommencementForm = (props) => {
         }
     }
 
-    console.log(props.patientObj.gender)
+    // console.log(props.patientObj.gender)
+
+    const handlePrepTypeChange = (e) => {
+
+        axios
+            .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`,
+                {headers: {"Authorization": `Bearer ${token}`}}
+            )
+            .then((response) => {
+                setprepRegimen(response.data);
+            })
+            .catch((error) => {
+                //console.log(error);
+            });
+
+        setErrors({...errors, [e.target.name]: ""})
+        // setObjValues({...objValues, [e.target.name]: e.target.value});
+        const foundType = prepType.find(prepType => prepType.code === e.target.value);
+        setSelectedPrepType(foundType ? foundType.code : "");
+
+    }
 
     return (
         <div>
@@ -557,6 +623,83 @@ const PrEPCommencementForm = (props) => {
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
+                                    <Label for="liverFunctionTestResults">History of Drug-Drug Interactions<span
+                                        style={{color: "red"}}> *</span></Label>
+                                    <Input
+                                        className="form-control"
+                                        type="select"
+                                        name="historyOfDrugToDrugInteraction"
+                                        id="historyOfDrugToDrugInteraction"
+                                        // min={patientDto && patientDto.dateEnrolled ? patientDto.dateEnrolled : ""}
+                                        // max={moment(new Date()).format("YYYY-MM-DD")}
+                                        value={objValues.historyOfDrugToDrugInteraction}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius: "0.2rem"}}
+                                        disabled={disabledField}
+                                    >
+                                        <option value=""> Select </option>
+                                        {historyOfDrugToDrugInteraction.map((value) => (
+                                            <option key={value.id} value={value.code}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+                                    </Input>
+                                    {errors.historyOfDrugToDrugInteraction !== "" ? (
+                                        <span className={classes.error}>{errors.historyOfDrugToDrugInteraction}</span>
+                                    ) : ""}
+                                </FormGroup>
+                            </div>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <Label for="uniqueId">Liver Function Tests Result<span
+                                        style={{color: "red"}}> *</span></Label>
+                                    <Input
+                                        className="form-control"
+                                        type="select"
+                                        name="liverFunctionTestResults"
+                                        id="liverFunctionTestResults"
+                                        // min={patientDto && patientDto.dateEnrolled ? patientDto.dateEnrolled : ""}
+                                        // max={moment(new Date()).format("YYYY-MM-DD")}
+                                        value={objValues.liverFunctionTestResults}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius: "0.2rem"}}
+                                        disabled={disabledField}
+                                    >
+                                        <option value=""> Select Result</option>
+                                        {liverFunctionTestResult.map((value) => (
+                                            <option key={value.id} value={value.code}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+                                    </Input>
+                                    {errors.liverFunctionTestResults !== "" ? (
+                                        <span className={classes.error}>{errors.liverFunctionTestResults}</span>
+                                    ) : ""}
+                                </FormGroup>
+                            </div>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <Label for="uniqueId">Date of Liver Function Tests Result  <span
+                                        style={{color: "red"}}> *</span></Label>
+                                    <Input
+                                        className="form-control"
+                                        type="date"
+                                        name="dateLiverFunctionTestResults"
+                                        id="dateLiverFunctionTestResults"
+                                        min={patientDto && patientDto.dateEnrolled ? patientDto.dateEnrolled : ""}
+                                        max={moment(new Date()).format("YYYY-MM-DD")}
+                                        value={objValues.dateLiverFunctionTestResults}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius: "0.2rem"}}
+                                        disabled={disabledField}
+                                    />
+                                    {errors.dateLiverFunctionTestResults !== "" ? (
+                                        <span className={classes.error}>{errors.dateLiverFunctionTestResults}</span>
+                                    ) : ""}
+                                </FormGroup>
+                            </div>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
                                     <Label for="">Referred <span style={{color: "red"}}> *</span></Label>
                                     <Input
                                         type="select"
@@ -597,6 +740,31 @@ const PrEPCommencementForm = (props) => {
 
                                 </div>
                             )}
+                            
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <FormLabelName for="">Prep Type At Start <span
+                                        style={{color: "red"}}> *</span></FormLabelName>
+                                    <Input
+                                        type="select"
+                                        name="prepType"
+                                        id="prepType"
+                                        // disabled
+                                        onChange={handlePrepTypeChange}
+                                        value={selectedPrepType}
+                                        // disabled={disabledField}
+                                    >
+                                        <option value=""> Select Prep Type</option>
+                                        {prepType.map((value) => (
+                                            <option key={value.id} value={value.code}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+
+                                    </Input>
+                                </FormGroup>
+
+                            </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
                                     <Label for="">PrEP Regimen <span style={{color: "red"}}> *</span></Label>
@@ -619,25 +787,6 @@ const PrEPCommencementForm = (props) => {
                                     {errors.regimenId !== "" ? (
                                         <span className={classes.error}>{errors.regimenId}</span>
                                     ) : ""}
-                                </FormGroup>
-
-                            </div>
-
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                    <FormLabelName for="">Prep Type <span
-                                        style={{color: "red"}}> *</span></FormLabelName>
-                                    <Input
-                                        type="text"
-                                        name="prepType"
-                                        id="prepType"
-                                        disabled
-                                        // onChange={handleInputChange}
-                                        value={selectedPrepType}
-                                        // disabled={disabledField}
-                                    >
-
-                                    </Input>
                                 </FormGroup>
 
                             </div>
@@ -684,7 +833,7 @@ const PrEPCommencementForm = (props) => {
                                 
                             </FormGroup>
                         </div>  */}
-                            <div className=" mb-3 col-md-6">
+                            {/* <div className=" mb-3 col-md-6">
                                 <FormGroup>
                                     <Label>Duration</Label>
                                     <Input
@@ -692,6 +841,21 @@ const PrEPCommencementForm = (props) => {
                                         name="duration"
                                         id="duration"
                                         value={objValues.duration}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                                        disabled={disabledField}
+                                    />
+
+                                </FormGroup>
+                            </div> */}
+                            <div className=" mb-3 col-md-6">
+                                <FormGroup>
+                                    <Label>Months Of Refill</Label>
+                                    <Input
+                                        type="number"
+                                        name="monthsOfRefill"
+                                        id="monthsOfRefill"
+                                        value={objValues.monthsOfRefill}
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
                                         disabled={disabledField}

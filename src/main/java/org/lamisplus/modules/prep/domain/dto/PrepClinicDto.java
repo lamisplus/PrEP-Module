@@ -94,7 +94,13 @@ public class PrepClinicDto implements Serializable{
     private LocalDate dateOfFamilyPlanning;
     private String otherDrugs;
     private String hivTestResult;
+    private String prepType;
+    private String populationType;
+    private LocalDate dateLiverFunctionTestResults;
+    private String liverFunctionTestResults;
+    private String historyOfDrugToDrugInteraction;
     private LocalDate hivTestResultDate;
+    private Integer monthsOfRefill;
 
 }
 

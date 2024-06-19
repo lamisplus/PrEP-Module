@@ -37,4 +37,11 @@ public class PrepEligibilityRequestDto implements Serializable {
     private Integer score;
     @NotNull(message = "visitDate is mandatory")
     private LocalDate visitDate;
+    private  Object assessmentForPepIndication;
+    private  Object assessmentForAcuteHivInfection;
+    private  Object assessmentForPrepEligibility;
+    private  Object servicesReceivedByClient;
+    private String populationType;
+    private String visitType;
+    private String pregnancyStatus;
 }
