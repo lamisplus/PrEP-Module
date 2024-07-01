@@ -111,16 +111,15 @@ const PrEPCommencementForm = (props) => {
         liverFunctionTestResults: "",
         dateLiverFunctionTestResults: "",
         historyOfDrugToDrugInteraction: ""
-        
-
     });
+
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [pregnant, setpregnant] = useState([]);
     const [patientDto, setPatientDto] = useState();
     const [prepEntryPoint, setPrepEntryPoints] = useState([]);
+    const [urinalysisTestResult, setUrinalysisTestResult] = useState([]);
     const [prepType, setPrepType] = useState([]);
-    const [selectedPrepType, setSelectedPrepType] = useState("");
     const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
 
     useEffect(() => {
@@ -131,6 +130,7 @@ const PrEPCommencementForm = (props) => {
         PREP_TYPE();
         LiverFunctionTestResult();
         HistoryOfDrugToDrugInteraction();
+        PREP_URINALYSIS_RESULT();
         if (props.activeContent.id && props.activeContent.id !== "" && props.activeContent.id !== null) {
             GetPatientCommercement(props.activeContent.id)
             setSisabledField(props.activeContent.actionType === 'view' ? true : false)
@@ -156,11 +156,26 @@ const PrEPCommencementForm = (props) => {
             )
             .then((response) => {
                 setPrepEntryPoints(response.data);
-                console.log("prep", prepEntryPoint)
+                // console.log("prep", prepEntryPoint)
             })
             .catch((error) => {
                 //console.log(error);
             });
+    }
+
+    const PREP_URINALYSIS_RESULT = () => {
+        axios
+            .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`,
+                {headers: {"Authorization": `Bearer ${token}`}}
+            )
+            .then((response) => {
+                
+                setUrinalysisTestResult(response.data);
+            })
+            .catch((error) => {
+                
+            });
+
     }
 
 
@@ -171,7 +186,6 @@ const PrEPCommencementForm = (props) => {
             )
             .then((response) => {
                 setPrepType(response.data);
-                console.log("prep", prepType)
             })
             .catch((error) => {
                 //console.log(error);
@@ -248,23 +262,8 @@ const PrEPCommencementForm = (props) => {
         height: "",
     })
 
-    useEffect(async () => {
-        if (prepRegimen.length < 1 || prepType.length < 1) {
-            await PrepRegimen();
-            await PREP_TYPE();
-        }
-        const type = prepRegimen.find(regimen => Number(regimen.id) === Number(objValues.regimenId))?.prepType;
-        const typeDisplay = prepType.find(prepType => prepType.code === type);
-        setSelectedPrepType(typeDisplay ? typeDisplay.code : "");
 
-    }, [props.activeContent.id, prepType]);
 
-    // useEffect(() => {
-    //     const type = prepRegimen.find(regimen => Number(regimen.id) === Number(objValues.regimenId))?.prepType;
-    //     const typeDisplay = prepType.find(prepType => prepType.code === type);
-    //     setSelectedPrepType(typeDisplay ? typeDisplay.display : "");
-
-    // }, [objValues.regimenId]);
     const handleInputChange = e => {
         setErrors({...errors, [e.target.name]: ""})
 
@@ -273,17 +272,17 @@ const PrEPCommencementForm = (props) => {
             setObjValues({...objValues, ['datereferred']: ''});
         } else if (e.target.name === 'monthsOfRefill') {
             const durationInDays = (Number(e.target.value) * 30)
-            setObjValues({...objValues, duration: durationInDays})
+            setObjValues({...objValues, monthsOfRefill: e.target.value, duration: durationInDays})
 
-        } else {
-            setObjValues({...objValues, [e.target.name]: e.target.value});
-        }
+        } 
+        setObjValues({...objValues, [e.target.name]: e.target.value});
     }
 
     const validate = () => {
         let temp = {...errors}
         temp.dateInitialAdherenceCounseling = objValues.dateInitialAdherenceCounseling ? "" : "This field is required"
         temp.datePrepStart = objValues.datePrepStart ? "" : "This field is required"
+        temp.prepType = objValues.prepType ? "" : "This field is required"
         temp.regimenId = objValues.regimenId ? "" : "This field is required"
         temp.height = objValues.height ? "" : "This field is required"
         temp.weight = objValues.weight ? "" : "This field is required"
@@ -375,6 +374,7 @@ const PrEPCommencementForm = (props) => {
     // console.log(props.patientObj.gender)
 
     const handlePrepTypeChange = (e) => {
+        setObjValues({...objValues, regimenId: "", prepType: e.target.value})
 
         axios
             .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`,
@@ -388,9 +388,6 @@ const PrEPCommencementForm = (props) => {
             });
 
         setErrors({...errors, [e.target.name]: ""})
-        // setObjValues({...objValues, [e.target.name]: e.target.value});
-        const foundType = prepType.find(prepType => prepType.code === e.target.value);
-        setSelectedPrepType(foundType ? foundType.code : "");
 
     }
 
@@ -596,34 +593,45 @@ const PrEPCommencementForm = (props) => {
                                 <FormGroup>
                                     <Label for="">History of drug Allergies</Label>
                                     <Input
-                                        type="textarea"
+                                        type="select"
                                         name="drugAllergies"
                                         id="drugAllergies"
                                         onChange={handleInputChange}
                                         value={objValues.drugAllergies}
                                         disabled={disabledField}
-                                    />
+                                    >
+                                        <option value="">Select</option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                    </Input>
 
                                 </FormGroup>
 
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="">Urinalysis Result</Label>
+                                    <Label for="urinalysisResult">Urinalysis Result</Label>
                                     <Input
-                                        type="text"
+                                        type="select"
                                         name="urinalysisResult"
                                         id="urinalysisResult"
                                         onChange={handleInputChange}
                                         value={objValues.urinalysisResult}
                                         disabled={disabledField}
-                                    />
+                                    >
+                                        <option value="">Select</option>
+                                            {urinalysisTestResult.map((value) => (
+                                                <option key={value.id} value={value.display}>
+                                                    {value.display}
+                                                </option>
+                                            ))}
+                                    </Input>
                                 </FormGroup>
 
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="liverFunctionTestResults">History of Drug-Drug Interactions<span
+                                    <Label for="historyOfDrugToDrugInteraction">History of Drug-Drug Interactions<span
                                         style={{color: "red"}}> *</span></Label>
                                     <Input
                                         className="form-control"
@@ -651,7 +659,7 @@ const PrEPCommencementForm = (props) => {
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="uniqueId">Liver Function Tests Result<span
+                                    <Label for="liverFunctionTestResults">Liver Function Tests Result<span
                                         style={{color: "red"}}> *</span></Label>
                                     <Input
                                         className="form-control"
@@ -679,7 +687,7 @@ const PrEPCommencementForm = (props) => {
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="uniqueId">Date of Liver Function Tests Result  <span
+                                    <Label for="dateLiverFunctionTestResults">Date of Liver Function Tests Result  <span
                                         style={{color: "red"}}> *</span></Label>
                                     <Input
                                         className="form-control"
@@ -722,7 +730,7 @@ const PrEPCommencementForm = (props) => {
                             {objValues.referred === 'true' && (
                                 <div className="form-group mb-3 col-md-6">
                                     <FormGroup>
-                                        <Label for="">Date referred</Label>
+                                        <Label for="datereferred">Date referred</Label>
                                         <Input
                                             type="date"
                                             name="datereferred"
@@ -743,7 +751,7 @@ const PrEPCommencementForm = (props) => {
                             
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <FormLabelName for="">Prep Type At Start <span
+                                    <FormLabelName for="prepType">Prep Type At Start <span
                                         style={{color: "red"}}> *</span></FormLabelName>
                                     <Input
                                         type="select"
@@ -751,10 +759,10 @@ const PrEPCommencementForm = (props) => {
                                         id="prepType"
                                         // disabled
                                         onChange={handlePrepTypeChange}
-                                        value={selectedPrepType}
+                                        value={objValues.prepType}
                                         // disabled={disabledField}
                                     >
-                                        <option value=""> Select Prep Type</option>
+                                        <option value="">Select Prep Type</option>
                                         {prepType.map((value) => (
                                             <option key={value.id} value={value.code}>
                                                 {value.display}
@@ -762,12 +770,15 @@ const PrEPCommencementForm = (props) => {
                                         ))}
 
                                     </Input>
+                                    {errors.prepType !== "" ? (
+                                        <span className={classes.error}>{errors.prepType}</span>
+                                    ) : ""}
                                 </FormGroup>
 
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="">PrEP Regimen <span style={{color: "red"}}> *</span></Label>
+                                    <Label for="regimenId">PrEP Regimen <span style={{color: "red"}}> *</span></Label>
                                     <Input
                                         type="select"
                                         name="regimenId"
@@ -856,6 +867,7 @@ const PrEPCommencementForm = (props) => {
                                         name="monthsOfRefill"
                                         id="monthsOfRefill"
                                         value={objValues.monthsOfRefill}
+                                        min={0}
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
                                         disabled={disabledField}

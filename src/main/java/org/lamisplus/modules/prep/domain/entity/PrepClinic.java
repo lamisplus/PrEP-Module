@@ -1,7 +1,6 @@
 package org.lamisplus.modules.prep.domain.entity;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.vladmihalcea.hibernate.type.array.IntArrayType;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
@@ -225,6 +224,8 @@ public class PrepClinic extends Audit implements Serializable{
 
     @Column(name = "history_of_drug_to_drug_interaction")
     private String historyOfDrugToDrugInteraction;
+    @Column(name = "history_of_drug_allergies")
+    private String historyOfDrugAllergies;
     @Column(name = "months_of_refill")
     private Integer monthsOfRefill;
 

@@ -119,7 +119,8 @@ const BasicInfo = (props) => {
                 visitDate:"",
                 visitType:"",
                 populationType: "",
-                pregnancyStatus: ""
+                pregnancyStatus: "",
+                score: 0
             }
     )
     useEffect( async () => { 
@@ -145,9 +146,11 @@ const BasicInfo = (props) => {
                setRiskAssessment(response.data.personalHivRiskAssessment)
                setRiskAssessmentPartner(response.data.sexPartnerRisk)
                setStiScreening(response.data.stiScreening)
+               setDrugHistory(response.data.drugUseHistory)
                setAssessmentForPepIndication(response.data.assessmentForPepIndication)
                setAssessmentForAcuteHivInfection(response.data.assessmentForAcuteHivInfection)
                setServicesReceivedByClient(response.data.servicesReceivedByClient)
+               setAssessmentForPrepEligibility(response.data.assessmentForPrepEligibility)
            })
            .catch((error) => {
            //console.log(error);
@@ -363,15 +366,7 @@ const BasicInfo = (props) => {
     }
 
     const [assessmentScore, setAssessmentScore] = useState(0);
-    useEffect(()=> {
-        if (assessmentForPepIndication !== null && assessmentForPepIndication !== undefined){
-            const assessment = Object.values(assessmentForPepIndication).filter((each) => (each === "true")).length;
-            // console.log("NO indocation for pep", assessment);
-            setAssessmentScore({...assessmentScore, noIndicationForPep: assessment});
-        }
-
-
-    },[assessmentForPepIndication, assessmentForAcuteHivInfection, assessmentForPrepEligibility, servicesReceivedByClient])
+   
 
     /*****  Validation  */
      const validate = () => {
@@ -399,6 +394,7 @@ const BasicInfo = (props) => {
             objValues.assessmentForPepIndication = assessmentForPepIndication
             objValues.assessmentForPrepEligibility = assessmentForPrepEligibility
             objValues.servicesReceivedByClient = servicesReceivedByClient
+            objValues.score = getPrepEligibilityScore();
                 if(props.activeContent && props.activeContent.actionType==="update"){//Perform operation for updation action
                     axios.put(`${baseUrl}prep-eligibility/${props.activeContent.id}`,objValues,
                     { headers: {"Authorization" : `Bearer ${token}`}},)
@@ -442,10 +438,10 @@ const BasicInfo = (props) => {
                             let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
                             if(error.response.data.apierror){
                               toast.error(error.response.data.apierror.message , {position: toast.POSITION.BOTTOM_CENTER});
-                            }else{
+                            } else {
                               toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
                             }
-                        }else{
+                        } else {
                             toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
                         }
                     });
@@ -474,6 +470,26 @@ const BasicInfo = (props) => {
     const getAcuteHivResult = () => {
         if (assessmentForAcuteHivInfection !== null && assessmentForAcuteHivInfection !== undefined){
             return Object.values(assessmentForAcuteHivInfection).filter((each) => (each === "true")).length > 0 ? 0 : 1
+        }
+    }
+
+    const getPrepEligibilityScore = () => {
+        var score = 0;
+        score += drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0
+        score += riskCount.length > 0 ? 1 : 0
+        score += getAcuteHivResult()
+        score += getIndicationForPepResult()
+        if (is30AndAbove() && isFemale() === false) {
+            score += assessmentForPrepEligibility?.hasNoProteinuria === "true" ? 1 : 0;
+        }
+        score += assessmentForPrepEligibility?.noHistoryOrSignsOfLiverAbnormalitiesCabLa === "true" ? 1 : 0;
+        score += assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa === "true" ? 1 : 0;
+        score += assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa === "true" ? 1 : 0;
+
+        if (is30AndAbove() && isFemale() === false) {
+            return score >= 8 ? 1 : 0;
+        } else {
+            return score >= 7 ? 1 : 0;
         }
     }
 
@@ -1702,7 +1718,7 @@ const BasicInfo = (props) => {
                                     <Label>{`HIV Risk Score > 1: ${riskCount.length > 0 ? 1 : 0}`}</Label>
                                 </FormGroup>
                             </div>
-                            {is30AndAbove() && <div className="form-group  col-md-4">
+                            {(is30AndAbove() && isFemale() === false) && <div className="form-group  col-md-4">
                                 <FormGroup>
                                     <Label>{`Has no proteinuria (>30 Years)`}</Label>
                                     <select
@@ -1795,9 +1811,9 @@ const BasicInfo = (props) => {
                                 {/* <b>Score :{stiCount.length}</b> */}
                                 <h5>{`HIV Negative: ${drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0}`}</h5>
                                 <h5>{`HIV risk score >=1 : ${riskCount.length > 0 ? 1 : 0}`}</h5>
-                                <h5>{`No Indication for PEP: ${getIndicationForPepResult()}`}</h5>
                                 <h5>{`No signs & symptoms of acute HIV infection: ${getAcuteHivResult() }`}</h5>
-                                {is30AndAbove() && <h5>{`Has no proteinuria: ${assessmentForPrepEligibility?.hasNoProteinuria === "true" ? 1 : 0}`}</h5>}
+                                <h5>{`No Indication for PEP: ${getIndicationForPepResult()}`}</h5>
+                                {(is30AndAbove() && isFemale() === false) && <h5>{`Has no proteinuria: ${assessmentForPrepEligibility?.hasNoProteinuria === "true" ? 1 : 0}`}</h5>}
 
                             </Message>
                             <Message warning>
@@ -1807,6 +1823,9 @@ const BasicInfo = (props) => {
                                 <h5>{`No history of drug-drug interaction (CAB-LA): ${assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa === "true" ? 1 : 0}`}</h5>
                                 <h5>{`No history of drug hypersensitivity (CAB-LA): ${assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa === "true" ? 1 : 0}`}</h5>
 
+                            </Message>
+                            <Message warning>
+                                <h3>{`Final Prep Eligibility Score: ${getPrepEligibilityScore()}`}</h3>
                             </Message>
                             <hr/>
                             <br/>

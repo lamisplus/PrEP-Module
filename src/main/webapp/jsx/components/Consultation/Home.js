@@ -108,8 +108,11 @@ const ClinicVisit = (props) => {
     const [prepEntryPoint, setPrepEntryPoints] = useState([]);
     const [prepType, setPrepType] = useState([]);
     const [populationType, setPopulationType] = useState([]);
-    const [selectedPrepType, setSelectedPrepType] = useState("");
+    const [visitType, setVisitType] = useState([]);
+    // const [selectedPregnant, setSelectedPregnant] = useState("");
     const [selectedPopulationType, setSelectedPopulationType] = useState("");
+    // const [selectedVisitType, setSelectedVisitType] = useState("");
+    const [latestFromEligibility, setLatestFromEligibility] = useState(null);
     let testsOptions = []
     const [hivTestValue, setHivTestValue] = useState('');
     const [hivTestResultDate, setHivTestResultDate] = useState('');
@@ -172,7 +175,8 @@ const ClinicVisit = (props) => {
         prepDistributionSetting: "",
         familyPlanning: "",
         dateOfFamilyPlanning: "",
-        monthsOfRefill: ""
+        monthsOfRefill: "",
+        visitType: ""
 
 
     });
@@ -220,36 +224,6 @@ const ClinicVisit = (props) => {
                 result: objValues.hepatitis.result, hepatitisTest: objValues.hepatitis.hepatitisTest
             });
         }
-        // if (objValues.otherTestsDone.testDate && objValues.otherTestsDone.result && objValues.otherTestsDone.name) {
-        //     setOtherTest({
-        //         ...otherTest,
-        //         testDate: objValues.otherTestsDone.testDate,
-        //         result: objValues.otherTestsDone.result,
-        //         name: objValues.otherTestsDone.name,
-        //         otherTestName: objValues.otherTestsDone.otherTestName,
-        //         otherTest: objValues.otherTestsDone.otherTest
-        //     });
-        // }
-        // if (objValues.otherTestsDone !== null) {
-        //     setOtherTest([...objValues.otherTestsDone.map((x, index) => {
-        //         return {
-        //             localId: index+1,
-        //             otherTest: "Yes",
-        //             testDate: x.testDate,
-        //             result: x.result,
-        //             name: x.name,
-        //             otherTestName: x.otherTestName
-        //         }
-        //     })]);
-        // }
-        // setUrinalysisTest({...urinalysisTest, testDate: objValues.urinalysis?.testDate,
-        //   result: objValues.urinalysis?.result, urinalysisTest: objValues.urinalysis?.urinalysisTest});
-        // setSyphilisTest({...syphilisTest, testDate: objValues.syphilis?.testDate,
-        //     result: objValues.syphilis?.result, syphilisTest: objValues.syphilis?.syphilisTest, others: objValues.syphilis?.others});
-        // setHepatitisTest({...hepatitisTest, testDate: objValues.hepatitis?.testDate,
-        //     result: objValues.hepatitis?.result, hepatitisTest: objValues.hepatitis?.hepatitisTest});
-        // setOtherTest({...otherTest, testDate: objValues.otherTestsDone?.testDate,
-        //     result: objValues.otherTestsDone?.result, name: objValues.otherTestsDone?.name, otherTestName: objValues.otherTestsDone?.otherTestName, otherTest: objValues.otherTestsDone?.otherTest});
     }, [objValues]);
 
     useEffect(() => {
@@ -273,12 +247,13 @@ const ClinicVisit = (props) => {
         PREP_ENTRY_POINT();
         PREP_TYPE();
         POPULATION_TYPE();
+        VISIT_TYPE();
         FAMILY_PLANNING_METHOD();
         if (props.activeContent && props.activeContent.id !== "" && props.activeContent.id !== null) {
             GetPatientVisit(props.activeContent.id)
             setSisabledField(props.activeContent.actionType === 'view' ? true : false)
         } 
-        GetLatestPopulationType();
+        GetLatestFromEligibility();
     }, [props.activeContent]);
 
     const PREGANACY_STATUS = () => {
@@ -467,7 +442,25 @@ const ClinicVisit = (props) => {
             });
     }
 
-    const GetLatestPopulationType = async () => {
+    useEffect(() => {
+        if (latestFromEligibility !== null) {
+            setObjValues({...objValues, 
+                populationType: latestFromEligibility !== null ? latestFromEligibility.populationType : "",
+                visitType: latestFromEligibility !== null ? latestFromEligibility.visitType : "",
+                pregnant: latestFromEligibility !== null ? latestFromEligibility.pregnancyStatus : "",
+            })
+            // await POPULATION_TYPE();
+            const autoPopulatePopulationType = populationType.find((type) => type.code === latestFromEligibility.populationType)?.display;
+            const autoPopulateVisitType = visitType.find((type) => type.code === latestFromEligibility.visitType)?.display;
+            const autoPopulatePregnant = pregnant.find((type) => type.code === latestFromEligibility.pregnancyStatus)?.display;
+            setSelectedPopulationType(autoPopulatePopulationType);
+            // setSelectedVisitType(autoPopulateVisitType)
+            // setSelectedPregnant(autoPopulatePregnant)
+        }
+
+    }, [latestFromEligibility])
+
+    const GetLatestFromEligibility = async () => {
         axios
             .get(`${baseUrl}prep-eligibility/person/${objValues.personId}`,
                 {headers: {"Authorization": `Bearer ${token}`}}
@@ -477,10 +470,8 @@ const ClinicVisit = (props) => {
                     (a,b) => moment(a.visitDate).isBefore(moment(b.visitDate)))
                     // (a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                     [response.data.length - 1];
-                setObjValues({...objValues, populationType: latestEligibility !== null ? latestEligibility.populationType : ""})
-                // await POPULATION_TYPE();
-                const autoPopulate = populationType.find((type) => type.code === latestEligibility.populationType).display;
-                setSelectedPopulationType(autoPopulate);
+
+                    setLatestFromEligibility(latestEligibility);
             })
             .catch((error) => {
 
@@ -506,6 +497,19 @@ const ClinicVisit = (props) => {
             .catch((error) => {
 
             });
+    }
+
+    const VISIT_TYPE =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/PrEP_VISIT_TYPE`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setVisitType(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
     }
     const WHY_POOR_FAIR_ADHERENCE = () => {
         axios
@@ -623,12 +627,7 @@ const ClinicVisit = (props) => {
             .catch((error) => {
             });
     }
-    // useEffect(() => {
-    //     const type = prepRegimen.find(regimen => Number(regimen.id) === Number(objValues.regimenId))?.prepType;
-    //     const typeDisplay = prepType.find(prepType => prepType.code === type)?.display;
-    //     setSelectedPrepType(typeDisplay ? typeDisplay : "");
 
-    // }, [objValues.regimenId]);
     const handleInputChange = e => {
 
         setErrors({ ...errors, [e.target.name]: "" })
@@ -820,7 +819,8 @@ const ClinicVisit = (props) => {
             hivTestResult: "",
             duration: "",
             prepGiven: "",
-            prepDistributionSetting: ""
+            prepDistributionSetting: "",
+            visitType: ""
         });
         setUrinalysisTest({});
         setSyphilisTest({});
@@ -847,6 +847,10 @@ const ClinicVisit = (props) => {
         temp.regimenId = objValues.regimenId ? "" : "This field is required"
         temp.duration = objValues.duration ? "" : "This field is required"
         temp.prepDistributionSetting = objValues.prepDistributionSetting ? "" : "This field is required"
+        temp.populationType = objValues.populationType ? "" : "This field is required"
+        temp.visitType = objValues.visitType ? "" : "This field is required"
+        // temp.hivTestResult = objValues.hivTestResult ? "" : "This field is required"
+        // temp.hivTestResultDate = objValues.hivTestResultDate ? "" : "This field is required"
         //temp.datePrepGiven = objValues.datePrepGiven ? "" : "This field is required"
 
         setErrors({
@@ -971,6 +975,7 @@ const ClinicVisit = (props) => {
     }
 
     const handlePrepTypeChange = (e) => {
+        setObjValues({...objValues, regimenId: "", prepType: e.target.value})
 
         axios
             .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`,
@@ -984,9 +989,7 @@ const ClinicVisit = (props) => {
             });
 
         setErrors({...errors, [e.target.name]: ""})
-        // setObjValues({...objValues, [e.target.name]: e.target.value});
-        const foundType = prepType.find(prepType => prepType.code === e.target.value);
-        setSelectedPrepType(foundType ? foundType.code : "");
+        
 
     }
 
@@ -1543,12 +1546,40 @@ const ClinicVisit = (props) => {
                                         ))}
 
                                     </Input>
+                                    {errors.populationType !== "" ? (
+                                        <span className={classes.error}>{errors.populationType}</span>
+                                    ) : ""}
                                 </FormGroup>
 
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <FormLabelName for="">Prep Type At Start <span
+                                    <FormLabelName for="">Visit Type <span
+                                        style={{ color: "red" }}> *</span></FormLabelName>
+                                    <Input
+                                        type="select"
+                                        name="visitType"
+                                        id="visitType"
+                                        onChange={handleInputChange}
+                                        value={objValues.visitType}
+                                        disabled={disabledField}
+                                    >
+                                        <option value=""> Select Visit Type</option>
+                                        {visitType.map((value) => (
+                                            <option key={value.id} value={value.code}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+                                    </Input>
+                                    {errors.visitType !== "" ? (
+                                        <span className={classes.error}>{errors.visitType}</span>
+                                    ) : ""}
+                                </FormGroup>
+
+                            </div>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <FormLabelName for="">Prep Type<span
                                         style={{ color: "red" }}> *</span></FormLabelName>
                                     <Input
                                         type="select"
@@ -1556,8 +1587,8 @@ const ClinicVisit = (props) => {
                                         id="prepType"
                                         // disabled
                                         onChange={handlePrepTypeChange}
-                                        value={selectedPrepType}
-                                    // disabled={disabledField}
+                                        value={objValues.prepType}
+                                    disabled={disabledField}
                                     >
                                         <option value=""> Select Prep Type</option>
                                         {prepType.map((value) => (
@@ -1567,6 +1598,9 @@ const ClinicVisit = (props) => {
                                         ))}
 
                                     </Input>
+                                    {errors.prepType !== "" ? (
+                                        <span className={classes.error}>{errors.prepType}</span>
+                                    ) : ""}
                                 </FormGroup>
 
                             </div>
@@ -1647,6 +1681,7 @@ const ClinicVisit = (props) => {
                                         name="monthsOfRefill"
                                         id="monthsOfRefill"
                                         value={objValues.monthsOfRefill}
+                                        min={0}
                                         onChange={handleInputChange}
                                         style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
 

@@ -130,5 +130,16 @@
                 ADD months_of_refill integer;
         </sql>
     </changeSet>
+    <changeSet id="add-history-of-drug-allergies-column" author="Peter Abiodun">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_clinic" columnName="history_of_drug_allergies" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic
+                ADD COLUMN history_of_drug_allergies VARCHAR(255);
+        </sql>
+    </changeSet>
 
 </databaseChangeLog>

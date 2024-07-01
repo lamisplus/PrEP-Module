@@ -4,11 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.apierror.IllegalTypeException;
-import org.lamisplus.modules.base.controller.apierror.RecordExistException;
-import org.lamisplus.modules.base.domain.dto.PageDTO;
 import org.lamisplus.modules.base.module.ModuleService;
-import org.lamisplus.modules.base.util.PaginationUtil;
-import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.patient.repository.VisitRepository;
@@ -20,16 +16,9 @@ import org.lamisplus.modules.prep.repository.PrepClinicRepository;
 import org.lamisplus.modules.prep.repository.PrepEligibilityRepository;
 import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
 import org.lamisplus.modules.prep.repository.PrepInterruptionRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.lamisplus.modules.base.util.Constants.ArchiveStatus.ARCHIVED;
@@ -222,6 +211,7 @@ public class PrepClinicService {
         prepClinic.setHistoryOfDrugToDrugInteraction(prepClinicDto.getHistoryOfDrugToDrugInteraction());
         prepClinic.setMonthsOfRefill(prepClinicDto.getMonthsOfRefill());
         prepClinic.setHivTestResultDate(prepClinicDto.getHivTestResultDate());
+        prepClinic.setHistoryOfDrugAllergies(prepClinicDto.getHistoryOfDrugAllergies());
 
 
 
@@ -358,6 +348,7 @@ public class PrepClinicService {
         prepClinicDto.setHistoryOfDrugToDrugInteraction(clinic.getHistoryOfDrugToDrugInteraction());
         prepClinicDto.setHivTestResultDate(clinic.getHivTestResultDate());
         prepClinicDto.setMonthsOfRefill(clinic.getMonthsOfRefill());
+        prepClinicDto.setHistoryOfDrugAllergies(clinic.getHistoryOfDrugAllergies());
 
         return prepClinicDto;
     }
