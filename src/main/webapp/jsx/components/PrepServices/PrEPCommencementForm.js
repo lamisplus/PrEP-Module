@@ -208,7 +208,7 @@ const PrEPCommencementForm = (props) => {
 
     const HistoryOfDrugToDrugInteraction =()=>{
         axios
-        .get(`${baseUrl}application-codesets/v2/HISTORY_OF_DRUG_TO_DRUG_INTERACTION`,
+        .get(`${baseUrl}application-codesets/v2/PREP_HISTORY_OF_DRUG_INTERACTIONS`,
             { headers: {"Authorization" : `Bearer ${token}`} }
         )
         .then((response) => {
@@ -374,18 +374,23 @@ const PrEPCommencementForm = (props) => {
     // console.log(props.patientObj.gender)
 
     const handlePrepTypeChange = (e) => {
+        // check the prep type. if it is ed prep or others, fetch all prep types instead
+        
         setObjValues({...objValues, regimenId: "", prepType: e.target.value})
-
-        axios
-            .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`,
-                {headers: {"Authorization": `Bearer ${token}`}}
-            )
-            .then((response) => {
-                setprepRegimen(response.data);
-            })
-            .catch((error) => {
-                //console.log(error);
-            });
+        if (e.target.value === 'PREP_TYPE_OTHERS' || e.target.value === 'PREP_TYPE_ED_PREP') {
+            PrepRegimen();
+        } else {
+            axios
+                .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`,
+                    {headers: {"Authorization": `Bearer ${token}`}}
+                )
+                .then((response) => {
+                    setprepRegimen(response.data);
+                })
+                .catch((error) => {
+                    //console.log(error);
+                });
+        }
 
         setErrors({...errors, [e.target.name]: ""})
 
