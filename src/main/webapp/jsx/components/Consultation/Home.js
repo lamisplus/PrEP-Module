@@ -976,20 +976,22 @@ const ClinicVisit = (props) => {
 
     const handlePrepTypeChange = (e) => {
         setObjValues({...objValues, regimenId: "", prepType: e.target.value})
-
-        axios
-            .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`,
-                {headers: {"Authorization": `Bearer ${token}`}}
-            )
-            .then((response) => {
-                setprepRegimen(response.data);
-            })
-            .catch((error) => {
-                //console.log(error);
-            });
+        if (e.target.value === 'PREP_TYPE_OTHERS' || e.target.value === 'PREP_TYPE_ED_PREP') {
+            PrepRegimen();
+        } else {
+            axios
+                .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`,
+                    {headers: {"Authorization": `Bearer ${token}`}}
+                )
+                .then((response) => {
+                    setprepRegimen(response.data);
+                })
+                .catch((error) => {
+                    //console.log(error);
+                });
+        }
 
         setErrors({...errors, [e.target.name]: ""})
-        
 
     }
 
