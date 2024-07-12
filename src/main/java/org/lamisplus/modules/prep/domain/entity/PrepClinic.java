@@ -1,7 +1,6 @@
 package org.lamisplus.modules.prep.domain.entity;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.vladmihalcea.hibernate.type.array.IntArrayType;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
@@ -171,6 +170,9 @@ public class PrepClinic extends Audit implements Serializable{
 
     @Column(name = "hiv_test_result")
     private String hivTestResult;
+    @Column(name = "hiv_test_result_date")
+    private LocalDate hivTestResultDate;
+
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
@@ -208,6 +210,24 @@ public class PrepClinic extends Audit implements Serializable{
 
     @Column(name = "noted_side_effects")
     private String notedSideEffects;
+
+    @Column(name = "date_of_liver_function_test_results")
+    private LocalDate dateLiverFunctionTestResults;
+
+    @Column(name = "prep_type")
+    private String prepType;
+    @Column(name = "population_type")
+    private String populationType;
+
+    @Column(name = "liver_function_test_result")
+    private String liverFunctionTestResults;
+
+    @Column(name = "history_of_drug_to_drug_interaction")
+    private String historyOfDrugToDrugInteraction;
+    @Column(name = "history_of_drug_allergies")
+    private String historyOfDrugAllergies;
+    @Column(name = "months_of_refill")
+    private Integer monthsOfRefill;
 
 
     @PrePersist

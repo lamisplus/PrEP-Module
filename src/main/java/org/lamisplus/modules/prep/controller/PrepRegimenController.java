@@ -7,6 +7,7 @@ import org.lamisplus.modules.prep.service.PrepRegimenService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -21,5 +22,11 @@ public class PrepRegimenController {
     @ApiOperation("Get All Prep Regimen")
     public ResponseEntity<List<PrepRegimen>> getAllPrepRegimen() {
         return new ResponseEntity<>(prepRegimenService.getAllPrepRegimen(), HttpStatus.OK);
+    }
+
+    @GetMapping(PREP_REGIMEN_URL_VERSION_ONE + "/prepType")
+    @ApiOperation("Get All Prep Regimen By Prep Type")
+    public ResponseEntity<List<PrepRegimen>> getAllPrepRegimen(@RequestParam("prepType") String prepType) {
+        return new ResponseEntity<>(prepRegimenService.getAllPrepRegimenByPrepType(prepType), HttpStatus.OK);
     }
 }

@@ -18,4 +18,8 @@ public class PrepRegimenService {
    public List<PrepRegimen> getAllPrepRegimen(){
        return prepRegimenRepository.findAll();
    }
+
+   public List<PrepRegimen> getAllPrepRegimenByPrepType(String prepType){
+       return prepRegimenRepository.findAllByPrepType(prepType);
+   }
 }

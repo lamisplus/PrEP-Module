@@ -107,8 +107,21 @@ const ClinicVisit = (props) => {
     const [pregnant, setpregnant] = useState([]);
     const [prepEntryPoint, setPrepEntryPoints] = useState([]);
     const [prepType, setPrepType] = useState([]);
-    const [selectedPrepType, setSelectedPrepType] = useState("");
+    const [populationType, setPopulationType] = useState([]);
+    const [visitType, setVisitType] = useState([]);
+    // const [selectedPregnant, setSelectedPregnant] = useState("");
+    const [selectedPopulationType, setSelectedPopulationType] = useState("");
+    // const [selectedVisitType, setSelectedVisitType] = useState("");
+    const [latestFromEligibility, setLatestFromEligibility] = useState(null);
     let testsOptions = []
+    const [hivTestValue, setHivTestValue] = useState('');
+    const [hivTestResultDate, setHivTestResultDate] = useState('');
+
+
+    useEffect(() => {
+        handleInputChange({ target: { name: 'hivTestResult', value: hivTestValue } });
+        handleInputChange({ target: { name: 'hivTestResultDate', value: hivTestResultDate } });
+    }, [hivTestValue]);
     //Vital signs clinical decision support
     const [vitalClinicalSupport, setVitalClinicalSupport] =
         useState({
@@ -156,10 +169,14 @@ const ClinicVisit = (props) => {
         duration: "",
         prepGiven: "",
         hivTestResult: "",
-        // prepType: "",
+        hivTestResultDate:"",
+        prepType: "",
+        populationType: "",
         prepDistributionSetting: "",
         familyPlanning: "",
-        dateOfFamilyPlanning: ""
+        dateOfFamilyPlanning: "",
+        monthsOfRefill: "",
+        visitType: ""
 
 
     });
@@ -207,36 +224,6 @@ const ClinicVisit = (props) => {
                 result: objValues.hepatitis.result, hepatitisTest: objValues.hepatitis.hepatitisTest
             });
         }
-        // if (objValues.otherTestsDone.testDate && objValues.otherTestsDone.result && objValues.otherTestsDone.name) {
-        //     setOtherTest({
-        //         ...otherTest,
-        //         testDate: objValues.otherTestsDone.testDate,
-        //         result: objValues.otherTestsDone.result,
-        //         name: objValues.otherTestsDone.name,
-        //         otherTestName: objValues.otherTestsDone.otherTestName,
-        //         otherTest: objValues.otherTestsDone.otherTest
-        //     });
-        // }
-        // if (objValues.otherTestsDone !== null) {
-        //     setOtherTest([...objValues.otherTestsDone.map((x, index) => {
-        //         return {
-        //             localId: index+1,
-        //             otherTest: "Yes",
-        //             testDate: x.testDate,
-        //             result: x.result,
-        //             name: x.name,
-        //             otherTestName: x.otherTestName
-        //         }
-        //     })]);
-        // }
-        // setUrinalysisTest({...urinalysisTest, testDate: objValues.urinalysis?.testDate,
-        //   result: objValues.urinalysis?.result, urinalysisTest: objValues.urinalysis?.urinalysisTest});
-        // setSyphilisTest({...syphilisTest, testDate: objValues.syphilis?.testDate,
-        //     result: objValues.syphilis?.result, syphilisTest: objValues.syphilis?.syphilisTest, others: objValues.syphilis?.others});
-        // setHepatitisTest({...hepatitisTest, testDate: objValues.hepatitis?.testDate,
-        //     result: objValues.hepatitis?.result, hepatitisTest: objValues.hepatitis?.hepatitisTest});
-        // setOtherTest({...otherTest, testDate: objValues.otherTestsDone?.testDate,
-        //     result: objValues.otherTestsDone?.result, name: objValues.otherTestsDone?.name, otherTestName: objValues.otherTestsDone?.otherTestName, otherTest: objValues.otherTestsDone?.otherTest});
     }, [objValues]);
 
     useEffect(() => {
@@ -245,6 +232,7 @@ const ClinicVisit = (props) => {
         //PatientDetaild();
         PREP_STATUS();
         HTS_RESULT();
+        LAST_HIV_TEST_RESULT();
         PREP_SIDE_EFFECTS();
         GetPatientDTOObj();
         WHY_POOR_FAIR_ADHERENCE();
@@ -258,11 +246,14 @@ const ClinicVisit = (props) => {
         PREGANACY_STATUS();
         PREP_ENTRY_POINT();
         PREP_TYPE();
+        POPULATION_TYPE();
+        VISIT_TYPE();
         FAMILY_PLANNING_METHOD();
         if (props.activeContent && props.activeContent.id !== "" && props.activeContent.id !== null) {
             GetPatientVisit(props.activeContent.id)
             setSisabledField(props.activeContent.actionType === 'view' ? true : false)
-        }
+        } 
+        GetLatestFromEligibility();
     }, [props.activeContent]);
 
     const PREGANACY_STATUS = () => {
@@ -428,6 +419,98 @@ const ClinicVisit = (props) => {
                 
             });
     }
+    const LAST_HIV_TEST_RESULT = () => {
+        axios
+            .get(`${baseUrl}hts/persons/${objValues.personId}/current-hts`,
+                {headers: {"Authorization": `Bearer ${token}`}}
+            )
+            .then((response) => {
+                var lastHivTest= response.data.hivTestResult;
+
+                if (lastHivTest !== null && lastHivTest !== undefined) {
+                    setHivTestValue(response.data.hivTestResult);
+                    setHivTestResultDate(response.data.test1.date);
+                    objValues.hivTestResultDate=response.data.hivTestResult;
+                    objValues.hivTestResultDate=response.data.test1.date;
+
+                } else {
+                    setHivTestValue('NOT DONE');
+                }
+            })
+            .catch((error) => {
+
+            });
+    }
+
+    useEffect(() => {
+        if (latestFromEligibility !== null) {
+            setObjValues({...objValues, 
+                populationType: latestFromEligibility !== null ? latestFromEligibility.populationType : "",
+                visitType: latestFromEligibility !== null ? latestFromEligibility.visitType : "",
+                pregnant: latestFromEligibility !== null ? latestFromEligibility.pregnancyStatus : "",
+            })
+            // await POPULATION_TYPE();
+            const autoPopulatePopulationType = populationType.find((type) => type.code === latestFromEligibility.populationType)?.display;
+            const autoPopulateVisitType = visitType.find((type) => type.code === latestFromEligibility.visitType)?.display;
+            const autoPopulatePregnant = pregnant.find((type) => type.code === latestFromEligibility.pregnancyStatus)?.display;
+            setSelectedPopulationType(autoPopulatePopulationType);
+            // setSelectedVisitType(autoPopulateVisitType)
+            // setSelectedPregnant(autoPopulatePregnant)
+        }
+
+    }, [latestFromEligibility])
+
+    const GetLatestFromEligibility = async () => {
+        axios
+            .get(`${baseUrl}prep-eligibility/person/${objValues.personId}`,
+                {headers: {"Authorization": `Bearer ${token}`}}
+            )
+            .then(async (response)  => {
+                const latestEligibility = response.data.sort(
+                    (a,b) => moment(a.visitDate).isBefore(moment(b.visitDate)))
+                    // (a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                    [response.data.length - 1];
+
+                    setLatestFromEligibility(latestEligibility);
+            })
+            .catch((error) => {
+
+            });
+    }
+
+    useEffect(() => {
+        if (objValues.populationType !== null && objValues.populationType !== undefined){
+            const autoPopulate = populationType.find((type) => type.code === objValues.populationType);
+            
+            setSelectedPopulationType(autoPopulate ? autoPopulate.display : "");
+        }
+    }, [objValues.populationType])
+    const POPULATION_TYPE = async () => {
+        axios
+            .get(`${baseUrl}application-codesets/v2/POPULATION_TYPE`,
+                {headers: {"Authorization": `Bearer ${token}`}}
+            )
+            .then((response) => {
+                setPopulationType(response.data);
+                
+            })
+            .catch((error) => {
+
+            });
+    }
+
+    const VISIT_TYPE =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/PrEP_VISIT_TYPE`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setVisitType(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
     const WHY_POOR_FAIR_ADHERENCE = () => {
         axios
             .get(`${baseUrl}application-codesets/v2/WHY_POOR_FAIR_ADHERENCE`,
@@ -544,18 +627,19 @@ const ClinicVisit = (props) => {
             .catch((error) => {
             });
     }
-    useEffect(() => {
-        const type = prepRegimen.find(regimen => Number(regimen.id) === Number(objValues.regimenId))?.prepType;
-        const typeDisplay = prepType.find(prepType => prepType.code === type)?.display;
-        setSelectedPrepType(typeDisplay ? typeDisplay : "");
-
-    }, [objValues.regimenId]);
 
     const handleInputChange = e => {
 
-        setErrors({...errors, [e.target.name]: ""})
-        // if the encounterDate is the same as the commencement date, the prep regimen id should be automatically populated from the commencement
-        setObjValues({...objValues, [e.target.name]: e.target.value});
+        setErrors({ ...errors, [e.target.name]: "" })
+        if (e.target.name === 'monthsOfRefill') {
+            const asNumber = Number(e.target.value)
+            const durationInDays = (asNumber * 30)
+            setObjValues({ ...objValues, monthsOfRefill: e.target.value, duration: `${durationInDays}` })
+        } else {
+            // if the encounterDate is the same as the commencement date, the prep regimen id should be automatically populated from the commencement
+            setObjValues({ ...objValues, [e.target.name]: e.target.value });
+
+        }
 
     }
     const handleInputChangeUrinalysisTest = e => {
@@ -735,7 +819,8 @@ const ClinicVisit = (props) => {
             hivTestResult: "",
             duration: "",
             prepGiven: "",
-            prepDistributionSetting: ""
+            prepDistributionSetting: "",
+            visitType: ""
         });
         setUrinalysisTest({});
         setSyphilisTest({});
@@ -762,6 +847,10 @@ const ClinicVisit = (props) => {
         temp.regimenId = objValues.regimenId ? "" : "This field is required"
         temp.duration = objValues.duration ? "" : "This field is required"
         temp.prepDistributionSetting = objValues.prepDistributionSetting ? "" : "This field is required"
+        temp.populationType = objValues.populationType ? "" : "This field is required"
+        temp.visitType = objValues.visitType ? "" : "This field is required"
+        // temp.hivTestResult = objValues.hivTestResult ? "" : "This field is required"
+        // temp.hivTestResultDate = objValues.hivTestResultDate ? "" : "This field is required"
         //temp.datePrepGiven = objValues.datePrepGiven ? "" : "This field is required"
 
         setErrors({
@@ -775,6 +864,8 @@ const ClinicVisit = (props) => {
         if (validate()) {
             setSaving(true)
             //objValues.visitDate = vital.encounterDate
+            objValues.hivTestResultDate=hivTestResultDate;
+            objValues.hivTestResult= hivTestValue;
             objValues.syphilis = syphilisTest
             objValues.hepatitis = hepatitisTest
             objValues.urinalysis = urinalysisTest
@@ -881,6 +972,27 @@ const ClinicVisit = (props) => {
 
     const isFemale = () => {
         return props.patientObj.gender.toLowerCase() === "female";
+    }
+
+    const handlePrepTypeChange = (e) => {
+        setObjValues({...objValues, regimenId: "", prepType: e.target.value})
+        if (e.target.value === 'PREP_TYPE_OTHERS' || e.target.value === 'PREP_TYPE_ED_PREP') {
+            PrepRegimen();
+        } else {
+            axios
+                .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`,
+                    {headers: {"Authorization": `Bearer ${token}`}}
+                )
+                .then((response) => {
+                    setprepRegimen(response.data);
+                })
+                .catch((error) => {
+                    //console.log(error);
+                });
+        }
+
+        setErrors({...errors, [e.target.name]: ""})
+
     }
 
     return (
@@ -1224,23 +1336,39 @@ const ClinicVisit = (props) => {
                         <div className="row">
                             <div className=" mb-3 col-md-6">
                                 <FormGroup>
-                                    <FormLabelName>HIV Test Result </FormLabelName>
+                                    <FormLabelName>Result of Last HIV Test </FormLabelName>
                                     <Input
-                                        type="select"
+                                        type="text"
                                         name="hivTestResult"
                                         id="hivTestResult"
-                                        value={objValues.hivTestResult}
-                                        onChange={handleInputChange}
+                                        value={hivTestValue}
+                                        onChange={(e) => {
+                                            setHivTestValue(e.target.value);
+                                            handleInputChange(e);
+                                        }}
                                         style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
-                                        disabled={disabledField}
-                                    >
-                                        <option value="">Select</option>
-                                        {htsResult.map((value) => (
-                                            <option key={value.id} value={value.code}>
-                                                {value.display}
-                                            </option>
-                                        ))}
-                                    </Input>
+                                        disabled={true}
+                                    />
+
+
+                                </FormGroup>
+                            </div>
+                            <div className=" mb-3 col-md-6">
+                                <FormGroup>
+                                    <FormLabelName>Date of Last HIV Test </FormLabelName>
+                                    <Input
+                                        type="Date"
+                                        name="hivTestResultDate"
+                                        id="hivTestResultDate"
+                                        value={hivTestResultDate}
+                                        onChange={(e) => {
+                                            setHivTestValue(e.target.value);
+                                            handleInputChange(e);
+                                        }}
+                                        style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                                        disabled={true}
+                                    />
+
 
                                 </FormGroup>
                             </div>
@@ -1399,6 +1527,85 @@ const ClinicVisit = (props) => {
                  
                 </FormGroup>
               </div> */}
+
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <FormLabelName for="">Population Type <span
+                                        style={{ color: "red" }}> *</span></FormLabelName>
+                                    <Input
+                                        type="text"
+                                        name="populationType"
+                                        id="populationType"
+                                        disabled
+                                        value={selectedPopulationType}
+                                    // disabled={disabledField}
+                                    >
+                                        <option value=""> Select Population Type</option>
+                                        {populationType.map((value) => (
+                                            <option key={value.id} value={value.code}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+
+                                    </Input>
+                                    {errors.populationType !== "" ? (
+                                        <span className={classes.error}>{errors.populationType}</span>
+                                    ) : ""}
+                                </FormGroup>
+
+                            </div>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <FormLabelName for="">Visit Type <span
+                                        style={{ color: "red" }}> *</span></FormLabelName>
+                                    <Input
+                                        type="select"
+                                        name="visitType"
+                                        id="visitType"
+                                        onChange={handleInputChange}
+                                        value={objValues.visitType}
+                                        disabled={disabledField}
+                                    >
+                                        <option value=""> Select Visit Type</option>
+                                        {visitType.map((value) => (
+                                            <option key={value.id} value={value.code}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+                                    </Input>
+                                    {errors.visitType !== "" ? (
+                                        <span className={classes.error}>{errors.visitType}</span>
+                                    ) : ""}
+                                </FormGroup>
+
+                            </div>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <FormLabelName for="">Prep Type<span
+                                        style={{ color: "red" }}> *</span></FormLabelName>
+                                    <Input
+                                        type="select"
+                                        name="prepType"
+                                        id="prepType"
+                                        // disabled
+                                        onChange={handlePrepTypeChange}
+                                        value={objValues.prepType}
+                                    disabled={disabledField}
+                                    >
+                                        <option value=""> Select Prep Type</option>
+                                        {prepType.map((value) => (
+                                            <option key={value.id} value={value.code}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+
+                                    </Input>
+                                    {errors.prepType !== "" ? (
+                                        <span className={classes.error}>{errors.prepType}</span>
+                                    ) : ""}
+                                </FormGroup>
+
+                            </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
                                     <FormLabelName for="">PrEP Regimen <span
@@ -1422,26 +1629,6 @@ const ClinicVisit = (props) => {
                                         <span className={classes.error}>{errors.regimenId}</span>
                                     ) : ""}
                                 </FormGroup>
-                            </div>
-
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                    <FormLabelName for="">Prep Type <span
-                                        style={{color: "red"}}> *</span></FormLabelName>
-                                    <Input
-                                        type="text"
-                                        name="prepType"
-                                        id="prepType"
-                                        disabled
-                                        // onChange={handleInputChange}
-                                        value={selectedPrepType}
-                                        // disabled={disabledField}
-                                    >
-
-
-                                    </Input>
-                                </FormGroup>
-
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
@@ -1469,7 +1656,7 @@ const ClinicVisit = (props) => {
                                 </FormGroup>
                             </div>
 
-                            <div className=" mb-3 col-md-6">
+                            {/* <div className=" mb-3 col-md-6">
                                 <FormGroup>
                                     <FormLabelName>Duration <span style={{color: "red"}}> *</span></FormLabelName>
                                     <Input
@@ -1484,6 +1671,26 @@ const ClinicVisit = (props) => {
                                     />
                                     {errors.duration !== "" ? (
                                         <span className={classes.error}>{errors.duration}</span>
+                                    ) : ""}
+                                </FormGroup>
+                            </div> */}
+
+                            <div className=" mb-3 col-md-6">
+                                <FormGroup>
+                                    <FormLabelName>Months of Refill <span style={{color: "red"}}> *</span></FormLabelName>
+                                    <Input
+                                        type="number"
+                                        name="monthsOfRefill"
+                                        id="monthsOfRefill"
+                                        value={objValues.monthsOfRefill}
+                                        min={0}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+
+                                        disabled={disabledField}
+                                    />
+                                    {errors.monthsOfRefill !== "" ? (
+                                        <span className={classes.error}>{errors.monthsOfRefill}</span>
                                     ) : ""}
                                 </FormGroup>
                             </div>

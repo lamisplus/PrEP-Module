@@ -6,14 +6,11 @@ import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.apierror.IllegalTypeException;
 import org.lamisplus.modules.base.controller.apierror.RecordExistException;
 import org.lamisplus.modules.base.domain.dto.PageDTO;
-import org.lamisplus.modules.base.module.ModuleService;
 import org.lamisplus.modules.base.util.PaginationUtil;
 import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
-import org.lamisplus.modules.patient.repository.VisitRepository;
 import org.lamisplus.modules.patient.service.PersonService;
-import org.lamisplus.modules.patient.service.VisitService;
 import org.lamisplus.modules.prep.domain.dto.*;
 import org.lamisplus.modules.prep.domain.entity.*;
 import org.lamisplus.modules.prep.repository.PrepClinicRepository;
@@ -433,6 +430,13 @@ public class PrepService {
         prepEligibility.setNumWives( prepEligibilityRequestDto.getNumWives() );
         prepEligibility.setTargetGroup( prepEligibilityRequestDto.getTargetGroup() );
         prepEligibility.setExtra( prepEligibilityRequestDto.getExtra() );
+        prepEligibility.setAssessmentForPepIndication(prepEligibilityRequestDto.getAssessmentForPepIndication());
+        prepEligibility.setAssessmentForAcuteHivInfection(prepEligibilityRequestDto.getAssessmentForAcuteHivInfection());
+        prepEligibility.setAssessmentForPrepEligibility(prepEligibilityRequestDto.getAssessmentForPrepEligibility());
+        prepEligibility.setServicesReceivedByClient(prepEligibilityRequestDto.getServicesReceivedByClient());
+        prepEligibility.setPopulationType(prepEligibilityRequestDto.getPopulationType());
+        prepEligibility.setVisitType(prepEligibilityRequestDto.getVisitType());
+        prepEligibility.setPregnancyStatus(prepEligibilityRequestDto.getPregnancyStatus());
 
         prepEligibility.setVisitDate( prepEligibilityRequestDto.getVisitDate());
 
@@ -462,6 +466,13 @@ public class PrepService {
         prepEligibilityDto.setNumWives( eligibility.getNumWives() );
         prepEligibilityDto.setTargetGroup( eligibility.getTargetGroup() );
         prepEligibilityDto.setExtra( eligibility.getExtra() );
+        prepEligibilityDto.setAssessmentForPepIndication(eligibility.getAssessmentForPepIndication());
+        prepEligibilityDto.setAssessmentForAcuteHivInfection(eligibility.getAssessmentForAcuteHivInfection());
+        prepEligibilityDto.setAssessmentForPrepEligibility(eligibility.getAssessmentForPrepEligibility());
+        prepEligibilityDto.setServicesReceivedByClient(eligibility.getServicesReceivedByClient());
+        prepEligibilityDto.setPopulationType(eligibility.getPopulationType());
+        prepEligibilityDto.setVisitType(eligibility.getVisitType());
+        prepEligibilityDto.setPregnancyStatus(eligibility.getPregnancyStatus());
         //PersonResponseDto personResponseDto = personService.getDtoFromPerson(eligibility.getPerson());
         //prepEligibilityDto.setPersonResponseDto(personResponseDto);
 
@@ -558,6 +569,14 @@ public class PrepService {
         prepClinic.setPrepGiven( prepClinicRequestDto.getPrepGiven());
         prepClinic.setOtherDrugs( prepClinicRequestDto.getOtherDrugs());
         prepClinic.setHivTestResult( prepClinicRequestDto.getHivTestResult());
+        prepClinic.setDateLiverFunctionTestResults(prepClinicRequestDto.getDateLiverFunctionTestResults());
+        prepClinic.setPrepType(prepClinicRequestDto.getPrepType());
+        prepClinic.setPopulationType(prepClinicRequestDto.getPopulationType());
+        prepClinic.setLiverFunctionTestResults(prepClinicRequestDto.getLiverFunctionTestResults());
+        prepClinic.setHistoryOfDrugToDrugInteraction(prepClinicRequestDto.getHistoryOfDrugToDrugInteraction());
+        prepClinic.setHivTestResultDate(prepClinicRequestDto.getHivTestResultDate());
+        prepClinic.setMonthsOfRefill(prepClinicRequestDto.getMonthsOfRefill());
+        prepClinic.setHistoryOfDrugAllergies(prepClinicRequestDto.getHistoryOfDrugAllergies());
 
         return prepClinic;
     }
@@ -614,6 +633,15 @@ public class PrepService {
         prepClinicDto.setPrepGiven( clinic.getPrepGiven());
         prepClinicDto.setOtherDrugs( clinic.getOtherDrugs());
         prepClinicDto.setHivTestResult( clinic.getHivTestResult());
+        prepClinicDto.setHivTestResultDate(clinic.getHivTestResultDate());
+        prepClinicDto.setDateLiverFunctionTestResults(clinic.getDateLiverFunctionTestResults());
+        prepClinicDto.setPrepType(clinic.getPrepType());
+        prepClinicDto.setPopulationType(clinic.getPopulationType());
+        prepClinicDto.setLiverFunctionTestResults(clinic.getLiverFunctionTestResults());
+        prepClinicDto.setHistoryOfDrugToDrugInteraction(clinic.getHistoryOfDrugToDrugInteraction());
+        prepClinicDto.setHivTestResultDate(clinic.getHivTestResultDate());
+        prepClinicDto.setMonthsOfRefill(clinic.getMonthsOfRefill());
+        prepClinicDto.setHistoryOfDrugAllergies(clinic.getHistoryOfDrugAllergies());
 
         return prepClinicDto;
     }
