@@ -119,6 +119,13 @@ public class PrepEligibilityService {
         prepEligibility.setNumWives( eligibilityDto.getNumWives() );
         prepEligibility.setTargetGroup( eligibilityDto.getTargetGroup() );
         prepEligibility.setExtra( eligibilityDto.getExtra() );
+        prepEligibility.setAssessmentForPepIndication(eligibilityDto.getAssessmentForPepIndication());
+        prepEligibility.setAssessmentForAcuteHivInfection(eligibilityDto.getAssessmentForAcuteHivInfection());
+        prepEligibility.setAssessmentForPrepEligibility(eligibilityDto.getAssessmentForPrepEligibility());
+        prepEligibility.setServicesReceivedByClient(eligibilityDto.getServicesReceivedByClient());
+        prepEligibility.setPopulationType(eligibilityDto.getPopulationType());
+        prepEligibility.setVisitType(eligibilityDto.getVisitType());
+        prepEligibility.setPregnancyStatus(eligibilityDto.getPregnancyStatus());
 
         prepEligibility.setVisitDate( eligibilityDto.getVisitDate());
 
@@ -146,6 +153,13 @@ public class PrepEligibilityService {
         prepEligibility.setNumWives( prepEligibilityRequestDto.getNumWives() );
         prepEligibility.setTargetGroup( prepEligibilityRequestDto.getTargetGroup() );
         prepEligibility.setExtra( prepEligibilityRequestDto.getExtra() );
+        prepEligibility.setAssessmentForPepIndication(prepEligibilityRequestDto.getAssessmentForPepIndication());
+        prepEligibility.setAssessmentForAcuteHivInfection(prepEligibilityRequestDto.getAssessmentForAcuteHivInfection());
+        prepEligibility.setAssessmentForPrepEligibility(prepEligibilityRequestDto.getAssessmentForPrepEligibility());
+        prepEligibility.setServicesReceivedByClient(prepEligibilityRequestDto.getServicesReceivedByClient());
+        prepEligibility.setPopulationType(prepEligibilityRequestDto.getPopulationType());
+        prepEligibility.setVisitType(prepEligibilityRequestDto.getVisitType());
+        prepEligibility.setPregnancyStatus(prepEligibilityRequestDto.getPregnancyStatus());
 
         prepEligibility.setVisitDate( prepEligibilityRequestDto.getVisitDate());
 
@@ -175,6 +189,13 @@ public class PrepEligibilityService {
         prepEligibilityDto.setNumWives( eligibility.getNumWives() );
         prepEligibilityDto.setTargetGroup( eligibility.getTargetGroup() );
         prepEligibilityDto.setExtra( eligibility.getExtra() );
+        prepEligibilityDto.setAssessmentForPepIndication(eligibility.getAssessmentForPepIndication());
+        prepEligibilityDto.setAssessmentForAcuteHivInfection(eligibility.getAssessmentForAcuteHivInfection());
+        prepEligibilityDto.setAssessmentForPrepEligibility(eligibility.getAssessmentForPrepEligibility());
+        prepEligibilityDto.setServicesReceivedByClient(eligibility.getServicesReceivedByClient());
+        prepEligibilityDto.setPopulationType(eligibility.getPopulationType());
+        prepEligibilityDto.setVisitType(eligibility.getVisitType());
+        prepEligibilityDto.setPregnancyStatus(eligibility.getPregnancyStatus());
         //PersonResponseDto personResponseDto = personService.getDtoFromPerson(eligibility.getPerson());
         //prepEligibilityDto.setPersonResponseDto(personResponseDto);
 

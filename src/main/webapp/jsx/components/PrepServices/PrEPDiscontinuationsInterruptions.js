@@ -147,8 +147,8 @@ const PrEPEligibiltyScreeningForm = (props) => {
                { headers: {"Authorization" : `Bearer ${token}`} }
            )
            .then((response) => {
-                //console.log(response.data.find((x)=> x.id===id));
-               setObjValues(response.data.find((x)=> x.id===id));
+            //    setObjValues(response.data.find((x)=> x.id===id));
+               setObjValues(response.data);
            })
            .catch((error) => {
            //console.log(error);
@@ -261,7 +261,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
          if(validate()){
           setSaving(true);
           if(props.activeContent && props.activeContent.actionType==="update"){
-          axios.put(`${baseUrl}prep/interruption/${props.activeContent.id}`,objValues,
+          axios.put(`${baseUrl}prep-interruption/${props.activeContent.id}`,objValues,
            { headers: {"Authorization" : `Bearer ${token}`}},
           
           ).then(response => {

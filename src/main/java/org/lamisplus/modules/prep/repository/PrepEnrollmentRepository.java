@@ -119,7 +119,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
             " WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 OR p.full_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
-            "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
+            "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) AND he.person_uuid IS NULL AND (el_max.HIVResultAtVisit NOT ILIKE '%Positive%' OR el_max.HIVResultAtVisit is NULL)" +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
             "el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration, prepc.commencementCount, el.eligibility_count, " +
             "pet.created_by, pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
@@ -260,7 +260,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "INNER JOIN (SELECT DISTINCT MAX(el.visit_date) as max_date, el.person_uuid " +
             "FROM prep_eligibility el WHERE el.archived=0 " +
             "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
-            " WHERE p.archived=?1 AND p.facility_id=?2 "+
+            " WHERE p.archived=?1 AND p.facility_id=?2 AND he.person_uuid IS NULL AND (el_max.HIVResultAtVisit NOT ILIKE '%Positive%' OR el_max.HIVResultAtVisit is NULL)"+
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
             "el_max.HIVResultAtVisit, p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, " +
             "pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +

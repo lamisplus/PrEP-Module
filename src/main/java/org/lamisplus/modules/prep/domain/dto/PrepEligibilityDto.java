@@ -1,8 +1,12 @@
 package org.lamisplus.modules.prep.domain.dto;
 
 import lombok.*;
+import org.hibernate.annotations.Type;
 import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
 
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.FetchType;
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -32,6 +36,14 @@ public class PrepEligibilityDto implements Serializable {
     private Object extra;
     private String prepStatus;
     private Integer prepEligibilityCount;
+
+    private  Object assessmentForPepIndication;
+    private  Object assessmentForAcuteHivInfection;
+    private  Object assessmentForPrepEligibility;
+    private  Object servicesReceivedByClient;
+    private String populationType;
+    private String visitType;
+    private String pregnancyStatus;
 
     //private PersonResponseDto personResponseDto;
 

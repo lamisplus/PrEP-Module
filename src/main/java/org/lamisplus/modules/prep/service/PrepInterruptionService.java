@@ -52,7 +52,7 @@ public class PrepInterruptionService {
 
     private ModuleService moduleService;
 
-    private PrepInterruptionRepository prepInterruptionRepository;
+    private final PrepInterruptionRepository prepInterruptionRepository;
 
     public Person getPerson(Long personId) {
         return personRepository.findById (personId)
@@ -83,10 +83,12 @@ public class PrepInterruptionService {
     public PrepInterruptionDto getInterruptionById(Long id){
         Long userOrgId = currentUserOrganizationService.getCurrentUserOrganization();
         log.info("USER ORG UNIT ID :" + userOrgId);
-        PrepInterruption interruption = prepInterruptionRepository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
-                .orElseThrow(()-> new EntityNotFoundException(PrepInterruption.class, "id", String.valueOf(id)));
-        return interruptionToInterruptionDto(interruption);
+        Optional<PrepInterruption> interruption = prepInterruptionRepository
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED);
+                if (!interruption.isPresent()) {
+                    throw new EntityNotFoundException(PrepInterruption.class, "id", String.valueOf(id));
+                }
+        return interruptionToInterruptionDto(interruption.get());
     }
 
     public List<PrepInterruptionDto> getInterruptionByPersonId(Long personId){

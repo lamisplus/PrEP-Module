@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useState} from "react";
 import axios from "axios";
 import {FormGroup, Label , CardBody, Spinner,Input,Form} from "reactstrap";
 import {makeStyles} from "@material-ui/core/styles";
-import {Card, } from "@material-ui/core";
+import {Card, Checkbox, FormControl, FormControlLabel, FormLabel, } from "@material-ui/core";
 import MatButton from '@material-ui/core/Button'
 import {toast} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,7 +11,7 @@ import "react-widgets/dist/css/react-widgets.css";
 // import {TiArrowBack} from 'react-icons/ti'
 import {token, url as baseUrl } from "../../../api";
 import 'react-phone-input-2/lib/style.css'
-import {Label as LabelRibbon, Button, Message} from 'semantic-ui-react'
+import {Label as LabelRibbon, Button, Message, Select, Dropdown} from 'semantic-ui-react'
 // import 'semantic-ui-css/semantic.min.css';
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
@@ -94,6 +94,10 @@ const BasicInfo = (props) => {
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [counselingType, setCounselingType] = useState([]);
+    const [visitType, setVisitType] = useState([]);
+    const [reasonForDecline, setReasonForDecline] = useState([]);
+    const [populationType, setPopulationType] = useState([]);
+    const [pregnancyStatus, setPregnancyStatus] = useState([]);
     let temp = { ...errors }
 
     const [objValues, setObjValues]= useState(
@@ -112,12 +116,20 @@ const BasicInfo = (props) => {
                 stiScreening: {},
                 targetGroup: "TARGET_GROUP_GEN_POP",
                 uniqueId: "",
-                visitDate:""
+                visitDate:"",
+                visitType:"",
+                populationType: "",
+                pregnancyStatus: "",
+                score: 0
             }
     )
-    useEffect(() => { 
+    useEffect( async () => { 
         
         CounselingType();
+        VisitType();
+        await ReasonForDecline();
+        PopulationType();
+        PregnancyStatus();
         if(props.activeContent.id && props.activeContent.id!=="" && props.activeContent.id!==null){
             GetPatientPrepEligibility(props.activeContent.id)
             setSisabledField(props.activeContent.actionType==='view'?true : false)
@@ -129,12 +141,16 @@ const BasicInfo = (props) => {
                { headers: {"Authorization" : `Bearer ${token}`} }
            )
            .then((response) => {
-                console.log(response.data);
+                // console.log(response.data);
                setObjValues(response.data);
                setRiskAssessment(response.data.personalHivRiskAssessment)
                setRiskAssessmentPartner(response.data.sexPartnerRisk)
                setStiScreening(response.data.stiScreening)
                setDrugHistory(response.data.drugUseHistory)
+               setAssessmentForPepIndication(response.data.assessmentForPepIndication)
+               setAssessmentForAcuteHivInfection(response.data.assessmentForAcuteHivInfection)
+               setServicesReceivedByClient(response.data.servicesReceivedByClient)
+               setAssessmentForPrepEligibility(response.data.assessmentForPrepEligibility)
            })
            .catch((error) => {
            //console.log(error);
@@ -147,6 +163,54 @@ const BasicInfo = (props) => {
         )
         .then((response) => {
             setCounselingType(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
+    const VisitType =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/PrEP_VISIT_TYPE`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setVisitType(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
+    const ReasonForDecline = async ()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/REASON_PREP_DECLINED`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setReasonForDecline(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
+    const PopulationType =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/POPULATION_TYPE`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setPopulationType(response.data);
+        })
+        .catch((error) => {
+        //console.log(error);
+        });    
+    }
+    const PregnancyStatus =()=>{
+        axios
+        .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`,
+            { headers: {"Authorization" : `Bearer ${token}`} }
+        )
+        .then((response) => {
+            setPregnancyStatus(response.data);
         })
         .catch((error) => {
         //console.log(error);
@@ -247,7 +311,64 @@ const BasicInfo = (props) => {
         } 
         setDrugHistory ({...drugHistory,  [e.target.name]: e.target.value});         
     }
-     /*****  Validation  */
+    const [assessmentForPepIndication, setAssessmentForPepIndication]= useState(
+        {
+            unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours:"",
+            sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours:"",
+        }
+    )
+    const handleInputChangeAssessmentForPepIndication = e => { 
+        setErrors({...temp, [e.target.name]:""})
+        setAssessmentForPepIndication ({...assessmentForPepIndication,  [e.target.name]: e.target.value});         
+    }
+    const [assessmentForAcuteHivInfection, setAssessmentForAcuteHivInfection]= useState(
+        {
+            acuteHivSymptomsLasttwoWeeks:"",
+            unprotectedAnalOrVaginalOrSharedNeedlesLast28Days:"",
+        }
+    )
+    const handleInputChangeAssessmentForAcuteHivInfection = e => { 
+        setErrors({...temp, [e.target.name]:""})
+        setAssessmentForAcuteHivInfection ({...assessmentForAcuteHivInfection,  [e.target.name]: e.target.value});         
+    }
+    const [assessmentForPrepEligibility, setAssessmentForPrepEligibility]= useState(
+        {
+            hivNegative:"",
+            hivRiskScore:"",
+            noIndicationForPep: "",
+            hasNoProteinuria: "",
+            noHistoryOrSignsOfLiverAbnormalitiesCabLa: "",
+            noHistoryOfDrugToDrugInteractionCabLa: "",
+            noHistoryOfDrugHypersensitivityCabLa: "",
+
+        }
+    )
+    const handleInputChangeAssessmentForPrepEligibility = e => { 
+        setErrors({...temp, [e.target.name]:""})
+        setAssessmentForPrepEligibility ({...assessmentForPrepEligibility,  [e.target.name]: e.target.value});         
+    }
+    const [servicesReceivedByClient, setServicesReceivedByClient]= useState(
+        {
+            willingToCommencePrep:"",
+            reasonsForDecline:[],
+            otherReasonsForDecline: "",
+
+        }
+    )
+    const handleInputChangeServicesReceivedByClient = (e, data) => { 
+        setErrors({...temp, [e.target.name]:""})
+        
+        setServicesReceivedByClient ({...servicesReceivedByClient,  [e.target.name]: e.target.value});         
+    }
+
+    const handleInputReasonsForDecline = (e, data) => {
+        setServicesReceivedByClient({...servicesReceivedByClient, reasonsForDecline: data.value})
+    }
+
+    const [assessmentScore, setAssessmentScore] = useState(0);
+   
+
+    /*****  Validation  */
      const validate = () => {
         //PREP FORM VALIDATION
            temp.visitDate = objValues.visitDate? "" : "This field is required."
@@ -269,6 +390,11 @@ const BasicInfo = (props) => {
             objValues.stiScreening= stiScreening
             objValues.personId= patientID
             objValues.uniqueId= patientID
+            objValues.assessmentForAcuteHivInfection = assessmentForAcuteHivInfection
+            objValues.assessmentForPepIndication = assessmentForPepIndication
+            objValues.assessmentForPrepEligibility = assessmentForPrepEligibility
+            objValues.servicesReceivedByClient = servicesReceivedByClient
+            objValues.score = getPrepEligibilityScore();
                 if(props.activeContent && props.activeContent.actionType==="update"){//Perform operation for updation action
                     axios.put(`${baseUrl}prep-eligibility/${props.activeContent.id}`,objValues,
                     { headers: {"Authorization" : `Bearer ${token}`}},)
@@ -312,10 +438,10 @@ const BasicInfo = (props) => {
                             let errorMessage = error.response.data.apierror && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
                             if(error.response.data.apierror){
                               toast.error(error.response.data.apierror.message , {position: toast.POSITION.BOTTOM_CENTER});
-                            }else{
+                            } else {
                               toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
                             }
-                        }else{
+                        } else {
                             toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
                         }
                     });
@@ -327,6 +453,45 @@ const BasicInfo = (props) => {
             }   
     }
 
+    const isFemale = () => {
+        return props.patientObj.gender.toLowerCase() === "female";
+    }
+    
+    const is30AndAbove = () => {
+        return Number(props.patientObj.age) >= 30;
+    }
+
+    const getIndicationForPepResult = () => {
+        if (assessmentForPepIndication !== null && assessmentForPepIndication !== undefined){
+            return Object.values(assessmentForPepIndication).filter((each) => (each === "true")).length > 0 ? 0 : 1
+        }
+    }
+
+    const getAcuteHivResult = () => {
+        if (assessmentForAcuteHivInfection !== null && assessmentForAcuteHivInfection !== undefined){
+            return Object.values(assessmentForAcuteHivInfection).filter((each) => (each === "true")).length > 0 ? 0 : 1
+        }
+    }
+
+    const getPrepEligibilityScore = () => {
+        var score = 0;
+        score += drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0
+        score += riskCount.length > 0 ? 1 : 0
+        score += getAcuteHivResult()
+        score += getIndicationForPepResult()
+        if (is30AndAbove() && isFemale() === false) {
+            score += assessmentForPrepEligibility?.hasNoProteinuria === "true" ? 1 : 0;
+        }
+        score += assessmentForPrepEligibility?.noHistoryOrSignsOfLiverAbnormalitiesCabLa === "true" ? 1 : 0;
+        score += assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa === "true" ? 1 : 0;
+        score += assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa === "true" ? 1 : 0;
+
+        if (is30AndAbove() && isFemale() === false) {
+            return score >= 8 ? 1 : 0;
+        } else {
+            return score >= 7 ? 1 : 0;
+        }
+    }
 
     return (
         <>
@@ -357,6 +522,78 @@ const BasicInfo = (props) => {
                                 ) : "" }
                             </FormGroup>
                         </div>
+                        <div className="form-group  col-md-4">
+                            <FormGroup>
+                                <Label>Visit type <span style={{ color:"red"}}> *</span></Label>
+                                <select
+                                    className="form-control"
+                                    name="visitType"
+                                    id="visitType"
+                                    value={objValues.visitType}
+                                    onChange={handleInputChange}
+                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                    disabled={disabledField}
+                                >
+                                     <option value={""}>Select</option>
+                                        {visitType.map((value) => (
+                                            <option key={value.id} value={value.code}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+                                </select>
+                                {errors.visitType !=="" ? (
+                                <span className={classes.error}>{errors.visitType}</span>
+                                ) : "" }
+                            </FormGroup>
+                        </div>
+                        <div className="form-group  col-md-4">
+                            <FormGroup>
+                                <Label>Population type <span style={{ color:"red"}}> *</span></Label>
+                                <select
+                                    className="form-control"
+                                    name="populationType"
+                                    id="populationType"
+                                    value={objValues.populationType}
+                                    onChange={handleInputChange}
+                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                    disabled={disabledField}
+                                >
+                                     <option value={""}>Select</option>
+                                        {populationType.map((value) => (
+                                            <option key={value.id} value={value.code}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+                                </select>
+                                {errors.populationType !=="" ? (
+                                <span className={classes.error}>{errors.populationType}</span>
+                                ) : "" }
+                            </FormGroup>
+                        </div>
+                        {isFemale() && <div className="form-group  col-md-4">
+                            <FormGroup>
+                                <Label>Pregnancy Status <span style={{ color:"red"}}> *</span></Label>
+                                <select
+                                    className="form-control"
+                                    name="pregnancyStatus"
+                                    id="pregnancyStatus"
+                                    value={objValues.pregnancyStatus}
+                                    onChange={handleInputChange}
+                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                    disabled={disabledField}
+                                >
+                                     <option value={""}>Select</option>
+                                        {pregnancyStatus.map((value) => (
+                                            <option key={value.id} value={value.code}>
+                                                {value.display}
+                                            </option>
+                                        ))}
+                                </select>
+                                {errors.pregnancyStatus !=="" ? (
+                                <span className={classes.error}>{errors.pregnancyStatus}</span>
+                                ) : "" }
+                            </FormGroup>
+                        </div>}
                         <div className="form-group  col-md-4">
                             <FormGroup>
                                 <Label>Sex partners <span style={{ color:"red"}}> *</span></Label>
@@ -858,28 +1095,103 @@ const BasicInfo = (props) => {
                             
                             <hr/>
                             <br/>
-                            <div className="form-group  col-md-12 text-center pt-2 mb-4" style={{backgroundColor:'#000', width:'125%', height:'35px', color:'#fff', fontWeight:'bold'}} >Drug Use History</div>
-                            {/* <div className="form-group  col-md-4">
+
+                            <div className="form-group  col-md-12 text-center pt-2 mb-4" style={{backgroundColor:'#014D88', width:'125%', height:'35px', color:'#fff', fontWeight:'bold'}} >Assessment for PEP Indication</div>        
+                            <div className="form-group  col-md-6">
                                 <FormGroup>
-                                    <Label>Do you use any of these drugs/substances*</Label>
+                                    <Label>In the past 72 hours, have you had sex without a condom with someone whose HIV status is positive or not known to you?  </Label>
                                     <select
                                         className="form-control"
-                                        name="useAnyOfTheseDrugs"
-                                        id="useAnyOfTheseDrugs"
-                                        value={drugHistory.useAnyOfTheseDrugs}
-                                        onChange={handleInputChangeDrugHistory}
+                                        name="unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours"
+                                        id="unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours"
+                                        value={assessmentForPepIndication?.unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours}
+                                        onChange={handleInputChangeAssessmentForPepIndication}
                                         style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
                                     >
                                         <option value={""}></option>
                                         <option value="true">Yes</option>
                                         <option value="false">No</option>
                                         
                                     </select>
-                                    {errors.useAnyOfTheseDrugs !=="" ? (
-                                    <span className={classes.error}>{errors.useAnyOfTheseDrugs}</span>
+                                    {errors.unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours !=="" ? (
+                                    <span className={classes.error}>{errors.unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours}</span>
                                     ) : "" }
                                 </FormGroup>
-                            </div> */}
+                            </div> 
+                            <div className="form-group  col-md-6">
+                                <FormGroup>
+                                    <Label>Have you shared injection equipment like needles with someone whose HIV status is positive or unknown to you? </Label>
+                                    <select
+                                        className="form-control"
+                                        name="sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours"
+                                        id="sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours"
+                                        value={assessmentForPepIndication?.sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours}
+                                        onChange={handleInputChangeAssessmentForPepIndication}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
+                                    >
+                                        <option value={""}></option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                        
+                                    </select>
+                                    {errors.sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours !=="" ? (
+                                    <span className={classes.error}>{errors.sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </div>
+                            <hr/>
+                            <br/>
+                            <div className="form-group  col-md-12 text-center pt-2 mb-4" style={{backgroundColor:'#992E62', width:'125%', height:'35px', color:'#fff', fontWeight:'bold'}}  >Assessment for Acute HIV Infection</div>        
+                            <div className="form-group  col-md-6">
+                                <FormGroup>
+                                    <Label>In the past 2 weeks: Have you had a cold or flu such as fever, sore throat, abnormal sweats, swollen lymph nodes, mouth sores, headache or rash?</Label>
+                                    <select
+                                        className="form-control"
+                                        name="acuteHivSymptomsLasttwoWeeks"
+                                        id="acuteHivSymptomsLasttwoWeeks"
+                                        value={assessmentForAcuteHivInfection?.acuteHivSymptomsLasttwoWeeks}
+                                        onChange={handleInputChangeAssessmentForAcuteHivInfection}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
+                                    >
+                                        <option value={""}></option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                        
+                                    </select>
+                                    {errors.acuteHivSymptomsLasttwoWeeks !=="" ? (
+                                    <span className={classes.error}>{errors.acuteHivSymptomsLasttwoWeeks}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </div> 
+                            <div className="form-group  col-md-6">
+                                <FormGroup>
+                                    <Label>Have you had condomless anal or vaginal sex or shared injection materials and/or equipment in the past 28 days?</Label>
+                                    <select
+                                        className="form-control"
+                                        name="unprotectedAnalOrVaginalOrSharedNeedlesLast28Days"
+                                        id="unprotectedAnalOrVaginalOrSharedNeedlesLast28Days"
+                                        value={assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days}
+                                        onChange={handleInputChangeAssessmentForAcuteHivInfection}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
+                                    >
+                                        <option value={""}></option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                        
+                                    </select>
+                                    {errors.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days !=="" ? (
+                                    <span className={classes.error}>{errors.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </div>
+                            <hr/>
+                            <br/>
+                            <div className="form-group  col-md-12 text-center pt-2 mb-4" style={{backgroundColor:'#000', width:'125%', height:'35px', color:'#fff', fontWeight:'bold'}} >Drug Use History</div>
+                            
                             <hr/>
                             <h3>Route of Administration</h3>
                             <h4>Do you use any of these drugs/substances ?</h4>
@@ -1393,6 +1705,185 @@ const BasicInfo = (props) => {
                                 <h4>Calculate the sum of the STI screening. If {">= "}1, should be referred for STI test </h4>
                                 <b>Score :{stiCount.length}</b>
                             </Message>
+                            <hr/>
+                            <br/>
+                            <div className="form-group  col-md-12 text-center pt-2 mb-4" style={{backgroundColor:'#014D88', width:'125%', height:'35px', color:'#fff', fontWeight:'bold'}} >Assessment for PrEP Eligibilty</div>
+                            <div>
+                                <FormGroup>
+                                    <Label>{`HIV Negative: ${drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0}`}</Label>
+                                </FormGroup>
+                            </div>
+                            <div>
+                                <FormGroup>
+                                    <Label>{`HIV Risk Score > 1: ${riskCount.length > 0 ? 1 : 0}`}</Label>
+                                </FormGroup>
+                            </div>
+                            {(is30AndAbove() && isFemale() === false) && <div className="form-group  col-md-4">
+                                <FormGroup>
+                                    <Label>{`Has no proteinuria (>30 Years)`}</Label>
+                                    <select
+                                        className="form-control"
+                                        name="hasNoProteinuria"
+                                        id="hasNoProteinuria"
+                                        value={assessmentForPrepEligibility?.hasNoProteinuria}
+                                        onChange={handleInputChangeAssessmentForPrepEligibility}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
+                                    >
+                                        <option value={""}></option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                        
+                                    </select>
+                                    {errors.hasNoProteinuria !=="" ? (
+                                    <span className={classes.error}>{errors.hasNoProteinuria}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </div>}
+                            <div className="form-group  col-md-4">
+                                <FormGroup>
+                                    <Label>{`No history / signs & symptoms of Liver abnormalities (CAB-LA)`}</Label>
+                                    <select
+                                        className="form-control"
+                                        name="noHistoryOrSignsOfLiverAbnormalitiesCabLa"
+                                        id="noHistoryOrSignsOfLiverAbnormalitiesCabLa"
+                                        value={assessmentForPrepEligibility?.noHistoryOrSignsOfLiverAbnormalitiesCabLa}
+                                        onChange={handleInputChangeAssessmentForPrepEligibility}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
+                                    >
+                                        <option value={""}></option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                        
+                                    </select>
+                                    {errors.noHistoryOrSignsOfLiverAbnormalitiesCabLa !=="" ? (
+                                    <span className={classes.error}>{errors.noHistoryOrSignsOfLiverAbnormalitiesCabLa}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </div>
+                            <div className="form-group  col-md-4">
+                                <FormGroup>
+                                    <Label>{`No history of drug-drug interaction (CAB-LA)`}</Label>
+                                    <select
+                                        className="form-control"
+                                        name="noHistoryOfDrugToDrugInteractionCabLa"
+                                        id="noHistoryOfDrugToDrugInteractionCabLa"
+                                        value={assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa}
+                                        onChange={handleInputChangeAssessmentForPrepEligibility}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
+                                    >
+                                        <option value={""}></option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                        
+                                    </select>
+                                    {errors.noHistoryOfDrugToDrugInteractionCabLa !=="" ? (
+                                    <span className={classes.error}>{errors.noHistoryOfDrugToDrugInteractionCabLa}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </div>
+                            <div className="form-group  col-md-4">
+                                <FormGroup>
+                                    <Label>{`No history of drug hypersensitivity (CAB-LA)`}</Label>
+                                    <select
+                                        className="form-control"
+                                        name="noHistoryOfDrugHypersensitivityCabLa"
+                                        id="noHistoryOfDrugHypersensitivityCabLa"
+                                        value={assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa}
+                                        onChange={handleInputChangeAssessmentForPrepEligibility}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
+                                    >
+                                        <option value={""}></option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                        
+                                    </select>
+                                    {errors.noHistoryOfDrugHypersensitivityCabLa !=="" ? (
+                                    <span className={classes.error}>{errors.noHistoryOfDrugHypersensitivityCabLa}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </div>
+                            <Message warning>
+                                <h4>Calculate the sum of PrEP Eligibility. If {"<= "}1 client is Eligible for PrEP.  (Score: Count Yes=1, No=0).</h4>
+                                {/* <b>Score :{stiCount.length}</b> */}
+                                <h5>{`HIV Negative: ${drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0}`}</h5>
+                                <h5>{`HIV risk score >=1 : ${riskCount.length > 0 ? 1 : 0}`}</h5>
+                                <h5>{`No signs & symptoms of acute HIV infection: ${getAcuteHivResult() }`}</h5>
+                                <h5>{`No Indication for PEP: ${getIndicationForPepResult()}`}</h5>
+                                {(is30AndAbove() && isFemale() === false) && <h5>{`Has no proteinuria: ${assessmentForPrepEligibility?.hasNoProteinuria === "true" ? 1 : 0}`}</h5>}
+
+                            </Message>
+                            <Message warning>
+                                <h4>Calculate the sum of PrEP Eligibility for CAB-LA regimen. If the following below =1 client is Eligible for CAB-LA. {`(Score: Count Yes=1, No=0)`}</h4>
+                                {/* <b>Score :{stiCount.length}</b> */}
+                                <h5>{`No history / signs & symptoms of Liver abnormalities (CAB-LA): ${assessmentForPrepEligibility?.noHistoryOrSignsOfLiverAbnormalitiesCabLa === "true" ? 1 : 0}`}</h5>
+                                <h5>{`No history of drug-drug interaction (CAB-LA): ${assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa === "true" ? 1 : 0}`}</h5>
+                                <h5>{`No history of drug hypersensitivity (CAB-LA): ${assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa === "true" ? 1 : 0}`}</h5>
+
+                            </Message>
+                            <Message warning>
+                                <h3>{`Final Prep Eligibility Score: ${getPrepEligibilityScore()}`}</h3>
+                            </Message>
+                            <hr/>
+                            <br/>
+                            <div className="form-group  col-md-12 text-center pt-2 mb-4" style={{backgroundColor:'#014D88', width:'125%', height:'35px', color:'#fff', fontWeight:'bold'}} >Services Received by Client</div>
+                            <div className="form-group  col-md-4">
+                                <FormGroup>
+                                    <Label>{`Willing to commence PrEP`}</Label>
+                                    <select
+                                        className="form-control"
+                                        name="willingToCommencePrep"
+                                        id="willingToCommencePrep"
+                                        value={servicesReceivedByClient?.willingToCommencePrep}
+                                        onChange={handleInputChangeServicesReceivedByClient}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
+                                    >
+                                        <option value={""}></option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                        
+                                    </select>
+                                    {errors.willingToCommencePrep !=="" ? (
+                                    <span className={classes.error}>{errors.willingToCommencePrep}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </div>
+                                     
+                                        
+                                        {/* <Dropdown placeholder='Skills' fluid multiple selection options={reasonForDecline} /> */}
+                            {servicesReceivedByClient?.willingToCommencePrep === 'false' && <div className="form-group  col-md-4">
+                                <FormGroup>
+                                    <Label>{`Reasons for Declining PrEP`}</Label>
+                                    <Dropdown value={servicesReceivedByClient?.reasonsForDecline} placeholder='select reasons for decline' onChange={handleInputReasonsForDecline} fluid multiple selection options={reasonForDecline.map((each) => {
+                                            return {key: each.code, text:each.display, value:each.code}})} />
+                                    {errors.reasonsForDecline !=="" ? (
+                                    <span className={classes.error}>{errors.reasonsForDecline}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </div>}
+                            {(servicesReceivedByClient?.reasonsForDecline?.find((one)=> one === "REASON_PREP_DECLINED_OTHERS_(SPECIFY)") !== (null || undefined)) && <div className="form-group  col-md-4">
+                                <FormGroup>
+                                    <Label>{`Other Reasons for Declining PrEP (Specify)`}</Label>
+                                    <Input
+                                        className="form-control"
+                                        name="otherReasonsForDecline"
+                                        id="otherReasonsForDecline"
+                                        value={servicesReceivedByClient?.otherReasonsForDecline}
+                                        onChange={handleInputChangeServicesReceivedByClient}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        disabled={disabledField}
+                                    />
+
+                                    {errors.reasonsForDecline !=="" ? (
+                                    <span className={classes.error}>{errors.reasonsForDecline}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </div>}
+                         
                            
                             {saving ? <Spinner /> : ""}
                             <br />
