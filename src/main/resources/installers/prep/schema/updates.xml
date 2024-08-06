@@ -141,5 +141,26 @@
                 ADD COLUMN history_of_drug_allergies VARCHAR(255);
         </sql>
     </changeSet>
-
+    <changeSet failOnError="true" author="Gamaliel" id="add-risk-reduction-service">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_enrollment" columnName="risk_reduction_service" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_enrollment
+            ADD COLUMN risk_reduction_service VARCHAR(255);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="add-health-care-worker-signature">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_enrollment" columnName="health-care-worker-signature" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_enrollment
+            ADD COLUMN health_care_worker_signature VARCHAR(255);
+        </sql>
+    </changeSet>
 </databaseChangeLog>
