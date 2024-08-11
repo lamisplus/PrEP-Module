@@ -578,6 +578,7 @@ public class PrepService {
         prepClinic.setMonthsOfRefill(prepClinicRequestDto.getMonthsOfRefill());
         prepClinic.setHistoryOfDrugAllergies(prepClinicRequestDto.getHistoryOfDrugAllergies());
 
+        prepClinic.setHealthCareWorkerSignature(prepClinicRequestDto.getHealthCareWorkerSignature());
         return prepClinic;
     }
     private PrepClinicDto clinicToClinicDto(PrepClinic clinic) {

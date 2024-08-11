@@ -115,11 +115,6 @@ public class PrepEnrollment extends Audit implements Serializable {
     @Column(name = "target_group")
     private String targetGroup;
 
-    @Column(name = "risk_reduction_service")
-    private String riskReductionService;
-
-    @Column(name = "health_care_worker_signature")
-    private String healthCareWorkerSignature;
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){

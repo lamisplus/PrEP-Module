@@ -3,6 +3,7 @@ package org.lamisplus.modules.prep.domain.dto;
 
 import lombok.*;
 
+import javax.persistence.Column;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -76,6 +77,8 @@ public class PrepClinicRequestDto implements Serializable{
     private String riskReductionServices;
 
     private String notedSideEffects;
+
+    private String healthCareWorkerSignature;
 
     private Integer duration;
 

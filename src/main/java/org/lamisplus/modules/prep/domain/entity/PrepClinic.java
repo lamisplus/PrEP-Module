@@ -229,6 +229,9 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "months_of_refill")
     private Integer monthsOfRefill;
 
+    @Column(name = "health_care_worker_signature")
+    private String healthCareWorkerSignature;
+
 
     @PrePersist
     public void setFields(){
