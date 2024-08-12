@@ -158,6 +158,8 @@ public class PrepService {
 
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepClinic.setIsCommencement(false);
+        prepClinic.setVisitType(clinicRequestDto.getVisitType());
+        prepClinic.setHealthCareWorkerSignature(clinicRequestDto.getHealthCareWorkerSignature());
         prepClinic = prepClinicRepository.save(prepClinic);
         prepClinic.setPregnant(clinicRequestDto.getPregnant());
         prepClinic.setPerson(person);
@@ -630,6 +632,8 @@ public class PrepService {
         prepClinicDto.setNotedSideEffects( clinic.getNotedSideEffects());
 
         prepClinicDto.setDuration( clinic.getDuration());
+
+        prepClinicDto.setVisitType( clinic.getVisitType());
 
         prepClinicDto.setPrepGiven( clinic.getPrepGiven());
         prepClinicDto.setOtherDrugs( clinic.getOtherDrugs());

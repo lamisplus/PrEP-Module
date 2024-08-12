@@ -91,6 +91,8 @@ public class PrepClinicRequestDto implements Serializable{
 
     private String prepType;
     private String populationType;
+    private String visitType;
+
     private LocalDate dateLiverFunctionTestResults;
     private String liverFunctionTestResults;
     private String historyOfDrugToDrugInteraction;

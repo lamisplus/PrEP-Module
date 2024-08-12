@@ -302,6 +302,9 @@ public class PrepClinicService {
         prepClinicDto.setDateOfFamilyPlanning(clinic.getDateOfFamilyPlanning());
         prepClinicDto.setFamilyPlanning(clinic.getFamilyPlanning());
 
+        prepClinicDto.setVisitType(clinic.getVisitType());
+        prepClinicDto.setFamilyPlanning(clinic.getFamilyPlanning());
+
         prepClinicDto.setDateReferred( clinic.getDateReferred() );
         prepClinicDto.setPrepEnrollmentUuid( clinic.getPrepEnrollmentUuid() );
         prepClinicDto.setRegimenId( clinic.getRegimenId() );
@@ -334,6 +337,7 @@ public class PrepClinicService {
 
         prepClinicDto.setRiskReductionServices( clinic.getRiskReductionServices());
         prepClinicDto.setNotedSideEffects( clinic.getNotedSideEffects());
+        prepClinicDto.setHealthCareWorkerSignature( clinic.getHealthCareWorkerSignature());
 
         prepClinicDto.setDuration( clinic.getDuration());
 

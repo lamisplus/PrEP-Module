@@ -342,6 +342,7 @@ const ClinicVisit = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
+        console.log("returned: ", response.data);
         setObjValues(response.data);
         if (response.data.otherTestsDone !== null) {
           setOtherTest([
@@ -1080,14 +1081,11 @@ const ClinicVisit = (props) => {
 
     setErrors({ ...errors, [e.target.name]: "" });
   };
-  useEffect(() => {
-    console.log("form data: ", objValues);
-  });
   return (
     <div>
       <div className="row">
         <div className="col-md-6">
-          <h2>Clinic Follow-up Visit 11111</h2>
+          <h2>Clinic Follow-up Visit</h2>
         </div>
       </div>
       <Grid>
@@ -1557,7 +1555,7 @@ const ClinicVisit = (props) => {
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
                     }}
-                    disabled={true}
+                    disabled
                   />
                 </FormGroup>
               </div>
@@ -1565,10 +1563,14 @@ const ClinicVisit = (props) => {
                 <FormGroup>
                   <FormLabelName>Date of Last HIV Test </FormLabelName>
                   <Input
-                    type="Date"
+                    type={hivTestValue == "NOT DONE" ? "text" : "date"}
                     name="hivTestResultDate"
                     id="hivTestResultDate"
-                    value={hivTestResultDate}
+                    value={
+                      hivTestValue == "NOT DONE"
+                        ? "NOT APPLICABLE"
+                        : hivTestResultDate
+                    }
                     onChange={(e) => {
                       setHivTestValue(e.target.value);
                       handleInputChange(e);
@@ -1577,7 +1579,7 @@ const ClinicVisit = (props) => {
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
                     }}
-                    disabled={true}
+                    disabled
                   />
                 </FormGroup>
               </div>
@@ -2520,49 +2522,57 @@ const ClinicVisit = (props) => {
               </div>
             </div>
             <br />
-            {props.activeContent &&
-            props.activeContent.actionType === "update" ? (
+            {!disabledField && (
               <>
-                <MatButton
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  hidden={disabledField}
-                  className={classes.button}
-                  startIcon={<SaveIcon />}
-                  style={{ backgroundColor: "#014d88" }}
-                  onClick={handleSubmit}
-                  disabled={saving}
-                >
-                  {!saving ? (
-                    <span style={{ textTransform: "capitalize" }}>Update</span>
-                  ) : (
-                    <span style={{ textTransform: "capitalize" }}>
-                      Updating...
-                    </span>
-                  )}
-                </MatButton>
-              </>
-            ) : (
-              <>
-                <MatButton
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  className={classes.button}
-                  startIcon={<SaveIcon />}
-                  style={{ backgroundColor: "#014d88" }}
-                  onClick={handleSubmit}
-                  disabled={saving}
-                >
-                  {!saving ? (
-                    <span style={{ textTransform: "capitalize" }}>Save</span>
-                  ) : (
-                    <span style={{ textTransform: "capitalize" }}>
-                      Saving...
-                    </span>
-                  )}
-                </MatButton>
+                {props.activeContent &&
+                props.activeContent.actionType === "update" ? (
+                  <>
+                    <MatButton
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                      hidden={disabledField}
+                      className={classes.button}
+                      startIcon={<SaveIcon />}
+                      style={{ backgroundColor: "#014d88" }}
+                      onClick={handleSubmit}
+                      disabled={saving}
+                    >
+                      {!saving ? (
+                        <span style={{ textTransform: "capitalize" }}>
+                          Update
+                        </span>
+                      ) : (
+                        <span style={{ textTransform: "capitalize" }}>
+                          Updating...
+                        </span>
+                      )}
+                    </MatButton>
+                  </>
+                ) : (
+                  <>
+                    <MatButton
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                      className={classes.button}
+                      startIcon={<SaveIcon />}
+                      style={{ backgroundColor: "#014d88" }}
+                      onClick={handleSubmit}
+                      disabled={saving}
+                    >
+                      {!saving ? (
+                        <span style={{ textTransform: "capitalize" }}>
+                          Save
+                        </span>
+                      ) : (
+                        <span style={{ textTransform: "capitalize" }}>
+                          Saving...
+                        </span>
+                      )}
+                    </MatButton>
+                  </>
+                )}
               </>
             )}
           </Segment>

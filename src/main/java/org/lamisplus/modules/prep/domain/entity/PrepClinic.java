@@ -98,6 +98,9 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "visit_uuid")
     private String visitUuid;
 
+    @Column(name = "visit_type")
+    private String visitType;
+
     @OneToOne
     @JoinColumn(name = "vital_sign_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private VitalSign vitalSign;

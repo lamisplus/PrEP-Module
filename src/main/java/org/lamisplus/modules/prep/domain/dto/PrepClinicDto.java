@@ -96,6 +96,8 @@ public class PrepClinicDto implements Serializable{
     private String hivTestResult;
     private String prepType;
     private String populationType;
+    private String visitType;
+    private String healthCareWorkerSignature;
     private LocalDate dateLiverFunctionTestResults;
     private String liverFunctionTestResults;
     private String historyOfDrugToDrugInteraction;
