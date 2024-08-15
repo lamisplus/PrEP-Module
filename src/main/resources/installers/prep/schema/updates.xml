@@ -152,7 +152,17 @@
             ADD COLUMN health_care_worker_signature VARCHAR(255);
         </sql>
     </changeSet>
-
+    <changeSet failOnError="true" author="Gamaliel" id="add_risk_reduction_services">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_clinic" columnName="risk_reduction_services" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic
+            ADD COLUMN risk_reduction_services VARCHAR(255);
+        </sql>
+    </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="add-visit-type">
         <preConditions onFail="MARK_RAN">
             <not>
