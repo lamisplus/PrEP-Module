@@ -17,12 +17,16 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequiredArgsConstructor
 public class PrepController {
     private final PrepService prepService;
     private final PatientActivityService patientActivityService;
     private final String PREP_URL_VERSION_ONE = "/api/v1/prep";
     private final String PREP_URL_VERSION_TWO = "/api/v2/prep";
+
+    public PrepController(PrepService prepService, PatientActivityService patientActivityService) {
+        this.prepService = prepService;
+        this.patientActivityService = patientActivityService;
+    }
 
    /* @GetMapping(PREP_URL_VERSION_ONE + "/persons")
     @ApiOperation("Get Prep Persons")

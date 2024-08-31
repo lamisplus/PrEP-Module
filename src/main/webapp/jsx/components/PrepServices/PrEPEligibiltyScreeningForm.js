@@ -1764,7 +1764,7 @@ const BasicInfo = (props) => {
                             </div>
                             <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>{`No history of drug-drug interaction (CAB-LA)`}</Label>
+                                    <Label>{`No history of PrEP drug interaction (CAB-LA)`}</Label>
                                     <select
                                         className="form-control"
                                         name="noHistoryOfDrugToDrugInteractionCabLa"
@@ -1820,7 +1820,7 @@ const BasicInfo = (props) => {
                                 <h4>Calculate the sum of PrEP Eligibility for CAB-LA regimen. If the following below =1 client is Eligible for CAB-LA. {`(Score: Count Yes=1, No=0)`}</h4>
                                 {/* <b>Score :{stiCount.length}</b> */}
                                 <h5>{`No history / signs & symptoms of Liver abnormalities (CAB-LA): ${assessmentForPrepEligibility?.noHistoryOrSignsOfLiverAbnormalitiesCabLa === "true" ? 1 : 0}`}</h5>
-                                <h5>{`No history of drug-drug interaction (CAB-LA): ${assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa === "true" ? 1 : 0}`}</h5>
+                                <h5>{`No history of PrEP drug interaction (CAB-LA): ${assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa === "true" ? 1 : 0}`}</h5>
                                 <h5>{`No history of drug hypersensitivity (CAB-LA): ${assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa === "true" ? 1 : 0}`}</h5>
 
                             </Message>
