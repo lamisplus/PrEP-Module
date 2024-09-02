@@ -410,6 +410,7 @@ const PrEPCommencementForm = (props) => {
                                     <Input
                                         className="form-control"
                                         type="date"
+                                        onKeyDown={(e)=>e.preventDefault()}
                                         name="dateInitialAdherenceCounseling"
                                         id="dateInitialAdherenceCounseling"
                                         min={patientDto && patientDto.dateEnrolled ? patientDto.dateEnrolled : ""}
@@ -430,6 +431,7 @@ const PrEPCommencementForm = (props) => {
                                     <Input
                                         className="form-control"
                                         type="date"
+                                        onKeyDown={(e)=>e.preventDefault()}
                                         name="datePrepStart"
                                         id="datePrepStart"
                                         min={patientDto && patientDto.dateEnrolled ? patientDto.dateEnrolled : ""}
@@ -636,8 +638,9 @@ const PrEPCommencementForm = (props) => {
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="historyOfDrugToDrugInteraction">History of Drug-Drug Interactions<span
-                                        style={{color: "red"}}> *</span></Label>
+                                    <Label for="historyOfDrugToDrugInteraction">History of Drug-Drug Interactions
+                                        {/* <span style={{color: "red"}}> *</span> */}
+                                        </Label>
                                     <Input
                                         className="form-control"
                                         type="select"
@@ -697,6 +700,7 @@ const PrEPCommencementForm = (props) => {
                                     <Input
                                         className="form-control"
                                         type="date"
+                                        onKeyDown={(e)=>e.preventDefault()}
                                         name="dateLiverFunctionTestResults"
                                         id="dateLiverFunctionTestResults"
                                         min={patientDto && patientDto.dateEnrolled ? patientDto.dateEnrolled : ""}
@@ -738,6 +742,7 @@ const PrEPCommencementForm = (props) => {
                                         <Label for="datereferred">Date referred</Label>
                                         <Input
                                             type="date"
+                                            onKeyDown={(e)=>e.preventDefault()}
                                             name="datereferred"
                                             id="datereferred"
                                             onChange={handleInputChange}
@@ -837,6 +842,7 @@ const PrEPCommencementForm = (props) => {
                             <Label >Date PrEP Given</Label>
                             <Input
                                 type="date"
+                                onKeyDown={(e)=>e.preventDefault()}
                                 name="datePrepGiven"
                                 id="datePrepGiven"
                                 value={objValues.datePrepGiven}

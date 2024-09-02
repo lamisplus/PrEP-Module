@@ -1111,6 +1111,7 @@ const ClinicVisit = (props) => {
                     type="date"
                     name="encounterDate"
                     id="encounterDate"
+                    onKeyDown={(e)=>e.preventDefault()}
                     value={objValues.encounterDate}
                     style={{
                       border: "1px solid #014D88",
@@ -1975,6 +1976,7 @@ const ClinicVisit = (props) => {
                   <FormLabelName >Date PrEP Given <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
                     type="date"
+                    onKeyDown={(e)=>e.preventDefault()}
                     name="datePrepGiven"
                     id="datePrepGiven"
                     value={objValues.datePrepGiven}
@@ -2055,6 +2057,7 @@ const ClinicVisit = (props) => {
                   <FormLabelName>Date of Family Planning </FormLabelName>
                   <Input
                     type="date"
+                    onKeyDown={(e)=>e.preventDefault()}
                     name="dateOfFamilyPlanning"
                     id="dateOfFamilyPlanning"
                     value={objValues.dateOfFamilyPlanning}
@@ -2109,6 +2112,7 @@ const ClinicVisit = (props) => {
                       </FormLabelName>
                       <Input
                         type="date"
+                        onKeyDown={(e)=>e.preventDefault()}
                         name="testDate"
                         id="testDate"
                         value={urinalysisTest.testDate}
@@ -2193,6 +2197,7 @@ const ClinicVisit = (props) => {
                       <FormLabelName>Hepatitis Test Date</FormLabelName>
                       <Input
                         type="date"
+                        onKeyDown={(e)=>e.preventDefault()}
                         name="testDate"
                         id="testDate"
                         value={hepatitisTest.testDate}
@@ -2261,6 +2266,7 @@ const ClinicVisit = (props) => {
                       <FormLabelName>Syphilis Test Date</FormLabelName>
                       <Input
                         type="date"
+                        onKeyDown={(e)=>e.preventDefault()}
                         name="testDate"
                         id="testDate"
                         value={syphilisTest.testDate}
@@ -2401,6 +2407,7 @@ const ClinicVisit = (props) => {
                         <FormLabelName> Test Date</FormLabelName>
                         <Input
                           type="date"
+                          onKeyDown={(e)=>e.preventDefault()}
                           name="testDate"
                           id="testDate"
                           value={eachTest.testDate}
@@ -2480,6 +2487,7 @@ const ClinicVisit = (props) => {
                 <FormLabelName>Next Appointment Date</FormLabelName>
                 <Input
                   type="date"
+                  onKeyDown={(e)=>e.preventDefault()}
                   name="nextAppointment"
                   id="nextAppointment"
                   value={objValues.nextAppointment}

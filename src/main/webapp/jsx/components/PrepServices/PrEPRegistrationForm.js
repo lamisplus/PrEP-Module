@@ -343,6 +343,7 @@ const PrEPRegistrationForm = (props) => {
                   <Input
                     className="form-control"
                     type="date"
+                    onKeyDown={(e)=>e.preventDefault()}
                     name="dateEnrolled"
                     id="dateEnrolled"
                     value={objValues.dateEnrolled}
@@ -422,6 +423,7 @@ const PrEPRegistrationForm = (props) => {
                   <Input
                     className="form-control"
                     type="date"
+                    onKeyDown={(e)=>e.preventDefault()}
                     name="dateOfLastHivNegativeTest"
                     id="dateOfLastHivNegativeTest"
                     value={objValues.dateOfLastHivNegativeTest}
@@ -452,6 +454,7 @@ const PrEPRegistrationForm = (props) => {
                   <Input
                     className="form-control"
                     type="date"
+                    onKeyDown={(e)=>e.preventDefault()}
                     name="dateReferred"
                     id="dateReferred"
                     value={objValues.dateReferred}

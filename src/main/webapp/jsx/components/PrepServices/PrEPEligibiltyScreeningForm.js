@@ -85,6 +85,18 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
+export const DateInputWrapper = ({ children }) => {
+
+    const handleKeyDown = (event) => {
+        event.preventDefault()
+    };
+
+    const clonedChildren = React.cloneElement(children, {
+        onKeydown: handleKeyDown,
+    });
+
+    return clonedChildren;
+};
 
 const BasicInfo = (props) => {
     const classes = useStyles();
@@ -506,6 +518,7 @@ const BasicInfo = (props) => {
                                 <Label>Visit Date <span style={{ color:"red"}}> *</span></Label>
                                 <input
                                     type="date"
+                                    onKeyDown={(e)=>e.preventDefault()}
                                     className="form-control"
                                     name="visitDate"
                                     id="visitDate"
@@ -680,7 +693,7 @@ const BasicInfo = (props) => {
                             </FormGroup>
                         </div>
                         </div>
-                        <div className="form-group  col-md-12 text-center pt-2 mb-4" style={{backgroundColor:'#992E62', width:'125%', height:'35px', color:'#fff', fontWeight:'bold'}} >HIV Risk Assessment  (Last 3 months)</div>
+                        <div className="form-group my-4 col-md-12 text-center pt-2 mb-4" style={{backgroundColor:'#992E62', width:'125%', height:'35px', color:'#fff', fontWeight:'bold'}} >HIV Risk Assessment  (Last 3 months)</div>
                             <div className="form-group  col-md-4">
                                 <FormGroup>
                                     <Label>Unprotected Vaginal sex with casual partner</Label>

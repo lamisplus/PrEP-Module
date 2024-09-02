@@ -210,8 +210,8 @@ const Patients = (props) => {
         }}
         components={{
           Toolbar: (props) => (
-            <div>
-              <div className="form-check custom-checkbox  float-left mt-4 ml-3 ">
+            <div className="p-2">
+              <div className="form-check custom-checkbox  float-left mt-4 ml-3">
                 <input
                   type="checkbox"
                   className="form-check-input"
