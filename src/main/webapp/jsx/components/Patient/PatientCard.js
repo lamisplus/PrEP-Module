@@ -97,6 +97,7 @@ function PatientCard(props) {
     return phoneNumber ? phoneNumber?.value : '';
   };
   const getAddress = (identifier) => {
+    console.log('identifier: ',identifier)
     const identifiers = identifier;
     const address = identifiers?.address?.find?.(obj => obj?.city);
     const houseAddress = Array.isArray(address?.line) && (address?.line[0] != null) ? address?.line[0] : ""
