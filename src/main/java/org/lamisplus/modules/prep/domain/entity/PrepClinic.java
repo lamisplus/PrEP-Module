@@ -39,7 +39,7 @@ import java.util.UUID;
 public class PrepClinic extends Audit implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id", nullable = false, unique = true)
     private Long id;
 
     @Column(name = " date_initial_adherence_counseling")

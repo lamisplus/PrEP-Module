@@ -446,7 +446,7 @@ const ClinicVisit = (props) => {
     <div className="row">
 
       <div className="col-md-6">
-        <h2>Clinic Follow-up Visit</h2>
+        <h2>Clinic Follow-up Visi hhhht</h2>
         </div>      
       </div>
       <Grid columns='equal'>

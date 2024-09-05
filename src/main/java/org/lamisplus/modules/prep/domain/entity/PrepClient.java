@@ -19,5 +19,7 @@ public interface PrepClient {
     Integer getEligibilityCount();
     Integer getCommencementCount();
     LocalDate getDateOfRegistration();
+    String getPhoneNumber();
+    String getAddress();
     String getHIVResultAtVisit();
 }

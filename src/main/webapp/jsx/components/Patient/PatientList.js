@@ -64,25 +64,24 @@ const Patients = (props) => {
   const [patientList, setPatientList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPPI, setShowPPI] = useState(true);
-  const [query, setQuery] = useState({ pageSize: 10, page: 0, search: "" });
-
   useEffect(() => {
-    fetchPatients(query);
+    patients();
   }, []);
-
-  const fetchPatients = async (query) => {
+  ///GET LIST OF Patients
+  async function patients() {
     setLoading(true);
-    try {
-      const response = await axios.get(
-        `${baseUrl}prep/persons?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setPatientList(response.data.records);
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-    }
-  };
+    axios
+      .get(`${baseUrl}prep/persons`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setLoading(false);
+        setPatientList(response.data);
+      })
+      .catch((error) => {
+        setLoading(false);
+      });
+  }
 
   const handleCheckBox = (e) => {
     if (e.target.checked) {
@@ -98,6 +97,7 @@ const Patients = (props) => {
         icons={tableIcons}
         title="Find Patient"
         columns={[
+          // { title: " ID", field: "Id" },
           {
             title: "Patient Name",
             field: "name",
@@ -111,63 +111,87 @@ const Patients = (props) => {
           { title: "PrEP Code", field: "clientCode", filtering: false },
           { title: "Sex", field: "gender", filtering: false },
           { title: "Age", field: "age", filtering: false },
+
+          //{ title: "ART Number", field: "v_status", filtering: false },
           { title: "PrEP Status", field: "status", filtering: false },
           { title: "Actions", field: "actions", filtering: false },
         ]}
-        data={patientList.map((row) => ({
-          name: row.firstName + " " + row.surname,
-          hospital_number: row.hospitalNumber,
-          clientCode: row.uniqueId,
-          gender: row && row.gender ? row.gender : "",
-          age: row.age,
-          status: (
-            <Label color="blue" size="mini">
-              {row.prepStatus}
-            </Label>
-          ),
-          actions: (
-            <div>
-              <Link
-                to={{
-                  pathname: "/patient-dashboard",
-                  state: { patientObj: row },
-                }}
-              >
-                <ButtonGroup
-                  variant="contained"
-                  aria-label="split button"
-                  style={{
-                    backgroundColor: "rgb(153, 46, 98)",
-                    height: "30px",
-                    width: "215px",
-                  }}
-                  size="large"
-                >
-                  <Button
-                    color="primary"
-                    size="small"
-                    aria-label="select merge strategy"
-                    aria-haspopup="menu"
-                    style={{ backgroundColor: "rgb(153, 46, 98)" }}
-                  >
-                    <MdDashboard />
-                  </Button>
-                  <Button style={{ backgroundColor: "rgb(153, 46, 98)" }}>
-                    <span
-                      style={{
-                        fontSize: "12px",
-                        color: "#fff",
-                        fontWeight: "bolder",
-                      }}
-                    >
-                      Patient Dashboard
-                    </span>
-                  </Button>
-                </ButtonGroup>
-              </Link>
-            </div>
-          ),
-        }))}
+        //isLoading={loading}
+        data={(query) =>
+          new Promise((resolve, reject) =>
+            axios
+              .get(
+                `${baseUrl}prep/persons?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              )
+              .then((response) => response)
+              .then((result) => {
+                resolve({
+                  data: result?.data?.records?.map?.((row) => ({
+                    name: row.firstName + " " + row.surname,
+                    hospital_number: row.hospitalNumber,
+                    clientCode: row.uniqueId,
+                    //phone_number:  row.phone,
+                    gender: row && row.gender ? row.gender : "",
+                    age: row.age,
+
+                    status: (
+                      <Label color="blue" size="mini">
+                        {row.prepStatus}
+                      </Label>
+                    ),
+
+                    actions: (
+                      <div>
+                        <Link
+                          to={{
+                            pathname: "/patient-dashboard",
+                            state: { patientObj: row },
+                          }}
+                        >
+                          <ButtonGroup
+                            variant="contained"
+                            aria-label="split button"
+                            style={{
+                              backgroundColor: "rgb(153, 46, 98)",
+                              height: "30px",
+                              width: "215px",
+                            }}
+                            size="large"
+                          >
+                            <Button
+                              color="primary"
+                              size="small"
+                              aria-label="select merge strategy"
+                              aria-haspopup="menu"
+                              style={{ backgroundColor: "rgb(153, 46, 98)" }}
+                            >
+                              <MdDashboard />
+                            </Button>
+                            <Button
+                              style={{ backgroundColor: "rgb(153, 46, 98)" }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: "12px",
+                                  color: "#fff",
+                                  fontWeight: "bolder",
+                                }}
+                              >
+                                Patient Dashboard
+                              </span>
+                            </Button>
+                          </ButtonGroup>
+                        </Link>
+                      </div>
+                    ),
+                  })),
+                  page: query.page,
+                  totalCount: result.data.totalRecords,
+                });
+              })
+          )
+        }
         options={{
           headerStyle: {
             backgroundColor: "#014d88",

@@ -66,11 +66,14 @@ const styles = theme => ({
 function PatientCard(props) {
   const { classes } = props;
   //const patientObj = props.patientObj ? props.patientObj : {}
-  const [patientObj, setpatientObj] = useState(props.patientDetail)
+  //const [patientObj, setpatientObj] = useState(props.patientObj)
+  const patientObj = props?.patientObj;
+  //console.log("inn",props.patientObj)
 
-  useEffect(() => {
-    setpatientObj(props.patientDetail);
-  }, [props.patientDetail]);
+  // useEffect(() => {
+  //   setpatientObj(props.patientDetail);
+  // }, [props.patientDetail]);
+
   const calculate_age = dob => {
     var today = new Date();
     var dateParts = dob.split("-");
@@ -97,7 +100,7 @@ function PatientCard(props) {
     return phoneNumber ? phoneNumber?.value : '';
   };
   const getAddress = (identifier) => {
-    console.log('identifier: ',identifier)
+    console.log('identifier: ', identifier)
     const identifiers = identifier;
     const address = identifiers?.address?.find?.(obj => obj?.city);
     const houseAddress = Array.isArray(address?.line) && (address?.line[0] != null) ? address?.line[0] : ""
@@ -116,7 +119,7 @@ function PatientCard(props) {
                 <Row className={"mt-1"}>
                   <Col md={12} className={classes?.root2}>
                     <b style={{ fontSize: "25px", color: 'rgb(153, 46, 98)' }}>
-                      {patientObj?.personResponseDto?.firstName + " " + patientObj?.personResponseDto?.surname}
+                      {patientObj?.firstName + " " + patientObj?.surname}
                     </b>
                     <Link to={"/"} >
                       <ButtonMui
@@ -135,38 +138,38 @@ function PatientCard(props) {
                   <Col md={4} className={classes.root2}>
                     <span>
                       {" "}
-                      Patient ID : <b style={{ color: '#0B72AA' }}>{getHospitalNumber(patientObj?.personResponseDto?.identifier)}</b>
+                      Patient ID : <b style={{ color: '#0B72AA' }}>{patientObj?.hospitalNumber}</b>
                     </span>
                   </Col>
 
                   <Col md={4} className={classes.root2}>
                     <span>
-                      Date Of Birth : <b style={{ color: '#0B72AA' }}>{patientObj?.personResponseDto?.dateOfBirth}</b>
+                      Date Of Birth : <b style={{ color: '#0B72AA' }}>{patientObj?.dateOfBirth}</b>
                     </span>
                   </Col>
                   <Col md={4} className={classes.root2}>
                     <span>
                       {" "}
-                      Age : <b style={{ color: '#0B72AA' }}>{calculate_age(moment(patientObj?.personResponseDto?.dateOfBirth).format("DD-MM-YYYY"))}</b>
+                      Age : <b style={{ color: '#0B72AA' }}>{calculate_age(moment(patientObj?.dateOfBirth).format("DD-MM-YYYY"))}</b>
                     </span>
                   </Col>
                   <Col md={4}>
                     <span>
                       {" "}
                       Gender :{" "}
-                      <b style={{ color: '#0B72AA' }}>{patientObj?.personResponseDto && patientObj?.personResponseDto?.sex !== null ? patientObj?.personResponseDto?.sex : ''}</b>
+                      <b style={{ color: '#0B72AA' }}>{patientObj?.gender}</b>
                     </span>
                   </Col>
                   <Col md={4} className={classes.root2}>
                     <span>
                       {" "}
-                      Phone Number : <b style={{ color: '#0B72AA' }}>{getPhoneNumber(patientObj?.personResponseDto?.contactPoint)}</b>
+                      Phone Number : <b style={{ color: '#0B72AA' }}>{patientObj?.phoneNumber}</b>
                     </span>
                   </Col>
                   <Col md={4} className={classes.root2}>
                     <span>
                       {" "}
-                      Address : <b style={{ color: '#0B72AA' }}>{getAddress(patientObj?.personResponseDto?.address)} </b>
+                      Address : <b style={{ color: '#0B72AA' }}>{patientObj?.address} </b>
                     </span>
                   </Col>
                   {patientObj?.prepStatus !== null && (
