@@ -3,18 +3,24 @@ package org.lamisplus.modules.prep.controller;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.lamisplus.modules.prep.domain.dto.PrepClinicDto;
+import org.lamisplus.modules.prep.domain.dto.PrepPreviousVisitHtsRecord;
+import org.lamisplus.modules.prep.repository.PrepClinicRepository;
 import org.lamisplus.modules.prep.service.PrepClinicService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequiredArgsConstructor
 public class PrepClinicController {
     private final PrepClinicService prepClinicService;
+    private final PrepClinicRepository prepClinicRepository;
     private final String PREP_CLINIC_URL_VERSION_ONE = "/api/v1/prep-clinic";
 
     @PutMapping(PREP_CLINIC_URL_VERSION_ONE +"/{id}")
@@ -42,5 +48,20 @@ public class PrepClinicController {
     @ApiOperation("Delete Prep Clinic")
     public void delete(@PathVariable Long id) {
         prepClinicService.delete(id);
+    }
+
+
+    @GetMapping(PREP_CLINIC_URL_VERSION_ONE +"/checkEnableCab/{id}/{currentVisitDate}")
+    @ApiOperation("Get Prep Enable Cab-La for current visit by person id")
+    public Boolean checkEnableCab(@PathVariable Long id,
+                                  @PathVariable LocalDate currentVisitDate) {
+//        return prepClinicRepository.checkEnableCabaL(id);
+        return prepClinicService.checkCabLaEligibility(id, currentVisitDate);
+    }
+
+    @GetMapping(PREP_CLINIC_URL_VERSION_ONE +"/hts-record/{id}")
+    @ApiOperation("Get Hts result and date for previous visit by person id")
+    public ResponseEntity<List<PrepPreviousVisitHtsRecord>> previousHtsRecord (@PathVariable Long id) throws ExecutionException, InterruptedException {
+        return  ResponseEntity.ok(prepClinicService.getPreviousHtsTesting(id));
     }
 }
