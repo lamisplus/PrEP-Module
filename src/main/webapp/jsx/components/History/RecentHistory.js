@@ -428,7 +428,7 @@ const RecentHistory = (props) => {
                     <div className="card overflow-hidden">
                       <div className="social-graph-wrapper widget-linkedin">
                         <span className="s-icon">
-                          <span style={{ fontSize: "16px", }}>BMI : {(summary.weight / ((summary?.height / 100) * (summary?.height / 100))).toFixed(2)} kg/m<sup>2</sup></span>
+                          <span style={{ fontSize: "16px", }}>BMI : {(summary?.weight / ((summary?.height / 100) * (summary?.height / 100))).toFixed(2)} kg/m<sup>2</sup></span>
                         </span>
                       </div>
                       <div className="row">
