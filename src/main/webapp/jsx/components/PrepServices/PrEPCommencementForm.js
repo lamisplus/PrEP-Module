@@ -1,19 +1,19 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Card, CardBody, FormGroup, Label, Input, InputGroup,
     InputGroupText, Label as FormLabelName,
 } from 'reactstrap';
 import MatButton from '@material-ui/core/Button'
-import {makeStyles} from '@material-ui/core/styles'
+import { makeStyles } from '@material-ui/core/styles'
 import SaveIcon from '@material-ui/icons/Save'
 import axios from "axios";
-import {toast} from "react-toastify";
-import {url as baseUrl, token} from "../../../api";
+import { toast } from "react-toastify";
+import { url as baseUrl, token } from "../../../api";
 import "react-widgets/dist/css/react-widgets.css";
 // import Moment from "moment";
 // import momentLocalizer from "react-widgets-moment";
 import moment from "moment";
-import {Spinner} from "reactstrap";
+import { Spinner } from "reactstrap";
 
 const useStyles = makeStyles(theme => ({
     card: {
@@ -136,10 +136,10 @@ const PrEPCommencementForm = (props) => {
             setSisabledField(props.activeContent.actionType === 'view' ? true : false)
         }
     }, []);
-    const PrepRegimen = async() => {
+    const PrepRegimen = async () => {
         axios
             .get(`${baseUrl}prep-regimen`,
-                {headers: {"Authorization": `Bearer ${token}`}}
+                { headers: { "Authorization": `Bearer ${token}` } }
             )
             .then((response) => {
                 setprepRegimen(response.data);
@@ -152,7 +152,7 @@ const PrEPCommencementForm = (props) => {
     const PREP_ENTRY_POINT = () => {
         axios
             .get(`${baseUrl}application-codesets/v2/PrEP_ENTRY_POINT`,
-                {headers: {"Authorization": `Bearer ${token}`}}
+                { headers: { "Authorization": `Bearer ${token}` } }
             )
             .then((response) => {
                 setPrepEntryPoints(response.data);
@@ -166,14 +166,14 @@ const PrEPCommencementForm = (props) => {
     const PREP_URINALYSIS_RESULT = () => {
         axios
             .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`,
-                {headers: {"Authorization": `Bearer ${token}`}}
+                { headers: { "Authorization": `Bearer ${token}` } }
             )
             .then((response) => {
-                
+
                 setUrinalysisTestResult(response.data);
             })
             .catch((error) => {
-                
+
             });
 
     }
@@ -182,7 +182,7 @@ const PrEPCommencementForm = (props) => {
     const PREP_TYPE = async () => {
         axios
             .get(`${baseUrl}application-codesets/v2/PrEP_TYPE`,
-                {headers: {"Authorization": `Bearer ${token}`}}
+                { headers: { "Authorization": `Bearer ${token}` } }
             )
             .then((response) => {
                 setPrepType(response.data);
@@ -193,36 +193,36 @@ const PrEPCommencementForm = (props) => {
     }
 
 
-    const LiverFunctionTestResult =()=>{
+    const LiverFunctionTestResult = () => {
         axios
-        .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
-            setLiverFunctionTestResult(response.data);
-        })
-        .catch((error) => {
-        //console.log(error);
-        });    
+            .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`,
+                { headers: { "Authorization": `Bearer ${token}` } }
+            )
+            .then((response) => {
+                setLiverFunctionTestResult(response.data);
+            })
+            .catch((error) => {
+                //console.log(error);
+            });
     }
 
-    const HistoryOfDrugToDrugInteraction =()=>{
+    const HistoryOfDrugToDrugInteraction = () => {
         axios
-        .get(`${baseUrl}application-codesets/v2/PREP_HISTORY_OF_DRUG_INTERACTIONS`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
-            setHistoryOfDrugToDrugInteraction(response.data);
-        })
-        .catch((error) => {
-        //console.log(error);
-        });    
+            .get(`${baseUrl}application-codesets/v2/PREP_HISTORY_OF_DRUG_INTERACTIONS`,
+                { headers: { "Authorization": `Bearer ${token}` } }
+            )
+            .then((response) => {
+                setHistoryOfDrugToDrugInteraction(response.data);
+            })
+            .catch((error) => {
+                //console.log(error);
+            });
     }
 
     const GetPatientCommercement = (id) => {
         axios
             .get(`${baseUrl}prep/commencement/person/${props.patientObj.personId}`,
-                {headers: {"Authorization": `Bearer ${token}`}}
+                { headers: { "Authorization": `Bearer ${token}` } }
             )
             .then((response) => {
                 //console.log(response.data.find((x)=> x.id===id));
@@ -235,7 +235,7 @@ const PrEPCommencementForm = (props) => {
     const PREGANACY_STATUS = () => {
         axios
             .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`,
-                {headers: {"Authorization": `Bearer ${token}`}}
+                { headers: { "Authorization": `Bearer ${token}` } }
             )
             .then((response) => {
                 setpregnant(response.data);
@@ -247,7 +247,7 @@ const PrEPCommencementForm = (props) => {
     const GetPatientDTOObj = () => {
         axios
             .get(`${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
-                {headers: {"Authorization": `Bearer ${token}`}}
+                { headers: { "Authorization": `Bearer ${token}` } }
             )
             .then((response) => {
                 setPatientDto(response.data);
@@ -265,21 +265,21 @@ const PrEPCommencementForm = (props) => {
 
 
     const handleInputChange = e => {
-        setErrors({...errors, [e.target.name]: ""})
+        setErrors({ ...errors, [e.target.name]: "" })
 
         if (e.target.name === 'referred' && e.target.value === 'false') {
             objValues.datereferred = ''
-            setObjValues({...objValues, ['datereferred']: ''});
+            setObjValues({ ...objValues, ['datereferred']: '' });
         } else if (e.target.name === 'monthsOfRefill') {
             const durationInDays = (Number(e.target.value) * 30)
-            setObjValues({...objValues, monthsOfRefill: e.target.value, duration: durationInDays})
+            setObjValues({ ...objValues, monthsOfRefill: e.target.value, duration: durationInDays })
 
-        } 
-        setObjValues({...objValues, [e.target.name]: e.target.value});
+        }
+        setObjValues({ ...objValues, [e.target.name]: e.target.value });
     }
 
     const validate = () => {
-        let temp = {...errors}
+        let temp = { ...errors }
         temp.dateInitialAdherenceCounseling = objValues.dateInitialAdherenceCounseling ? "" : "This field is required"
         temp.datePrepStart = objValues.datePrepStart ? "" : "This field is required"
         temp.prepType = objValues.prepType ? "" : "This field is required"
@@ -296,21 +296,21 @@ const PrEPCommencementForm = (props) => {
     }
     //to check the input value for clinical decision 
     const handleInputValueCheckHeight = (e) => {
-        setErrors({...errors, [e.target.name]: ""})
+        setErrors({ ...errors, [e.target.name]: "" })
         if (e.target.name === "height" && (e.target.value < 48.26 || e.target.value > 216.408)) {
             const message = "Height cannot be greater than 216.408 and less than 48.26"
-            setVitalClinicalSupport({...vitalClinicalSupport, height: message})
+            setVitalClinicalSupport({ ...vitalClinicalSupport, height: message })
         } else {
-            setVitalClinicalSupport({...vitalClinicalSupport, height: ""})
+            setVitalClinicalSupport({ ...vitalClinicalSupport, height: "" })
         }
     }
     const handleInputValueCheckBodyWeight = (e) => {
-        setErrors({...errors, [e.target.name]: ""})
+        setErrors({ ...errors, [e.target.name]: "" })
         if (e.target.name === "weight" && (e.target.value < 3 || e.target.value > 150)) {
             const message = "Body weight must not be greater than 150 and less than 3"
-            setVitalClinicalSupport({...vitalClinicalSupport, weight: message})
+            setVitalClinicalSupport({ ...vitalClinicalSupport, weight: message })
         } else {
-            setVitalClinicalSupport({...vitalClinicalSupport, weight: ""})
+            setVitalClinicalSupport({ ...vitalClinicalSupport, weight: "" })
         }
     }
     /**** Submit Button Processing  */
@@ -321,12 +321,12 @@ const PrEPCommencementForm = (props) => {
             objValues.prepEnrollmentUuid = patientDto.uuid
             if (props.activeContent && props.activeContent.actionType === "update") {//Perform operation for updation action
                 axios.put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues,
-                    {headers: {"Authorization": `Bearer ${token}`}},
+                    { headers: { "Authorization": `Bearer ${token}` } },
                 ).then(response => {
                     setSaving(false);
                     patientObj.commencementCount = 1
-                    toast.success("Record save successful", {position: toast.POSITION.BOTTOM_CENTER});
-                    props.setActiveContent({...props.activeContent, route: 'recent-history'})
+                    toast.success("Record save successful", { position: toast.POSITION.BOTTOM_CENTER });
+                    props.setActiveContent({ ...props.activeContent, route: 'recent-history' })
 
                 })
                     .catch(error => {
@@ -334,23 +334,23 @@ const PrEPCommencementForm = (props) => {
                         if (error.response && error.response.data) {
                             let errorMessage = error.response.data.apierror && error.response.data.apierror.message !== "" ? error.response.data.apierror.message : "Something went wrong, please try again";
                             if (error.response.data.apierror) {
-                                toast.error(error.response.data.apierror.message, {position: toast.POSITION.BOTTOM_CENTER});
+                                toast.error(error.response.data.apierror.message, { position: toast.POSITION.BOTTOM_CENTER });
                             } else {
-                                toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
+                                toast.error(errorMessage, { position: toast.POSITION.BOTTOM_CENTER });
                             }
                         } else {
-                            toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
+                            toast.error("Something went wrong, please try again...", { position: toast.POSITION.BOTTOM_CENTER });
                         }
                     });
             } else {
                 axios.post(`${baseUrl}prep/commencement`, objValues,
-                    {headers: {"Authorization": `Bearer ${token}`}},
+                    { headers: { "Authorization": `Bearer ${token}` } },
                 ).then(response => {
                     setSaving(false);
                     patientObj.commencementCount = 1
                     props.PatientObject();
-                    toast.success("Record save successful", {position: toast.POSITION.BOTTOM_CENTER});
-                    props.setActiveContent({...props.activeContent, route: 'recent-history'})
+                    toast.success("Record save successful", { position: toast.POSITION.BOTTOM_CENTER });
+                    props.setActiveContent({ ...props.activeContent, route: 'recent-history' })
 
                 })
                     .catch(error => {
@@ -358,12 +358,12 @@ const PrEPCommencementForm = (props) => {
                         if (error.response && error.response.data) {
                             let errorMessage = error.response.data.apierror && error.response.data.apierror.message !== "" ? error.response.data.apierror.message : "Something went wrong, please try again";
                             if (error.response.data.apierror) {
-                                toast.error(error.response.data.apierror.message, {position: toast.POSITION.BOTTOM_CENTER});
+                                toast.error(error.response.data.apierror.message, { position: toast.POSITION.BOTTOM_CENTER });
                             } else {
-                                toast.error(errorMessage, {position: toast.POSITION.BOTTOM_CENTER});
+                                toast.error(errorMessage, { position: toast.POSITION.BOTTOM_CENTER });
                             }
                         } else {
-                            toast.error("Something went wrong, please try again...", {position: toast.POSITION.BOTTOM_CENTER});
+                            toast.error("Something went wrong, please try again...", { position: toast.POSITION.BOTTOM_CENTER });
                         }
                     });
             }
@@ -375,14 +375,14 @@ const PrEPCommencementForm = (props) => {
 
     const handlePrepTypeChange = (e) => {
         // check the prep type. if it is ed prep or others, fetch all prep types instead
-        
-        setObjValues({...objValues, regimenId: "", prepType: e.target.value})
+
+        setObjValues({ ...objValues, regimenId: "", prepType: e.target.value })
         if (e.target.value === 'PREP_TYPE_OTHERS' || e.target.value === 'PREP_TYPE_ED_PREP') {
             PrepRegimen();
         } else {
             axios
                 .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`,
-                    {headers: {"Authorization": `Bearer ${token}`}}
+                    { headers: { "Authorization": `Bearer ${token}` } }
                 )
                 .then((response) => {
                     setprepRegimen(response.data);
@@ -392,7 +392,7 @@ const PrEPCommencementForm = (props) => {
                 });
         }
 
-        setErrors({...errors, [e.target.name]: ""})
+        setErrors({ ...errors, [e.target.name]: "" })
 
     }
 
@@ -406,18 +406,18 @@ const PrEPCommencementForm = (props) => {
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
                                     <Label for="uniqueId">Date of Initial Adherence Counseling <span
-                                        style={{color: "red"}}> *</span></Label>
+                                        style={{ color: "red" }}> *</span></Label>
                                     <Input
                                         className="form-control"
                                         type="date"
-                                        onKeyDown={(e)=>e.preventDefault()}
+                                        onKeyDown={(e) => e.preventDefault()}
                                         name="dateInitialAdherenceCounseling"
                                         id="dateInitialAdherenceCounseling"
                                         min={patientDto && patientDto.dateEnrolled ? patientDto.dateEnrolled : ""}
                                         max={moment(new Date()).format("YYYY-MM-DD")}
                                         value={objValues.dateInitialAdherenceCounseling}
                                         onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88", borderRadius: "0.2rem"}}
+                                        style={{ border: "1px solid #014D88", borderRadius: "0.2rem" }}
                                         disabled={disabledField}
                                     />
                                     {errors.dateInitialAdherenceCounseling !== "" ? (
@@ -427,18 +427,18 @@ const PrEPCommencementForm = (props) => {
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label>Date PrEP started <span style={{color: "red"}}> *</span></Label>
+                                    <Label>Date PrEP started <span style={{ color: "red" }}> *</span></Label>
                                     <Input
                                         className="form-control"
                                         type="date"
-                                        onKeyDown={(e)=>e.preventDefault()}
+                                        onKeyDown={(e) => e.preventDefault()}
                                         name="datePrepStart"
                                         id="datePrepStart"
                                         min={patientDto && patientDto.dateEnrolled ? patientDto.dateEnrolled : ""}
                                         max={moment(new Date()).format("YYYY-MM-DD")}
                                         value={objValues.datePrepStart}
                                         onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88", borderRadius: "0.2rem"}}
+                                        style={{ border: "1px solid #014D88", borderRadius: "0.2rem" }}
                                         disabled={disabledField}
                                     />
                                     {errors.datePrepStart !== "" ? (
@@ -453,7 +453,7 @@ const PrEPCommencementForm = (props) => {
                         <div className="row">
                             <div className=" mb-3 col-md-4">
                                 <FormGroup>
-                                    <Label>Body Weight <span style={{color: "red"}}> *</span></Label>
+                                    <Label>Body Weight <span style={{ color: "red" }}> *</span></Label>
                                     <InputGroup>
                                         <Input
                                             type="number"
@@ -464,7 +464,7 @@ const PrEPCommencementForm = (props) => {
                                             max="150"
                                             value={objValues.weight}
                                             onKeyUp={handleInputValueCheckBodyWeight}
-                                            style={{border: "1px solid #014D88", borderRadius: "0rem"}}
+                                            style={{ border: "1px solid #014D88", borderRadius: "0rem" }}
                                             disabled={disabledField}
                                         />
                                         <InputGroupText addonType="append" style={{
@@ -486,7 +486,7 @@ const PrEPCommencementForm = (props) => {
                             </div>
                             <div className="form-group mb-3 col-md-4">
                                 <FormGroup>
-                                    <Label>Height <span style={{color: "red"}}> *</span></Label>
+                                    <Label>Height <span style={{ color: "red" }}> *</span></Label>
                                     <InputGroup>
                                         <InputGroupText
                                             addonType="append"
@@ -509,7 +509,7 @@ const PrEPCommencementForm = (props) => {
                                             max="216.408"
                                             disabled={disabledField}
                                             onKeyUp={handleInputValueCheckHeight}
-                                            style={{border: "1px solid #014D88", borderRadius: "0rem"}}
+                                            style={{ border: "1px solid #014D88", borderRadius: "0rem" }}
                                         />
                                         <InputGroupText
                                             addonType="append"
@@ -627,20 +627,20 @@ const PrEPCommencementForm = (props) => {
                                         disabled={disabledField}
                                     >
                                         <option value="">Select</option>
-                                            {urinalysisTestResult.map((value) => (
-                                                <option key={value.id} value={value.display}>
-                                                    {value.display}
-                                                </option>
-                                            ))}
+                                        {urinalysisTestResult.map((value) => (
+                                            <option key={value.id} value={value.display}>
+                                                {value.display}
+                                            </option>
+                                        ))}
                                     </Input>
                                 </FormGroup>
 
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="historyOfDrugToDrugInteraction">History of Drug-Drug Interactions
+                                    <Label for="historyOfDrugToDrugInteraction">History of PrEP drug interactions
                                         {/* <span style={{color: "red"}}> *</span> */}
-                                        </Label>
+                                    </Label>
                                     <Input
                                         className="form-control"
                                         type="select"
@@ -650,7 +650,7 @@ const PrEPCommencementForm = (props) => {
                                         // max={moment(new Date()).format("YYYY-MM-DD")}
                                         value={objValues.historyOfDrugToDrugInteraction}
                                         onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88", borderRadius: "0.2rem"}}
+                                        style={{ border: "1px solid #014D88", borderRadius: "0.2rem" }}
                                         disabled={disabledField}
                                     >
                                         <option value=""> Select </option>
@@ -668,7 +668,7 @@ const PrEPCommencementForm = (props) => {
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
                                     <Label for="liverFunctionTestResults">Liver Function Tests Result<span
-                                        style={{color: "red"}}> *</span></Label>
+                                        style={{ color: "red" }}> *</span></Label>
                                     <Input
                                         className="form-control"
                                         type="select"
@@ -678,7 +678,7 @@ const PrEPCommencementForm = (props) => {
                                         // max={moment(new Date()).format("YYYY-MM-DD")}
                                         value={objValues.liverFunctionTestResults}
                                         onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88", borderRadius: "0.2rem"}}
+                                        style={{ border: "1px solid #014D88", borderRadius: "0.2rem" }}
                                         disabled={disabledField}
                                     >
                                         <option value=""> Select Result</option>
@@ -696,18 +696,18 @@ const PrEPCommencementForm = (props) => {
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
                                     <Label for="dateLiverFunctionTestResults">Date of Liver Function Tests Result  <span
-                                        style={{color: "red"}}> *</span></Label>
+                                        style={{ color: "red" }}> *</span></Label>
                                     <Input
                                         className="form-control"
                                         type="date"
-                                        onKeyDown={(e)=>e.preventDefault()}
+                                        onKeyDown={(e) => e.preventDefault()}
                                         name="dateLiverFunctionTestResults"
                                         id="dateLiverFunctionTestResults"
                                         min={patientDto && patientDto.dateEnrolled ? patientDto.dateEnrolled : ""}
                                         max={moment(new Date()).format("YYYY-MM-DD")}
                                         value={objValues.dateLiverFunctionTestResults}
                                         onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88", borderRadius: "0.2rem"}}
+                                        style={{ border: "1px solid #014D88", borderRadius: "0.2rem" }}
                                         disabled={disabledField}
                                     />
                                     {errors.dateLiverFunctionTestResults !== "" ? (
@@ -717,7 +717,7 @@ const PrEPCommencementForm = (props) => {
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="">Referred <span style={{color: "red"}}> *</span></Label>
+                                    <Label for="">Referred <span style={{ color: "red" }}> *</span></Label>
                                     <Input
                                         type="select"
                                         name="referred"
@@ -742,7 +742,7 @@ const PrEPCommencementForm = (props) => {
                                         <Label for="datereferred">Date referred</Label>
                                         <Input
                                             type="date"
-                                            onKeyDown={(e)=>e.preventDefault()}
+                                            onKeyDown={(e) => e.preventDefault()}
                                             name="datereferred"
                                             id="datereferred"
                                             onChange={handleInputChange}
@@ -758,11 +758,11 @@ const PrEPCommencementForm = (props) => {
 
                                 </div>
                             )}
-                            
+
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
                                     <FormLabelName for="prepType">Prep Type At Start <span
-                                        style={{color: "red"}}> *</span></FormLabelName>
+                                        style={{ color: "red" }}> *</span></FormLabelName>
                                     <Input
                                         type="select"
                                         name="prepType"
@@ -770,7 +770,7 @@ const PrEPCommencementForm = (props) => {
                                         // disabled
                                         onChange={handlePrepTypeChange}
                                         value={objValues.prepType}
-                                        // disabled={disabledField}
+                                    // disabled={disabledField}
                                     >
                                         <option value="">Select Prep Type</option>
                                         {prepType.map((value) => (
@@ -788,7 +788,7 @@ const PrEPCommencementForm = (props) => {
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="regimenId">PrEP Regimen <span style={{color: "red"}}> *</span></Label>
+                                    <Label for="regimenId">PrEP Regimen <span style={{ color: "red" }}> *</span></Label>
                                     <Input
                                         type="select"
                                         name="regimenId"
@@ -814,7 +814,7 @@ const PrEPCommencementForm = (props) => {
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
                                     <FormLabelName for="">Prep Distribution Setting <span
-                                        style={{color: "red"}}> *</span></FormLabelName>
+                                        style={{ color: "red" }}> *</span></FormLabelName>
                                     <Input
                                         type="select"
                                         name="prepDistributionSetting"
@@ -872,7 +872,7 @@ const PrEPCommencementForm = (props) => {
                             </div> */}
                             <div className=" mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label>Months Of Refill</Label>
+                                    <Label>{`Duration of Refill (Day[s])`}</Label>
                                     <Input
                                         type="number"
                                         name="monthsOfRefill"
@@ -880,7 +880,7 @@ const PrEPCommencementForm = (props) => {
                                         value={objValues.monthsOfRefill}
                                         min={0}
                                         onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
                                         disabled={disabledField}
                                     />
 
@@ -888,8 +888,8 @@ const PrEPCommencementForm = (props) => {
                             </div>
                         </div>
 
-                        {saving ? <Spinner/> : ""}
-                        <br/>
+                        {saving ? <Spinner /> : ""}
+                        <br />
 
                         {props.activeContent && props.activeContent.actionType ? (<>
                             <MatButton
@@ -898,15 +898,15 @@ const PrEPCommencementForm = (props) => {
                                 color="primary"
                                 hidden={disabledField}
                                 className={classes.button}
-                                startIcon={<SaveIcon/>}
-                                style={{backgroundColor: "#014d88"}}
+                                startIcon={<SaveIcon />}
+                                style={{ backgroundColor: "#014d88" }}
                                 onClick={handleSubmit}
                                 disabled={saving}
                             >
                                 {!saving ? (
-                                    <span style={{textTransform: "capitalize"}}>Update</span>
+                                    <span style={{ textTransform: "capitalize" }}>Update</span>
                                 ) : (
-                                    <span style={{textTransform: "capitalize"}}>Updating...</span>
+                                    <span style={{ textTransform: "capitalize" }}>Updating...</span>
                                 )}
                             </MatButton>
                         </>) : (<>
@@ -915,15 +915,15 @@ const PrEPCommencementForm = (props) => {
                                 variant="contained"
                                 color="primary"
                                 className={classes.button}
-                                startIcon={<SaveIcon/>}
-                                style={{backgroundColor: "#014d88"}}
+                                startIcon={<SaveIcon />}
+                                style={{ backgroundColor: "#014d88" }}
                                 onClick={handleSubmit}
                                 disabled={saving}
                             >
                                 {!saving ? (
-                                    <span style={{textTransform: "capitalize"}}>Save</span>
+                                    <span style={{ textTransform: "capitalize" }}>Save</span>
                                 ) : (
-                                    <span style={{textTransform: "capitalize"}}>Saving...</span>
+                                    <span style={{ textTransform: "capitalize" }}>Saving...</span>
                                 )}
                             </MatButton>
                         </>)}

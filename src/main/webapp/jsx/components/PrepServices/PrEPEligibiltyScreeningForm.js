@@ -321,8 +321,7 @@ const BasicInfo = (props) => {
     const handleInputChangeDrugHistory = e => {
         setErrors({ ...temp, [e.target.name]: "" })
         if (drugHistory.hivTestedBefore === "true") {
-            drugHistory.lastTest = ""
-            setDrugHistory({ ...drugHistory, ['lastTest']: '' });
+            setDrugHistory({ ...drugHistory, lastTest: '' });
         }
         setDrugHistory({ ...drugHistory, [e.target.name]: e.target.value });
     }
@@ -507,7 +506,34 @@ const BasicInfo = (props) => {
             return score >= 7 ? 1 : 0;
         }
     }
+    const [recentActivities, setRecentActivities] = useState([])
+    function countPrepEligibility(data) {
+        let count = 0;
+        let relevantActivities = ['Prep Commencement', 'Prep Clinic']
+        data.forEach(entry => {
+          entry?.activities?.forEach(activity => {
+            if (relevantActivities.includes(activity?.name)) {
+              count++;
+            }
+          });
+        });
+    
+        return count;
+      }
+    const getRecentActivities = () => {
+        axios
+            .get(`${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
+                { headers: { "Authorization": `Bearer ${token}` } }
+            )
+            .then((response) => {
+                setRecentActivities(response.data)
+            })
+            .catch((error) => {
+                //console.log(error);
+            });
 
+    }
+    useEffect(() => getRecentActivities(), [])
     return (
         <>
             <Card className={classes.root}>
@@ -857,15 +883,7 @@ const BasicInfo = (props) => {
                             <div className="form-group col-md-4 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess
-                                            charLimit={35}
-                                            readMoreStyle={{ color: 'red' }}
-                                            readLessStyle={{ color: 'red' }}
-                                            readLessText="« Read less"
-                                            readMoreText="Read more »"
-                                        >
                                             Have you paid for sex in the last 6 months?
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -889,15 +907,7 @@ const BasicInfo = (props) => {
                             <div className="form-group col-md-4 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess
-                                            charLimit={35}
-                                            readMoreStyle={{ color: 'red' }}
-                                            readLessStyle={{ color: 'red' }}
-                                            readLessText="« Read less"
-                                            readMoreText="Read more »"
-                                        >
                                             Have you been paid for sex in the last 6 months?
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -921,15 +931,7 @@ const BasicInfo = (props) => {
                             <div className="form-group col-md-4 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess
-                                            charLimit={35}
-                                            readMoreStyle={{ color: 'red' }}
-                                            readLessStyle={{ color: 'red' }}
-                                            readLessText="« Read less"
-                                            readMoreText="Read more »"
-                                        >
                                             Have you experienced condom breakage?
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -953,9 +955,7 @@ const BasicInfo = (props) => {
                             <div className="form-group  col-md-4 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
                                             Have you taken part in sexual orgy?
-                                        </ReactReadMoreReadLess>
 
                                     </Label>
                                     <select
@@ -988,15 +988,7 @@ const BasicInfo = (props) => {
                             <div className="form-group col-md-4 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess
-                                            charLimit={35}
-                                            readMoreStyle={{ color: 'red' }}
-                                            readLessStyle={{ color: 'red' }}
-                                            readLessText="« Read less"
-                                            readMoreText="Read more »"
-                                        >
                                             Have you had sex with a partner who is HIV positive?
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -1020,15 +1012,7 @@ const BasicInfo = (props) => {
                             <div className="form-group col-md-4 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess
-                                            charLimit={35}
-                                            readMoreStyle={{ color: 'red' }}
-                                            readLessStyle={{ color: 'red' }}
-                                            readLessText="« Read less"
-                                            readMoreText="Read more »"
-                                        >
                                             Have you had sex with a partner who injects drugs?
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -1052,15 +1036,7 @@ const BasicInfo = (props) => {
                             <div className="form-group col-md-4 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess
-                                            charLimit={35}
-                                            readMoreStyle={{ color: 'red' }}
-                                            readLessStyle={{ color: 'red' }}
-                                            readLessText="« Read less"
-                                            readMoreText="Read more »"
-                                        >
                                             Have you had sex with a partner who has sex with men?
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -1084,15 +1060,7 @@ const BasicInfo = (props) => {
                             <div className="form-group col-md-6 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess
-                                            charLimit={35}
-                                            readMoreStyle={{ color: 'red' }}
-                                            readLessStyle={{ color: 'red' }}
-                                            readLessText="« Read less"
-                                            readMoreText="Read more »"
-                                        >
                                             Have you had sex with a partner who is a transgender person?
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -1116,15 +1084,7 @@ const BasicInfo = (props) => {
                             <div className="form-group col-md-6 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess
-                                            charLimit={35}
-                                            readMoreStyle={{ color: 'red' }}
-                                            readLessStyle={{ color: 'red' }}
-                                            readLessText="« Read less"
-                                            readMoreText="Read more »"
-                                        >
                                             Have you had sex with a partner who has sex with multiple partners without condoms?
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -1155,23 +1115,15 @@ const BasicInfo = (props) => {
 
                             <div
                                 className="form-group col-md-12 text-center p-2 mb-4"
-                                style={{ backgroundColor: '#014D88', width: '125%',color: '#fff', fontWeight: 'bold' }}
+                                style={{ backgroundColor: '#014D88', width: '125%', color: '#fff', fontWeight: 'bold' }}
                             >
-                                Assessment for PrEP Indication
+                                Assessment for PEP Indication
                             </div>
 
                             <div className="form-group col-md-6 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess
-                                            charLimit={35}
-                                            readMoreStyle={{ color: 'red' }}
-                                            readLessStyle={{ color: 'red' }}
-                                            readLessText="« Read less"
-                                            readMoreText="Read more »"
-                                        >
                                             In the past 72 hours, have you had sex without a condom with someone whose HIV status is positive or not known to you?
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -1195,15 +1147,7 @@ const BasicInfo = (props) => {
                             <div className="form-group col-md-6 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess
-                                            charLimit={35}
-                                            readMoreStyle={{ color: 'red' }}
-                                            readLessStyle={{ color: 'red' }}
-                                            readLessText="« Read less"
-                                            readMoreText="Read more »"
-                                        >
                                             Have you shared injection equipment like needles with someone whose HIV status is positive or unknown to you?
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -1230,9 +1174,7 @@ const BasicInfo = (props) => {
                             <div className="form-group  col-md-6 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
                                             In the past 2 weeks: Have you had a cold or flu such as fever, sore throat, abnormal sweats, swollen lymph nodes, mouth sores, headache or rash?
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -1256,10 +1198,7 @@ const BasicInfo = (props) => {
                             <div className="form-group  col-md-6 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
                                             Have you had condomless anal or vaginal sex or shared injection materials and/or equipment in the past 28 days?
-                                        </ReactReadMoreReadLess>
-
                                     </Label>
                                     <select
                                         className="form-control"
@@ -1286,15 +1225,7 @@ const BasicInfo = (props) => {
                             <hr />
                             <h3>Route of Administration</h3>
                             <h4>
-                                <ReactReadMoreReadLess
-                                    charLimit={35}
-                                    readMoreStyle={{ color: 'red' }}
-                                    readLessStyle={{ color: 'red' }}
-                                    readLessText="« Read less"
-                                    readMoreText="Read more »"
-                                >
                                     Do you use any of these drugs/substances ?
-                                </ReactReadMoreReadLess>
                             </h4>
                             <br />
                             <div className="row">
@@ -1391,15 +1322,7 @@ const BasicInfo = (props) => {
                                 <div className="form-group col-md-4 p-3">
                                     <FormGroup>
                                         <Label>
-                                            <ReactReadMoreReadLess
-                                                charLimit={35}
-                                                readMoreStyle={{ color: 'red' }}
-                                                readLessStyle={{ color: 'red' }}
-                                                readLessText="« Read less"
-                                                readMoreText="Read more »"
-                                            >
                                                 Have you used drugs to enhance sexual performance ?
-                                            </ReactReadMoreReadLess>
                                         </Label>
                                         <select
                                             className="form-control"
@@ -1423,15 +1346,7 @@ const BasicInfo = (props) => {
                                 <div className="form-group col-md-4 p-3">
                                     <FormGroup>
                                         <Label>
-                                            <ReactReadMoreReadLess
-                                                charLimit={35}
-                                                readMoreStyle={{ color: 'red' }}
-                                                readLessStyle={{ color: 'red' }}
-                                                readLessText="« Read less"
-                                                readMoreText="Read more »"
-                                            >
                                                 Have you had HIV testing before ?
-                                            </ReactReadMoreReadLess>
                                         </Label>
                                         <select
                                             className="form-control"
@@ -1456,15 +1371,7 @@ const BasicInfo = (props) => {
                                     <div className="form-group col-md-4 p-3">
                                         <FormGroup>
                                             <Label>
-                                                <ReactReadMoreReadLess
-                                                    charLimit={35}
-                                                    readMoreStyle={{ color: 'red' }}
-                                                    readLessStyle={{ color: 'red' }}
-                                                    readLessText="« Read less"
-                                                    readMoreText="Read more »"
-                                                >
                                                     When was your last test?
-                                                </ReactReadMoreReadLess>
                                             </Label>
                                             <select
                                                 className="form-control"
@@ -1513,9 +1420,7 @@ const BasicInfo = (props) => {
                                 <div className="form-group  col-md-4 p-3">
                                     <FormGroup>
                                         <Label>
-                                            <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
                                                 Recommended for HIV Retest ?
-                                            </ReactReadMoreReadLess>
 
                                         </Label>
                                         <select
@@ -1540,9 +1445,7 @@ const BasicInfo = (props) => {
                                 <div className="form-group  col-md-4 p-3">
                                     <FormGroup>
                                         <Label>
-                                            <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
                                                 Tested in certain Clinical settings, such as STI clinics?
-                                            </ReactReadMoreReadLess>
 
                                         </Label>
                                         <select
@@ -1567,9 +1470,7 @@ const BasicInfo = (props) => {
                                 <div className="form-group  col-md-4 p-3">
                                     <FormGroup>
                                         <Label>
-                                            <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
                                                 Report ongoing HIV risk behaviors?
-                                            </ReactReadMoreReadLess>
 
                                         </Label>
                                         <select
@@ -1594,9 +1495,7 @@ const BasicInfo = (props) => {
                                 <div className="form-group  col-md-4 p-3">
                                     <FormGroup>
                                         <Label>
-                                            <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
                                                 Report a specific HIV exposure within the last 3 months
-                                            </ReactReadMoreReadLess>
 
                                         </Label>
                                         <select
@@ -1628,9 +1527,7 @@ const BasicInfo = (props) => {
                                     <div className="form-group  col-md-4 p-3">
                                         <FormGroup>
                                             <Label>
-                                                <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
                                                     Complaints of vaginal discharge or burning when urinating?
-                                                </ReactReadMoreReadLess>
 
                                             </Label>
                                             <select
@@ -1656,8 +1553,7 @@ const BasicInfo = (props) => {
                                     <div className="form-group  col-md-4 p-3">
                                         <FormGroup>
                                             <Label>
-                                                <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >Complaints of lower abdominal pains with or without vaginal discharge?
-                                                </ReactReadMoreReadLess>
+Complaints of lower abdominal pains with or without vaginal discharge?
 
 
                                             </Label>
@@ -1686,9 +1582,7 @@ const BasicInfo = (props) => {
                                     <div className="form-group  col-md-4 p-3">
                                         <FormGroup>
                                             <Label>
-                                                <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
                                                     Complaints of urethral discharge or burning when urinating?
-                                                </ReactReadMoreReadLess>
 
                                             </Label>
                                             <select
@@ -1713,9 +1607,7 @@ const BasicInfo = (props) => {
                                     <div className="form-group  col-md-4 p-3">
                                         <FormGroup>
                                             <Label>
-                                                <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
                                                     Complaints of scrotal swelling and pain
-                                                </ReactReadMoreReadLess>
 
                                             </Label>
                                             <select
@@ -1740,9 +1632,7 @@ const BasicInfo = (props) => {
                                     <div className="form-group  col-md-4 p-3">
                                         <FormGroup>
                                             <Label>
-                                                <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
                                                     Complaints of genital sore(s) or swollen inguinal lymph nodes with or without pains?
-                                                </ReactReadMoreReadLess>
 
                                             </Label>
                                             <select
@@ -1768,9 +1658,7 @@ const BasicInfo = (props) => {
                             <div className="form-group  col-md-4 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess charLimit={35} readMoreStyle={{ color: 'red' }} readLessStyle={{ color: 'red' }} readLessText="« Read less" readMoreText="Read more »" >
-                                            Genital score +/-pains?
-                                        </ReactReadMoreReadLess>
+                                            Genital sore +/-pains?
                                     </Label>
                                     <select
                                         className="form-control"
@@ -1925,9 +1813,7 @@ const BasicInfo = (props) => {
                             <div className="form-group  col-md-6 p-3">
                                 <FormGroup>
                                     <Label>
-                                        <ReactReadMoreReadLess>
                                             {`No history/signs & symptoms of Liver abnormalities (CAB-LA)`}
-                                        </ReactReadMoreReadLess>
                                     </Label>
                                     <select
                                         className="form-control"
@@ -1993,7 +1879,7 @@ const BasicInfo = (props) => {
                                 </FormGroup>
                             </div>
                             <Message warning>
-                                <h4>Calculate the sum of PrEP Eligibility. If {"<= "}1 client is Eligible for PrEP.  (Score: Count Yes=1, No=0).</h4>
+                                <h4>Calculate the sum of PrEP Eligibility. If {">= "}1 client is Eligible for PrEP.  (Score: Count Yes=1, No=0).</h4>
                                 {/* <b>Score :{stiCount.length}</b> */}
                                 <h5>{`HIV Negative: ${drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0}`}</h5>
                                 <h5>{`HIV risk score >=1 : ${riskCount.length > 0 ? 1 : 0}`}</h5>
@@ -2010,9 +1896,9 @@ const BasicInfo = (props) => {
                                 <h5>{`No history of drug hypersensitivity (CAB-LA): ${assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa === "true" ? 1 : 0}`}</h5>
 
                             </Message>
-                            <Message warning>
+                            {/* <Message warning>
                                 <h3>{`Final Prep Eligibility Score: ${getPrepEligibilityScore()}`}</h3>
-                            </Message>
+                            </Message> */}
                             <hr />
                             <br />
                             <div className="form-group  col-md-12 text-center mb-4 p-2" style={{ backgroundColor: '#014D88', width: '125%', color: '#fff', fontWeight: 'bold' }} >Services Received by Client</div>
