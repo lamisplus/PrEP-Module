@@ -372,7 +372,16 @@ const BasicInfo = (props) => {
     const handleInputChangeServicesReceivedByClient = (e, data) => {
         setErrors({ ...temp, [e.target.name]: "" })
 
-        setServicesReceivedByClient({ ...servicesReceivedByClient, [e.target.name]: e.target.value });
+
+        if(e.target.name === "willingToCommencePrep"){
+
+            setServicesReceivedByClient({ ...servicesReceivedByClient, [e.target.name]: e.target.value,  reasonsForDecline: [],
+            });
+
+        }else{
+            setServicesReceivedByClient({ ...servicesReceivedByClient, [e.target.name]: e.target.value });
+
+        }
     }
 
     const handleInputReasonsForDecline = (e, data) => {
@@ -1902,9 +1911,9 @@ Complaints of lower abdominal pains with or without vaginal discharge?
                             <hr />
                             <br />
                             <div className="form-group  col-md-12 text-center mb-4 p-2" style={{ backgroundColor: '#014D88', width: '125%', color: '#fff', fontWeight: 'bold' }} >Services Received by Client</div>
-                            <div className="form-group  col-md-4 p-3">
+                            <div className="form-group  col-md-4 ">
                                 <FormGroup>
-                                    <Label>{`Willing to commence PrEP`}</Label>
+                                    <Label>Willing to commence PrEP</Label>
                                     <select
                                         className="form-control"
                                         name="willingToCommencePrep"
@@ -1929,7 +1938,7 @@ Complaints of lower abdominal pains with or without vaginal discharge?
                             {/* <Dropdown placeholder='Skills' fluid multiple selection options={reasonForDecline} /> */}
                             {servicesReceivedByClient?.willingToCommencePrep === 'false' && <div className="form-group  col-md-4">
                                 <FormGroup>
-                                    <Label>{`Reasons for Declining PrEP`}</Label>
+                                    <Label>Reasons for Declining PrEP</Label>
                                     <Dropdown value={servicesReceivedByClient?.reasonsForDecline} placeholder='select reasons for decline' onChange={handleInputReasonsForDecline} fluid multiple selection options={reasonForDecline.map((each) => {
                                         return { key: each.code, text: each.display, value: each.code }
                                     })} />
