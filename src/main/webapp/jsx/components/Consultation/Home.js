@@ -255,7 +255,7 @@ const ClinicVisit = (props) => {
     GetPatientDTOObj();
     WHY_POOR_FAIR_ADHERENCE();
     PrepEligibilityObj();
-    PrepRegimen();
+    // PrepRegimen(objValues.encounterDate);
     TestGroup();
     PREP_URINALYSIS_RESULT();
     PREP_OTHER_TEST();
@@ -335,6 +335,22 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => { });
   };
+
+
+  const checkEligibleForCABLA = (currentDate) => {
+    axios
+      .get(
+        `${baseUrl}prep-clinic/checkEnableCab/${props.patientObj.personId}/${currentDate}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((response) => {
+
+        if(response?.data){
+        return  response?.data
+        }
+      })
+      .catch((error) => { });
+  };
   const GetPatientVisit = async (id) => {
     axios
       .get(`${baseUrl}prep-clinic/${props.activeContent.id}`, {
@@ -383,13 +399,30 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => { });
   };
-  const PrepRegimen = () => {
+  const PrepRegimen = (currentDate) => {
     axios
       .get(`${baseUrl}prep-regimen`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        setprepRegimen(response.data);
+
+        // confirm access to display CAB-LA
+
+       let isEligibleForCABLA =  checkEligibleForCABLA(currentDate);
+
+       if(isEligibleForCABLA){
+            setprepRegimen(response.data);
+       }else{
+          let reg =  response.data.filter((each, index)=>{
+              return each.code !== "CAB-LA(600mg/3mL)"
+            })
+
+            setprepRegimen(reg);
+
+       }
+
+
+    
       })
       .catch((error) => { });
   };
@@ -640,6 +673,11 @@ const ClinicVisit = (props) => {
         monthsOfRefill: e.target.value,
         duration: `${durationInDays}`,
       });
+    }else if(e.target.name === "encounterDate"){
+      PrepRegimen(e.target.value);
+
+      setObjValues({ ...objValues, [e.target.name]: e.target.value });
+
     } else {
       // if the encounterDate is the same as the commencement date, the prep regimen id should be automatically populated from the commencement
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
@@ -1046,7 +1084,7 @@ const ClinicVisit = (props) => {
       e.target.value === "PREP_TYPE_OTHERS" ||
       e.target.value === "PREP_TYPE_ED_PREP"
     ) {
-      PrepRegimen();
+      PrepRegimen(objValues.encounterDate);
     } else {
       axios
         .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`, {
@@ -1085,7 +1123,7 @@ const ClinicVisit = (props) => {
     return date instanceof Date && !isNaN(date);
   }
   function areDatesSame(date1, date2) {
-    if (!isValidDate(date1) || !isValidDate(date2)) return alert('Invalid eligibility or visit date.')
+    // if (!isValidDate(date1) || !isValidDate(date2)) return alert('Invalid eligibility or visit date.')
     return (
       date1.getFullYear() === date2.getFullYear() &&
       date1.getMonth() === date2.getMonth() &&

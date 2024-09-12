@@ -375,7 +375,7 @@ const BasicInfo = (props) => {
 
         if(e.target.name === "willingToCommencePrep"){
 
-            setServicesReceivedByClient({ ...servicesReceivedByClient, [e.target.name]: e.target.value, reasonsForDecline: [],
+            setServicesReceivedByClient({ ...servicesReceivedByClient, [e.target.name]: e.target.value,  reasonsForDecline: [],
             });
 
         }else{
@@ -1911,7 +1911,7 @@ Complaints of lower abdominal pains with or without vaginal discharge?
                             <hr />
                             <br />
                             <div className="form-group  col-md-12 text-center mb-4 p-2" style={{ backgroundColor: '#014D88', width: '125%', color: '#fff', fontWeight: 'bold' }} >Services Received by Client</div>
-                            <div className="form-group  col-md-4 p-3">
+                            <div className="form-group  col-md-4 ">
                                 <FormGroup>
                                     <Label>Willing to commence PrEP</Label>
                                     <select
