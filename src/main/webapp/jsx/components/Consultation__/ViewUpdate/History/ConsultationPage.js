@@ -409,7 +409,7 @@ const handleInputValueCheckTemperature =(e)=>{
     temp.whoStagingId = objValues.whoStagingId ? "" : "This field is required"
     temp.clinicalNote = objValues.clinicalNote ? "" : "This field is required"
     temp.functionalStatusId = objValues.functionalStatusId ? "" : "This field is required"
-    temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
+    // temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
     temp.labTestGroupId = vital.diastolic ? "" : "This field is required"
     temp.systolic = vital.systolic ? "" : "This field is required"
     temp.height = vital.height ? "" : "This field is required"
@@ -871,7 +871,7 @@ const handleInputValueCheckTemperature =(e)=>{
                         </div>
                         <div className=" mb-3 col-md-6">
                             <FormGroup>
-                            <FormLabelName >Level of Adherence *</FormLabelName>
+                            <FormLabelName >Level of Adherence</FormLabelName>
                             <Input
                                 type="select"
                                 name="adherenceLevel"
@@ -890,9 +890,9 @@ const handleInputValueCheckTemperature =(e)=>{
                                 </option>
                                 ))}
                             </Input>
-                            {errors.adherenceLevel !=="" ? (
+                            {/* {errors.adherenceLevel !=="" ? (
                                 <span className={classes.error}>{errors.adherenceLevel}</span>
-                            ) : "" }
+                            ) : "" } */}
                             </FormGroup>
                         </div>
 

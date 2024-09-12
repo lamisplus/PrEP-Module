@@ -889,7 +889,7 @@ const ClinicVisit = (props) => {
               )}
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Level of Adherence *</FormLabelName>
+                  <FormLabelName >Level of Adherence</FormLabelName>
                   <Input
                     type="select"
                     name="adherenceLevel"

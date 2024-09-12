@@ -305,9 +305,9 @@ const PrEPVisit = (props) => {
                                     {value.display}
                                 </option>
                             ))}
-                            {errors.statusAtRegistrationId !=="" ? (
+                            {/* {errors.statusAtRegistrationId !=="" ? (
                                     <span className={classes.error}>{errors.statusAtRegistrationId}</span>
-                                ) : "" }
+                                ) : "" } */}
                         </Input>
                             </FormGroup>
                         </div>

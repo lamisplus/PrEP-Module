@@ -467,7 +467,7 @@ const ClinicVisit = (props) => {
     temp.encounterDate = objValues.encounterDate ? "" : "This field is required"
 
     temp.nextAppointment = objValues.nextAppointment ? "" : "This field is required"
-    temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
+    // temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
 
     //temp.systolic = objValues.systolic ? "" : "This field is required"
     temp.height = objValues.height ? "" : "This field is required"
@@ -1001,9 +1001,9 @@ const ClinicVisit = (props) => {
                       </option>
                     ))}
                   </Input>
-                  {errors.adherenceLevel !=="" ? (
+                  {/* {errors.adherenceLevel !=="" ? (
                       <span className={classes.error}>{errors.adherenceLevel}</span>
-                  ) : "" } 
+                  ) : "" }  */}
                 </FormGroup>
               </div>
               {objValues.adherenceLevel==='PREP_LEVEL_OF_ADHERENCE_(POOR)_≥_7_DOSES' && (

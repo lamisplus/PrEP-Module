@@ -255,12 +255,11 @@ const RecentHistory = (props) => {
   return (
     <Fragment>
       {/* <Ext /> */}
-
       <div className="row">
         <div className="col-xl-4 col-xxl-4 col-lg-4">
           <div className="card">
             <div className="card-header  border-0 pb-0" >
-              <h4 className="card-title"> Recent Activities</h4>
+              <h4 className="card-title">Recent Activities</h4>
             </div>
             <div className="card-body">
               <PerfectScrollbar
@@ -426,28 +425,29 @@ const RecentHistory = (props) => {
                     <div className="card overflow-hidden">
                       <div className="social-graph-wrapper widget-linkedin">
                         <span className="s-icon">
-                          <span style={{ fontSize: "16px", }}>BMI : {summary?((summary?.weight / ((summary?.height / 100) * (summary?.height / 100))).toFixed(2)): '0'} kg/m<sup>2</sup><span></span></span> 
+                          <span style={{ fontSize: "16px", }}>{<>
+                            BMI : {summary?((summary?.weight / ((summary?.height / 100) * (summary?.height / 100))).toFixed(2)): '0'} kg/m<sup>2</sup><span></span>
+                          </>}</span> 
                         </span>
                       </div>
                       <div className="row">
 
                         <div className="col-6 border-right">
                           <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                            <h4 className="m-1">
+                            {summary && <><h4 className="m-1">
                               <span className="counter">{summary? summary.weight: '0'} Kg</span>
                             </h4>
-                            <p className="m-0"><b>Weight </b></p>
+                            <p className="m-0"><b>Weight </b></p></>}
                           </div>
                         </div>
                         <div className="col-6">
                           <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                            <h4 className="m-1">
+                            {summary && <><h4 className="m-1">
                               <span className="counter">{summary? summary.height: '0'} cm</span>
                             </h4>
-                            <p className="m-0"><b>Height </b></p>
+                            <p className="m-0"><b>Height </b></p></>}
                           </div>
                         </div>
-
                       </div>
                     </div>
                   </div>
@@ -467,7 +467,6 @@ const RecentHistory = (props) => {
         </Modal.Header>
         <Modal.Body>
           <h4>Are you Sure you want to delete <b>{record && record.name}</b></h4>
-
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={() => LoadDeletePage(record)} style={{ backgroundColor: "red", color: "#fff" }} disabled={saving}>{saving === false ? "Yes" : "Deleting..."}</Button>

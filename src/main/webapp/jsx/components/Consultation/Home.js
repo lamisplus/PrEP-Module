@@ -924,9 +924,9 @@ const ClinicVisit = (props) => {
     temp.nextAppointment = objValues.nextAppointment
       ? ""
       : "This field is required";
-    temp.adherenceLevel = (objValues.adherenceLevel || countPrepEligibility(recentActivities) <= 2)
-      ? ""
-      : "This field is required";
+    // temp.adherenceLevel = (objValues.adherenceLevel || countPrepEligibility(recentActivities) <= 2)
+    //   ? ""
+    //   : "This field is required";
 
     temp.height = objValues.height ? "" : "This field is required";
     temp.weight = objValues.weight ? "" : "This field is required";
@@ -1783,7 +1783,8 @@ const ClinicVisit = (props) => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    Level of Adherence {countPrepEligibility(recentActivities) < 2 && <span style={{ color: "red" }}> *</span>}
+                    Level of Adherence 
+                    {/* {countPrepEligibility(recentActivities) < 2 && <span style={{ color: "red" }}> *</span>} */}
                   </FormLabelName>
                   <Input
                     type="select"
@@ -2029,7 +2030,7 @@ const ClinicVisit = (props) => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    Months of Refill <span style={{ color: "red" }}> *</span>
+                    {`Duration of Refill (Day[s])`}  <span style={{ color: "red" }}> *</span>
                   </FormLabelName>
                   <Input
                     type="number"
