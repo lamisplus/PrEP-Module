@@ -408,7 +408,6 @@ const RecentHistory = (props) => {
                               {summary &&<p className="m-0"><b>Next Visit</b></p>}
                             </div>
                           </div>
-
                         </div>
                       </div>
                     </div>
@@ -416,8 +415,7 @@ const RecentHistory = (props) => {
                       <div className="widget-stat card">
                         <div className="card-body p-4" style={{ backgroundColor: "#fff" }}>
                           <h4 className="card-title" style={{ fontSize: "15px" }}><b>Current Regimen Given</b></h4>
-                          <h4 class="text-info ">{summary?.regimen}</h4>
-
+                          <h4 class="text-info ">{summary? summary?.regimen: 'NIL'}</h4>
                         </div>
                       </div>
                     </div>
@@ -428,7 +426,7 @@ const RecentHistory = (props) => {
                     <div className="card overflow-hidden">
                       <div className="social-graph-wrapper widget-linkedin">
                         <span className="s-icon">
-                          <span style={{ fontSize: "16px", }}>BMI : {(summary.weight / ((summary?.height / 100) * (summary?.height / 100))).toFixed(2)} kg/m<sup>2</sup></span>
+                          <span style={{ fontSize: "16px", }}>BMI : {summary?((summary?.weight / ((summary?.height / 100) * (summary?.height / 100))).toFixed(2)): '0'} kg/m<sup>2</sup><span></span></span> 
                         </span>
                       </div>
                       <div className="row">
@@ -436,7 +434,7 @@ const RecentHistory = (props) => {
                         <div className="col-6 border-right">
                           <div className="pt-3 pb-3 ps-0 pe-0 text-center">
                             <h4 className="m-1">
-                              <span className="counter">{summary?.weight} Kg</span>
+                              <span className="counter">{summary? summary.weight: '0'} Kg</span>
                             </h4>
                             <p className="m-0"><b>Weight </b></p>
                           </div>
@@ -444,7 +442,7 @@ const RecentHistory = (props) => {
                         <div className="col-6">
                           <div className="pt-3 pb-3 ps-0 pe-0 text-center">
                             <h4 className="m-1">
-                              <span className="counter">{summary?.height} cm</span>
+                              <span className="counter">{summary? summary.height: '0'} cm</span>
                             </h4>
                             <p className="m-0"><b>Height </b></p>
                           </div>
