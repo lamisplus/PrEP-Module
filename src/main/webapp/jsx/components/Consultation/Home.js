@@ -337,19 +337,45 @@ const ClinicVisit = (props) => {
   };
 
 
-  const checkEligibleForCABLA = (currentDate) => {
-    axios
+  const checkEligibleForCABLA = async(currentDate, regimenList) => {
+ 
+    if(currentDate){
+
+     await axios
       .get(
         `${baseUrl}prep-clinic/checkEnableCab/${props.patientObj.personId}/${currentDate}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then((response) => {
 
-        if(response?.data){
+
+         if(response?.data || !response?.data){
+          console.log("checkEligibleForCABLA", response?.data)
+
+
+          console.log("PrepRegimen",regimenList)
+           
+            let isEligibleForCABLA =response?.data 
+            console.log("isEligibleForCABLA",isEligibleForCABLA)
+
+          if(isEligibleForCABLA){
+            setprepRegimen(regimenList);
+            }else{
+              let reg =  regimenList.filter((each, index)=>{
+                  return each.code !== "CAB-LA(600mg/3mL)"
+                })
+
+            setprepRegimen(reg);
+
+       }
+
+
+
         return  response?.data
         }
       })
       .catch((error) => { });
+    }
   };
   const GetPatientVisit = async (id) => {
     axios
@@ -372,6 +398,30 @@ const ClinicVisit = (props) => {
               };
             }),
           ]);
+        }
+      })
+      .catch((error) => { });
+  };
+
+
+  const getHIVresult = () => {
+    axios
+      .get(
+        `${baseUrl}prep-clinic/hts-record/${props.patientObj.personId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((response) => {
+
+
+        if(response.data[0].hivTestResult){
+
+          setHivTestValue(response.data[0].hivTestResult)
+
+        }
+        
+        if(response.data[0].visitDate){
+          setHivTestResultDate(response.data[0].visitDate)
+
         }
       })
       .catch((error) => { });
@@ -399,7 +449,7 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => { });
   };
-  const PrepRegimen = (currentDate) => {
+  const PrepRegimen =  (currentDate) => {
     axios
       .get(`${baseUrl}prep-regimen`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -408,18 +458,8 @@ const ClinicVisit = (props) => {
 
         // confirm access to display CAB-LA
 
-       let isEligibleForCABLA =  checkEligibleForCABLA(currentDate);
-
-       if(isEligibleForCABLA){
-            setprepRegimen(response.data);
-       }else{
-          let reg =  response.data.filter((each, index)=>{
-              return each.code !== "CAB-LA(600mg/3mL)"
-            })
-
-            setprepRegimen(reg);
-
-       }
+       let isEligibleForCABLA =  checkEligibleForCABLA(currentDate, response.data);
+      
 
 
     
@@ -476,7 +516,7 @@ const ClinicVisit = (props) => {
       })
       .then((response) => {
         var lastHivTest = response?.data?.hivTestResult;
-        console.log('last res; ', response.data.hivTestResult)
+        // console.log('last res; ', response.data.hivTestResult)
         if (!lastHivTest) {
           setHivTestValue(response.data.hivTestResult);
           setHivTestResultDate(response.data.test1.date);
@@ -1091,7 +1131,10 @@ const ClinicVisit = (props) => {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((response) => {
-          setprepRegimen(response.data);
+
+          let isEligibleForCABLA =  checkEligibleForCABLA(objValues.encounterDate, response.data);
+
+          // setprepRegimen(response.data);
         })
         .catch((error) => {
           //console.log(error);
@@ -1159,7 +1202,12 @@ const ClinicVisit = (props) => {
     return (regimen.id !== lastRegimenId)
   })
 
-  useEffect(() => getRecentActivities(), [])
+  useEffect(() =>{
+
+     getRecentActivities()
+     getHIVresult()
+
+    }, [])
   return (
     <div>
       <div className="row">
