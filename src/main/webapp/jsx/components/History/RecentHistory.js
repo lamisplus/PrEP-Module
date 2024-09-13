@@ -426,7 +426,7 @@ const RecentHistory = (props) => {
                       <div className="social-graph-wrapper widget-linkedin">
                         <span className="s-icon">
                           <span style={{ fontSize: "16px", }}>{<>
-                            BMI : {summary?((summary?.weight / ((summary?.height / 100) * (summary?.height / 100))).toFixed(2)): '0'} kg/m<sup>2</sup><span></span>
+                            BMI : {summary?((summary?.weight / ((summary?.height / 100) * (summary?.height / 100))).toFixed(2)): 'NIL'} {summary && <>kg/m<sup>2</sup><span></span></>}
                           </>}</span> 
                         </span>
                       </div>
