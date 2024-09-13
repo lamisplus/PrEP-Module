@@ -118,17 +118,20 @@ const ClinicVisit = (props) => {
   const [hivTestValue, setHivTestValue] = useState("");
   const [hivTestResultDate, setHivTestResultDate] = useState("");
 
-  // handleInputChange({
-  //   target: { name: "hivTestResult", value: hivTestValue },
-  // });
-  // handleInputChange({
-  //   target: { name: "hivTestResultDate", value: hivTestResultDate },
-  // });
 
-  useEffect(() => {
-    console.log('las result',getHIVresult())
-    getHIVresult()
-  }, [hivTestValue]);
+
+  
+  // useEffect(() => {
+  //   handleInputChange({
+  //     target: { name: "hivTestResult", value: hivTestValue },
+  //   });
+  //   handleInputChange({
+  //     target: { name: "hivTestResultDate", value: hivTestResultDate },
+  //   });
+  // }, [hivTestValue]);
+
+
+
   //Vital signs clinical decision support
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: "",
@@ -253,7 +256,7 @@ const ClinicVisit = (props) => {
     //PatientDetaild();
     PREP_STATUS();
     HTS_RESULT();
-    LAST_HIV_TEST_RESULT();
+    // LAST_HIV_TEST_RESULT();
     PREP_SIDE_EFFECTS();
     GetPatientDTOObj();
     WHY_POOR_FAIR_ADHERENCE();
@@ -414,7 +417,6 @@ const ClinicVisit = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then((response) => {
-
 
         if(response.data[0].hivTestResult){
 
@@ -967,9 +969,9 @@ const ClinicVisit = (props) => {
     temp.nextAppointment = objValues.nextAppointment
       ? ""
       : "This field is required";
-    // temp.adherenceLevel = (objValues.adherenceLevel || countPrepEligibility(recentActivities) <= 2)
-    //   ? ""
-    //   : "This field is required";
+    temp.adherenceLevel = (objValues.adherenceLevel || countPrepEligibility(recentActivities) <= 2)
+      ? ""
+      : "This field is required";
 
     temp.height = objValues.height ? "" : "This field is required";
     temp.weight = objValues.weight ? "" : "This field is required";
@@ -1215,7 +1217,7 @@ const ClinicVisit = (props) => {
     <div>
       <div className="row">
         <div className="col-md-6">
-          <h2>Clinic Follow-up Visit he</h2>
+          <h2>Clinic Follow-up Visit</h2>
         </div>
       </div>
       <Grid>
@@ -1692,6 +1694,8 @@ const ClinicVisit = (props) => {
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
+
+                  
                   <FormLabelName>Date of Last HIV Test </FormLabelName>
                   <Input
                     type={hivTestValue == "NOT DONE" ? "text" : "date"}
@@ -1834,8 +1838,7 @@ const ClinicVisit = (props) => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    Level of Adherence 
-                    {/* {countPrepEligibility(recentActivities) < 2 && <span style={{ color: "red" }}> *</span>} */}
+                    Level of Adherence {countPrepEligibility(recentActivities) < 2 && <span style={{ color: "red" }}> *</span>}
                   </FormLabelName>
                   <Input
                     type="select"
@@ -2081,7 +2084,7 @@ const ClinicVisit = (props) => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    {`Duration of Refill (Day[s])`}  <span style={{ color: "red" }}> *</span>
+                    Months of Refill <span style={{ color: "red" }}> *</span>
                   </FormLabelName>
                   <Input
                     type="number"
