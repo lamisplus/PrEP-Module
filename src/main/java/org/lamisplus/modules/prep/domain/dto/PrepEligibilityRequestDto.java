@@ -32,7 +32,6 @@ public class PrepEligibilityRequestDto implements Serializable {
     @NotBlank(message = "targetGroup is mandatory")
     private String targetGroup;
     private Object extra;
-    @NotBlank(message = "uniqueId is mandatory")
     private String uniqueId;
     private Integer score;
     @NotNull(message = "visitDate is mandatory")

@@ -105,6 +105,7 @@ const BasicInfo = (props) => {
     const classes = useStyles();
     const [disabledField, setSisabledField] = useState(false);
     const patientID = props.patientDetail && props.patientDetail.personResponseDto ? props.patientDetail.personResponseDto.id : "";
+    console.log('patient ID OBS: ',props)
     //const clientId = props.patientObj && props.patientObj ? props.patientObj.id : "";
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
@@ -171,6 +172,8 @@ const BasicInfo = (props) => {
                 //console.log(error);
             });
     }
+
+    // useEffect(()=>console.log('uniqueId: ',props.patientObj))
     const CounselingType = () => {
         axios
             .get(`${baseUrl}application-codesets/v2/COUNSELING_TYPE`,
@@ -411,8 +414,8 @@ const BasicInfo = (props) => {
             objValues.personalHivRiskAssessment = riskAssessment
             objValues.sexPartnerRisk = riskAssessmentPartner
             objValues.stiScreening = stiScreening
-            objValues.personId = patientID
-            objValues.uniqueId = patientID
+            objValues.personId = props?.patientObj?.personId
+            objValues.uniqueId = props?.patientObj?.uniqueId
             objValues.assessmentForAcuteHivInfection = assessmentForAcuteHivInfection
             objValues.assessmentForPepIndication = assessmentForPepIndication
             objValues.assessmentForPrepEligibility = assessmentForPrepEligibility

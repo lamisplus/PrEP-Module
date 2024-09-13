@@ -118,13 +118,16 @@ const ClinicVisit = (props) => {
   const [hivTestValue, setHivTestValue] = useState("");
   const [hivTestResultDate, setHivTestResultDate] = useState("");
 
+  // handleInputChange({
+  //   target: { name: "hivTestResult", value: hivTestValue },
+  // });
+  // handleInputChange({
+  //   target: { name: "hivTestResultDate", value: hivTestResultDate },
+  // });
+
   useEffect(() => {
-    handleInputChange({
-      target: { name: "hivTestResult", value: hivTestValue },
-    });
-    handleInputChange({
-      target: { name: "hivTestResultDate", value: hivTestResultDate },
-    });
+    console.log('las result',getHIVresult())
+    getHIVresult()
   }, [hivTestValue]);
   //Vital signs clinical decision support
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
@@ -1212,7 +1215,7 @@ const ClinicVisit = (props) => {
     <div>
       <div className="row">
         <div className="col-md-6">
-          <h2>Clinic Follow-up Visit</h2>
+          <h2>Clinic Follow-up Visit he</h2>
         </div>
       </div>
       <Grid>
