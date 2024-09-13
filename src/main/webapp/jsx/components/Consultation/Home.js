@@ -118,14 +118,20 @@ const ClinicVisit = (props) => {
   const [hivTestValue, setHivTestValue] = useState("");
   const [hivTestResultDate, setHivTestResultDate] = useState("");
 
-  useEffect(() => {
-    handleInputChange({
-      target: { name: "hivTestResult", value: hivTestValue },
-    });
-    handleInputChange({
-      target: { name: "hivTestResultDate", value: hivTestResultDate },
-    });
-  }, [hivTestValue]);
+
+
+  
+  // useEffect(() => {
+  //   handleInputChange({
+  //     target: { name: "hivTestResult", value: hivTestValue },
+  //   });
+  //   handleInputChange({
+  //     target: { name: "hivTestResultDate", value: hivTestResultDate },
+  //   });
+  // }, [hivTestValue]);
+
+
+
   //Vital signs clinical decision support
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: "",
@@ -250,7 +256,7 @@ const ClinicVisit = (props) => {
     //PatientDetaild();
     PREP_STATUS();
     HTS_RESULT();
-    LAST_HIV_TEST_RESULT();
+    // LAST_HIV_TEST_RESULT();
     PREP_SIDE_EFFECTS();
     GetPatientDTOObj();
     WHY_POOR_FAIR_ADHERENCE();
@@ -411,7 +417,6 @@ const ClinicVisit = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then((response) => {
-
 
         if(response.data[0].hivTestResult){
 
@@ -1689,6 +1694,8 @@ const ClinicVisit = (props) => {
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
+
+                  
                   <FormLabelName>Date of Last HIV Test </FormLabelName>
                   <Input
                     type={hivTestValue == "NOT DONE" ? "text" : "date"}
