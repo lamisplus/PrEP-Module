@@ -1,6 +1,7 @@
 package org.lamisplus.modules.prep.repository;
 
 import org.lamisplus.modules.patient.domain.entity.Person;
+import org.lamisplus.modules.prep.domain.dto.PrepPreviousVisitHtsRecord;
 import org.lamisplus.modules.prep.domain.entity.PrepClinic;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -36,4 +37,44 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
     )
     List<PrepClinic> getAllDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
     Optional<PrepClinic> findByUuid(String uuid);
+
+    @Query(value = "SELECT enableCab FROM (\n" +
+            "SELECT person_uuid, p.id,regimen_id,next_appointment, \n" +
+            "CASE WHEN ((next_appointment <=  ?2) AND pc.regimen_id = 2) THEN true else false END AS enableCab, ROW_NUMBER() OVER (PARTITION BY person_uuid ORDER BY next_appointment DESC) AS rowNums\n" +
+            "FROM prep_clinic pc\n" +
+            "JOIN patient_person p ON p.uuid = pc.person_uuid \n" +
+            "WHERE pc.archived = 0 AND p.archived = 0\n" +
+            "AND is_commencement= false\n" +
+            "AND regimen_id = 2\n" +
+            ") sub\n" +
+            "WHERE id = ?1 AND rowNums = 1", nativeQuery = true)
+    Boolean checkEnableCabaL (Long id, LocalDate currentVisitDate);
+
+    @Query(value = "select p.id FROM prep_clinic pc JOIN patient_person p ON p.uuid = pc.person_uuid \n" +
+            "where is_commencement = false\n" +
+            "AND p.id = ?1 LIMIT 1", nativeQuery = true)
+    Optional<Long> checkHasClinicalVisit (Long id); //checks if has visit
+
+
+    @Query(value = "WITH RankedVisits AS (\n" +
+            "    SELECT \n" +
+            "        p.id, \n" +
+            "        hts.date_visit, \n" +
+            "        hts.hiv_test_result,\n" +
+            "        ROW_NUMBER() OVER (PARTITION BY hts.person_uuid ORDER BY hts.date_visit DESC) AS rowNum,\n" +
+            "        COUNT(*) OVER (PARTITION BY hts.person_uuid) AS visitCount\n" +
+            "    FROM hts_client hts\n" +
+            "    JOIN patient_person p ON p.uuid = hts.person_uuid\n" +
+            ")\n" +
+            "SELECT \n" +
+            "    date_visit AS visitDate, \n" +
+            "    hiv_test_result AS hivTestResult\n" +
+            "FROM RankedVisits\n" +
+            "WHERE \n" +
+            "id = ?1 AND \n" +
+            "((visitCount > 1 AND rowNum = 2) \n" +
+            "   OR (visitCount <= 1 AND rowNum = 1))", nativeQuery = true)
+    List<PrepPreviousVisitHtsRecord> getPreviousHtsRecord (Long id);
+
+
 }

@@ -18,7 +18,9 @@ import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
 import org.lamisplus.modules.prep.repository.PrepInterruptionRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.lamisplus.modules.base.util.Constants.ArchiveStatus.ARCHIVED;
@@ -366,4 +368,23 @@ public class PrepClinicService {
 
         return this.clinicToClinicDto(prepClinic, null);
     }
+
+
+    public Boolean checkCabLaEligibility (Long id, LocalDate currentVisitDate) {
+        //check if not in prepClinical record for visit
+        Optional<Long> hasPrevisit = prepClinicRepository.checkHasClinicalVisit(id); // returns true
+        if (!hasPrevisit.isPresent()){
+            return true; // return true with no clinical records
+        } else {
+            Boolean hasCabalin = prepClinicRepository.checkEnableCabaL(id, currentVisitDate); // has clinical records and has cab-lin as previous visit
+            return hasCabalin; // true
+        }
+    }
+
+    public List<PrepPreviousVisitHtsRecord> getPreviousHtsTesting (Long id){
+        List<PrepPreviousVisitHtsRecord> htsRecord = prepClinicRepository.getPreviousHtsRecord(id);
+        return htsRecord;
+
+    }
+
 }
