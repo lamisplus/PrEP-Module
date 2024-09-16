@@ -983,7 +983,7 @@ const ClinicVisit = (props) => {
               )}
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Level of Adherence <span style={{ color:"red"}}> *</span></FormLabelName>
+                  <FormLabelName >Level of Adherence</FormLabelName>
                   <Input
                     type="select"
                     name="adherenceLevel"

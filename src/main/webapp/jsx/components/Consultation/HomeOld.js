@@ -391,7 +391,7 @@ const ClinicVisit = (props) => {
     temp.encounterDate = objValues.encounterDate ? "" : "This field is required"
 
     //temp.functionalStatusId = objValues.functionalStatusId ? "" : "This field is required"
-    temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
+    // temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
 
     temp.systolic = objValues.systolic ? "" : "This field is required"
     temp.height = objValues.height ? "" : "This field is required"

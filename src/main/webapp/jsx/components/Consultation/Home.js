@@ -118,8 +118,6 @@ const ClinicVisit = (props) => {
   const [hivTestValue, setHivTestValue] = useState("");
   const [hivTestResultDate, setHivTestResultDate] = useState("");
 
-
-
   
   // useEffect(() => {
   //   handleInputChange({
@@ -417,17 +415,8 @@ const ClinicVisit = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then((response) => {
-
-        if(response.data[0].hivTestResult){
-
-          setHivTestValue(response.data[0].hivTestResult)
-
-        }
-        
-        if(response.data[0].visitDate){
-          setHivTestResultDate(response.data[0].visitDate)
-
-        }
+          setHivTestValue(response?.data?.[0]?.hivTestResult)        
+          setHivTestResultDate(response?.data?.[0]?.visitDate)
       })
       .catch((error) => { });
   };
@@ -969,9 +958,9 @@ const ClinicVisit = (props) => {
     temp.nextAppointment = objValues.nextAppointment
       ? ""
       : "This field is required";
-    temp.adherenceLevel = (objValues.adherenceLevel || countPrepEligibility(recentActivities) <= 2)
-      ? ""
-      : "This field is required";
+    // temp.adherenceLevel = (objValues.adherenceLevel || countPrepEligibility(recentActivities) <= 2)
+    //   ? ""
+    //   : "This field is required";
 
     temp.height = objValues.height ? "" : "This field is required";
     temp.weight = objValues.weight ? "" : "This field is required";
@@ -1211,7 +1200,6 @@ const ClinicVisit = (props) => {
 
      getRecentActivities()
      getHIVresult()
-
     }, [])
   return (
     <div>
@@ -1838,7 +1826,8 @@ const ClinicVisit = (props) => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    Level of Adherence {countPrepEligibility(recentActivities) < 2 && <span style={{ color: "red" }}> *</span>}
+                    Level of Adherence 
+                    {/* {countPrepEligibility(recentActivities) < 2 && <span style={{ color: "red" }}> *</span>} */}
                   </FormLabelName>
                   <Input
                     type="select"
@@ -2084,7 +2073,7 @@ const ClinicVisit = (props) => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    Months of Refill <span style={{ color: "red" }}> *</span>
+                   { `Duration of refill (Day[s])`}  <span style={{ color: "red" }}> *</span>
                   </FormLabelName>
                   <Input
                     type="number"
