@@ -144,6 +144,7 @@ const AddVitals = (props) => {
                                         <InputGroup> 
                                             <Input 
                                                 type="date"
+                                                onKeyDown={(e)=>e.preventDefault()}
                                                 name="encounterDate"
                                                 id="encounterDate"
                                                 onChange={handleInputChangeVitalSignDto}

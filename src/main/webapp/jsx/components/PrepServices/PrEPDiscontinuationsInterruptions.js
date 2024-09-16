@@ -314,7 +314,6 @@ const PrEPEligibiltyScreeningForm = (props) => {
           
     }
 
-
   return (      
       <div>                   
         <Card className={classes.root}>
@@ -351,6 +350,9 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             <Label for="uniqueId">Date of Interruption <span style={{ color:"red"}}> *</span></Label>
                             <Input
                                 type="date"
+                                onKeyDown={(e)=>{
+                                    e.preventDefault()
+                                }}
                                 name="interruptionDate"
                                 id="interruptionDate"
                                 min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
@@ -419,6 +421,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Date of client referred out </Label>
                         <Input
                             type="date"
+                            onKeyDown={(e)=>e.preventDefault()}
                             name="dateClientReferredOut"
                             id="dateClientReferredOut"
                             min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
@@ -459,6 +462,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Date of client died </Label>
                         <Input
                             type="date"
+                            onKeyDown={(e)=>e.preventDefault()}
                             name="dateClientDied"
                             id="dateClientDied"
                             min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
@@ -539,6 +543,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Input
                             className="form-control"
                             type="date"
+                            onKeyDown={(e)=>e.preventDefault()}
                             name="dateRestartPlacedBackMedication"
                             id="dateRestartPlacedBackMedication"
                             min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
@@ -560,6 +565,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Label for="uniqueId">Date Seroconverted </Label>
                         <Input
                             type="date"
+                            onKeyDown={(e)=>e.preventDefault()}
                             name="dateSeroconverted"
                             id="dateSeroconverted"
                             min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
@@ -599,6 +605,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                         <Input
                             className="form-control"
                             type="date"
+                            onKeyDown={(e)=>e.preventDefault()}
                             name="dateLinkToArt"
                             id="dateLinkToArt"
                             //min="1983-12-31"

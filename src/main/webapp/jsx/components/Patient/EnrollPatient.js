@@ -856,6 +856,7 @@ const UserRegistration = (props) => {
                                                     <Input
                                                         className="form-control"
                                                         type="date"
+                                                        onKeyDown={(e)=>e.preventDefault()}
                                                         name="dateOfRegistration"
                                                         min="1983-12-31"
                                                         max= {moment(new Date()).format("YYYY-MM-DD") }
@@ -1024,6 +1025,7 @@ const UserRegistration = (props) => {
                                                     <input
                                                         className="form-control"
                                                         type="date"
+                                                        onKeyDown={(e)=>e.preventDefault()}
                                                         name="dob"
                                                         id="dob"
                                                         min="1940-01-01"
@@ -1606,6 +1608,7 @@ const UserRegistration = (props) => {
                                 <Input
                                     className="form-control"
                                     type="date"
+                                    onKeyDown={(e)=>e.preventDefault()}
                                     name="dateEnrolled"
                                     id="dateEnrolled"
                                     value={objValues.dateEnrolled}
@@ -1678,6 +1681,7 @@ const UserRegistration = (props) => {
                                     <Input
                                         className="form-control"
                                         type="date"
+                                        onKeyDown={(e)=>e.preventDefault()}
                                         name="dateOfLastHivNegativeTest"
                                         id="dateOfLastHivNegativeTest"
                                         value={objValues.dateOfLastHivNegativeTest}
@@ -1696,6 +1700,7 @@ const UserRegistration = (props) => {
                                     <Input
                                         className="form-control"
                                         type="date"
+                                        onKeyDown={(e)=>e.preventDefault()}
                                         name="dateReferredForPrep"
                                         id="dateReferredForPrep"
                                         value={objValues.dateReferredForPrep}

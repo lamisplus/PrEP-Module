@@ -730,6 +730,7 @@ const UserRegistration = (props) => {
                                                     <Input
                                                         className="form-control"
                                                         type="date"
+                                                        onKeyDown={(e)=>e.preventDefault()}
                                                         name="dateOfRegistration"
                                                         id="dateOfRegistration"
                                                         max={today}
@@ -863,6 +864,7 @@ const UserRegistration = (props) => {
                                                     <input
                                                         className="form-control"
                                                         type="date"
+                                                        onKeyDown={(e)=>e.preventDefault()}
                                                         name="dob"
                                                         id="dob"
                                                         max={today}
@@ -1374,6 +1376,7 @@ const UserRegistration = (props) => {
                                     <Label for="dateOfRegistration">Date of Enrollment * </Label>
                                     <Input
                                         type="date"
+                                        onKeyDown={(e)=>e.preventDefault()}
                                         name="dateOfRegistration"
                                         id="dateOfRegistration"
                                         max={today}
@@ -1452,6 +1455,7 @@ const UserRegistration = (props) => {
                                     <Label >Date of Confirmed HIV Test *</Label>
                                     <Input
                                         type="date"
+                                        onKeyDown={(e)=>e.preventDefault()}
                                         name="dateConfirmedHiv"
                                         id="dateConfirmedHiv"
                                         max={today}
@@ -1536,6 +1540,7 @@ const UserRegistration = (props) => {
                                     <Label >Date of LMP </Label>                                    
                                     <Input
                                         type="date"
+                                        onKeyDown={(e)=>e.preventDefault()}
                                         name="dateOfLpm"
                                         id="dateOfLpm"
                                         max={today}

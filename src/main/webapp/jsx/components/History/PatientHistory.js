@@ -91,7 +91,7 @@ const PatientnHistory = (props) => {
             props.setActiveContent({...props.activeContent, route:'prep-registration', id:row.id, actionType:action})
 
         }else if(row.path==='prep-clinic'){//prep-commencement 
-            props.setActiveContent({...props.activeContent, route:'consultation', id:row.id, actionType:action})
+            props.setActiveContent({...props.activeContent, route:'consultation', recentActivities, id:row.id, actionType:action})
 
         }else if(row.path==='prep-commencement'){
             props.setActiveContent({...props.activeContent, route:'prep-commencement', id:row.id, actionType:action})

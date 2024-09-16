@@ -60,6 +60,7 @@ const ADR = (props) => {
             <Label >Onset Date </Label>
             <Input
                 type="date"
+                onKeyDown={(e)=>e.preventDefault()}
                 name="ondateInfection"
                 id="ondateInfection"
                 value={props.infection.ondateInfection}

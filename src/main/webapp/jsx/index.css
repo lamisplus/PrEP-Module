@@ -686,3 +686,11 @@ button.react-calendar__tile.react-calendar__tile--active.react-calendar__tile--r
 	height: auto;
 	display: contents;
 }
+
+/*
+react-read-more-read-less-button-style
+*/
+span.react-read-more-read-less:hover, span.react-read-more-read-less-more:hover{
+  text-decoration: underline;
+  color: rgb(81, 54, 4) !important;
+}

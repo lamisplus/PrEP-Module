@@ -63,7 +63,7 @@ const Patients = (props) => {
     const [loading, setLoading] = useState(true)
     const [showPPI, setShowPPI] = useState(true)
     useEffect(() => {
-        patients()
+        // patients()
       }, []);
         ///GET LIST OF Patients
         async function patients() {
@@ -211,7 +211,7 @@ const Patients = (props) => {
                 ),
             }}
     />
-        />
+   
        
     </div>
   );

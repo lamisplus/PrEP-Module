@@ -467,7 +467,7 @@ const ClinicVisit = (props) => {
     temp.encounterDate = objValues.encounterDate ? "" : "This field is required"
 
     temp.nextAppointment = objValues.nextAppointment ? "" : "This field is required"
-    temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
+    // temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
 
     //temp.systolic = objValues.systolic ? "" : "This field is required"
     temp.height = objValues.height ? "" : "This field is required"
@@ -608,6 +608,7 @@ const ClinicVisit = (props) => {
                   <FormLabelName >Date of Visit <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
                     type="date"
+                    onKeyDown={(e)=>e.preventDefault()}
                     name="encounterDate"
                     id="encounterDate"
                     value={objValues.encounterDate}
@@ -982,7 +983,7 @@ const ClinicVisit = (props) => {
               )}
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Level of Adherence <span style={{ color:"red"}}> *</span></FormLabelName>
+                  <FormLabelName >Level of Adherence</FormLabelName>
                   <Input
                     type="select"
                     name="adherenceLevel"
@@ -1000,9 +1001,9 @@ const ClinicVisit = (props) => {
                       </option>
                     ))}
                   </Input>
-                  {errors.adherenceLevel !=="" ? (
+                  {/* {errors.adherenceLevel !=="" ? (
                       <span className={classes.error}>{errors.adherenceLevel}</span>
-                  ) : "" } 
+                  ) : "" }  */}
                 </FormGroup>
               </div>
               {objValues.adherenceLevel==='PREP_LEVEL_OF_ADHERENCE_(POOR)_≥_7_DOSES' && (
@@ -1096,6 +1097,7 @@ const ClinicVisit = (props) => {
                   <FormLabelName >Date PrEP Given <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
                     type="date"
+                    onKeyDown={(e)=>e.preventDefault()}
                     name="datePrepGiven"
                     id="datePrepGiven"
                     value={objValues.datePrepGiven}
@@ -1159,6 +1161,7 @@ const ClinicVisit = (props) => {
                   <FormLabelName >Urinalysis Test Date <span style={{ color:"red"}}> *</span></FormLabelName>
                   <Input
                     type="date"
+                    onKeyDown={(e)=>e.preventDefault()}
                     name="testDate"
                     id="testDate"
                     value={urinalysisTest.testDate}
@@ -1206,6 +1209,7 @@ const ClinicVisit = (props) => {
                   <FormLabelName >Hepatitis  Test  Date</FormLabelName>
                   <Input
                     type="date"
+                    onKeyDown={(e)=>e.preventDefault()}
                     name="testDate"
                     id="testDate"
                     value={hepatitisTest.testDate}
@@ -1249,6 +1253,7 @@ const ClinicVisit = (props) => {
                   <FormLabelName >Syphilis Test  Date</FormLabelName>
                   <Input
                     type="date"
+                    onKeyDown={(e)=>e.preventDefault()}
                     name="testDate"
                     id="testDate"
                     value={syphilisTest.testDate}
@@ -1314,6 +1319,7 @@ const ClinicVisit = (props) => {
                   <FormLabelName > Test  Date</FormLabelName>
                   <Input
                     type="date"
+                    onKeyDown={(e)=>e.preventDefault()}
                     name="testDate"
                     id="testDate"
                     value={otherTest.testDate}
@@ -1351,6 +1357,7 @@ const ClinicVisit = (props) => {
             <div className=" mb-3 col-md-12">
                 <Input
                   type="date"
+                  onKeyDown={(e)=>e.preventDefault()}
                   name="nextAppointment"
                   id="nextAppointment"
                   className="col-md-6"

@@ -1,6 +1,6 @@
 import React, {useState, Fragment } from "react";
 import { Row, Col, Card,  Tab, Tabs, } from "react-bootstrap";
-import PatientList from './Patient/PatientList'
+import PatientList from './Patient/PatientList';
 
 
 const divStyle = {
@@ -11,13 +11,12 @@ const divStyle = {
 const Home = () => {
     const [key, setKey] = useState('home');
 
-
   return (
     <Fragment>  
       <div className="row page-titles mx-0" style={{marginTop:"0px", marginBottom:"-10px"}}>
-			<ol className="breadcrumb">
-				<li className="breadcrumb-item active"><h4>PrEP</h4></li>
-			</ol>
+      <ol className="breadcrumb">
+        <li className="breadcrumb-item active"><h4>PrEP</h4></li>
+      </ol>
 		  </div>
       {/* <Link to={"register-patient"}>
             <Button

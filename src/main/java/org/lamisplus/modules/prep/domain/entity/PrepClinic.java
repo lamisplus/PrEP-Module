@@ -39,7 +39,7 @@ import java.util.UUID;
 public class PrepClinic extends Audit implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id", nullable = false, unique = true)
     private Long id;
 
     @Column(name = " date_initial_adherence_counseling")
@@ -97,6 +97,9 @@ public class PrepClinic extends Audit implements Serializable{
 
     @Column(name = "visit_uuid")
     private String visitUuid;
+
+    @Column(name = "visit_type")
+    private String visitType;
 
     @OneToOne
     @JoinColumn(name = "vital_sign_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
@@ -228,6 +231,9 @@ public class PrepClinic extends Audit implements Serializable{
     private String historyOfDrugAllergies;
     @Column(name = "months_of_refill")
     private Integer monthsOfRefill;
+
+    @Column(name = "health_care_worker_signature")
+    private String healthCareWorkerSignature;
 
 
     @PrePersist

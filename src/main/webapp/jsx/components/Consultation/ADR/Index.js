@@ -105,6 +105,7 @@ const ADR = (props) => {
             <Label > Onset Date</Label>
             <Input
                 type="date"
+                onKeyDown={(e)=>e.preventDefault()}
                 name="adrOnsetDate"
                 id="adrOnsetDate"
                 value={props.adrObj.adrOnsetDate}

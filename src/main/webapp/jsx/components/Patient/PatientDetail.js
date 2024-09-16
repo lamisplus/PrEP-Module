@@ -57,17 +57,21 @@ const styles = theme => ({
 
 
 function PatientCard(props) {
+  
     let history = useHistory();
+    console.log("props", history.location)
     const [patientDetail, setPatientDetail] = useState("")
     const [activeContent, setActiveContent] = useState({route:"recent-history", id:"", activeTab:"home", actionType:"create", obj:{}});
     const { classes } = props;
+    
     const patientObjLocation = history.location && history.location.state ? history.location.state.patientObj : {}
-    //let patientObj =""
+    console.log("patientId", patientObjLocation)
     const prepId = history.location && history.location.state ? history.location.state.prepId : {}
     //console.log(patientObj)
     useEffect(() => {
       PatientObject()
      }, []);
+
      async function PatientObject() {
       axios
           .get(`${baseUrl}prep/persons/${patientObjLocation.personId}`,
@@ -91,7 +95,7 @@ function PatientCard(props) {
         <CardContent>
           {/* This component is where the patient menu and route is define and manage */}
             {/* start of patient card detail */}
-            <PatientCardDetail patientObj={patientDetail}  setActiveContent={setActiveContent} patientDetail={patientDetail}/> 
+            <PatientCardDetail patientObj={patientObjLocation}  setActiveContent={setActiveContent} patientDetail={patientDetail}/> 
             {/* End of patient card detail */} 
             {/* This is the submenu components */}          
             <SubMenu patientObj={patientObjLocation}  setActiveContent={setActiveContent} patientDetail={patientDetail}/>
