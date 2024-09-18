@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Grid, Segment, Label, List, Card } from "semantic-ui-react";
 // Page titie
 import {
@@ -18,6 +18,7 @@ import moment from "moment";
 import { toast } from "react-toastify";
 import Select from "react-select";
 import Divider from "@mui/material/Divider";
+import { formValues } from "redux-form";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -118,7 +119,7 @@ const ClinicVisit = (props) => {
   const [hivTestValue, setHivTestValue] = useState("");
   const [hivTestResultDate, setHivTestResultDate] = useState("");
 
-  
+
   // useEffect(() => {
   //   handleInputChange({
   //     target: { name: "hivTestResult", value: hivTestValue },
@@ -341,44 +342,34 @@ const ClinicVisit = (props) => {
   };
 
 
-  const checkEligibleForCABLA = async(currentDate, regimenList) => {
- 
-    if(currentDate){
+  const checkEligibleForCABLA = async (currentDate, regimenList) => {
 
-     await axios
-      .get(
-        `${baseUrl}prep-clinic/checkEnableCab/${props.patientObj.personId}/${currentDate}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then((response) => {
+    if (currentDate) {
 
-
-         if(response?.data || !response?.data){
-          console.log("checkEligibleForCABLA", response?.data)
+      await axios
+        .get(
+          `${baseUrl}prep-clinic/checkEnableCab/${props.patientObj.personId}/${currentDate}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+        .then((response) => {
 
 
-          console.log("PrepRegimen",regimenList)
-           
-            let isEligibleForCABLA =response?.data 
-            console.log("isEligibleForCABLA",isEligibleForCABLA)
+          if (response?.data || !response?.data) {
+            let isEligibleForCABLA = response?.data
+            if (isEligibleForCABLA) {
+              setprepRegimen(regimenList);
+            } else {
+              let reg = regimenList.filter((each, index) => {
+                return each.code !== "CAB-LA(600mg/3mL)"
+              })
 
-          if(isEligibleForCABLA){
-            setprepRegimen(regimenList);
-            }else{
-              let reg =  regimenList.filter((each, index)=>{
-                  return each.code !== "CAB-LA(600mg/3mL)"
-                })
+              setprepRegimen(reg);
 
-            setprepRegimen(reg);
-
-       }
-
-
-
-        return  response?.data
-        }
-      })
-      .catch((error) => { });
+            }
+            return response?.data
+          }
+        })
+        .catch((error) => { });
     }
   };
   const GetPatientVisit = async (id) => {
@@ -387,7 +378,6 @@ const ClinicVisit = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        console.log("returned last visit: ", response.data);
         setObjValues(response.data);
         if (response.data.otherTestsDone !== null) {
           setOtherTest([
@@ -415,8 +405,13 @@ const ClinicVisit = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then((response) => {
-          setHivTestValue(response?.data?.[0]?.hivTestResult)        
-          setHivTestResultDate(response?.data?.[0]?.visitDate)
+        if(response.data?.length === 0) {
+          toast.error("No HTS record found. Atleast, 1 test result is required to proceed.");
+        }else if(response.data?.length > 0){
+          toast.success("HTS record found. You may proceed.");
+        }
+        setHivTestValue(response?.data?.[0]?.hivTestResult)
+        setHivTestResultDate(response?.data?.[0]?.visitDate)
       })
       .catch((error) => { });
   };
@@ -443,20 +438,14 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => { });
   };
-  const PrepRegimen =  (currentDate) => {
+  const PrepRegimen = (currentDate) => {
     axios
       .get(`${baseUrl}prep-regimen`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-
         // confirm access to display CAB-LA
-
-       let isEligibleForCABLA =  checkEligibleForCABLA(currentDate, response.data);
-      
-
-
-    
+        let isEligibleForCABLA = checkEligibleForCABLA(currentDate, response.data);
       })
       .catch((error) => { });
   };
@@ -707,7 +696,7 @@ const ClinicVisit = (props) => {
         monthsOfRefill: e.target.value,
         duration: `${durationInDays}`,
       });
-    }else if(e.target.name === "encounterDate"){
+    } else if (e.target.name === "encounterDate") {
       PrepRegimen(e.target.value);
 
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
@@ -770,9 +759,32 @@ const ClinicVisit = (props) => {
       setHepatitisTest({ ...syphilisTest, ["syphilisTest"]: "No" });
     }
   };
-  const handleCheckBoxOtherTest = (e) => {
-    setErrors({ ...errors, [e.target.name]: "" });
-    if (e.target.checked) {
+  // const handleCheckBoxOtherTest = (e) => {
+  // console.log(otherTestInputRef.current.name)
+  //   setErrors({ ...errors, [otherTestInputRef.current.name]: "" });
+  //   if (otherTestInputRef.current.checked) {
+  //     setOtherTest([
+  //       ...otherTest,
+  //       ...objValues.otherTestsDone,
+  //       {
+  //         localId: objValues.otherTestsDone?.length || 0,
+  //         otherTest: "Yes",
+  //         testDate: "",
+  //         result: "",
+  //         name: "",
+  //         otherTestName: "",
+  //       },
+  //     ]);
+  //   } else {
+  //     // setOtherTest({...otherTest, ["otherTest"]: "No"})
+  //     setOtherTest([]);
+  //   }
+  // };
+
+  const otherTestInputRef = useRef();
+  const loadOtherTestOptions = (e) => {
+    setErrors({ ...errors, [otherTestInputRef.current.name]: "" });
+    if (otherTestInputRef.current.checked) {
       setOtherTest([
         ...otherTest,
         ...objValues.otherTestsDone,
@@ -790,6 +802,7 @@ const ClinicVisit = (props) => {
       setOtherTest([]);
     }
   };
+  useEffect(() => loadOtherTestOptions(), [])
 
   const handleCheckBoxUrinalysisTest = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
@@ -946,13 +959,22 @@ const ClinicVisit = (props) => {
 
   //Validations of the forms
   const validate = () => {
+    temp.lastHts = hivTestResultDate && hivTestValue
+    ? ""
+    : "Atleast, 1 HIV test result required";
+    temp.lastHts = !(new Date(hivTestResultDate).getTime() < new Date(patientDto?.dateEnrolled).getTime())
+    ? ""
+    : "Last HIV Test must not come before Initiation.";
+    temp.otherTestsDone = objValues?.otherTestsDone.length
+      ? ""
+      : "This field is required";
     hasPrepEligibility(temp.encounterDate, props.encounters
     )
     temp.encounterDate = objValues.encounterDate
       ? ""
       : "This field is required";
 
-      if (isFemale()) {
+    if (isFemale()) {
       temp.pregnant = objValues.pregnant ? "" : "This field is required";
     }
     temp.nextAppointment = objValues.nextAppointment
@@ -1093,7 +1115,7 @@ const ClinicVisit = (props) => {
       }
     }
   };
-
+    
   const handleCreateNewTest = () => {
     setOtherTest([
       ...otherTest,
@@ -1126,7 +1148,7 @@ const ClinicVisit = (props) => {
         })
         .then((response) => {
 
-          let isEligibleForCABLA =  checkEligibleForCABLA(objValues.encounterDate, response.data);
+          let isEligibleForCABLA = checkEligibleForCABLA(objValues.encounterDate, response.data);
 
           // setprepRegimen(response.data);
         })
@@ -1191,16 +1213,50 @@ const ClinicVisit = (props) => {
       });
 
   }
-  
-  const filterOutLastRegimen = (codeSet,lastRegimenId)=> codeSet.filter(regimen=>{
+
+  const filterOutLastRegimen = (codeSet, lastRegimenId) => codeSet.filter(regimen => {
     return (regimen.id !== lastRegimenId)
   })
+  const handleOtherTestsDone = (e) => {
+    setOtherTestResult((prev) => prev?.filter(eachTest => eachTest?.name !== e.target.value))
+  }
+  useEffect(() => {
 
-  useEffect(() =>{
+    getRecentActivities()
+    getHIVresult()
+  }, [])
+  const handleOtherTestDoneChange = (e) => {
+    const { name, value } = e.target;
+   
+    // Handle normal inputs
+    if (name !== 'otherTestsDone') {
+      setObjValues((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    } else {
+      // Handle changes for the otherTestsDone array
+      const { localId, field } = e.target.dataset; // Assuming you're using data attributes to pass localId and the field being edited
+      const updatedTests = [...objValues.otherTestsDone];
+   
+      // Find the index of the test being updated
+      const index = updatedTests.findIndex((test) => test.localId === Number(localId));
+   
+      if (index !== -1) {
+        updatedTests[index] = {
+          ...updatedTests[index],
+          [field]: value,
+        };
+      }
+   
+      setObjValues((prev) => ({
+        ...prev,
+        otherTestsDone: updatedTests,
+      }));
+    }
+  };
 
-     getRecentActivities()
-     getHIVresult()
-    }, [])
+  console.log('otherTestsDone')
   return (
     <div>
       <div className="row">
@@ -1682,8 +1738,6 @@ const ClinicVisit = (props) => {
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-
-                  
                   <FormLabelName>Date of Last HIV Test </FormLabelName>
                   <Input
                     type={hivTestValue == "NOT DONE" ? "text" : "date"}
@@ -1705,6 +1759,15 @@ const ClinicVisit = (props) => {
                     disabled
                   />
                 </FormGroup>
+              </div>
+              <div className="mb-3 col-md-12">
+              {errors.lastHts !== "" ? (
+                    <span className={classes.error}>
+                      {errors.lastHts}
+                    </span>
+                  ) : (
+                    ""
+                  )}
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
@@ -1826,7 +1889,7 @@ const ClinicVisit = (props) => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    Level of Adherence 
+                    Level of Adherence
                     {/* {countPrepEligibility(recentActivities) < 2 && <span style={{ color: "red" }}> *</span>} */}
                   </FormLabelName>
                   <Input
@@ -2004,11 +2067,11 @@ const ClinicVisit = (props) => {
                     disabled={disabledField}
                   >
                     <option value=""> Select</option>
-                    {objValues?.visitType ==="PREP_VISIT_TYPE_METHOD_SWITCH"? filterOutLastRegimen(prepRegimen,props.recentActivities[0]?.regimenId).map((value) => (
+                    {objValues?.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH" ? filterOutLastRegimen(prepRegimen, props.recentActivities[0]?.regimenId).map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.regimen}
                       </option>
-                    )): prepRegimen?.map((value) => (
+                    )) : prepRegimen?.map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.regimen}
                       </option>))}
@@ -2073,7 +2136,7 @@ const ClinicVisit = (props) => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                   { `Duration of refill (Day[s])`}  <span style={{ color: "red" }}> *</span>
+                    {`Duration of refill (Day[s])`}  <span style={{ color: "red" }}> *</span>
                   </FormLabelName>
                   <Input
                     type="number"
@@ -2467,9 +2530,11 @@ const ClinicVisit = (props) => {
                     type="checkbox"
                     name="otherTest"
                     value="Yes"
-                    onChange={handleCheckBoxOtherTest}
+                    ref={otherTestInputRef}
+                    // onChange={handleCheckBoxOtherTest}
                     defaultChecked={true}
-                    checked={otherTest.length > 0}
+                    // checked={otherTest.length > 0}
+                    checked
                   />
                   Other Test
                 </h4>
@@ -2483,15 +2548,14 @@ const ClinicVisit = (props) => {
                     <div className=" mb-1 col-md-4">
                       <FormGroup>
                         <FormLabelName> Test Name</FormLabelName>
-
                         <Input
                           type="select"
-                          name="name"
-                          id="name"
-                          value={eachTest.name}
-                          onChange={(e) =>
-                            handleInputChangeOtherTest(e, eachTest.localId)
+                          name="otherTestsDone"
+                          id="otherTestsDone"
+                       onChange={(e) =>
+                        handleOtherTestDoneChange(e, eachTest.localId)
                           }
+                          value={eachTest.name}
                           style={{
                             border: "1px solid #014D88",
                             borderRadius: "0.25rem",
@@ -2499,7 +2563,7 @@ const ClinicVisit = (props) => {
                           disabled={disabledField}
                         >
                           <option value="">Select</option>
-                          {otherTestResult.map((value) => (
+                          {otherTestResult?.map((value) => (
                             <option key={value.id} value={value.code}>
                               {value.display}
                             </option>
@@ -2578,6 +2642,13 @@ const ClinicVisit = (props) => {
                     )}
                   </div>
                 ))}
+              {errors.otherTestsDone !== "" ? (
+                <span className={classes.error}>
+                  {errors.otherTestsDone}
+                </span>
+              ) : (
+                ""
+              )}
               {otherTest.length > 0 && (
                 <div>
                   <MatButton
