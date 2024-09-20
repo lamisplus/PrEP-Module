@@ -21,6 +21,7 @@ target/
 *.ipr
 mmm
 ### NetBeans ###
+.eslintcache
 /yarn-error.log
 application-debug.log
 /node_modules
