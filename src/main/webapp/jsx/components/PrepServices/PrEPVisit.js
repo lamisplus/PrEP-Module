@@ -13,9 +13,6 @@ import { useHistory } from "react-router-dom";
 import {  Modal, Button } from "react-bootstrap";
 import "react-widgets/dist/css/react-widgets.css";
 import { DateTimePicker } from "react-widgets";
-// import Moment from "moment";
-// import momentLocalizer from "react-widgets-moment";
-import moment from "moment";
 import { Spinner } from "reactstrap";
 
 const useStyles = makeStyles(theme => ({

@@ -242,12 +242,18 @@ const PrEPEligibiltyScreeningForm = (props) => {
             })    
         return Object.values(temp).every(x => x == "")
     }
-    /**** Submit Button Processing  */
+
+    const getNewPrepStatus = (interruptionOption,allPrepInterruptions)=>{
+        console.log(allPrepInterruptions,interruptionOption)
+        const transformedInterruption = interruptionOption?.interruptionType?.toLowerCase();
+        const newPrepInterruptionObj = allPrepInterruptions?.find(interruption => transformedInterruption.includes(interruption?.display?.replace(/\s/g,'_').toLowerCase())
+)
+        return newPrepInterruptionObj;
+    }
+
     const handleSubmit = (e) => {        
         e.preventDefault();
-         //console.log(objValues.interruptionDate)
-         //objValues.interruptionDate =  objValues.interruptionDate!=="" ? objValues.interruptionDate : objValues.dateSeroconverted
-         if(objValues.interruptionDate==="" && objValues.dateSeroconverted!==""){
+          if(objValues.interruptionDate==="" && objValues.dateSeroconverted!==""){
             objValues.interruptionDate =  objValues.dateSeroconverted
          }else if(objValues.interruptionDate==="" && objValues.dateRestartPlacedBackMedication!==""){
             objValues.interruptionDate =  objValues.dateRestartPlacedBackMedication
@@ -269,7 +275,6 @@ const PrEPEligibiltyScreeningForm = (props) => {
                   toast.success("Record save successful");
                   props.PatientObject();
                   props.setActiveContent({...props.activeContent, route:'recent-history'})
-
               })
               .catch(error => {
                   setSaving(false);
@@ -289,10 +294,12 @@ const PrEPEligibiltyScreeningForm = (props) => {
                 { headers: {"Authorization" : `Bearer ${token}`}},
                 
                 ).then(response => {
+                    console.log('response: ',response?.data)
+                    const newStatus = getNewPrepStatus(response.data,prepStatus)
                         setSaving(false);
                         toast.success("Record save successful");
                         props.PatientObject();
-                        props.setActiveContent({...props.activeContent, route:'recent-history'})
+                        props.setActiveContent({...props.activeContent, route:'recent-history',obj:{newStatus}})
 
                     })
                     .catch(error => {
@@ -333,7 +340,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             required
                         >
                         <option value="">Select</option>
-                        {prepStatus.map((value) => (
+                        {prepStatus.filter((interruption)=>interruption?.id!==743).map((value) => (
                             <option key={value.id} value={value.code}>
                                 {value.display}
                             </option>

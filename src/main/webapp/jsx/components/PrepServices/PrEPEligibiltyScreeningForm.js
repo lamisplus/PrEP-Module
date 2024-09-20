@@ -151,6 +151,7 @@ const BasicInfo = (props) => {
             setSisabledField(props.activeContent.actionType === 'view' ? true : false)
         }
     }, [props.patientObj]);
+
     const GetPatientPrepEligibility = (id) => {
         axios
             .get(`${baseUrl}prep/eligibility/${id}`,
@@ -614,6 +615,7 @@ const BasicInfo = (props) => {
                                         {populationType.map((value) => (
                                             <option value={value.code}> {value.display} </option>
                                         ))}
+                                        {!populationType?.find((pType)=>pType.display === "GenPop") && <option value="POPULATION_TYPE_GEN_POP">GenPop</option>}
                                     </select>
                                     {errors.populationType !== "" ? (
                                         <span className={classes.error}>{errors.populationType}</span>
@@ -1799,9 +1801,9 @@ Complaints of lower abdominal pains with or without vaginal discharge?
                                     </div>
                                 </div>
 
-                                {(is30AndAbove() && isFemale() === false) && <div className="form-group  col-md-4 p-3">
+                                {true && <div className="form-group  col-md-4 p-3">
                                     <FormGroup>
-                                        <Label>{`Has no proteinuria (>30 Years)`}</Label>
+                                        <Label>{`Has no proteinuria (>=30 Years)`}</Label>
                                         <select
                                             className="form-control"
                                             name="hasNoProteinuria"

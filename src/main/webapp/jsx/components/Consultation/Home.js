@@ -343,28 +343,27 @@ const ClinicVisit = (props) => {
 
 
   const checkEligibleForCABLA = async (currentDate, regimenList) => {
-
     if (currentDate) {
-
       await axios
         .get(
           `${baseUrl}prep-clinic/checkEnableCab/${props.patientObj.personId}/${currentDate}`,
           { headers: { Authorization: `Bearer ${token}` } }
         )
         .then((response) => {
-
-
           if (response?.data || !response?.data) {
             let isEligibleForCABLA = response?.data
             if (isEligibleForCABLA) {
+              setPrepType(prepType)
               setprepRegimen(regimenList);
             } else {
               let reg = regimenList.filter((each, index) => {
                 return each.code !== "CAB-LA(600mg/3mL)"
               })
-
+              let pTypes = prepType.filter((each, index) => {
+                return each.code !== "PREP_TYPE_INJECTIBLES"
+              })
+              setPrepType(pTypes)
               setprepRegimen(reg);
-
             }
             return response?.data
           }
@@ -372,6 +371,7 @@ const ClinicVisit = (props) => {
         .catch((error) => { });
     }
   };
+
   const GetPatientVisit = async (id) => {
     axios
       .get(`${baseUrl}prep-clinic/${props.activeContent.id}`, {
@@ -396,7 +396,6 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => { });
   };
-
 
   const getHIVresult = () => {
     axios
@@ -759,30 +758,29 @@ const ClinicVisit = (props) => {
       setHepatitisTest({ ...syphilisTest, ["syphilisTest"]: "No" });
     }
   };
-  // const handleCheckBoxOtherTest = (e) => {
-  // console.log(otherTestInputRef.current.name)
-  //   setErrors({ ...errors, [otherTestInputRef.current.name]: "" });
-  //   if (otherTestInputRef.current.checked) {
-  //     setOtherTest([
-  //       ...otherTest,
-  //       ...objValues.otherTestsDone,
-  //       {
-  //         localId: objValues.otherTestsDone?.length || 0,
-  //         otherTest: "Yes",
-  //         testDate: "",
-  //         result: "",
-  //         name: "",
-  //         otherTestName: "",
-  //       },
-  //     ]);
-  //   } else {
-  //     // setOtherTest({...otherTest, ["otherTest"]: "No"})
-  //     setOtherTest([]);
-  //   }
-  // };
+  const handleCheckBoxOtherTest = (e) => {
+    setErrors({ ...errors, [e.target.name]: "" });
+    if (e.target.checked) {
+      setOtherTest([
+        ...otherTest,
+        ...objValues.otherTestsDone,
+        {
+          localId: objValues.otherTestsDone?.length || 0,
+          otherTest: "Yes",
+          testDate: "",
+          result: "",
+          name: "",
+          otherTestName: "",
+        },
+      ]);
+    } else {
+      // setOtherTest({...otherTest, ["otherTest"]: "No"})
+      setOtherTest([]);
+    }
+  };
 
   const otherTestInputRef = useRef();
-  const loadOtherTestOptions = (e) => {
+  const loadOtherTestOptions = () => {
     setErrors({ ...errors, [otherTestInputRef.current.name]: "" });
     if (otherTestInputRef.current.checked) {
       setOtherTest([
@@ -959,15 +957,15 @@ const ClinicVisit = (props) => {
 
   //Validations of the forms
   const validate = () => {
-    temp.lastHts = hivTestResultDate && hivTestValue
+    temp.lastHts = hivTestValue
     ? ""
-    : "Atleast, 1 HIV test result required";
-    temp.lastHts = !(new Date(hivTestResultDate).getTime() < new Date(patientDto?.dateEnrolled).getTime())
+    : "Atleast, 1 HIV test result is required";
+    temp.lastHtsDate = !(new Date(hivTestResultDate).getTime() < new Date(patientDto?.dateEnrolled).getTime())
     ? ""
-    : "Last HIV Test must not come before Initiation.";
+    : `Last HIV Test must not come before Initiation (${patientDto?.dateEnrolled})`;
     temp.otherTestsDone = objValues?.otherTestsDone.length
       ? ""
-      : "This field is required";
+      : "You must submit atleast, a test result.";
     hasPrepEligibility(temp.encounterDate, props.encounters
     )
     temp.encounterDate = objValues.encounterDate
@@ -1255,8 +1253,6 @@ const ClinicVisit = (props) => {
       }));
     }
   };
-
-  console.log('otherTestsDone')
   return (
     <div>
       <div className="row">
@@ -1718,7 +1714,7 @@ const ClinicVisit = (props) => {
             <div className="row">
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName>Result of Last HIV Test </FormLabelName>
+                  <FormLabelName>Result of Last HIV Test <span style={{ color: "red" }}> *</span> </FormLabelName>
                   <Input
                     type="text"
                     name="hivTestResult"
@@ -1734,11 +1730,20 @@ const ClinicVisit = (props) => {
                     }}
                     disabled
                   />
+                  <div className="p-1">
+                  {errors.lastHts !== "" ? (
+                    <span className={classes.error}>
+                      {errors.lastHts}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  </div>
                 </FormGroup>
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName>Date of Last HIV Test </FormLabelName>
+                  <FormLabelName>Date of Last HIV Test <span style={{ color: "red" }}> *</span></FormLabelName>
                   <Input
                     type={hivTestValue == "NOT DONE" ? "text" : "date"}
                     name="hivTestResultDate"
@@ -1758,16 +1763,18 @@ const ClinicVisit = (props) => {
                     }}
                     disabled
                   />
-                </FormGroup>
-              </div>
-              <div className="mb-3 col-md-12">
-              {errors.lastHts !== "" ? (
+                  <div className="p-1">
+                  {errors.lastHtsDate !== "" ? (
                     <span className={classes.error}>
-                      {errors.lastHts}
+                      {errors.lastHtsDate}
                     </span>
                   ) : (
                     ""
                   )}
+                  </div>
+                </FormGroup>
+              </div>
+              <div className="mb-3 col-md-12">
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
@@ -2531,9 +2538,8 @@ const ClinicVisit = (props) => {
                     name="otherTest"
                     value="Yes"
                     ref={otherTestInputRef}
-                    // onChange={handleCheckBoxOtherTest}
+                    onChange={handleCheckBoxOtherTest}
                     defaultChecked={true}
-                    // checked={otherTest.length > 0}
                     checked
                   />
                   Other Test
@@ -2547,7 +2553,7 @@ const ClinicVisit = (props) => {
                   <div className="row" key={eachTest.localId}>
                     <div className=" mb-1 col-md-4">
                       <FormGroup>
-                        <FormLabelName> Test Name</FormLabelName>
+                        <FormLabelName> Test Name <span style={{ color: "red" }}> *</span></FormLabelName>
                         <Input
                           type="select"
                           name="otherTestsDone"
@@ -2574,7 +2580,7 @@ const ClinicVisit = (props) => {
                     {eachTest.name === "PREP_OTHER_TEST_OTHER_(SPECIFY)" && (
                       <div className=" mb-1 col-md-4">
                         <FormGroup>
-                          <FormLabelName> Other Test Name</FormLabelName>
+                          <FormLabelName> Other Test Name <span style={{ color: "red" }}> *</span></FormLabelName>
                           <Input
                             type="text"
                             name="otherTestName"
@@ -2594,7 +2600,7 @@ const ClinicVisit = (props) => {
                     )}
                     <div className=" mb-1 col-md-4">
                       <FormGroup>
-                        <FormLabelName> Test Date</FormLabelName>
+                        <FormLabelName> Test Date <span style={{ color: "red" }}> *</span></FormLabelName>
                         <Input
                           type="date"
                           onKeyDown={(e) => e.preventDefault()}
@@ -2616,7 +2622,7 @@ const ClinicVisit = (props) => {
                     </div>
                     <div className=" mb-1 col-md-4">
                       <FormGroup>
-                        <FormLabelName> Test Result</FormLabelName>
+                        <FormLabelName> Test Result <span style={{ color: "red" }}> *</span></FormLabelName>
                         <Input
                           type="text"
                           name="result"
@@ -2655,14 +2661,14 @@ const ClinicVisit = (props) => {
                     type="button"
                     variant="contained"
                     color="primary"
-                    className={`${classes.button} col-md-4`}
+                    className={`${classes.button}`}
                     startIcon={<AddIcon />}
                     style={{ backgroundColor: "#014d88" }}
                     onClick={handleCreateNewTest}
                     disabled={saving}
                   >
                     <span style={{ textTransform: "capitalize" }}>
-                      Add Test
+                      Add more test results
                     </span>
                   </MatButton>
                 </div>
