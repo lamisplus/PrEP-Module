@@ -21,6 +21,7 @@ target/
 *.ipr
 mmm
 ### NetBeans ###
+src/main/webapp/api.js
 .eslintcache
 /yarn-error.log
 application-debug.log
