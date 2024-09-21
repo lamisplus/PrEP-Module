@@ -1,18 +1,14 @@
 import React, {useState, useEffect} from 'react';
-import { Form,Row, Card,CardBody, FormGroup, Label, Input} from 'reactstrap';
+import { Card,CardBody, FormGroup, Label, Input} from 'reactstrap';
 import MatButton from '@material-ui/core/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import SaveIcon from '@material-ui/icons/Save'
 import CancelIcon from '@material-ui/icons/Cancel'
-// import { Alert } from 'reactstrap';
-// import { Spinner } from 'reactstrap';
 import axios from "axios";
 import { toast} from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
 import { useHistory } from "react-router-dom";
-import {  Modal, Button } from "react-bootstrap";
 import "react-widgets/dist/css/react-widgets.css";
-import { DateTimePicker } from "react-widgets";
 import { Spinner } from "reactstrap";
 
 const useStyles = makeStyles(theme => ({
@@ -53,16 +49,13 @@ const useStyles = makeStyles(theme => ({
 const PrEPVisit = (props) => {
 
     const patientObj = props.patientObj;
-    let history = useHistory();
     const classes = useStyles()
     const [objValues, setObjValues] = useState({id:"", uniqueId: "",dateOfRegistration:"",entryPointId:"", facilityName:"",statusAtRegistrationId:"",dateConfirmedHiv:"",sourceOfReferrer:"",enrollmentSettingId:"",pregnancyStatusId:"",dateOfLpm:"",tbStatusId:"",targetGroupId:"",ovc_enrolled:"",ovcNumber:""});
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [carePoints, setCarePoints] = useState([]);
     const [hivStatus, setHivStatus] = useState([]);
-    //set ro show the facility name field if is transfer in 
     const [transferIn, setTransferIn] = useState(false);
-    // display the OVC number if patient is enrolled into OVC 
     const [ovcEnrolled, setOvcEnrolled] = useState(false);
 
     useEffect(() => {         
@@ -98,7 +91,7 @@ const PrEPVisit = (props) => {
         setErrors({
             ...temp
             })    
-        return Object.values(temp).every(x => x == "")
+        return Object.values(temp).every(x => x==="")
     }
     /**** Submit Button Processing  */
     const handleSubmit = (e) => {        
@@ -114,7 +107,7 @@ const PrEPVisit = (props) => {
           )
               .then(response => {
                   setSaving(false);
-                  toast.success("Record save successful");
+                  toast.success("Record save successfull!");
                   props.toggle()
                   props.patientObj.enrolled=true
                   props.PatientCurrentStatus()

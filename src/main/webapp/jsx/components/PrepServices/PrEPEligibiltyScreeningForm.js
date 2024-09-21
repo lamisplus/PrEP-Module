@@ -393,8 +393,6 @@ const BasicInfo = (props) => {
     }
 
     const [assessmentScore, setAssessmentScore] = useState(0);
-
-
     /*****  Validation  */
     const validate = () => {
         //PREP FORM VALIDATION
@@ -1801,7 +1799,7 @@ Complaints of lower abdominal pains with or without vaginal discharge?
                                     </div>
                                 </div>
 
-                                {true && <div className="form-group  col-md-4 p-3">
+                                {is30AndAbove() && <div className="form-group  col-md-4 p-3">
                                     <FormGroup>
                                         <Label>{`Has no proteinuria (>=30 Years)`}</Label>
                                         <select

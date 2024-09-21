@@ -272,7 +272,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
           
           ).then(response => {
                   setSaving(false);
-                  toast.success("Record save successful");
+                  toast.success("Record save successfull!");
                   props.PatientObject();
                   props.setActiveContent({...props.activeContent, route:'recent-history'})
               })
@@ -297,7 +297,7 @@ const PrEPEligibiltyScreeningForm = (props) => {
                     console.log('response: ',response?.data)
                     const newStatus = getNewPrepStatus(response.data,prepStatus)
                         setSaving(false);
-                        toast.success("Record save successful");
+                        toast.success("Record save successfull!");
                         props.PatientObject();
                         props.setActiveContent({...props.activeContent, route:'recent-history',obj:{newStatus}})
 
@@ -338,6 +338,10 @@ const PrEPEligibiltyScreeningForm = (props) => {
                             onChange={handleInputChange}
                             value={objValues.interruptionType}
                             required
+                            style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.25rem",
+                              }}
                         >
                         <option value="">Select</option>
                         {prepStatus.filter((interruption)=>interruption?.id!==743).map((value) => (

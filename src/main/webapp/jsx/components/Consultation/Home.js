@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Grid, Segment, Label, List, Card } from "semantic-ui-react";
-// Page titie
+import { Grid, Segment, Label } from "semantic-ui-react";
 import {
   FormGroup,
   Label as FormLabelName,
@@ -16,9 +15,10 @@ import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import moment from "moment";
 import { toast } from "react-toastify";
-import Select from "react-select";
 import Divider from "@mui/material/Divider";
-import { formValues } from "redux-form";
+import DualListBox from "react-dual-listbox";
+import "react-dual-listbox/lib/react-dual-listbox.css";
+import { TiTrash } from "react-icons/ti";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -44,7 +44,6 @@ const useStyles = makeStyles((theme) => ({
   button: {
     margin: theme.spacing(1),
   },
-
   root: {
     flexGrow: 1,
     "& .card-title": {
@@ -111,27 +110,11 @@ const ClinicVisit = (props) => {
   const [prepType, setPrepType] = useState([]);
   const [populationType, setPopulationType] = useState([]);
   const [visitType, setVisitType] = useState([]);
-  // const [selectedPregnant, setSelectedPregnant] = useState("");
   const [selectedPopulationType, setSelectedPopulationType] = useState("");
-  // const [selectedVisitType, setSelectedVisitType] = useState("");
   const [latestFromEligibility, setLatestFromEligibility] = useState(null);
   let testsOptions = [];
   const [hivTestValue, setHivTestValue] = useState("");
   const [hivTestResultDate, setHivTestResultDate] = useState("");
-
-
-  // useEffect(() => {
-  //   handleInputChange({
-  //     target: { name: "hivTestResult", value: hivTestValue },
-  //   });
-  //   handleInputChange({
-  //     target: { name: "hivTestResultDate", value: hivTestResultDate },
-  //   });
-  // }, [hivTestValue]);
-
-
-
-  //Vital signs clinical decision support
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: "",
     diastolic: "",
@@ -141,6 +124,20 @@ const ClinicVisit = (props) => {
     temperature: "",
     respiratoryRate: "",
   });
+
+  const [selectedNotedSideEffects, setSelectedNotedSideEffects] = useState([]);
+
+  const handleSelectedNotedSideEffects = (selected) => {
+    setSelectedNotedSideEffects(selected);
+  };
+  const transformNotedSideEffectsCodeSet = (inputArray) => {
+    return inputArray.map((item) => {
+      return {
+        value: item.code,
+        label: item.display,
+      };
+    });
+  };
 
   const [objValues, setObjValues] = useState({
     adherenceLevel: "",
@@ -156,7 +153,7 @@ const ClinicVisit = (props) => {
     nextAppointment: "",
     notedSideEffects: "",
     otherTestsDone: [],
-    personId: props.patientObj.personId,//should person id be from patientObj?
+    personId: props.patientObj.personId,
     pregnant: "",
     prepEnrollmentUuid: "",
     pulse: "",
@@ -187,6 +184,7 @@ const ClinicVisit = (props) => {
     monthsOfRefill: "",
     visitType: "",
   });
+  
   const [urinalysisTest, setUrinalysisTest] = useState({
     urinalysisTest: "Yes",
     testDate: "",
@@ -199,16 +197,25 @@ const ClinicVisit = (props) => {
     result: "",
     others: "",
   });
+
   const [hepatitisTest, setHepatitisTest] = useState({
     hepatitisTest: "Yes",
     testDate: "",
     result: "",
   });
 
-  const [otherTest, setOtherTest] = useState([]);
+  const [otherTest, setOtherTest] = useState([
+    {
+        localId: 0,
+        otherTest: "Yes",
+        testDate: "",
+        result: "",
+        name: "",
+        otherTestName: ""
+    }
+]);
 
   useEffect(async () => {
-    // Check if the fields exist in objValues first
     if (
       objValues.urinalysis.testDate &&
       objValues.urinalysis.result &&
@@ -221,6 +228,7 @@ const ClinicVisit = (props) => {
         urinalysisTest: objValues.urinalysis.urinalysisTest,
       });
     }
+
     if (
       objValues.syphilis.testDate &&
       objValues.syphilis.result &&
@@ -234,6 +242,7 @@ const ClinicVisit = (props) => {
         others: objValues.syphilis.others,
       });
     }
+
     if (
       objValues.hepatitis.testDate &&
       objValues.hepatitis.result &&
@@ -252,15 +261,12 @@ const ClinicVisit = (props) => {
     AdherenceLevel();
     SYNDROMIC_STI_SCREENING();
     PREP_RISK_REDUCTION_PLAN();
-    //PatientDetaild();
     PREP_STATUS();
     HTS_RESULT();
-    // LAST_HIV_TEST_RESULT();
     PREP_SIDE_EFFECTS();
     GetPatientDTOObj();
     WHY_POOR_FAIR_ADHERENCE();
     PrepEligibilityObj();
-    // PrepRegimen(objValues.encounterDate);
     TestGroup();
     PREP_URINALYSIS_RESULT();
     PREP_OTHER_TEST();
@@ -272,16 +278,16 @@ const ClinicVisit = (props) => {
     POPULATION_TYPE();
     VISIT_TYPE();
     FAMILY_PLANNING_METHOD();
+
     if (
       props.activeContent &&
       props.activeContent.id !== "" &&
       props.activeContent.id !== null
     ) {
       GetPatientVisit(props.activeContent.id);
-      setSisabledField(
-        props.activeContent.actionType
-      );
+      setSisabledField(props.activeContent.actionType);
     }
+
     GetLatestFromEligibility();
   }, [props.activeContent]);
 
@@ -293,7 +299,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setpregnant(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
 
   const PREP_ENTRY_POINT = () => {
@@ -304,7 +310,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setPrepEntryPoints(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
 
   const PREP_TYPE = () => {
@@ -315,10 +321,9 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setPrepType(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
 
-  //Get list of Test Group
   const TestGroup = () => {
     axios
       .get(`${baseUrl}laboratory/labtestgroups`, {
@@ -336,39 +341,39 @@ const ClinicVisit = (props) => {
             });
           });
         });
+
         setLabTestOptions(testsOptions);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
-
 
   const checkEligibleForCABLA = async (currentDate, regimenList) => {
     if (currentDate) {
       await axios
         .get(
           `${baseUrl}prep-clinic/checkEnableCab/${props.patientObj.personId}/${currentDate}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         )
         .then((response) => {
           if (response?.data || !response?.data) {
-            let isEligibleForCABLA = response?.data
+            let isEligibleForCABLA = response?.data;
             if (isEligibleForCABLA) {
-              setPrepType(prepType)
+              setPrepType(prepType);
               setprepRegimen(regimenList);
             } else {
               let reg = regimenList.filter((each, index) => {
-                return each.code !== "CAB-LA(600mg/3mL)"
-              })
+                return each.code !== "CAB-LA(600mg/3mL)";
+              });
               let pTypes = prepType.filter((each, index) => {
-                return each.code !== "PREP_TYPE_INJECTIBLES"
-              })
-              setPrepType(pTypes)
+                return each.code !== "PREP_TYPE_INJECTIBLES";
+              });
+              setPrepType(pTypes);
               setprepRegimen(reg);
             }
-            return response?.data
+            return response?.data;
           }
         })
-        .catch((error) => { });
+        .catch((error) => {});
     }
   };
 
@@ -394,60 +399,66 @@ const ClinicVisit = (props) => {
           ]);
         }
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
 
   const getHIVresult = () => {
     axios
-      .get(
-        `${baseUrl}prep-clinic/hts-record/${props.patientObj.personId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+      .get(`${baseUrl}prep-clinic/hts-record/${props.patientObj.personId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((response) => {
-        if(response.data?.length === 0) {
-          toast.error("No HTS record found. Atleast, 1 test result is required to proceed.");
-        }else if(response.data?.length > 0){
+        if (response.data?.length === 0) {
+          toast.error(
+            "No HTS record found. Atleast, 1 test result is required to proceed.",
+          );
+        } else if (response.data?.length > 0) {
           toast.success("HTS record found. You may proceed.");
         }
-        setHivTestValue(response?.data?.[0]?.hivTestResult)
-        setHivTestResultDate(response?.data?.[0]?.visitDate)
+        setHivTestValue(response?.data?.[0]?.hivTestResult);
+        setHivTestResultDate(response?.data?.[0]?.visitDate);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
+
   const GetPatientDTOObj = () => {
     axios
       .get(
         `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       )
       .then((response) => {
         setPatientDto(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
+
   const PrepEligibilityObj = () => {
     axios
       .get(
         `${baseUrl}prep/eligibility/open/patients/${props.patientObj.personId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       )
       .then((response) => {
-        //setPrepStatus(response.data);
         objValues.prepEnrollmentUuid = "";
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
+
   const PrepRegimen = (currentDate) => {
     axios
       .get(`${baseUrl}prep-regimen`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        // confirm access to display CAB-LA
-        let isEligibleForCABLA = checkEligibleForCABLA(currentDate, response.data);
+        let isEligibleForCABLA = checkEligibleForCABLA(
+          currentDate,
+          response.data,
+        );
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
+
   const PREP_STATUS = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREP_STATUS`, {
@@ -456,8 +467,9 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setPrepStatus(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
+
   const [prepRiskReductionPlan, setPrepRiskReductionPlan] = useState([]);
   const PREP_RISK_REDUCTION_PLAN = () => {
     axios
@@ -465,11 +477,11 @@ const ClinicVisit = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        console.log("prep codeset: ", response.data);
         setPrepRiskReductionPlan(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
+
   const PREP_SIDE_EFFECTS = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`, {
@@ -478,7 +490,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setPrepSideEffect(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
 
   const HTS_RESULT = () => {
@@ -489,26 +501,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setHtsResult(response.data);
       })
-      .catch((error) => { });
-  };
-  const LAST_HIV_TEST_RESULT = () => {
-    axios
-      .get(`${baseUrl}hts/persons/${objValues.personId}/current-hts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        var lastHivTest = response?.data?.hivTestResult;
-        // console.log('last res; ', response.data.hivTestResult)
-        if (!lastHivTest) {
-          setHivTestValue(response.data.hivTestResult);
-          setHivTestResultDate(response.data.test1.date);
-          objValues.hivTestResultDate = response.data.hivTestResult;
-          objValues.hivTestResultDate = response.data.test1.date;
-        } else {
-          setHivTestValue("NOT DONE");
-        }
-      })
-      .catch((error) => { });
+      .catch((error) => {});
   };
 
   useEffect(() => {
@@ -526,19 +519,10 @@ const ClinicVisit = (props) => {
             ? latestFromEligibility.pregnancyStatus
             : "",
       });
-      // await POPULATION_TYPE();
       const autoPopulatePopulationType = populationType.find(
-        (type) => type.code === latestFromEligibility.populationType
-      )?.display;
-      const autoPopulateVisitType = visitType.find(
-        (type) => type.code === latestFromEligibility.visitType
-      )?.display;
-      const autoPopulatePregnant = pregnant.find(
-        (type) => type.code === latestFromEligibility.pregnancyStatus
+        (type) => type.code === latestFromEligibility.populationType,
       )?.display;
       setSelectedPopulationType(autoPopulatePopulationType);
-      // setSelectedVisitType(autoPopulateVisitType)
-      // setSelectedPregnant(autoPopulatePregnant)
     }
   }, [latestFromEligibility]);
 
@@ -549,23 +533,24 @@ const ClinicVisit = (props) => {
       })
       .then(async (response) => {
         const latestEligibility = response.data.sort((a, b) =>
-          moment(a.visitDate).isBefore(moment(b.visitDate))
+          moment(a.visitDate).isBefore(moment(b.visitDate)),
         )[
-          // (a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
           response.data.length - 1
         ];
         setLatestFromEligibility(latestEligibility);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
-
+  const handleRemoveTest = (localId) => {
+    setOtherTest((prev) => prev.filter((test) => test.localId !== localId));
+  };
   useEffect(() => {
     if (
       objValues.populationType !== null &&
       objValues.populationType !== undefined
     ) {
       const autoPopulate = populationType.find(
-        (type) => type.code === objValues.populationType
+        (type) => type.code === objValues.populationType,
       );
 
       setSelectedPopulationType(autoPopulate ? autoPopulate.display : "");
@@ -579,7 +564,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setPopulationType(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
 
   const VISIT_TYPE = () => {
@@ -602,10 +587,9 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setWhyAdherenceLevelPoor(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
-  ///GET LIST OF FUNCTIONAL%20_STATUS
-  // TB STATUS
+  
   const SYNDROMIC_STI_SCREENING = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/SYNDROMIC_STI_SCREENING`, {
@@ -614,9 +598,9 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setSti(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
-  //PREP_URINALYSIS_RESULT
+
   const PREP_URINALYSIS_RESULT = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`, {
@@ -625,9 +609,9 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setUrineTestResult(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
-  //PREP_OTHER_TEST
+
   const PREP_OTHER_TEST = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREP_OTHER_TEST`, {
@@ -636,9 +620,9 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setOtherTestResult(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
-  //SYPHILIS_RESULT
+
   const SYPHILIS_RESULT = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/SYPHILIS_RESULT`, {
@@ -647,9 +631,9 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setSphylisTestResult(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
-  //HEPATITIS_SCREENING_RESULT
+
   const HEPATITIS_SCREENING_RESULT = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/HEPATITIS_SCREENING_RESULT`, {
@@ -658,10 +642,9 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setHepaTestResult(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
 
-  // FAMILY_PLANNING_METHOD
   const FAMILY_PLANNING_METHOD = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/FAMILY_PLANNING_METHOD`, {
@@ -670,10 +653,9 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setFamilyPlanningMethod(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   };
 
-  ///Level of Adherence
   async function AdherenceLevel() {
     axios
       .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
@@ -682,7 +664,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setAdherenceLevel(response.data);
       })
-      .catch((error) => { });
+      .catch((error) => {});
   }
 
   const handleInputChange = (e) => {
@@ -699,7 +681,6 @@ const ClinicVisit = (props) => {
       PrepRegimen(e.target.value);
 
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
-
     } else {
       // if the encounterDate is the same as the commencement date, the prep regimen id should be automatically populated from the commencement
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
@@ -710,21 +691,17 @@ const ClinicVisit = (props) => {
     setUrinalysisTest({ ...urinalysisTest, [e.target.name]: e.target.value });
   };
   const handleInputChangeOtherTest = (e, localId) => {
-    //find the test with the localId
-    let temp = [...otherTest];
-    let index = temp.findIndex((x) => Number(x.localId) === Number(localId));
+    const { name, value } = e.target;
 
-    if (
-      e.target.name === "name" &&
-      e.target.value !== "PREP_OTHER_TEST_OTHER_(SPECIFY)"
-    ) {
-      temp[index].otherTestName = "";
-      temp[index][e.target.name] = e.target.value;
-      setOtherTest(temp);
-    } else {
-      temp[index][e.target.name] = e.target.value;
-      setOtherTest(temp);
-    }
+    setOtherTest((prev) => {
+      const updatedTests = prev.map((test) => {
+        if (test.localId === localId) {
+          return { ...test, [name]: value };
+        }
+        return test;
+      });
+      return updatedTests;
+    });
   };
   const handleInputChangeHepatitisTest = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
@@ -796,11 +773,9 @@ const ClinicVisit = (props) => {
         },
       ]);
     } else {
-      // setOtherTest({...otherTest, ["otherTest"]: "No"})
       setOtherTest([]);
     }
   };
-  useEffect(() => loadOtherTestOptions(), [])
 
   const handleCheckBoxUrinalysisTest = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
@@ -810,7 +785,7 @@ const ClinicVisit = (props) => {
       setUrinalysisTest({ ...otherTest, ["urinalysisTest"]: "No" });
     }
   };
-  //to check the input value for clinical decision
+
   const handleInputValueCheckHeight = (e) => {
     if (
       e.target.name === "height" &&
@@ -955,19 +930,36 @@ const ClinicVisit = (props) => {
     setOtherTest([]);
   };
 
+  function isOtherTestsValid(otherTest) {
+    for (let obj of otherTest) {
+      if (
+        !obj.localId ||
+        !obj.otherTest ||
+        !obj.testDate ||
+        !obj.result ||
+        !obj.name
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
   //Validations of the forms
   const validate = () => {
-    temp.lastHts = hivTestValue
-    ? ""
-    : "Atleast, 1 HIV test result is required";
-    temp.lastHtsDate = !(new Date(hivTestResultDate).getTime() < new Date(patientDto?.dateEnrolled).getTime())
-    ? ""
-    : `Last HIV Test must not come before Initiation (${patientDto?.dateEnrolled})`;
+    temp.lastHts = hivTestValue ? "" : "Atleast, 1 HIV test result is required";
+    temp.lastHtsDate = !(
+      new Date(hivTestResultDate).getTime() <
+      new Date(patientDto?.dateEnrolled).getTime()
+    )
+      ? ""
+      : `Last HIV Test must not come before Initiation (${patientDto?.dateEnrolled})`;
     temp.otherTestsDone = objValues?.otherTestsDone.length
       ? ""
       : "You must submit atleast, a test result.";
-    hasPrepEligibility(temp.encounterDate, props.encounters
-    )
+    temp.otherTestsDone = isOtherTestsValid(otherTest)
+      ? ""
+      : "You must submit atleast, a test result.";
+    hasPrepEligibility(temp.encounterDate, props.encounters);
     temp.encounterDate = objValues.encounterDate
       ? ""
       : "This field is required";
@@ -1010,6 +1002,7 @@ const ClinicVisit = (props) => {
     if (validate()) {
       setSaving(true);
       //objValues.visitDate = vital.encounterDate
+      objValues.prepSideEffect = selectedNotedSideEffects;
       objValues.hivTestResultDate = hivTestResultDate;
       objValues.hivTestResult = hivTestValue;
       objValues.syphilis = syphilisTest;
@@ -1049,7 +1042,7 @@ const ClinicVisit = (props) => {
             if (error.response && error.response.data) {
               let errorMessage =
                 error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
+                error.response.data.apierror.message !== ""
                   ? error.response.data.apierror.message
                   : "Something went wrong, please try again";
               if (error.response.data.apierror) {
@@ -1092,7 +1085,7 @@ const ClinicVisit = (props) => {
             if (error.response && error.response.data) {
               let errorMessage =
                 error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
+                error.response.data.apierror.message !== ""
                   ? error.response.data.apierror.message
                   : "Something went wrong, please try again";
               if (error.response.data.apierror) {
@@ -1113,7 +1106,7 @@ const ClinicVisit = (props) => {
       }
     }
   };
-    
+
   const handleCreateNewTest = () => {
     setOtherTest([
       ...otherTest,
@@ -1145,8 +1138,10 @@ const ClinicVisit = (props) => {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((response) => {
-
-          let isEligibleForCABLA = checkEligibleForCABLA(objValues.encounterDate, response.data);
+          let isEligibleForCABLA = checkEligibleForCABLA(
+            objValues.encounterDate,
+            response.data,
+          );
 
           // setprepRegimen(response.data);
         })
@@ -1158,29 +1153,7 @@ const ClinicVisit = (props) => {
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  function joinActivities(data) {
-    return data.reduce((acc, item) => {
-      return acc.concat(item.activities);
-    }, []);
-  }
-  function countPrepEligibility(data) {
-    let count = 0;
-    let relevantActivities = ['Prep Commencement', 'Prep Clinic']
-    data.forEach(entry => {
-      entry?.activities?.forEach(activity => {
-        if (relevantActivities.includes(activity?.name)) {
-          count++;
-        }
-      });
-    });
-
-    return count;
-  }
-  function isValidDate(date) {
-    return date instanceof Date && !isNaN(date);
-  }
   function areDatesSame(date1, date2) {
-    // if (!isValidDate(date1) || !isValidDate(date2)) return alert('Invalid eligibility or visit date.')
     return (
       date1.getFullYear() === date2.getFullYear() &&
       date1.getMonth() === date2.getMonth() &&
@@ -1190,68 +1163,53 @@ const ClinicVisit = (props) => {
   function hasPrepEligibility(targetDate, activitiesArray) {
     for (const activityGroup of activitiesArray) {
       for (const activity of activityGroup?.activities) {
-        if ((activity.name === "Prep Eligibility") && areDatesSame(new Date(activity.date), new Date(targetDate))) {
+        if (
+          activity.name === "Prep Eligibility" &&
+          areDatesSame(new Date(activity.date), new Date(targetDate))
+        ) {
           return true;
         }
       }
     }
     return false;
   }
-  const [recentActivities, setRecentActivities] = useState([])
+  const [recentActivities, setRecentActivities] = useState([]);
   const getRecentActivities = () => {
     axios
-      .get(`${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
-        { headers: { "Authorization": `Bearer ${token}` } }
+      .get(
+        `${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
+        { headers: { Authorization: `Bearer ${token}` } },
       )
       .then((response) => {
-        setRecentActivities(response.data)
+        setRecentActivities(response.data);
       })
       .catch((error) => {
         //console.log(error);
       });
+  };
 
-  }
+  const filterOutLastRegimen = (codeSet, lastRegimenId) =>
+    codeSet.filter((regimen) => {
+      return regimen.id !== lastRegimenId;
+    });
 
-  const filterOutLastRegimen = (codeSet, lastRegimenId) => codeSet.filter(regimen => {
-    return (regimen.id !== lastRegimenId)
-  })
-  const handleOtherTestsDone = (e) => {
-    setOtherTestResult((prev) => prev?.filter(eachTest => eachTest?.name !== e.target.value))
-  }
   useEffect(() => {
+    getRecentActivities();
+    getHIVresult();
+  }, []);
 
-    getRecentActivities()
-    getHIVresult()
-  }, [])
-  const handleOtherTestDoneChange = (e) => {
-    const { name, value } = e.target;
-   
-    // Handle normal inputs
-    if (name !== 'otherTestsDone') {
-      setObjValues((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    } else {
-      // Handle changes for the otherTestsDone array
-      const { localId, field } = e.target.dataset; // Assuming you're using data attributes to pass localId and the field being edited
-      const updatedTests = [...objValues.otherTestsDone];
-   
-      // Find the index of the test being updated
-      const index = updatedTests.findIndex((test) => test.localId === Number(localId));
-   
-      if (index !== -1) {
-        updatedTests[index] = {
-          ...updatedTests[index],
-          [field]: value,
-        };
-      }
-   
-      setObjValues((prev) => ({
-        ...prev,
-        otherTestsDone: updatedTests,
-      }));
-    }
+  const handleOtherTestDoneChange = (e, localId) => {
+    const { value } = e.target;
+
+    setOtherTest((prev) => {
+      const updatedTests = prev.map((test) => {
+        if (test.localId === localId) {
+          return { ...test, name: value };
+        }
+        return test;
+      });
+      return updatedTests;
+    });
   };
   return (
     <div>
@@ -1324,7 +1282,9 @@ const ClinicVisit = (props) => {
                         onKeyUp={handleInputValueCheckPulse}
                         style={{
                           border: "1px solid #014D88",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopRightRadius: 0,
+                          borderBottomRightRadius: 0,
                         }}
                         disabled={disabledField}
                       />
@@ -1334,7 +1294,9 @@ const ClinicVisit = (props) => {
                           backgroundColor: "#014D88",
                           color: "#fff",
                           border: "1px solid #014D88",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopLeftRadius: 0,
+                          borderBottomLeftRadius: 0,
                         }}
                       >
                         bmp
@@ -1369,7 +1331,9 @@ const ClinicVisit = (props) => {
                         onKeyUp={handleInputValueCheckRespiratoryRate}
                         style={{
                           border: "1px solid #014D88",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopRightRadius: 0,
+                          borderBottomRightRadius: 0,
                         }}
                         disabled={disabledField}
                       />
@@ -1379,7 +1343,9 @@ const ClinicVisit = (props) => {
                           backgroundColor: "#014D88",
                           color: "#fff",
                           border: "1px solid #014D88",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopLeftRadius: 0,
+                          borderBottomLeftRadius: 0,
                         }}
                       >
                         bmp
@@ -1416,7 +1382,9 @@ const ClinicVisit = (props) => {
                         onKeyUp={handleInputValueCheckTemperature}
                         style={{
                           border: "1px solid #014D88",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopRightRadius: 0,
+                          borderBottomRightRadius: 0,
                         }}
                         disabled={disabledField}
                       />
@@ -1426,7 +1394,9 @@ const ClinicVisit = (props) => {
                           backgroundColor: "#014D88",
                           color: "#fff",
                           border: "1px solid #014D88",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopLeftRadius: 0,
+                          borderBottomLeftRadius: 0,
                         }}
                       >
                         <sup>o</sup>c
@@ -1466,7 +1436,9 @@ const ClinicVisit = (props) => {
                         onKeyUp={handleInputValueCheckweight}
                         style={{
                           border: "1px solid #014D88",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopRightRadius: 0,
+                          borderBottomRightRadius: 0,
                         }}
                         disabled={disabledField}
                       />
@@ -1476,7 +1448,9 @@ const ClinicVisit = (props) => {
                           backgroundColor: "#014D88",
                           color: "#fff",
                           border: "1px solid #014D88",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopLeftRadius: 0,
+                          borderBottomLeftRadius: 0,
                         }}
                       >
                         kg
@@ -1508,7 +1482,9 @@ const ClinicVisit = (props) => {
                           backgroundColor: "#014D88",
                           color: "#fff",
                           border: "1px solid #014D88",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopRightRadius: 0,
+                          borderBottomRightRadius: 0,
                         }}
                       >
                         cm
@@ -1534,7 +1510,9 @@ const ClinicVisit = (props) => {
                           backgroundColor: "#992E62",
                           color: "#fff",
                           border: "1px solid #992E62",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopLeftRadius: 0,
+                          borderBottomLeftRadius: 0,
                         }}
                       >
                         {objValues.height !== ""
@@ -1593,7 +1571,9 @@ const ClinicVisit = (props) => {
                           backgroundColor: "#014D88",
                           color: "#fff",
                           border: "1px solid #014D88",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopRightRadius: 0,
+                          borderBottomRightRadius: 0,
                         }}
                       >
                         systolic(mmHg)
@@ -1636,7 +1616,9 @@ const ClinicVisit = (props) => {
                         onKeyUp={handleInputValueCheckDiastolic}
                         style={{
                           border: "1px solid #014D88",
-                          borderRadius: "0rem",
+                          borderRadius: "0.25rem",
+                          borderTopLeftRadius: 0,
+                          borderBottomLeftRadius: 0,
                         }}
                         disabled={disabledField}
                       />
@@ -1682,6 +1664,10 @@ const ClinicVisit = (props) => {
                         onChange={handleInputChange}
                         value={objValues.pregnant}
                         disabled={disabledField}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
                       >
                         <option value="">Select Pregnancy Status</option>
                         {pregnant.map((value) => (
@@ -1714,7 +1700,10 @@ const ClinicVisit = (props) => {
             <div className="row">
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName>Result of Last HIV Test <span style={{ color: "red" }}> *</span> </FormLabelName>
+                  <FormLabelName>
+                    Result of Last HIV Test{" "}
+                    <span style={{ color: "red" }}> *</span>{" "}
+                  </FormLabelName>
                   <Input
                     type="text"
                     name="hivTestResult"
@@ -1731,25 +1720,26 @@ const ClinicVisit = (props) => {
                     disabled
                   />
                   <div className="p-1">
-                  {errors.lastHts !== "" ? (
-                    <span className={classes.error}>
-                      {errors.lastHts}
-                    </span>
-                  ) : (
-                    ""
-                  )}
+                    {errors.lastHts !== "" ? (
+                      <span className={classes.error}>{errors.lastHts}</span>
+                    ) : (
+                      ""
+                    )}
                   </div>
                 </FormGroup>
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName>Date of Last HIV Test <span style={{ color: "red" }}> *</span></FormLabelName>
+                  <FormLabelName>
+                    Date of Last HIV Test{" "}
+                    <span style={{ color: "red" }}> *</span>
+                  </FormLabelName>
                   <Input
-                    type={hivTestValue == "NOT DONE" ? "text" : "date"}
+                    type={hivTestValue==="NOT DONE" ? "text" : "date"}
                     name="hivTestResultDate"
                     id="hivTestResultDate"
                     value={
-                      hivTestValue == "NOT DONE"
+                      hivTestValue==="NOT DONE"
                         ? "NOT APPLICABLE"
                         : hivTestResultDate
                     }
@@ -1764,40 +1754,27 @@ const ClinicVisit = (props) => {
                     disabled
                   />
                   <div className="p-1">
-                  {errors.lastHtsDate !== "" ? (
-                    <span className={classes.error}>
-                      {errors.lastHtsDate}
-                    </span>
-                  ) : (
-                    ""
-                  )}
+                    {errors.lastHtsDate !== "" ? (
+                      <span className={classes.error}>
+                        {errors.lastHtsDate}
+                      </span>
+                    ) : (
+                      ""
+                    )}
                   </div>
                 </FormGroup>
               </div>
-              <div className="mb-3 col-md-12">
-              </div>
+              <div className="mb-3 col-md-12"></div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>Noted Side Effects </FormLabelName>
-                  <Input
-                    type="select"
-                    name="notedSideEffects"
-                    id="notedSideEffects"
-                    value={objValues.notedSideEffects}
-                    onChange={handleInputChange}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.25rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value="">Select</option>
-                    {prepSideEffect.map((value) => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
+                  <div>
+                    <DualListBox
+                      options={transformNotedSideEffectsCodeSet(prepSideEffect)}
+                      selected={selectedNotedSideEffects}
+                      onChange={handleSelectedNotedSideEffects}
+                    />
+                  </div>
                 </FormGroup>
               </div>
               {/* <div className=" mb-3 col-md-6">
@@ -1816,30 +1793,31 @@ const ClinicVisit = (props) => {
                     <option value="TDF/FTC">TDF/FTC </option>
                     <option value="TDF/3TC">TDF/3TC </option>
                   </Input>
-                 
                 </FormGroup>
               </div>
                */}
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName>STI Screening</FormLabelName>
-                  <Input
-                    type="select"
-                    name="stiScreening"
-                    id="stiScreening"
-                    value={objValues.stiScreening}
-                    onChange={handleInputChange}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.25rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value="">Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </Input>
-                </FormGroup>
+              <div className="form-group mb-3 col-md-6 d-flex align-items-center justify-content-center">
+                <div style={{ flexBasis: "40%" }}>
+                  <FormGroup>
+                    <FormLabelName>STI Screening</FormLabelName>
+                    <Input
+                      type="select"
+                      name="stiScreening"
+                      id="stiScreening"
+                      value={objValues.stiScreening}
+                      onChange={handleInputChange}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                      disabled={disabledField}
+                    >
+                      <option value="">Select</option>
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </Input>
+                  </FormGroup>
+                </div>
               </div>
               {objValues.stiScreening === "true" && (
                 <div className=" mb-3 col-md-6">
@@ -1930,32 +1908,32 @@ const ClinicVisit = (props) => {
               </div>
               {objValues.adherenceLevel ===
                 "PREP_LEVEL_OF_ADHERENCE_(POOR)_≥_7_DOSES" && (
-                  <div className=" mb-3 col-md-6">
-                    <FormGroup>
-                      <FormLabelName>Why Poor/Fair Adherence </FormLabelName>
-                      <Input
-                        type="select"
-                        name="whyAdherenceLevelPoor"
-                        id="whyAdherenceLevelPoor"
-                        value={objValues.whyAdherenceLevelPoor}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        disabled={disabledField}
-                      >
-                        <option value="">Select</option>
+                <div className=" mb-3 col-md-6">
+                  <FormGroup>
+                    <FormLabelName>Why Poor/Fair Adherence </FormLabelName>
+                    <Input
+                      type="select"
+                      name="whyAdherenceLevelPoor"
+                      id="whyAdherenceLevelPoor"
+                      value={objValues.whyAdherenceLevelPoor}
+                      onChange={handleInputChange}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                      disabled={disabledField}
+                    >
+                      <option value="">Select</option>
 
-                        {whyAdherenceLevelPoor.map((value) => (
-                          <option key={value.id} value={value.code}>
-                            {value.display}
-                          </option>
-                        ))}
-                      </Input>
-                    </FormGroup>
-                  </div>
-                )}
+                      {whyAdherenceLevelPoor.map((value) => (
+                        <option key={value.id} value={value.code}>
+                          {value.display}
+                        </option>
+                      ))}
+                    </Input>
+                  </FormGroup>
+                </div>
+              )}
               {/* <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName >PrEP Given</FormLabelName>
@@ -1988,6 +1966,10 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChange}
                     value={objValues.populationType}
                     disabled={disabledField}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                    }}
                   >
                     <option value=""> Select Population Type</option>
                     {populationType?.map((value) => (
@@ -2017,6 +1999,10 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChange}
                     value={objValues.visitType}
                     disabled={disabledField}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                    }}
                   >
                     <option value=""> Select Visit Type</option>
                     {visitType.map((value) => (
@@ -2045,6 +2031,10 @@ const ClinicVisit = (props) => {
                     onChange={handlePrepTypeChange}
                     value={objValues.prepType}
                     disabled={disabledField}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                    }}
                   >
                     <option value=""> Select Prep Type</option>
                     {prepType.map((value) => (
@@ -2072,16 +2062,26 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChange}
                     value={objValues.regimenId}
                     disabled={disabledField}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                    }}
                   >
                     <option value=""> Select</option>
-                    {objValues?.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH" ? filterOutLastRegimen(prepRegimen, props.recentActivities[0]?.regimenId).map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.regimen}
-                      </option>
-                    )) : prepRegimen?.map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.regimen}
-                      </option>))}
+                    {objValues?.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH"
+                      ? filterOutLastRegimen(
+                          prepRegimen,
+                          props.recentActivities[0]?.regimenId,
+                        ).map((value) => (
+                          <option key={value.id} value={value.id}>
+                            {value.regimen}
+                          </option>
+                        ))
+                      : prepRegimen?.map((value) => (
+                          <option key={value.id} value={value.id}>
+                            {value.regimen}
+                          </option>
+                        ))}
                   </Input>
                   {errors.regimenId !== "" ? (
                     <span className={classes.error}>{errors.regimenId}</span>
@@ -2103,6 +2103,10 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChange}
                     value={objValues.prepDistributionSetting}
                     disabled={disabledField}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                    }}
                   >
                     <option value=""></option>
                     {prepEntryPoint.map((value) => (
@@ -2143,7 +2147,8 @@ const ClinicVisit = (props) => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    {`Duration of refill (Day[s])`}  <span style={{ color: "red" }}> *</span>
+                    {`Duration of refill (Day[s])`}{" "}
+                    <span style={{ color: "red" }}> *</span>
                   </FormLabelName>
                   <Input
                     type="number"
@@ -2238,6 +2243,10 @@ const ClinicVisit = (props) => {
                     onChange={handleInputChange}
                     value={objValues.familyPlanning}
                     disabled={disabledField}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                    }}
                   >
                     <option value=""></option>
                     {familyPlanningMethod.map((value) => (
@@ -2290,7 +2299,7 @@ const ClinicVisit = (props) => {
                     value="Yes"
                     onChange={handleCheckBoxUrinalysisTest}
                     checked={
-                      urinalysisTest.urinalysisTest == "Yes" ? true : false
+                      urinalysisTest.urinalysisTest==="Yes" ? true : false
                     }
                   />{" "}
                   Urinalysis Test
@@ -2539,8 +2548,7 @@ const ClinicVisit = (props) => {
                     value="Yes"
                     ref={otherTestInputRef}
                     onChange={handleCheckBoxOtherTest}
-                    defaultChecked={true}
-                    checked
+                    checked={otherTest.length > 0}
                   />
                   Other Test
                 </h4>
@@ -2551,15 +2559,20 @@ const ClinicVisit = (props) => {
               {otherTest.length > 0 &&
                 otherTest.map((eachTest) => (
                   <div className="row" key={eachTest.localId}>
-                    <div className=" mb-1 col-md-4">
+                    <div className=" mb-1 col-md-3">
                       <FormGroup>
-                        <FormLabelName> Test Name <span style={{ color: "red" }}> *</span></FormLabelName>
+                        <FormLabelName>
+                          {" "}
+                          Test Name <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
                         <Input
                           type="select"
                           name="otherTestsDone"
                           id="otherTestsDone"
-                       onChange={(e) =>
-                        handleOtherTestDoneChange(e, eachTest.localId)
+                          data-localid={eachTest.localId}
+                          data-field="name"
+                          onChange={(e) =>
+                            handleOtherTestDoneChange(e, eachTest.localId)
                           }
                           value={eachTest.name}
                           style={{
@@ -2577,14 +2590,24 @@ const ClinicVisit = (props) => {
                         </Input>
                       </FormGroup>
                     </div>
+
                     {eachTest.name === "PREP_OTHER_TEST_OTHER_(SPECIFY)" && (
-                      <div className=" mb-1 col-md-4">
+                      <div
+                        style={{ display: "none" }}
+                        className=" mb-1 col-md-3"
+                      >
                         <FormGroup>
-                          <FormLabelName> Other Test Name <span style={{ color: "red" }}> *</span></FormLabelName>
+                          <FormLabelName>
+                            {" "}
+                            Other Test Name{" "}
+                            <span style={{ color: "red" }}> *</span>
+                          </FormLabelName>
                           <Input
                             type="text"
                             name="otherTestName"
                             id="otherTestName"
+                            data-localid={eachTest.localId}
+                            data-field="otherTestName"
                             value={eachTest.otherTestName}
                             onChange={(e) =>
                               handleInputChangeOtherTest(e, eachTest.localId)
@@ -2598,14 +2621,20 @@ const ClinicVisit = (props) => {
                         </FormGroup>
                       </div>
                     )}
-                    <div className=" mb-1 col-md-4">
+
+                    <div className=" mb-1 col-md-3">
                       <FormGroup>
-                        <FormLabelName> Test Date <span style={{ color: "red" }}> *</span></FormLabelName>
+                        <FormLabelName>
+                          {" "}
+                          Test Date <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
                         <Input
                           type="date"
                           onKeyDown={(e) => e.preventDefault()}
                           name="testDate"
                           id="testDate"
+                          data-localid={eachTest.localId}
+                          data-field="testDate"
                           value={eachTest.testDate}
                           onChange={(e) =>
                             handleInputChangeOtherTest(e, eachTest.localId)
@@ -2620,13 +2649,19 @@ const ClinicVisit = (props) => {
                         />
                       </FormGroup>
                     </div>
-                    <div className=" mb-1 col-md-4">
+
+                    <div className=" mb-1 col-md-3">
                       <FormGroup>
-                        <FormLabelName> Test Result <span style={{ color: "red" }}> *</span></FormLabelName>
+                        <FormLabelName>
+                          {" "}
+                          Test Result <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
                         <Input
                           type="text"
                           name="result"
                           id="result"
+                          data-localid={eachTest.localId}
+                          data-field="result"
                           value={eachTest.result}
                           onChange={(e) =>
                             handleInputChangeOtherTest(e, eachTest.localId)
@@ -2636,10 +2671,27 @@ const ClinicVisit = (props) => {
                             borderRadius: "0.25rem",
                           }}
                           disabled={disabledField}
-                        ></Input>
+                        />
                       </FormGroup>
                     </div>
-                    {/* add material ui divider  */}
+
+                    <div className=" mb-1 col-md-3 d-flex align-items-end">
+                      <button
+                        variant="contained"
+                        color="secondary"
+                        size="medium"
+                        className={`${classes.button} btn btn-danger`}
+                        style={{
+                          display: "block",
+                          margin: 0,
+                          fontSize: "1.2em",
+                        }}
+                        onClick={() => handleRemoveTest(eachTest.localId)}
+                      >
+                        <TiTrash />
+                      </button>
+                    </div>
+
                     {otherTest.length > 1 && (
                       <Divider
                         component="li"
@@ -2649,9 +2701,7 @@ const ClinicVisit = (props) => {
                   </div>
                 ))}
               {errors.otherTestsDone !== "" ? (
-                <span className={classes.error}>
-                  {errors.otherTestsDone}
-                </span>
+                <span className={classes.error}>{errors.otherTestsDone}</span>
               ) : (
                 ""
               )}
@@ -2736,7 +2786,7 @@ const ClinicVisit = (props) => {
             {!disabledField && (
               <>
                 {props.activeContent &&
-                  props.activeContent.actionType === "update" ? (
+                props.activeContent.actionType === "update" ? (
                   <>
                     <MatButton
                       type="submit"
@@ -2789,7 +2839,6 @@ const ClinicVisit = (props) => {
           </Segment>
         </Grid.Column>
       </Grid>
-      {/* <AddVitals toggle={AddVitalToggle} showModal={addVitalModal} /> */}
     </div>
   );
 };

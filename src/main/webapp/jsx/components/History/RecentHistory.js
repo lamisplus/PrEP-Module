@@ -52,7 +52,6 @@ const RecentHistory = (props) => {
         { headers: { "Authorization": `Bearer ${token}` } }
       )
       .then((response) => {
-        console.log('sumry: ', response.data[0])
         setSummary(response.data[0])
       })
       .catch((error) => {
@@ -296,9 +295,7 @@ const RecentHistory = (props) => {
                           <div className="accordion-body-text">
                             <ul className="timeline">
                               {data.activities && data.activities.map((activity, index) => (
-
-                                <>
-                                  <li>
+                                  <li key={activity}>
                                     <div className="timeline-panel">
                                       <div className={i % 2 == 0 ? "media me-2 media-info" : "media me-2 media-success"}>{ActivityName(data.name)}</div>
                                       <div className="media-body">
@@ -358,7 +355,6 @@ const RecentHistory = (props) => {
                                       </Dropdown>
                                     </div>
                                   </li>
-                                </>
                               ))}
                             </ul>
                           </div>
@@ -367,7 +363,6 @@ const RecentHistory = (props) => {
                     )}
                   </>
                 </Accordion>
-
               </PerfectScrollbar>
             </div>
           </div>
