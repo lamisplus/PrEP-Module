@@ -90,7 +90,7 @@ const useStyles = makeStyles((theme) => ({
 
 const ClinicVisit = (props) => {
   const [errors, setErrors] = useState({});
-  const [disabledField, setSisabledField] = useState(false);
+  const [disabledField, setDisabledField] = useState(false);
   const [patientDto, setPatientDto] = useState();
   let temp = { ...errors };
   const classes = useStyles();
@@ -282,16 +282,9 @@ const ClinicVisit = (props) => {
     POPULATION_TYPE();
     VISIT_TYPE();
     FAMILY_PLANNING_METHOD();
-    if (
-      props.activeContent &&
-      props.activeContent.id !== "" &&
-      props.activeContent.id !== null
-    ) {
-      GetPatientVisit(props.activeContent.id);
-      setSisabledField(
-        props.activeContent.actionType
-      );
-    }
+
+    GetPatientVisit(props.activeContent.id);
+    setDisabledField(!['update', undefined].includes(props.activeContent.actionType));
     GetLatestFromEligibility();
   }, [props.activeContent]);
 
@@ -1029,6 +1022,7 @@ const ClinicVisit = (props) => {
       objValues.prepEnrollmentUuid = patientDto.uuid;
 
       if (props.activeContent && props.activeContent.actionType === "update") {
+        alert('hey')
         //Perform operation for updation action
         axios
           .put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues, {
@@ -1697,7 +1691,7 @@ const ClinicVisit = (props) => {
                         style={{
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
-                        }}    
+                        }}
                       >
                         <option value="">Select Pregnancy Status</option>
                         {pregnant.map((value) => (
@@ -2008,7 +2002,7 @@ const ClinicVisit = (props) => {
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
                     }}
-                    
+
                   >
                     <option value=""> Select Population Type</option>
                     {populationType?.map((value) => (
@@ -2042,7 +2036,7 @@ const ClinicVisit = (props) => {
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
                     }}
-                    
+
                   >
                     <option value=""> Select Visit Type</option>
                     {visitType.map((value) => (
@@ -2141,7 +2135,7 @@ const ClinicVisit = (props) => {
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
                     }}
-                    
+
                   >
                     <option value=""></option>
                     {prepEntryPoint.map((value) => (
@@ -2281,7 +2275,7 @@ const ClinicVisit = (props) => {
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
                     }}
-                    
+
                   >
                     <option value=""></option>
                     {familyPlanningMethod.map((value) => (
