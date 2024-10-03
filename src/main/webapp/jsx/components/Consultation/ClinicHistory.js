@@ -103,8 +103,8 @@ const PatientnHistory = (props) => {
     const [saving, setSaving] = useState(false)
     const [open, setOpen] = React.useState(false)
     const [record, setRecord] = useState(null)
-    
-    const toggle = () => setOpen(prev=>!prev);
+
+    const toggle = () => setOpen(prev => !prev);
     useEffect(() => {
         props.getPatientHistory()
         if (props.activeContent.actionType === "view") {
@@ -122,7 +122,6 @@ const PatientnHistory = (props) => {
     const LoadDeletePage = (row) => {
         if (row.path === 'prep-eligibility') {
             setSaving(true)
-            //props.setActiveContent({...props.activeContent, route:'mental-health-view', id:row.id})
             axios
                 .delete(`${baseUrl}prep-eligibility/${row.id}`,
                     { headers: { "Authorization": `Bearer ${token}` } }
@@ -130,7 +129,7 @@ const PatientnHistory = (props) => {
                 .then((response) => {
                     setSaving(false)
                     toast.success("Record Deleted Successfully");
-                   props.getPatientHistory()
+                    props.getPatientHistory()
                     toggle()
                 })
                 .catch((error) => {
@@ -145,7 +144,6 @@ const PatientnHistory = (props) => {
                 });
         } else if (row.path === 'prep-clinic') {
             setSaving(true)
-            //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
             axios
                 .delete(`${baseUrl}prep-clinic/${row.id}`,
                     { headers: { "Authorization": `Bearer ${token}` } }
@@ -153,7 +151,8 @@ const PatientnHistory = (props) => {
                 .then((response) => {
                     setSaving(false)
                     toast.success("Record Deleted Successfully");
-                   props.getPatientHistory()
+                    props.getPatientHistory()
+                    props.setActiveContent({...props.activeContent, route:'recent-history'})
                     toggle()
                 })
                 .catch((error) => {
@@ -177,7 +176,7 @@ const PatientnHistory = (props) => {
                 .then((response) => {
                     setSaving(false)
                     toast.success("Record Deleted Successfully");
-                   props.getPatientHistory()
+                    props.getPatientHistory()
                     toggle()
                 })
                 .catch((error) => {
@@ -193,7 +192,6 @@ const PatientnHistory = (props) => {
 
         } else if (row.path === 'prep-enrollment2') {
             setSaving(true)
-            //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
             axios
                 .delete(`${baseUrl}prep-enrollment/${row.id}`,
                     { headers: { "Authorization": `Bearer ${token}` } }
@@ -201,7 +199,7 @@ const PatientnHistory = (props) => {
                 .then((response) => {
                     setSaving(false)
                     toast.success("Record Deleted Successfully");
-                   props.getPatientHistory()
+                    props.getPatientHistory()
                     toggle()
                 })
                 .catch((error) => {
@@ -220,7 +218,6 @@ const PatientnHistory = (props) => {
         }
 
     }
-
 
     return (
         <div>
@@ -292,12 +289,10 @@ const PatientnHistory = (props) => {
                 </Modal.Header>
                 <Modal.Body>
                     <h4>Are you Sure you want to delete <b>{record && record.name}</b></h4>
-
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={() => LoadDeletePage({...record,path: "prep-clinic"})} style={{ backgroundColor: "red", color: "#fff" }} disabled={saving}>{saving === false ? "Yes" : "Deleting..."}</Button>
+                    <Button onClick={() => LoadDeletePage({ ...record, path: "prep-clinic" })} style={{ backgroundColor: "red", color: "#fff" }} disabled={saving}>{saving === false ? "Yes" : "Deleting..."}</Button>
                     <Button onClick={toggle} style={{ backgroundColor: "#014d88", color: "#fff" }} disabled={saving}>No</Button>
-
                 </Modal.Footer>
             </Modal>
         </div>
