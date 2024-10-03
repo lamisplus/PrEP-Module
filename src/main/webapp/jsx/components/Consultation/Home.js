@@ -282,8 +282,8 @@ const ClinicVisit = (props) => {
     POPULATION_TYPE();
     VISIT_TYPE();
     FAMILY_PLANNING_METHOD();
+    getPatientVisit(props.activeContent.id);
 
-    GetPatientVisit(props.activeContent.id);
     setDisabledField(!['update', undefined].includes(props.activeContent.actionType));
     GetLatestFromEligibility();
   }, [props.activeContent]);
@@ -375,13 +375,17 @@ const ClinicVisit = (props) => {
     }
   };
 
-  const GetPatientVisit = async (id) => {
+  const getPatientVisit = async (id) => {
+
     axios
       .get(`${baseUrl}prep-clinic/${props.activeContent.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        setObjValues(response.data);
+        const { data } = JSON.parse(JSON.stringify(response));
+        console.log('resp: ', data.regimen)
+        setOtherTest(response?.data?.otherTestsDone)
+        setObjValues(data)
       })
       .catch((error) => { });
   };
@@ -677,8 +681,7 @@ const ClinicVisit = (props) => {
   const handleInputChange = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
     if (e.target.name === "monthsOfRefill") {
-      const asNumber = Number(e.target.value);
-      const durationInDays = asNumber * 30;
+      const durationInDays = Number(e.target.value);
       setObjValues({
         ...objValues,
         monthsOfRefill: e.target.value,
@@ -686,7 +689,6 @@ const ClinicVisit = (props) => {
       });
     } else if (e.target.name === "encounterDate") {
       PrepRegimen(e.target.value);
-
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
 
     } else {
@@ -775,7 +777,6 @@ const ClinicVisit = (props) => {
       setOtherTest([]);
     }
   };
-
   const otherTestInputRef = useRef();
 
   const loadOtherTestOptions = () => {
@@ -1011,19 +1012,10 @@ const ClinicVisit = (props) => {
       objValues.syphilis = syphilisTest;
       objValues.hepatitis = hepatitisTest;
       objValues.urinalysis = urinalysisTest;
-      objValues.otherTestsDone = otherTest.map((x) => {
-        return {
-          testDate: x.testDate,
-          result: x.result,
-          name: x.name,
-          otherTestName: x.otherTestName,
-        };
-      });
+      objValues.otherTestsDone = otherTest;
       objValues.prepEnrollmentUuid = patientDto.uuid;
 
       if (props.activeContent && props.activeContent.actionType === "update") {
-        alert('hey')
-        //Perform operation for updation action
         axios
           .put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues, {
             headers: { Authorization: `Bearer ${token}` },
@@ -1031,7 +1023,7 @@ const ClinicVisit = (props) => {
           .then((response) => {
             //PatientDetaild();
             setSaving(false);
-            toast.success("Clinic Visit save successful", {
+            toast.success("Clinic visit update successful", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -1255,9 +1247,19 @@ const ClinicVisit = (props) => {
     }
   };
 
+  const prepRegimenUpdateView = () => {
+    axios
+      .get(`${baseUrl}prep-regimen`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setprepRegimen(response.data)
+      })
+      .catch((error) => { });
+  };
   useEffect(() => {
-    console.log(otherTest)
-  }, [otherTest])
+    if (['update', 'view'].includes(props.activeContent.actionType)) prepRegimenUpdateView()
+  }, [props.activeContent.actionType])
 
   return (
     <div>
@@ -2102,14 +2104,18 @@ const ClinicVisit = (props) => {
                     }}
                   >
                     <option value=""> Select</option>
-                    {objValues?.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH" ? filterOutLastRegimen(prepRegimen, props.recentActivities[0]?.regimenId).map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.regimen}
-                      </option>
-                    )) : prepRegimen?.map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.regimen}
-                      </option>))}
+                    {['update', 'view'].includes(props.activeContent.actionType)
+                      ? prepRegimen?.map((value) => (
+                        <option key={value.id} value={value.id}>
+                          {value.regimen}
+                        </option>)) : objValues?.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH" ? filterOutLastRegimen(prepRegimen, props.recentActivities[0]?.regimenId).map((value) => (
+                          <option key={value.id} value={value.id}>
+                            {value.regimen}
+                          </option>
+                        )) : prepRegimen?.map((value) => (
+                          <option key={value.id} value={value.id}>
+                            {value.regimen}
+                          </option>))}
                   </Input>
                   {errors.regimenId !== "" ? (
                     <span className={classes.error}>{errors.regimenId}</span>
@@ -2796,6 +2802,7 @@ const ClinicVisit = (props) => {
                   id="healthCareWorkerSignature"
                   placeholder="Enter signature..."
                   value={objValues.healthCareWorkerSignature}
+                  disabled={disabledField}
                   onChange={handleInputChange}
                   style={{
                     border: "1px solid #014D88",
