@@ -104,7 +104,7 @@ const PatientnHistory = (props) => {
     const [open, setOpen] = React.useState(false)
     const [record, setRecord] = useState(null)
     
-    const toggle = () => setOpen(!open);
+    const toggle = () => setOpen(prev=>!prev);
     useEffect(() => {
         props.getPatientHistory()
         if (props.activeContent.actionType === "view") {
@@ -229,7 +229,7 @@ const PatientnHistory = (props) => {
 
             <MaterialTable
                 icons={tableIcons}
-                title="Patient Clinic Visit History "
+                title="Patient Clinic Visit History"
                 columns={[
                     { title: "Visit Date", field: "date" },
                     {
@@ -253,7 +253,7 @@ const PatientnHistory = (props) => {
                                         <Dropdown item text='Action'>
 
                                             <Dropdown.Menu style={{ marginTop: "10px", }}>
-                                                <Dropdown.Item onClick={() => LoadViewPage(row, 'view')}> <Icon name='eye' />View  </Dropdown.Item>
+                                                <Dropdown.Item onClick={() => LoadViewPage(row, 'view')}> <Icon name='eye' />View</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => LoadViewPage(row, 'update')}><Icon name='edit' />Edit</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => LoadModal(row)}> <Icon name='trash' /> Delete</Dropdown.Item>
                                             </Dropdown.Menu>
@@ -295,7 +295,7 @@ const PatientnHistory = (props) => {
 
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={() => LoadDeletePage(record)} style={{ backgroundColor: "red", color: "#fff" }} disabled={saving}>{saving === false ? "Yes" : "Deleting..."}</Button>
+                    <Button onClick={() => LoadDeletePage({...record,path: "prep-clinic"})} style={{ backgroundColor: "red", color: "#fff" }} disabled={saving}>{saving === false ? "Yes" : "Deleting..."}</Button>
                     <Button onClick={toggle} style={{ backgroundColor: "#014d88", color: "#fff" }} disabled={saving}>No</Button>
 
                 </Modal.Footer>
