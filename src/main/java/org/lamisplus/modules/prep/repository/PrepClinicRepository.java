@@ -61,19 +61,17 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
             "        p.id, \n" +
             "        hts.date_visit, \n" +
             "        hts.hiv_test_result,\n" +
-            "        ROW_NUMBER() OVER (PARTITION BY hts.person_uuid ORDER BY hts.date_visit DESC) AS rowNum,\n" +
-            "        COUNT(*) OVER (PARTITION BY hts.person_uuid) AS visitCount\n" +
+            "        ROW_NUMBER() OVER (PARTITION BY hts.person_uuid ORDER BY hts.date_visit DESC) AS rowNum\n" +
             "    FROM hts_client hts\n" +
             "    JOIN patient_person p ON p.uuid = hts.person_uuid\n" +
             ")\n" +
-            "SELECT \n" +
+            "SELECT\n" +
             "    date_visit AS visitDate, \n" +
             "    hiv_test_result AS hivTestResult\n" +
             "FROM RankedVisits\n" +
             "WHERE \n" +
             "id = ?1 AND \n" +
-            "((visitCount > 1 AND rowNum = 2) \n" +
-            "   OR (visitCount <= 1 AND rowNum = 1))", nativeQuery = true)
+            "rowNum = 1", nativeQuery = true)
     List<PrepPreviousVisitHtsRecord> getPreviousHtsRecord (Long id);
 
 
