@@ -199,6 +199,8 @@ public class PrepClinicService {
 
         prepClinic.setRiskReductionServices( prepClinicDto.getRiskReductionServices());
         prepClinic.setNotedSideEffects( prepClinicDto.getNotedSideEffects());
+        prepClinic.setHealthCareWorkerSignature( prepClinicDto.getHealthCareWorkerSignature());
+
 
         prepClinic.setDuration( prepClinicDto.getDuration());
 
@@ -214,8 +216,6 @@ public class PrepClinicService {
         prepClinic.setMonthsOfRefill(prepClinicDto.getMonthsOfRefill());
         prepClinic.setHivTestResultDate(prepClinicDto.getHivTestResultDate());
         prepClinic.setHistoryOfDrugAllergies(prepClinicDto.getHistoryOfDrugAllergies());
-
-
 
         return prepClinic;
     }
@@ -268,6 +268,7 @@ public class PrepClinicService {
 
         prepClinic.setRiskReductionServices( prepClinicRequestDto.getRiskReductionServices());
         prepClinic.setNotedSideEffects( prepClinicRequestDto.getNotedSideEffects());
+        prepClinic.setHealthCareWorkerSignature( prepClinicRequestDto.getHealthCareWorkerSignature());
 
         prepClinic.setDuration( prepClinicRequestDto.getDuration());
 
