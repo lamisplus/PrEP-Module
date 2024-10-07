@@ -9,7 +9,9 @@ import org.lamisplus.modules.prep.domain.dto.TimelineVm;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.springframework.stereotype.Service;
-
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -23,19 +25,18 @@ import static java.util.stream.Collectors.toList;
 public class PatientActivityService {
 	private final BeanProvider beanProvider;
 	private final PersonRepository patientRepository;
-	
+
 	public List<PatientActivity> getActivitiesFor(Long patientId) {
 		Person person = patientRepository.findById(patientId).orElse(null);
 		if (person != null) {
 			return beanProvider.getBeansOfType(PatientActivityProvider.class)
 					.stream()
 					.flatMap(activityProvider -> activityProvider.getActivitiesFor(person).stream())
-					.collect(toList());
+					.sorted(Comparator.comparing(PatientActivity::getDate).reversed())
+					.collect(Collectors.toList());
 		}
 		return Collections.emptyList();
 	}
-	
-	
 	@NotNull
 	public List<TimelineVm> getTimelineVms(Long patientId, boolean full) {
 		List<PatientActivity> patientActivities = getActivitiesFor(patientId);
