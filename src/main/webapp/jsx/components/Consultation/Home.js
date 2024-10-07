@@ -957,9 +957,6 @@ const ClinicVisit = (props) => {
     temp.lastHts = hivTestValue
       ? ""
       : "Atleast, 1 HIV test result is required";
-    temp.lastHtsDate = !(new Date(hivTestResultDate).getTime() < new Date(patientDto?.dateEnrolled).getTime())
-      ? ""
-      : `Last HIV Test must not come before Initiation (${patientDto?.dateEnrolled})`;
     temp.otherTestsDone = otherTest.length
       ? ""
       : "You must submit atleast, a test result.";
