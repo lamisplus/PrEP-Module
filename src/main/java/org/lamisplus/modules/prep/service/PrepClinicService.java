@@ -141,6 +141,7 @@ public class PrepClinicService {
         prepClinic.setId(id);
         prepClinic.setUuid(uuid);
         prepClinic.setIsCommencement(iscommencement);
+        prepClinic.setVisitType(prepClinicDto.getVisitType());
         prepClinic.setPrepEnrollmentUuid(enrollmentUuid);
         prepClinic.setFamilyPlanning(prepClinicDto.getFamilyPlanning());
         prepClinic.setDateOfFamilyPlanning(prepClinicDto.getDateOfFamilyPlanning());
@@ -216,6 +217,7 @@ public class PrepClinicService {
         prepClinic.setMonthsOfRefill(prepClinicDto.getMonthsOfRefill());
         prepClinic.setHivTestResultDate(prepClinicDto.getHivTestResultDate());
         prepClinic.setHistoryOfDrugAllergies(prepClinicDto.getHistoryOfDrugAllergies());
+        prepClinic.setVisitType(prepClinicDto.getVisitType());
 
         return prepClinic;
     }
@@ -372,13 +374,12 @@ public class PrepClinicService {
 
 
     public Boolean checkCabLaEligibility (Long id, LocalDate currentVisitDate) {
-        //check if not in prepClinical record for visit
         Optional<Long> hasPrevisit = prepClinicRepository.checkHasClinicalVisit(id); // returns true
         if (!hasPrevisit.isPresent()){
-            return true; // return true with no clinical records
+            return true;
         } else {
             Boolean hasCabalin = prepClinicRepository.checkEnableCabaL(id, currentVisitDate); // has clinical records and has cab-lin as previous visit
-            return hasCabalin; // true
+            return hasCabalin;
         }
     }
 
