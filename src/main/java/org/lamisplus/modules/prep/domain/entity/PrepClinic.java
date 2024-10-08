@@ -95,8 +95,8 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "person_uuid")
     private String personUuid;
 
-    @Column(name = "visit_uuid")
-    private String visitUuid;
+//    @Column(name = "visit_uuid")
+//    private String visitUuid;
 
     @Column(name = "visit_type")
     private String visitType;

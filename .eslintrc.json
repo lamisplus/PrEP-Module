@@ -1,0 +1,24 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": ["eslint:recommended", "plugin:prettier/recommended"],
+  "parserOptions": {
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-console": "warn", // Warn when console statements are used
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }], // Warn for unused variables, but ignore those starting with _
+    "eqeqeq": "error", // Enforce the use of === and !==
+    "curly": "error", // Require curly braces for all control statements
+    "quotes": ["error", "single", { "avoidEscape": true }], // Enforce single quotes, allow double quotes to avoid escaping
+    "semi": ["error", "always"], // Require semicolons at the end of statements
+    "indent": ["error", 2], // Enforce 2-space indentation
+    "comma-dangle": ["error", "only-multiline"], // Require trailing commas in multiline object literals
+    "prettier/prettier": "error" // Integrate Prettier with ESLint
+  },
+  "plugins": ["prettier"]
+}

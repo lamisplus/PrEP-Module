@@ -1,30 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import classNames from 'classnames';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-//import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-//import ExpansionPanelActions from '@material-ui/core/ExpansionPanelActions';
-//import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { Link } from 'react-router-dom'
 import ButtonMui from "@material-ui/core/Button";
 import { TiArrowBack } from 'react-icons/ti'
-//import Chip from '@material-ui/core/Chip';
 import Divider from '@material-ui/core/Divider';
-//import { Button } from 'semantic-ui-react';
 import { Label, } from "semantic-ui-react";
 import 'semantic-ui-css/semantic.min.css';
 import { Col, Row } from "reactstrap";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
 import moment from "moment";
-//import axios from "axios";
-import { url as baseUrl, token } from "./../../../api";
 import Typography from '@material-ui/core/Typography';
-// import CaptureBiometric from './CaptureBiometric';
-
-//Dtate Picker package
 Moment.locale("en");
 momentLocalizer();
 
@@ -65,20 +54,13 @@ const styles = theme => ({
 
 function PatientCard(props) {
   const { classes } = props;
-  //const patientObj = props.patientObj ? props.patientObj : {}
-  //const [patientObj, setpatientObj] = useState(props.patientObj)
   const patientObj = props?.patientObj;
-  //console.log("inn",props.patientObj)
-
-  // useEffect(() => {
-  //   setpatientObj(props.patientDetail);
-  // }, [props.patientDetail]);
 
   const calculate_age = dob => {
     var today = new Date();
     var dateParts = dob.split("-");
     var dateObject = new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
-    var birthDate = new Date(dateObject); // create a date object directlyfrom`dob1`argument
+    var birthDate = new Date(dateObject);
     var age_now = today?.getFullYear() - birthDate?.getFullYear();
     var m = today?.getMonth() - birthDate?.getMonth();
     if (m < 0 || (m === 0 && today?.getDate() < birthDate?.getDate())) {
@@ -89,25 +71,6 @@ function PatientCard(props) {
     }
     return age_now + " year(s)";
   };
-  const getHospitalNumber = (identifier) => {
-    const identifiers = identifier;
-    const hospitalNumber = identifiers?.identifier?.find?.(obj => obj.type === 'HospitalNumber');
-    return hospitalNumber ? hospitalNumber?.value : '';
-  };
-  const getPhoneNumber = (identifier) => {
-    const identifiers = identifier;
-    const phoneNumber = identifiers?.contactPoint?.find?.(obj => obj?.type === 'phone');
-    return phoneNumber ? phoneNumber?.value : '';
-  };
-  const getAddress = (identifier) => {
-    console.log('identifier: ', identifier)
-    const identifiers = identifier;
-    const address = identifiers?.address?.find?.(obj => obj?.city);
-    const houseAddress = Array.isArray(address?.line) && (address?.line[0] != null) ? address?.line[0] : ""
-    const landMark = address && address?.city && address?.city !== null ? address?.city : ""
-    return address ? houseAddress + " " + landMark : '';
-  };
-
 
   return (
     <div className={classes.root}>
@@ -126,7 +89,6 @@ function PatientCard(props) {
                         variant="contained"
                         color="primary"
                         className=" float-end ms-2 mr-2 mt-2"
-                        //startIcon={<FaUserPlus size="10"/>}
                         startIcon={<TiArrowBack />}
                         style={{ backgroundColor: "rgb(153, 46, 98)", color: '#fff', height: '35px' }}
 
