@@ -1,59 +1,50 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-// Image
-import image01 from "../../../../images/avatar/1.jpg";
-import image02 from "../../../../images/avatar/2.jpg";
-import image03 from "../../../../images/avatar/3.jpg";
-import image04 from "../../../../images/avatar/4.jpg";
-import image05 from "../../../../images/avatar/5.jpg";
-import image06 from "../../../../images/avatar/6.jpg";
+import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import image01 from '../../../../images/avatar/1.jpg';
+import image02 from '../../../../images/avatar/2.jpg';
+import image03 from '../../../../images/avatar/3.jpg';
+import image04 from '../../../../images/avatar/4.jpg';
+import image05 from '../../../../images/avatar/5.jpg';
+import image06 from '../../../../images/avatar/6.jpg';
 
 const AllReviewTable = () => {
-	
   const [data, setData] = useState(
-    document.querySelectorAll("#allreview tbody tr")
+    document.querySelectorAll('#allreview tbody tr')
   );
   const sort = 6;
   const activePag = useRef(0);
   const [test, settest] = useState(0);
 
-  // Active data
   const chageData = (frist, sec) => {
     for (var i = 0; i < data.length; ++i) {
       if (i >= frist && i < sec) {
-        data[i].classList.remove("d-none");
+        data[i].classList.remove('d-none');
       } else {
-        data[i].classList.add("d-none");
+        data[i].classList.add('d-none');
       }
     }
   };
-  // use effect
   useEffect(() => {
-    setData(document.querySelectorAll("#allreview tbody tr"));
-    //chackboxFun();
+    setData(document.querySelectorAll('#allreview tbody tr'));
   }, [test]);
 
- 
-  // Active pagginarion
   activePag.current === 0 && chageData(0, sort);
-  // paggination
   let paggination = Array(Math.ceil(data.length / sort))
     .fill()
     .map((_, i) => i + 1);
 
-  // Active paggination & chage data
-  const onClick = (i) => {
+  const onClick = i => {
     activePag.current = i;
     chageData(activePag.current * sort, (activePag.current + 1) * sort);
     settest(i);
   };
 
-  const chackbox = document.querySelectorAll(".sorting_1 input");
-  const motherChackBox = document.querySelector(".sorting_asc input");
-  const chackboxFun = (type) => {
+  const chackbox = document.querySelectorAll('.sorting_1 input');
+  const motherChackBox = document.querySelector('.sorting_asc input');
+  const chackboxFun = type => {
     for (let i = 0; i < chackbox.length; i++) {
       const element = chackbox[i];
-      if (type === "all") {
+      if (type === 'all') {
         if (motherChackBox.checked) {
           element.checked = true;
         } else {
@@ -80,43 +71,55 @@ const AllReviewTable = () => {
             aria-describedby="example2_info"
           >
             <thead>
-				<tr role="row">
-					<th className="sorting_asc">
-						<div className="form-check checkbox-secondary ">
-							<input type="checkbox" onClick={() => chackboxFun("all")}
-								className="form-check-input" id="checkAll" required=""
-							/>
-							<label className="form-check-label" htmlFor="checkAll"></label>
-						</div>
-					</th>
-					<th style={{width:"250px"}} className="sorting">
-						Customer
-					</th>
-					<th className="d-none d-lg-inline-block sorting" >
-						Event NAME
-					</th>
-					<th className="sorting">
-						Stars Review
-					</th>
-					<th className="sorting">
-						Action
-					</th>
-				</tr>
+              <tr role="row">
+                <th className="sorting_asc">
+                  <div className="form-check checkbox-secondary ">
+                    <input
+                      type="checkbox"
+                      onClick={() => chackboxFun('all')}
+                      className="form-check-input"
+                      id="checkAll"
+                      required=""
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="checkAll"
+                    ></label>
+                  </div>
+                </th>
+                <th style={{ width: '250px' }} className="sorting">
+                  Customer
+                </th>
+                <th className="d-none d-lg-inline-block sorting">Event NAME</th>
+                <th className="sorting">Stars Review</th>
+                <th className="sorting">Action</th>
+              </tr>
             </thead>
 
             <tbody>
               <tr role="row" className="odd">
                 <td className="sorting_1">
-                    <div className="form-check checkbox-secondary ">
-						<input type="checkbox" onClick={() => chackboxFun()} className="form-check-input" id="customCheckBox2" required=""/>
-						<label className="form-check-label" htmlFor="customCheckBox2"></label>
-                    </div>
+                  <div className="form-check checkbox-secondary ">
+                    <input
+                      type="checkbox"
+                      onClick={() => chackboxFun()}
+                      className="form-check-input"
+                      id="customCheckBox2"
+                      required=""
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="customCheckBox2"
+                    ></label>
+                  </div>
                 </td>
                 <td>
                   <div className="media align-items-center tbl-img">
                     <img
                       className="img-fluid rounded me-3 d-none d-xl-inline-block"
-                      width="70" src={image01} alt="DexignZone"
+                      width="70"
+                      src={image01}
+                      alt="DexignZone"
                     />
                     <div className="media-body">
                       <h4 className="font-w600 mb-1 wspace-no">
@@ -133,10 +136,10 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <span className="star-review d-inline-block mb-2 fs-16 wspace-no">
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
                     <i className="fa fa-star fs-16 text-gray"></i>
                   </span>
                   <p className="mb-0 d-none d-xl-inline-block">
@@ -147,11 +150,14 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <div className="d-flex">
-                    <Link to={"#"} className="btn btn-secondary btn-rounded text-white btn-sm px-4">
+                    <Link
+                      to={'#'}
+                      className="btn btn-secondary btn-rounded text-white btn-sm px-4"
+                    >
                       Publish
                     </Link>
                     <Link
-                     to={"#"}
+                      to={'#'}
                       className="btn btn-outline-danger btn-rounded btn-sm ms-2 px-4"
                     >
                       Delete
@@ -161,21 +167,19 @@ const AllReviewTable = () => {
               </tr>
               <tr role="row" className="even">
                 <td className="sorting_1">
-                 
-                    <div className="form-check checkbox-secondary ">
-                      <input
-                        type="checkbox"
-                        onClick={() => chackboxFun()}
-                        className="form-check-input"
-                        id="customCheckBox21"
-                        required=""
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="customCheckBox21"
-                      ></label>
-                    </div>
-                  
+                  <div className="form-check checkbox-secondary ">
+                    <input
+                      type="checkbox"
+                      onClick={() => chackboxFun()}
+                      className="form-check-input"
+                      id="customCheckBox21"
+                      required=""
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="customCheckBox21"
+                    ></label>
+                  </div>
                 </td>
                 <td>
                   <div className="media align-items-center">
@@ -200,10 +204,10 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <span className="star-review d-inline-block mb-2 fs-16 wspace-no">
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
                     <i className="fa fa-star fs-16 text-gray"></i>
                   </span>
                   <p className="mb-0 d-none d-xl-inline-block">
@@ -214,11 +218,14 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <div className="d-flex">
-                    <Link to="" className="btn btn-secondary btn-rounded text-white btn-sm px-4">
+                    <Link
+                      to=""
+                      className="btn btn-secondary btn-rounded text-white btn-sm px-4"
+                    >
                       Publish
                     </Link>
                     <Link
-                      to={"#"}
+                      to={'#'}
                       className="btn btn-outline-danger btn-rounded btn-sm ms-2 px-4"
                     >
                       Delete
@@ -228,20 +235,19 @@ const AllReviewTable = () => {
               </tr>
               <tr role="row" className="odd">
                 <td className="sorting_1">
-                    <div className="form-check checkbox-secondary ">
-                      <input
-                        type="checkbox"
-                        onClick={() => chackboxFun()}
-                        className="form-check-input"
-                        id="customCheckBox22"
-                        required=""
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="customCheckBox22"
-                      ></label>
-                    </div>
-                 
+                  <div className="form-check checkbox-secondary ">
+                    <input
+                      type="checkbox"
+                      onClick={() => chackboxFun()}
+                      className="form-check-input"
+                      id="customCheckBox22"
+                      required=""
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="customCheckBox22"
+                    ></label>
+                  </div>
                 </td>
                 <td>
                   <div className="media align-items-center">
@@ -253,7 +259,7 @@ const AllReviewTable = () => {
                     />
                     <div className="media-body">
                       <h4 className="font-w600 mb-1 wspace-no">
-                        <Link to={"#"} className="text-black">
+                        <Link to={'#'} className="text-black">
                           Cindy Hawkins
                         </Link>
                       </h4>
@@ -266,10 +272,10 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <span className="star-review d-inline-block mb-2 fs-16 wspace-no">
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
                     <i className="fa fa-star fs-16 text-gray"></i>
                   </span>
                   <p className="mb-0 d-none d-xl-inline-block">
@@ -280,11 +286,14 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <div className="d-flex">
-                    <Link to={"#"} className="btn btn-secondary btn-rounded text-white btn-sm px-4">
+                    <Link
+                      to={'#'}
+                      className="btn btn-secondary btn-rounded text-white btn-sm px-4"
+                    >
                       Publish
                     </Link>
                     <Link
-                      to={"#"}
+                      to={'#'}
                       className="btn btn-outline-danger btn-rounded btn-sm ms-2 px-4"
                     >
                       Delete
@@ -294,21 +303,19 @@ const AllReviewTable = () => {
               </tr>
               <tr role="row" className="even">
                 <td className="sorting_1">
-                 
-                    <div className="form-check checkbox-secondary ">
-                      <input
-                        type="checkbox"
-                        onClick={() => chackboxFun()}
-                        className="form-check-input"
-                        id="customCheckBox23"
-                        required=""
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="customCheckBox23"
-                      ></label>
-                    </div>
-                  
+                  <div className="form-check checkbox-secondary ">
+                    <input
+                      type="checkbox"
+                      onClick={() => chackboxFun()}
+                      className="form-check-input"
+                      id="customCheckBox23"
+                      required=""
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="customCheckBox23"
+                    ></label>
+                  </div>
                 </td>
                 <td>
                   <div className="media align-items-center">
@@ -320,7 +327,7 @@ const AllReviewTable = () => {
                     />
                     <div className="media-body">
                       <h4 className="font-w600 mb-1 wspace-no">
-                        <Link to={"#"} className="text-black">
+                        <Link to={'#'} className="text-black">
                           Glee Smiley
                         </Link>
                       </h4>
@@ -333,10 +340,10 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <span className="star-review d-inline-block mb-2 fs-16 wspace-no">
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
                     <i className="fa fa-star fs-16 text-gray"></i>
                   </span>
                   <p className="mb-0 d-none d-xl-inline-block">
@@ -347,11 +354,14 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <div className="d-flex">
-                    <Link to={"#"} className="btn btn-secondary btn-rounded text-white btn-sm px-4">
+                    <Link
+                      to={'#'}
+                      className="btn btn-secondary btn-rounded text-white btn-sm px-4"
+                    >
                       Publish
                     </Link>
                     <Link
-                      to={"#"}
+                      to={'#'}
                       className="btn btn-outline-danger btn-rounded btn-sm ms-2 px-4"
                     >
                       Delete
@@ -361,21 +371,19 @@ const AllReviewTable = () => {
               </tr>
               <tr role="row" className="odd">
                 <td className="sorting_1">
-                 
-                    <div className="form-check checkbox-secondary ">
-                      <input
-                        type="checkbox"
-                        onClick={() => chackboxFun()}
-                        className="form-check-input"
-                        id="customCheckBox211"
-                        required=""
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="customCheckBox211"
-                      ></label>
-                    </div>
-                  
+                  <div className="form-check checkbox-secondary ">
+                    <input
+                      type="checkbox"
+                      onClick={() => chackboxFun()}
+                      className="form-check-input"
+                      id="customCheckBox211"
+                      required=""
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="customCheckBox211"
+                    ></label>
+                  </div>
                 </td>
                 <td>
                   <div className="media align-items-center">
@@ -387,7 +395,7 @@ const AllReviewTable = () => {
                     />
                     <div className="media-body">
                       <h4 className="font-w600 mb-1 wspace-no">
-                        <Link to={"#"} className="text-black">
+                        <Link to={'#'} className="text-black">
                           Louis Jovanny
                         </Link>
                       </h4>
@@ -400,10 +408,10 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <span className="star-review d-inline-block mb-2 fs-16 wspace-no">
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
                     <i className="fa fa-star fs-16 text-gray"></i>
                   </span>
                   <p className="mb-0 d-none d-xl-inline-block">
@@ -414,11 +422,14 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <div className="d-flex">
-                    <Link to={"#"} className="btn btn-secondary btn-rounded text-white btn-sm px-4">
+                    <Link
+                      to={'#'}
+                      className="btn btn-secondary btn-rounded text-white btn-sm px-4"
+                    >
                       Publish
                     </Link>
                     <Link
-                      to={"#"}
+                      to={'#'}
                       className="btn btn-outline-danger btn-rounded btn-sm ms-2 px-4"
                     >
                       Delete
@@ -428,21 +439,19 @@ const AllReviewTable = () => {
               </tr>
               <tr role="row" className="even">
                 <td className="sorting_1">
-                 
-                    <div className="form-check checkbox-secondary ">
-                      <input
-                        type="checkbox"
-                        onClick={() => chackboxFun()}
-                        className="form-check-input"
-                        id="customCheckBox24"
-                        required=""
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="customCheckBox24"
-                      ></label>
-                    </div>
-                  
+                  <div className="form-check checkbox-secondary ">
+                    <input
+                      type="checkbox"
+                      onClick={() => chackboxFun()}
+                      className="form-check-input"
+                      id="customCheckBox24"
+                      required=""
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="customCheckBox24"
+                    ></label>
+                  </div>
                 </td>
                 <td>
                   <div className="media align-items-center">
@@ -454,7 +463,7 @@ const AllReviewTable = () => {
                     />
                     <div className="media-body">
                       <h4 className="font-w600 mb-1 wspace-no">
-                        <Link to={"#"} className="text-black">
+                        <Link to={'#'} className="text-black">
                           Louis Jovanny
                         </Link>
                       </h4>
@@ -467,10 +476,10 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <span className="star-review d-inline-block mb-2 fs-16 wspace-no">
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
                     <i className="fa fa-star fs-16 text-gray"></i>
                   </span>
                   <p className="mb-0 d-none d-xl-inline-block">
@@ -481,11 +490,14 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <div className="d-flex">
-                    <Link to={"#"} className="btn btn-secondary btn-rounded text-white btn-sm px-4">
+                    <Link
+                      to={'#'}
+                      className="btn btn-secondary btn-rounded text-white btn-sm px-4"
+                    >
                       Publish
                     </Link>
                     <Link
-                      to={"#"}
+                      to={'#'}
                       className="btn btn-outline-danger btn-rounded btn-sm ms-2 px-4"
                     >
                       Delete
@@ -495,21 +507,19 @@ const AllReviewTable = () => {
               </tr>
               <tr role="row" className="odd">
                 <td className="sorting_1">
-                  
-                    <div className="form-check checkbox-secondary ">
-                      <input
-                        type="checkbox"
-                        onClick={() => chackboxFun()}
-                        className="form-check-input"
-                        id="customCheckBox25"
-                        required=""
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="customCheckBox25"
-                      ></label>
-                    </div>
-                  
+                  <div className="form-check checkbox-secondary ">
+                    <input
+                      type="checkbox"
+                      onClick={() => chackboxFun()}
+                      className="form-check-input"
+                      id="customCheckBox25"
+                      required=""
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="customCheckBox25"
+                    ></label>
+                  </div>
                 </td>
                 <td>
                   <div className="media align-items-center">
@@ -534,10 +544,10 @@ const AllReviewTable = () => {
                 </td>
                 <td>
                   <span className="star-review d-inline-block mb-2 fs-16 wspace-no wspace-no">
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
-                    <i className="fa fa-star fs-16 text-orange"></i>{" "}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
+                    <i className="fa fa-star fs-16 text-orange"></i>{' '}
                     <i className="fa fa-star fs-16 text-gray"></i>
                   </span>
                   <p className="mb-0 d-none d-xl-inline-block">
@@ -547,14 +557,20 @@ const AllReviewTable = () => {
                   </p>
                 </td>
                 <td>
-					<div className="d-flex">
-						<Link to={"#"} className="btn btn-secondary btn-rounded text-white btn-sm px-4">
-							Publish
-						</Link>
-						<Link to={"#"} className="btn btn-outline-danger btn-rounded btn-sm ms-2 px-4">
-							Delete
-						</Link>
-					</div>
+                  <div className="d-flex">
+                    <Link
+                      to={'#'}
+                      className="btn btn-secondary btn-rounded text-white btn-sm px-4"
+                    >
+                      Publish
+                    </Link>
+                    <Link
+                      to={'#'}
+                      className="btn btn-outline-danger btn-rounded btn-sm ms-2 px-4"
+                    >
+                      Delete
+                    </Link>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -562,10 +578,10 @@ const AllReviewTable = () => {
 
           <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
             <div className="dataTables_info">
-              Showing {activePag.current * sort + 1} to{" "}
+              Showing {activePag.current * sort + 1} to{' '}
               {data.length > (activePag.current + 1) * sort
                 ? (activePag.current + 1) * sort
-                : data.length}{" "}
+                : data.length}{' '}
               of {data.length} entries
             </div>
             <div
@@ -587,7 +603,7 @@ const AllReviewTable = () => {
                     key={i}
                     to="/reviews"
                     className={`paginate_button  ${
-                      activePag.current === i ? "current" : ""
+                      activePag.current === i ? 'current' : ''
                     } `}
                     onClick={() => onClick(i)}
                   >
