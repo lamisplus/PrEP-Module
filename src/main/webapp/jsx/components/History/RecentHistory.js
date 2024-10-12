@@ -16,7 +16,6 @@ import { toast } from 'react-toastify';
 import { Button } from 'semantic-ui-react';
 
 const RecentHistory = props => {
-  //console.log(props.patientObj)
   const [recentActivities, setRecentActivities] = useState([]);
   const [summary, setSummary] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -51,7 +50,6 @@ const RecentHistory = props => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
-        console.log('sumry: ', response.data[0]);
         setSummary(response.data[0]);
       })
       .catch(error => {
@@ -320,105 +318,100 @@ const RecentHistory = props => {
                         >
                           <div className="accordion-body-text">
                             <ul className="timeline">
-                              {data.activities &&
-                                data.activities.map((activity, index) => (
-                                  <>
-                                    <li key={activity + index}>
-                                      <div className="timeline-panel">
-                                        <div
-                                          className={
-                                            i % 2 == 0
-                                              ? 'media me-2 media-info'
-                                              : 'media me-2 media-success'
-                                          }
-                                        >
-                                          {ActivityName(data.name)}
-                                        </div>
-                                        <div className="media-body">
-                                          <h5 className="mb-1">
-                                            {activity.name}
-                                          </h5>
-                                          <small className="d-block">
-                                            {activity.date}
-                                          </small>
-                                        </div>
-                                        <Dropdown className="dropdown">
-                                          <Dropdown.Toggle
-                                            variant=" light"
-                                            className="i-false p-0 btn-info sharp"
-                                          >
-                                            <svg
-                                              width="18px"
-                                              height="18px"
-                                              viewBox="0 0 24 24"
-                                              version="1.1"
-                                            >
-                                              <g
-                                                stroke="none"
-                                                strokeWidth="1"
-                                                fill="none"
-                                                fillRule="evenodd"
-                                              >
-                                                <rect
-                                                  x="0"
-                                                  y="0"
-                                                  width="24"
-                                                  height="24"
-                                                />
-                                                <circle
-                                                  fill="#000000"
-                                                  cx="5"
-                                                  cy="12"
-                                                  r="2"
-                                                />
-                                                <circle
-                                                  fill="#000000"
-                                                  cx="12"
-                                                  cy="12"
-                                                  r="2"
-                                                />
-                                                <circle
-                                                  fill="#000000"
-                                                  cx="19"
-                                                  cy="12"
-                                                  r="2"
-                                                />
-                                              </g>
-                                            </svg>
-                                          </Dropdown.Toggle>
-                                          <Dropdown.Menu className="dropdown-menu">
-                                            <Dropdown.Item
-                                              className="dropdown-item"
-                                              onClick={() =>
-                                                LoadViewPage(activity, 'view')
-                                              }
-                                            >
-                                              View
-                                            </Dropdown.Item>
-
-                                            <Dropdown.Item
-                                              className="dropdown-item"
-                                              onClick={() =>
-                                                LoadViewPage(activity, 'update')
-                                              }
-                                            >
-                                              Update
-                                            </Dropdown.Item>
-
-                                            <Dropdown.Item
-                                              className="dropdown-item"
-                                              to="/widget-basic"
-                                              onClick={() =>
-                                                LoadModal(activity)
-                                              }
-                                            >
-                                              Delete
-                                            </Dropdown.Item>
-                                          </Dropdown.Menu>
-                                        </Dropdown>
+                              {data?.activities &&
+                                data?.activities.map((activity, index) => (
+                                  <li key={activity.id}>
+                                    <div className="timeline-panel">
+                                      <div
+                                        key={0}
+                                        className={
+                                          index % 2 === 0
+                                            ? 'media me-2 media-info'
+                                            : 'media me-2 media-success'
+                                        }
+                                      >
+                                        {ActivityName(data.name)}
                                       </div>
-                                    </li>
-                                  </>
+                                      <div key={1} className="media-body">
+                                        <h5 className="mb-1">
+                                          {activity.name}
+                                        </h5>
+                                        <small className="d-block">
+                                          {activity.date}
+                                        </small>
+                                      </div>
+                                      <Dropdown className="dropdown">
+                                        <Dropdown.Toggle
+                                          variant="light"
+                                          className="i-false p-0 btn-info sharp"
+                                        >
+                                          <svg
+                                            width="18px"
+                                            height="18px"
+                                            viewBox="0 0 24 24"
+                                            version="1.1"
+                                          >
+                                            <g
+                                              stroke="none"
+                                              strokeWidth="1"
+                                              fill="none"
+                                              fillRule="evenodd"
+                                            >
+                                              <rect
+                                                x="0"
+                                                y="0"
+                                                width="24"
+                                                height="24"
+                                              />
+                                              <circle
+                                                fill="#000000"
+                                                cx="5"
+                                                cy="12"
+                                                r="2"
+                                              />
+                                              <circle
+                                                fill="#000000"
+                                                cx="12"
+                                                cy="12"
+                                                r="2"
+                                              />
+                                              <circle
+                                                fill="#000000"
+                                                cx="19"
+                                                cy="12"
+                                                r="2"
+                                              />
+                                            </g>
+                                          </svg>
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu className="dropdown-menu">
+                                          <Dropdown.Item
+                                            className="dropdown-item"
+                                            onClick={() =>
+                                              LoadViewPage(activity, 'view')
+                                            }
+                                          >
+                                            View
+                                          </Dropdown.Item>
+                                          <Dropdown.Item
+                                            className="dropdown-item"
+                                            onClick={() =>
+                                              LoadViewPage(activity, 'update')
+                                            }
+                                          >
+                                            Update
+                                          </Dropdown.Item>
+                                          <Dropdown.Item
+                                            className="dropdown-item"
+                                            to="/widget-basic"
+                                            onClick={() => LoadModal(activity)}
+                                          >
+                                            Delete
+                                          </Dropdown.Item>
+                                        </Dropdown.Menu>
+                                      </Dropdown>
+                                    </div>
+                                  </li>
                                 ))}
                             </ul>
                           </div>
@@ -499,7 +492,7 @@ const RecentHistory = props => {
                             >
                               <b>Current Regimen Given</b>
                             </h4>
-                            <h4 class="text-info ">
+                            <h4 className="text-info ">
                               {summary ? summary?.regimen : 'NIL'}
                             </h4>
                           </div>

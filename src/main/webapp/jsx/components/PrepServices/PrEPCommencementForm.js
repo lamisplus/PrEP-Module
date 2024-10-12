@@ -99,7 +99,7 @@ const PrEPCommencementForm = props => {
     height: '',
     personId: patientObj.personId,
     prepClientId: props.prepId,
-    regimenId: null,
+    regimenId: '',
     urinalysisResult: '',
     prepEligibilityUuid: '',
     weight: '',
@@ -452,6 +452,41 @@ const PrEPCommencementForm = props => {
     setErrors({ ...errors, [e.target.name]: '' });
   };
 
+  const [latestFromEligibility, setLatestFromEligibility] = useState(null);
+
+  function checkEligibleForCabLaFromLatestEligibility(
+    assessmentForPrepEligibility
+  ) {
+    const keysToCheck = [
+      'noHistoryOfDrugHypersensitivityCabLa',
+      'noHistoryOfDrugToDrugInteractionCabLa',
+      'noHistoryOrSignsOfLiverAbnormalitiesCabLa',
+    ];
+
+    for (let key of keysToCheck) {
+      if (assessmentForPrepEligibility?.[key] === 'Yes') {
+        return true;
+      }
+    }
+    return false;
+  }
+  const getLatestFromEligibility = async () => {
+    axios
+      .get(`${baseUrl}prep-eligibility/person/${objValues?.personId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(async response => {
+        const latestEligibility = response?.data?.sort((a, b) =>
+          moment(a?.visitDate).isBefore(moment(b?.visitDate))
+        )[response.data.length - 1];
+        setLatestFromEligibility(latestEligibility);
+      })
+      .catch(error => {});
+  };
+
+  useEffect(() => {
+    getLatestFromEligibility();
+  }, []);
   return (
     <div>
       <Card className={classes.root}>
@@ -950,11 +985,24 @@ const PrEPCommencementForm = props => {
                     // disabled={disabledField}
                   >
                     <option value="">Select Prep Type</option>
-                    {prepType.map(value => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
+                    {checkEligibleForCabLaFromLatestEligibility(
+                      latestFromEligibility?.assessmentForPrepEligibility
+                    )
+                      ? prepType.map(value => (
+                          <option key={value.id} value={value.code}>
+                            {value.display}
+                          </option>
+                        ))
+                      : prepType
+                          .filter(
+                            (each, index) =>
+                              each.code !== 'PREP_TYPE_INJECTIBLES'
+                          )
+                          .map(value => (
+                            <option key={value.id} value={value.code}>
+                              {value.display}
+                            </option>
+                          ))}
                   </Input>
                   {errors.prepType !== '' ? (
                     <span className={classes.error}>{errors.prepType}</span>
@@ -981,11 +1029,23 @@ const PrEPCommencementForm = props => {
                     }}
                   >
                     <option value=""> Select</option>
-                    {prepRegimen.map(value => (
-                      <option key={value.id} value={value.id}>
-                        {value.regimen}
-                      </option>
-                    ))}
+                    {checkEligibleForCabLaFromLatestEligibility(
+                      latestFromEligibility?.assessmentForPrepEligibility
+                    )
+                      ? prepRegimen.map(value => (
+                          <option key={value.id} value={value.id}>
+                            {value.regimen}
+                          </option>
+                        ))
+                      : prepRegimen
+                          .filter(
+                            (each, index) => each.code !== 'CAB-LA(600mg/3mL)'
+                          )
+                          .map(value => (
+                            <option key={value.id} value={value.id}>
+                              {value.regimen}
+                            </option>
+                          ))}
                   </Input>
                   {errors.regimenId !== '' ? (
                     <span className={classes.error}>{errors.regimenId}</span>

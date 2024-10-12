@@ -4,7 +4,6 @@ import { Menu, Popup } from 'semantic-ui-react';
 function SubMenu(props) {
   const patientObj = props.patientObj;
   useEffect(() => {
-    console.log('count: ', patientObj.commencementCount);
     //Observation();
   }, [props.patientObj]);
 
