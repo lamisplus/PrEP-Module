@@ -150,10 +150,16 @@ public class PrepService {
         PrepClinic prepClinic = this.clinicRequestDtoToClinic(clinicRequestDto, person.getUuid());
 
         //Check if client clinic on same date exist and throw an error
-        prepClinicRepository.findByEncounterDateAndPersonUuidAndIsCommencement(clinicRequestDto.getEncounterDate(),
-                        person.getUuid(), false).ifPresent(prepEnroll -> {
-                    throw new RecordExistException(PrepClinic.class, "Encounter date",
-                            String.valueOf(clinicRequestDto.getEncounterDate()));
+//        prepClinicRepository.findByEncounterDateAndPersonUuidAndIsCommencement(clinicRequestDto.getEncounterDate(),
+//                        person.getUuid(), false).ifPresent(prepEnroll -> {
+//                    throw new RecordExistException(PrepClinic.class, "Encounter date",
+//                            String.valueOf(clinicRequestDto.getEncounterDate()));
+//                });
+        prepClinicRepository.findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(clinicRequestDto.getEncounterDate(), person.getUuid(), false,0)
+                .ifPresent(prepClinicRec -> {
+                    if (prepClinicRec.getArchived() == 0) {
+                        throw new RecordExistException(PrepClinic.class, "Encounter date", String.valueOf(clinicRequestDto.getEncounterDate()));
+                    }
                 });
 
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
