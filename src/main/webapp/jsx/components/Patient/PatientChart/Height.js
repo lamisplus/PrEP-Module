@@ -51,7 +51,6 @@ export default class Example extends PureComponent {
     return (
       <ResponsiveContainer width="100%" aspect={4.0 / 2.0}>
         <AreaChart data={data}>
-          {/* <Tooltip /> */}
           <Area
             type="monotone"
             dataKey="uv"

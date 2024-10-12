@@ -73,7 +73,6 @@ class LifeTimeEarning extends Component {
           data={data}
           height={this.props.height ? this.props.height : 100}
           options={options}
-          // width="100%"
         />
       </>
     );

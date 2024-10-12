@@ -32,7 +32,6 @@ import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
 import moment from "moment";
 
-//Dtate Picker package
 Moment.locale("en");
 momentLocalizer();
 
@@ -67,7 +66,6 @@ const Patients = (props) => {
   useEffect(() => {
     patients();
   }, []);
-  ///GET LIST OF Patients
   async function patients() {
     setLoading(true);
     axios
@@ -97,7 +95,6 @@ const Patients = (props) => {
         icons={tableIcons}
         title="Find Patient"
         columns={[
-          // { title: " ID", field: "Id" },
           {
             title: "Patient Name",
             field: "name",
@@ -112,11 +109,9 @@ const Patients = (props) => {
           { title: "Sex", field: "gender", filtering: false },
           { title: "Age", field: "age", filtering: false },
 
-          //{ title: "ART Number", field: "v_status", filtering: false },
           { title: "PrEP Status", field: "status", filtering: false },
           { title: "Actions", field: "actions", filtering: false },
         ]}
-        //isLoading={loading}
         data={(query) =>
           new Promise((resolve, reject) =>
             axios
@@ -131,7 +126,6 @@ const Patients = (props) => {
                     name: row.firstName + " " + row.surname,
                     hospital_number: row.hospitalNumber,
                     clientCode: row.uniqueId,
-                    //phone_number:  row.phone,
                     gender: row && row.gender ? row.gender : "",
                     age: row.age,
 

@@ -3,7 +3,6 @@ import {Link} from 'react-router-dom';
 import PerfectScrollbar from "react-perfect-scrollbar";
 import {Dropdown} from 'react-bootstrap';
 
-//Image
 import pic1 from './../../../../images/contacts/pic1.jpg';
 import pic2 from './../../../../images/contacts/pic2.jpg';
 import pic3 from './../../../../images/contacts/pic3.jpg';
@@ -17,7 +16,6 @@ const SalesBlog = [
 ];
 
 const Latestsaleblog = () =>{
-	// This is load more function 
 	const [data, setData] = useState(SalesBlog);
 	const [refresh, setRefresh] = useState(false);
 	const onClick = () => {

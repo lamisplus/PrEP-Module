@@ -63,7 +63,6 @@ const ClinicVisitPage = (props) => {
         <Col xl={12}>
           <Card style={divStyle}>
             <Card.Body>
-              {/* <!-- Nav tabs --> */}
               <div className="custom-tab-1">
                 <Tabs
                   id="controlled-tab-example"

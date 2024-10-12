@@ -21,7 +21,6 @@ class WidgetChart1 extends React.Component {
 					show: false
 				},
 				sparkline: {
-					//enabled: true
 				},
 				offsetX:0,
 			},
