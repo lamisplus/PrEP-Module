@@ -120,17 +120,6 @@ const ClinicVisit = props => {
   let testsOptions = [];
   const [hivTestValue, setHivTestValue] = useState('');
   const [hivTestResultDate, setHivTestResultDate] = useState('');
-
-  // useEffect(() => {
-  //   handleInputChange({
-  //     target: { name: "hivTestResult", value: hivTestValue },
-  //   });
-  //   handleInputChange({
-  //     target: { name: "hivTestResultDate", value: hivTestResultDate },
-  //   });
-  // }, [hivTestValue]);
-
-  //Vital signs clinical decision support
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: '',
     diastolic: '',
@@ -285,10 +274,6 @@ const ClinicVisit = props => {
       !['update', undefined].includes(props.activeContent.actionType)
     );
     GetLatestFromEligibility();
-    console.log(
-      'checkEligibleForCabLaFromLatestEligibility: ',
-      checkEligibleForCabLaFromLatestEligibility()
-    );
   }, [props.activeContent]);
 
   const PREGANACY_STATUS = () => {
@@ -357,15 +342,6 @@ const ClinicVisit = props => {
         .then(response => {
           if (response?.data || !response?.data) {
             let isEligibleForCABLA = response?.data;
-            console.log(
-              'isEligibleForCABLA before latestEligibility : ',
-              isEligibleForCABLA
-            );
-
-            if (!checkEligibleForCabLaFromLatestEligibility()) {
-              isEligibleForCABLA = false;
-            }
-            console.log('isEligibleForCABLA after: ', isEligibleForCABLA);
             if (
               isEligibleForCABLA ||
               objValues?.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH'
@@ -988,9 +964,12 @@ const ClinicVisit = props => {
   //Validations of the forms
   const validate = () => {
     temp.lastHts = hivTestValue ? '' : 'Atleast, 1 HIV test result is required';
-    temp.otherTestsDone = otherTest.length
+    // temp.otherTestsDone = otherTest.length
+    //   ? ''
+    //   : 'You must submit atleast, a test result.';
+    temp.monthsOfRefill = objValues.monthsOfRefill
       ? ''
-      : 'You must submit atleast, a test result.';
+      : 'This field is required';
     hasPrepEligibility(temp.encounterDate, props.encounters);
     temp.encounterDate = objValues.encounterDate
       ? ''
@@ -1002,9 +981,6 @@ const ClinicVisit = props => {
     temp.nextAppointment = objValues.nextAppointment
       ? ''
       : 'This field is required';
-    // temp.adherenceLevel = (objValues.adherenceLevel || countPrepEligibility(recentActivities) <= 2)
-    //   ? ""
-    //   : "This field is required";
 
     temp.height = objValues.height ? '' : 'This field is required';
     temp.weight = objValues.weight ? '' : 'This field is required';
@@ -1295,7 +1271,7 @@ const ClinicVisit = props => {
   }, [props.activeContent.actionType]);
 
   return (
-    <div>
+    <div className={classes.root}>
       <div className="row">
         <div className="col-md-6">
           <h2>Clinic Follow-up Visit</h2>
@@ -1321,6 +1297,7 @@ const ClinicVisit = props => {
                     Date of Visit <span style={{ color: 'red' }}> *</span>
                   </FormLabelName>
                   <Input
+                    className="form-control"
                     type="date"
                     name="encounterDate"
                     id="encounterDate"
@@ -2926,19 +2903,7 @@ const ClinicVisit = props => {
           </Segment>
         </Grid.Column>
       </Grid>
-      {/* <AddVitals toggle={AddVitalToggle} showModal={addVitalModal} /> */}
     </div>
   );
 };
-/**
- * export const url =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:8383/api/v1/"
-    : "/api/v1/";
-export const token =
-  process.env.NODE_ENV === "development"
-    ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJndWVzdEBsYW1pc3BsdXMub3JnIiwiYXV0aCI6IlN1cGVyIEFkbWluIiwibmFtZSI6Ikd1ZXN0IEd1ZXN0IiwiZXhwIjoxNzI3ODM2NTkyfQ.M2dIDnvPm-FTXYDh3-kzohZlfWawLMQvIgdfJLbByhAxqaeaa4T8mdiMa27YLcTd7Tb2jwOs36_13jeKfmq9CA"
-    : new URLSearchParams(window.location.search).get("jwt");
-
- */
 export default ClinicVisit;

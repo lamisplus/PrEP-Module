@@ -126,9 +126,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "                el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration, prepc.commencementCount, el.eligibility_count, \n" +
             "                pet.created_by, pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, \n" +
             "                p.other_name, p.hospital_number, p.date_of_birth, prepc.status, he.person_uuid, \n" +
-            "                he.date_confirmed_hiv, pet.id ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST\n" +
-            "\t\t\t\t\n" +
-            "\n", nativeQuery = true)
+            "                he.date_confirmed_hiv, pet.id ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST\n", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
 
 

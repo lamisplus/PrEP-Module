@@ -28,7 +28,7 @@ const RecentHistory = props => {
   useEffect(() => {
     Summary();
     RecentActivities();
-  }, [props.patientObj.personId]);
+  }, [props?.patientObj?.personId]);
 
   const RecentActivities = () => {
     axios

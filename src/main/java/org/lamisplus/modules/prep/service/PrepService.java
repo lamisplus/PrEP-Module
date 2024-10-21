@@ -51,18 +51,17 @@ public class PrepService {
         Person person;
         person = this.getPerson(prepEligibilityRequestDto.getPersonId());
         PrepEligibility prepEligibility = this.prepEligibilityRequestDtoToPrepEligibility(prepEligibilityRequestDto, person.getUuid());
-
         prepEligibility.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());
 
         //Check if client eligibility on same date exist and throw an error
         prepEligibilityRepository
-                .findByVisitDateAndPersonUuid(prepEligibilityRequestDto.getVisitDate(),
-                        person.getUuid()).ifPresent(prepEligibility1 -> {
-                    throw new RecordExistException(PrepEligibility.class, "Encounter date",
-                            String.valueOf(prepEligibility1.getVisitDate()));
+                .findByVisitDateAndPersonUuidAndArchived(prepEligibilityRequestDto.getVisitDate(), person.getUuid(),0)
+                .ifPresent(prepEligibilityRec -> {
+                    if (prepEligibilityRec.getArchived() == 0) {
+                        throw new RecordExistException(PrepEligibility.class, "Visit date", String.valueOf(prepEligibilityRequestDto.getVisitDate()));
+                    }
                 });
-
 
         prepEligibility = prepEligibilityRepository.save(prepEligibility);
         prepEligibility.setPerson(person);
@@ -148,13 +147,6 @@ public class PrepService {
         }
 
         PrepClinic prepClinic = this.clinicRequestDtoToClinic(clinicRequestDto, person.getUuid());
-
-        //Check if client clinic on same date exist and throw an error
-//        prepClinicRepository.findByEncounterDateAndPersonUuidAndIsCommencement(clinicRequestDto.getEncounterDate(),
-//                        person.getUuid(), false).ifPresent(prepEnroll -> {
-//                    throw new RecordExistException(PrepClinic.class, "Encounter date",
-//                            String.valueOf(clinicRequestDto.getEncounterDate()));
-//                });
         prepClinicRepository.findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(clinicRequestDto.getEncounterDate(), person.getUuid(), false,0)
                 .ifPresent(prepClinicRec -> {
                     if (prepClinicRec.getArchived() == 0) {

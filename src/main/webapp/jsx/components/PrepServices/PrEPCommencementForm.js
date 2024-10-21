@@ -16,8 +16,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { url as baseUrl, token } from '../../../api';
 import 'react-widgets/dist/css/react-widgets.css';
-// import Moment from "moment";
-// import momentLocalizer from "react-widgets-moment";
 import moment from 'moment';
 import { Spinner } from 'reactstrap';
 
@@ -985,24 +983,11 @@ const PrEPCommencementForm = props => {
                     // disabled={disabledField}
                   >
                     <option value="">Select Prep Type</option>
-                    {checkEligibleForCabLaFromLatestEligibility(
-                      latestFromEligibility?.assessmentForPrepEligibility
-                    )
-                      ? prepType.map(value => (
-                          <option key={value.id} value={value.code}>
-                            {value.display}
-                          </option>
-                        ))
-                      : prepType
-                          .filter(
-                            (each, index) =>
-                              each.code !== 'PREP_TYPE_INJECTIBLES'
-                          )
-                          .map(value => (
-                            <option key={value.id} value={value.code}>
-                              {value.display}
-                            </option>
-                          ))}
+                    {prepType.map(value => (
+                      <option key={value.id} value={value.code}>
+                        {value.display}
+                      </option>
+                    ))}
                   </Input>
                   {errors.prepType !== '' ? (
                     <span className={classes.error}>{errors.prepType}</span>
@@ -1029,23 +1014,11 @@ const PrEPCommencementForm = props => {
                     }}
                   >
                     <option value=""> Select</option>
-                    {checkEligibleForCabLaFromLatestEligibility(
-                      latestFromEligibility?.assessmentForPrepEligibility
-                    )
-                      ? prepRegimen.map(value => (
-                          <option key={value.id} value={value.id}>
-                            {value.regimen}
-                          </option>
-                        ))
-                      : prepRegimen
-                          .filter(
-                            (each, index) => each.code !== 'CAB-LA(600mg/3mL)'
-                          )
-                          .map(value => (
-                            <option key={value.id} value={value.id}>
-                              {value.regimen}
-                            </option>
-                          ))}
+                    {prepRegimen.map(value => (
+                      <option key={value.id} value={value.id}>
+                        {value.regimen}
+                      </option>
+                    ))}
                   </Input>
                   {errors.regimenId !== '' ? (
                     <span className={classes.error}>{errors.regimenId}</span>

@@ -30,7 +30,6 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
     Optional<PrepClinic> findByEncounterDateAndPersonUuid(LocalDate encounterDate, String uuid);
     Optional<PrepClinic> findByEncounterDateAndPersonUuidAndIsCommencement(LocalDate encounterDate, String uuid, Boolean bool);
     Optional<PrepClinic> findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(LocalDate encounterDate, String uuid, Boolean bool, Integer archived);
-
     //For central sync
     List<PrepClinic> findAllByFacilityId(Long facilityId);
     @Query(value = "SELECT * FROM prep_clinic WHERE date_modified > ?1 AND facility_id=?2 ",
