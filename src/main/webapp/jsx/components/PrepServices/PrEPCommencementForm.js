@@ -18,6 +18,7 @@ import { url as baseUrl, token } from '../../../api';
 import 'react-widgets/dist/css/react-widgets.css';
 import moment from 'moment';
 import { Spinner } from 'reactstrap';
+import { LiverFunctionTest } from './PrEPEligibiltyScreeningForm';
 
 const useStyles = makeStyles(theme => ({
   card: {
@@ -112,7 +113,7 @@ const PrEPCommencementForm = props => {
     prepDistributionSetting: '',
     prepType: '',
     monthsOfRefill: '',
-    liverFunctionTestResults: '',
+    liverFunctionTestResults: [],
     dateLiverFunctionTestResults: '',
     historyOfDrugToDrugInteraction: '',
   });
@@ -423,11 +424,7 @@ const PrEPCommencementForm = props => {
     }
   };
 
-  // console.log(props.patientObj.gender)
-
   const handlePrepTypeChange = e => {
-    // check the prep type. if it is ed prep or others, fetch all prep types instead
-
     setObjValues({ ...objValues, regimenId: '', prepType: e.target.value });
     if (
       e.target.value === 'PREP_TYPE_OTHERS' ||
@@ -469,22 +466,44 @@ const PrEPCommencementForm = props => {
     return false;
   }
   const getLatestFromEligibility = async () => {
-    axios
-      .get(`${baseUrl}prep-eligibility/person/${objValues?.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(async response => {
-        const latestEligibility = response?.data?.sort((a, b) =>
-          moment(a?.visitDate).isBefore(moment(b?.visitDate))
-        )[response.data.length - 1];
-        setLatestFromEligibility(latestEligibility);
-      })
-      .catch(error => {});
+    try {
+      const response = await axios.get(
+        `${baseUrl}prep-eligibility/person/${objValues?.personId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const latestEligibility = response?.data?.sort((a, b) =>
+        moment(a?.visitDate).isBefore(moment(b?.visitDate))
+      )[response.data.length - 1];
+      setLatestFromEligibility(latestEligibility);
+    } catch (error) {
+      console.error('Error fetching latest eligibility:', error);
+    }
+  };
+  const handleLftInputChange = event => {
+    const { name, value } = event.target;
+    setObjValues(prevValues => ({
+      ...prevValues,
+      [name]: value,
+    }));
   };
 
   useEffect(() => {
     getLatestFromEligibility();
   }, []);
+  useEffect(() => {
+    if (latestFromEligibility) {
+      setObjValues(prevValues => ({
+        ...prevValues,
+        liverFunctionTestResults:
+          latestFromEligibility.liverFunctionTestResults || [],
+        dateLiverFunctionTestResults:
+          latestFromEligibility.dateLiverFunctionTestResults || '',
+      }));
+    }
+  }, [latestFromEligibility]);
+
   return (
     <div>
       <Card className={classes.root}>
@@ -833,76 +852,65 @@ const PrEPCommencementForm = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label for="liverFunctionTestResults">
-                    Liver Function Tests Result
-                    <span style={{ color: 'red' }}> *</span>
-                  </Label>
-                  <Input
-                    className="form-control"
-                    type="select"
-                    name="liverFunctionTestResults"
-                    id="liverFunctionTestResults"
-                    value={objValues.liverFunctionTestResults}
-                    onChange={handleInputChange}
-                    style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value=""> Select Result</option>
-                    {liverFunctionTestResult.map(value => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                  {errors.liverFunctionTestResults !== '' ? (
-                    <span className={classes.error}>
-                      {errors.liverFunctionTestResults}
-                    </span>
-                  ) : (
-                    ''
-                  )}
-                </FormGroup>
-              </div>
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label for="dateLiverFunctionTestResults">
-                    Date of Liver Function Tests Result{' '}
-                    <span style={{ color: 'red' }}> *</span>
-                  </Label>
-                  <Input
-                    className="form-control"
-                    type="date"
-                    onKeyDown={e => e.preventDefault()}
-                    name="dateLiverFunctionTestResults"
-                    id="dateLiverFunctionTestResults"
-                    min={
-                      patientDto && patientDto.dateEnrolled
-                        ? patientDto.dateEnrolled
-                        : ''
-                    }
-                    max={moment(new Date()).format('YYYY-MM-DD')}
-                    value={objValues.dateLiverFunctionTestResults}
-                    onChange={handleInputChange}
-                    style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
-                    }}
-                    disabled={disabledField}
-                  />
-                  {errors.dateLiverFunctionTestResults !== '' ? (
-                    <span className={classes.error}>
-                      {errors.dateLiverFunctionTestResults}
-                    </span>
-                  ) : (
-                    ''
-                  )}
-                </FormGroup>
-              </div>
+
+              <>
+                <div className="form-group mb-3 col-md-6">
+                  <FormGroup>
+                    <Label for="liverFunctionTestResults">
+                      Liver Function Tests Result
+                      <span style={{ color: 'red' }}> *</span>
+                    </Label>
+                    <LiverFunctionTest
+                      objValues={objValues}
+                      handleInputChange={handleLftInputChange}
+                      liverFunctionTestResult={liverFunctionTestResult}
+                      disabledField={disabledField}
+                    />
+                    {errors.liverFunctionTestResults !== '' ? (
+                      <span className={classes.error}>
+                        {errors.liverFunctionTestResults}
+                      </span>
+                    ) : (
+                      ''
+                    )}
+                  </FormGroup>
+                </div>
+                <div className="form-group mb-3 col-md-8">
+                  <FormGroup>
+                    <Label for="dateLiverFunctionTestResults">
+                      Date of Liver Function Tests Result{' '}
+                      <span style={{ color: 'red' }}> *</span>
+                    </Label>
+                    <Input
+                      className="form-control"
+                      type="date"
+                      onKeyDown={e => e.preventDefault()}
+                      name="dateLiverFunctionTestResults"
+                      id="dateLiverFunctionTestResults"
+                      // min={
+                      //   patientDto && patientDto.dateEnrolled
+                      //     ? patientDto.dateEnrolled
+                      //     : ''
+                      // }
+                      max={moment(new Date()).format('YYYY-MM-DD')}
+                      value={objValues.dateLiverFunctionTestResults}
+                      onChange={handleInputChange}
+                      style={{
+                        border: '1px solid #014D88',
+                        borderRadius: '0.25rem',
+                      }}
+                      disabled={disabledField}
+                    />
+                    {errors.dateLiverFunctionTestResults !== '' ? (
+                      <span className={classes.error}>
+                        {errors.dateLiverFunctionTestResults}
+                      </span>
+                    ) : (
+                      ''
+                    )}
+                  </FormGroup>
+                </div>
+              </>
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label for="">

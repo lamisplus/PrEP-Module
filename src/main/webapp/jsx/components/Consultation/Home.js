@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { Grid, Segment, Label, List, Card } from 'semantic-ui-react';
 // Page titie
 import {
@@ -21,6 +21,9 @@ import Divider from '@mui/material/Divider';
 import { TiTrash } from 'react-icons/ti';
 
 import { formValues } from 'redux-form';
+
+import { CSSTransition } from 'react-transition-group';
+import { LiverFunctionTest } from '../PrepServices/PrEPEligibiltyScreeningForm';
 
 const useStyles = makeStyles(theme => ({
   card: {
@@ -143,6 +146,7 @@ const ClinicVisit = props => {
     hepatitis: {},
     nextAppointment: '',
     notedSideEffects: '',
+    wasPrepAdministered: 'false',
     otherTestsDone: [],
     personId: props.patientObj.personId, //should person id be from patientObj?
     pregnant: '',
@@ -150,6 +154,8 @@ const ClinicVisit = props => {
     pulse: '',
     referred: '',
     regimenId: '',
+    otherRegimenId: '',
+    otherPrepgiven: 'false',
     respiratoryRate: '',
     riskReductionServices: '',
     healthCareWorkerSignature: '',
@@ -168,19 +174,27 @@ const ClinicVisit = props => {
     hivTestResult: '',
     hivTestResultDate: '',
     prepType: '',
+    otherPrepType: '',
     populationType: '',
     prepDistributionSetting: '',
     familyPlanning: '',
     dateOfFamilyPlanning: '',
     monthsOfRefill: '',
     visitType: '',
+    reasonForSwitch: '',
+    dateLiverFunctionTestResults: '',
+    liverFunctionTestResults: [],
   });
   const [urinalysisTest, setUrinalysisTest] = useState({
     urinalysisTest: 'Yes',
     testDate: '',
     result: '',
   });
-
+  const [otherPrepgiven, setOtherPrepgiven] = useState({
+    prepType: 'Yes',
+    prepRegimen: '',
+    datePrepgiven: '',
+  });
   const [syphilisTest, setSyphilisTest] = useState({
     syphilisTest: 'Yes',
     testDate: '',
@@ -217,6 +231,19 @@ const ClinicVisit = props => {
         urinalysisTest: objValues.urinalysis.urinalysisTest,
       });
     }
+
+    if (
+      objValues.otherPrepgiven.prepType &&
+      objValues.otherPrepgiven.prepRegimen &&
+      objValues.otherPrepgiven.datePrepgiven
+    ) {
+      setOtherPrepgiven({
+        ...otherPrepgiven,
+        prepType: objValues.otherPrepgiven.prepType,
+        prepRegimen: objValues.otherPrepgiven.prepRegimen,
+        datePrepgiven: objValues.otherPrepgiven.datePrepgiven,
+      });
+    }
     if (
       objValues.syphilis.testDate &&
       objValues.syphilis.result &&
@@ -243,7 +270,9 @@ const ClinicVisit = props => {
       });
     }
   }, [objValues]);
-
+  useEffect(() => {
+    console.log('objectVals: ', objValues.wasPrepAdministered);
+  });
   useEffect(() => {
     AdherenceLevel();
     SYNDROMIC_STI_SCREENING();
@@ -273,8 +302,11 @@ const ClinicVisit = props => {
     setDisabledField(
       !['update', undefined].includes(props.activeContent.actionType)
     );
-    GetLatestFromEligibility();
   }, [props.activeContent]);
+
+  useEffect(() => {
+    getLatestFromEligibility();
+  }, []);
 
   const PREGANACY_STATUS = () => {
     axios
@@ -527,7 +559,7 @@ const ClinicVisit = props => {
     }
   }, [latestFromEligibility]);
 
-  const GetLatestFromEligibility = async () => {
+  const getLatestFromEligibility = async () => {
     axios
       .get(`${baseUrl}prep-eligibility/person/${objValues?.personId}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -700,6 +732,8 @@ const ClinicVisit = props => {
     } else if (e.target.name === 'encounterDate') {
       PrepRegimen(e.target.value);
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
+    } else if (e.target.name === 'otherPrepgiven') {
+      setObjValues({ ...objValues, [e.target.name]: e.target.value });
     } else {
       // if the encounterDate is the same as the commencement date, the prep regimen id should be automatically populated from the commencement
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
@@ -719,17 +753,6 @@ const ClinicVisit = props => {
     temp[index][e.target.name] = e.target.value;
     console.log('otherTest: ', temp);
     setOtherTest(temp);
-    // if (
-    //   e.target.name === "name" &&
-    //   e.target.value !== "PREP_OTHER_TEST_OTHER_(SPECIFY)"
-    // ) {
-    //   temp[index].otherTestName = "";
-    //   temp[index][e.target.name] = e.target.value;
-    //   setOtherTest(temp);
-    // } else {
-    //   temp[index][e.target.name] = e.target.value;
-    //   setOtherTest(temp);
-    // }
   };
   const handleRemoveTest = localId => {
     setOtherTest(prev => prev.filter(test => test.localId !== localId));
@@ -749,7 +772,7 @@ const ClinicVisit = props => {
     }
     setSyphilisTest({ ...syphilisTest, [e.target.name]: e.target.value });
   };
-  //Handle CheckBox
+
   const handleCheckBoxSyphilisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     if (e.target.checked) {
@@ -782,7 +805,6 @@ const ClinicVisit = props => {
         },
       ]);
     } else {
-      // setOtherTest({...otherTest, ["otherTest"]: "No"})
       setOtherTest([]);
     }
   };
@@ -804,7 +826,6 @@ const ClinicVisit = props => {
         },
       ]);
     } else {
-      // setOtherTest({...otherTest, ["otherTest"]: "No"})
       setOtherTest([]);
     }
   };
@@ -816,7 +837,7 @@ const ClinicVisit = props => {
       setUrinalysisTest({ ...otherTest, ['urinalysisTest']: 'No' });
     }
   };
-  //to check the input value for clinical decision
+
   const handleInputValueCheckHeight = e => {
     if (
       e.target.name === 'height' &&
@@ -970,6 +991,9 @@ const ClinicVisit = props => {
     temp.monthsOfRefill = objValues.monthsOfRefill
       ? ''
       : 'This field is required';
+    temp.wasPrepAdministered = objValues.wasPrepAdministered
+      ? ''
+      : 'This field is required';
     hasPrepEligibility(temp.encounterDate, props.encounters);
     temp.encounterDate = objValues.encounterDate
       ? ''
@@ -998,6 +1022,13 @@ const ClinicVisit = props => {
       ? ''
       : 'This field is required';
     temp.visitType = objValues.visitType ? '' : 'This field is required';
+    if (objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH') {
+      temp.reasonForSwitch = objValues.reasonForSwitch
+        ? ''
+        : 'This field is required';
+    } else {
+      temp.reasonForSwitch = '';
+    }
 
     setErrors({
       ...temp,
@@ -1270,6 +1301,58 @@ const ClinicVisit = props => {
       prepRegimenUpdateView();
   }, [props.activeContent.actionType]);
 
+  const handleCheckBoxOtherPrepgiven = e => {
+    setErrors({ ...errors, [e.target.name]: '' });
+    if (e.target.checked) {
+      setOtherPrepgiven({ ...otherPrepgiven, ['prepType']: 'Yes' });
+    } else {
+      setOtherPrepgiven({ ...otherPrepgiven, ['prepType']: 'No' });
+    }
+  };
+  const handleLftInputChange = event => {
+    const { name, value } = event.target;
+    setObjValues(prevValues => ({
+      ...prevValues,
+      [name]: value,
+    }));
+  };
+
+  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
+
+  const getLiverFunctionTestResult = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(response => {
+        setLiverFunctionTestResult(response.data);
+      })
+      .catch(error => {
+        //console.log(error);
+      });
+  };
+  useEffect(() => {
+    getLiverFunctionTestResult();
+  }, []);
+
+  useEffect(() => {
+    if (latestFromEligibility) {
+      setObjValues(prevValues => ({
+        ...prevValues,
+        liverFunctionTestResults:
+          latestFromEligibility.liverFunctionTestResults || [
+            'LIVER_FUNCTION_TEST_RESULT_ALANINE_AMINOTRANSFERASE_(ALT)__DERANGED',
+          ],
+        dateLiverFunctionTestResults:
+          latestFromEligibility.dateLiverFunctionTestResults || '',
+      }));
+    }
+  }, [latestFromEligibility]);
+
+  useEffect(() => {
+    console.log('objValues: ', objValues);
+    console.log('errors: : ', errors);
+  });
   return (
     <div className={classes.root}>
       <div className="row">
@@ -1823,7 +1906,65 @@ const ClinicVisit = props => {
                   </div>
                 </FormGroup>
               </div>
-              <div className="mb-3 col-md-12"></div>
+              <>
+                <div className="form-group mb-3 col-md-6">
+                  <FormGroup>
+                    <FormLabelName for="liverFunctionTestResults">
+                      Liver Function Tests Result
+                      <span style={{ color: 'red' }}> *</span>
+                    </FormLabelName>
+                    <LiverFunctionTest
+                      objValues={objValues}
+                      handleInputChange={handleLftInputChange}
+                      liverFunctionTestResult={liverFunctionTestResult}
+                      disabledField={disabledField}
+                      isAutoPop={true}
+                    />
+                    {errors.liverFunctionTestResults !== '' ? (
+                      <span className={classes.error}>
+                        {errors.liverFunctionTestResults}
+                      </span>
+                    ) : (
+                      ''
+                    )}
+                  </FormGroup>
+                </div>
+                <div className="form-group mb-3 col-md-8">
+                  <FormGroup>
+                    <FormLabelName for="dateLiverFunctionTestResults">
+                      Date of Liver Function Tests Result{' '}
+                      <span style={{ color: 'red' }}> *</span>
+                    </FormLabelName>
+                    <Input
+                      className="form-control"
+                      type="date"
+                      onKeyDown={e => e.preventDefault()}
+                      name="dateLiverFunctionTestResults"
+                      id="dateLiverFunctionTestResults"
+                      // min={
+                      //   patientDto && patientDto.dateEnrolled
+                      //     ? patientDto.dateEnrolled
+                      //     : ''
+                      // }
+                      max={moment(new Date()).format('YYYY-MM-DD')}
+                      value={objValues.dateLiverFunctionTestResults}
+                      onChange={handleInputChange}
+                      style={{
+                        border: '1px solid #014D88',
+                        borderRadius: '0.25rem',
+                      }}
+                      disabled
+                    />
+                    {errors.dateLiverFunctionTestResults !== '' ? (
+                      <span className={classes.error}>
+                        {errors.dateLiverFunctionTestResults}
+                      </span>
+                    ) : (
+                      ''
+                    )}
+                  </FormGroup>
+                </div>
+              </>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>Noted Side Effects </FormLabelName>
@@ -2004,25 +2145,6 @@ const ClinicVisit = props => {
                   </FormGroup>
                 </div>
               )}
-              {/* <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName >PrEP Given</FormLabelName>
-                  <Input
-                    type="select"
-                    name="prepGiven"
-                    id="prepGiven"
-                    value={objValues.prepGiven}
-                    onChange={handleInputChange}
-                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
-                  >
-                    <option value="">Select </option>
-                    <option value="Yes">Yes </option>
-                    <option value="No">No </option>
-                  </Input>
-                 
-                </FormGroup>
-              </div> */}
 
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
@@ -2088,6 +2210,38 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
+              {objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH' && (
+                <div className="form-group mb-3 col-md-6">
+                  <FormGroup>
+                    <FormLabelName>Reason for switch</FormLabelName>
+                    <span style={{ color: 'red' }}> *</span>
+                    <Input
+                      type="select"
+                      name="reasonForSwitch"
+                      id="reasonForSwitch"
+                      value={objValues.reasonForSwitch}
+                      onChange={handleInputChange}
+                      style={{
+                        border: '1px solid #014D88',
+                        borderRadius: '0.25rem',
+                      }}
+                      disabled={disabledField}
+                    >
+                      <option value="">Select</option>
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                    </Input>
+                  </FormGroup>
+                  {errors.reasonForSwitch !== '' ? (
+                    <span className={classes.error}>
+                      {errors.reasonForSwitch}
+                    </span>
+                  ) : (
+                    ''
+                  )}
+                </div>
+              )}
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName for="">
@@ -2106,7 +2260,7 @@ const ClinicVisit = props => {
                     value={objValues.prepType}
                     disabled={disabledField}
                   >
-                    <option value=""> Select Prep Type</option>
+                    <option value=""> Select PrEP Type</option>
                     {prepType.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
@@ -2166,10 +2320,155 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
+              {objValues.prepType === 'PREP_TYPE_INJECTIBLES' && (
+                <>
+                  <div className="form-group mb-3 col-md-6">
+                    <>
+                      <FormGroup>
+                        <FormLabelName>Other PrEP given</FormLabelName>
+                        <span style={{ color: 'red' }}> *</span>
+                        <Input
+                          type="select"
+                          name="otherPrepgiven"
+                          id="otherPrepgiven"
+                          value={objValues.otherPrepgiven}
+                          onChange={handleInputChange}
+                          style={{
+                            border: '1px solid #014D88',
+                            borderRadius: '0.25rem',
+                          }}
+                          disabled={disabledField}
+                        >
+                          <option value="">Select</option>
+                          <option value="true">Yes</option>
+                          <option value="false">No</option>
+                        </Input>
+                      </FormGroup>
+                      {errors.otherPrepgiven !== '' ? (
+                        <span className={classes.error}>
+                          {errors.otherPrepgiven}
+                        </span>
+                      ) : (
+                        ''
+                      )}
+                    </>
+                  </div>
+                  {objValues.otherPrepgiven === 'true' && (
+                    <>
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName for="">
+                            Other PrEP Type
+                            <span style={{ color: 'red' }}> *</span>
+                          </FormLabelName>
+                          <Input
+                            type="select"
+                            name="otherPrepType"
+                            id="otherPrepType"
+                            style={{
+                              border: '1px solid #014D88',
+                              borderRadius: '0.25rem',
+                            }}
+                            onChange={handleInputChange}
+                            value={objValues.otherPrepType}
+                            disabled={disabledField}
+                          >
+                            <option value=""> Select Prep Type</option>
+                            {prepType
+                              .filter(
+                                (each, index) =>
+                                  each.code !== 'PREP_TYPE_INJECTIBLES'
+                              )
+                              .map(value => (
+                                <option key={value.id} value={value.code}>
+                                  {value.display}
+                                </option>
+                              ))}
+                          </Input>
+                          {errors.otherPrepType !== '' ? (
+                            <span className={classes.error}>
+                              {errors.otherPrepType}
+                            </span>
+                          ) : (
+                            ''
+                          )}
+                        </FormGroup>
+                      </div>
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName for="">
+                            Other PrEP Regimen{' '}
+                            <span style={{ color: 'red' }}> *</span>
+                          </FormLabelName>
+                          <Input
+                            type="select"
+                            name="otherRegimenId"
+                            id="otherRegimenId"
+                            onChange={handleInputChange}
+                            value={objValues.otherRegimenId}
+                            disabled={disabledField}
+                            style={{
+                              border: '1px solid #014D88',
+                              borderRadius: '0.25rem',
+                            }}
+                          >
+                            <option value=""> Select</option>
+                            {['update', 'view'].includes(
+                              props.activeContent.actionType
+                            )
+                              ? prepRegimen
+                                  ?.filter(
+                                    (each, index) =>
+                                      each.code !== 'CAB-LA(600mg/3mL)'
+                                  )
+                                  .map(value => (
+                                    <option key={value.id} value={value.id}>
+                                      {value.regimen}
+                                    </option>
+                                  ))
+                              : objValues?.visitType ===
+                                'PREP_VISIT_TYPE_METHOD_SWITCH'
+                              ? filterOutLastRegimen(
+                                  prepRegimen,
+                                  props.recentActivities[0]?.regimenId
+                                )
+                                  .filter(
+                                    (each, index) =>
+                                      each.code !== 'CAB-LA(600mg/3mL)'
+                                  )
+                                  .map(value => (
+                                    <option key={value.id} value={value.id}>
+                                      {value.regimen}
+                                    </option>
+                                  ))
+                              : prepRegimen
+                                  ?.filter(
+                                    (each, index) =>
+                                      each.code !== 'CAB-LA(600mg/3mL)'
+                                  )
+                                  .map(value => (
+                                    <option key={value.id} value={value.id}>
+                                      {value.regimen}
+                                    </option>
+                                  ))}
+                          </Input>
+                          {errors.otherRegimenId !== '' ? (
+                            <span className={classes.error}>
+                              {errors.otherRegimenId}
+                            </span>
+                          ) : (
+                            ''
+                          )}
+                        </FormGroup>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName for="">
-                    Prep Distribution Setting{' '}
+                    PrEP Distribution Setting{' '}
                     <span style={{ color: 'red' }}> *</span>
                   </FormLabelName>
                   <Input
@@ -2200,25 +2499,6 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
-
-              {/* <div className=" mb-3 col-md-6">
-                                <FormGroup>
-                                    <FormLabelName>Duration <span style={{color: "red"}}> *</span></FormLabelName>
-                                    <Input
-                                        type="number"
-                                        name="duration"
-                                        id="duration"
-                                        value={objValues.duration}
-                                        onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
-
-                                        disabled={disabledField}
-                                    />
-                                    {errors.duration !== "" ? (
-                                        <span className={classes.error}>{errors.duration}</span>
-                                    ) : ""}
-                                </FormGroup>
-                            </div> */}
 
               <div className=" mb-3 col-md-6">
                 <FormGroup>
@@ -2359,7 +2639,140 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
+              <div className="form-group mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName>Was PrEP Administered?</FormLabelName>
+                  <span style={{ color: 'red' }}> *</span>
+                  <Input
+                    type="select"
+                    name="wasPrepAdministered"
+                    id="wasPrepAdministered"
+                    value={objValues.wasPrepAdministered}
+                    onChange={handleInputChange}
+                    style={{
+                      border: '1px solid #014D88',
+                      borderRadius: '0.25rem',
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value="">Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </Input>
+                </FormGroup>
+                {errors.wasPrepAdministered !== '' ? (
+                  <span className={classes.error}>
+                    {errors.wasPrepAdministered}
+                  </span>
+                ) : (
+                  ''
+                )}
+              </div>
 
+              <br />
+              <br />
+              {/* <Label
+                as="a"
+                color="purple"
+                style={{ width: '106%', height: '35px' }}
+                ribbon
+              >
+                <h4 style={{ color: '#fff' }}>
+                  <input
+                    type="checkbox"
+                    name="otherPrepgiven"
+                    value="Yes"
+                    onChange={handleCheckBoxOtherPrepgiven}
+                    checked={otherPrepgiven.prepType == 'Yes' ? true : false}
+                  />{' '}
+                  Other PrEP Given
+                </h4>
+              </Label>
+              <br />
+              <br />
+              {otherPrepgiven.prepType === 'Yes' && (
+                <>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <FormLabelName for="">PrEP Type</FormLabelName>
+                      <Input
+                        type="select"
+                        name="prepType"
+                        id="prepType"
+                        style={{
+                          border: '1px solid #014D88',
+                          borderRadius: '0.25rem',
+                        }}
+                        // disabled
+                        onChange={handlePrepTypeChange}
+                        value={objValues.prepType}
+                        disabled={disabledField}
+                      >
+                        <option value=""> Select Prep Type</option>
+                        {prepType.map(value => (
+                          <option key={value.id} value={value.code}>
+                            {value.display}
+                          </option>
+                        ))}
+                      </Input>
+                      {errors.prepType !== '' ? (
+                        <span className={classes.error}>{errors.prepType}</span>
+                      ) : (
+                        ''
+                      )}
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <FormLabelName for="">PrEP Regimen</FormLabelName>
+                      <Input
+                        type="select"
+                        name="regimenId"
+                        id="regimenId"
+                        onChange={handleInputChange}
+                        value={objValues.regimenId}
+                        disabled={disabledField}
+                        style={{
+                          border: '1px solid #014D88',
+                          borderRadius: '0.25rem',
+                        }}
+                      >
+                        <option value=""> Select</option>
+                        {['update', 'view'].includes(
+                          props.activeContent.actionType
+                        )
+                          ? prepRegimen?.map(value => (
+                              <option key={value.id} value={value.id}>
+                                {value.regimen}
+                              </option>
+                            ))
+                          : objValues?.visitType ===
+                            'PREP_VISIT_TYPE_METHOD_SWITCH'
+                          ? filterOutLastRegimen(
+                              prepRegimen,
+                              props.recentActivities[0]?.regimenId
+                            ).map(value => (
+                              <option key={value.id} value={value.id}>
+                                {value.regimen}
+                              </option>
+                            ))
+                          : prepRegimen?.map(value => (
+                              <option key={value.id} value={value.id}>
+                                {value.regimen}
+                              </option>
+                            ))}
+                      </Input>
+                      {errors.regimenId !== '' ? (
+                        <span className={classes.error}>
+                          {errors.regimenId}
+                        </span>
+                      ) : (
+                        ''
+                      )}
+                    </FormGroup>
+                  </div>
+                </>
+              )} */}
               <br />
               <br />
               <Label

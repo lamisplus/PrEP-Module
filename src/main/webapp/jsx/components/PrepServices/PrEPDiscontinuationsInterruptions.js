@@ -109,6 +109,7 @@ const PrEPEligibiltyScreeningForm = props => {
     dateSeroconverted: '',
     reasonStopped: '',
     reasonStoppedOthers: '',
+    reasonsForPrepDiscontinuation: '',
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -253,7 +254,12 @@ const PrEPEligibiltyScreeningForm = props => {
   };
   const validate = () => {
     let temp = { ...errors };
-    //temp.interruptionDate = objValues.interruptionDate ? "" : "This field is required"
+    if (
+      containsDiscontinued(objValues.interruptionType) &&
+      !objValues.reasonsForPrepDiscontinuation
+    ) {
+      temp.reasonsForPrepDiscontinuation = 'This field is required';
+    }
     temp.interruptionType = objValues.interruptionType
       ? ''
       : 'This field is required';
@@ -385,13 +391,19 @@ const PrEPEligibiltyScreeningForm = props => {
     }
   };
 
+  function containsDiscontinued(inputString) {
+    const lowerCaseString = inputString.toLowerCase();
+    return lowerCaseString.includes('discontinued');
+  }
+  useEffect(() => console.log('temp: ', errors));
+  useEffect(() => console.log('objValues: ', objValues));
   return (
     <div>
       <Card className={classes.root}>
         <CardBody>
           <form>
             <div className="row">
-              <h2> PrEP Discontinuations & Interruptions</h2>
+              <h2>PrEP Client Tracking & Discontinuations/Interruptions</h2>
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label for="uniqueId">
@@ -414,6 +426,12 @@ const PrEPEligibiltyScreeningForm = props => {
                           {value.display}
                         </option>
                       ))}
+                    <option value="PREP_INTERRUPTIONS_DISCONTINUED_ORAL_PREP">
+                      Discontinued Oral PrEP
+                    </option>
+                    <option value="PREP_INTERRUPTIONS_DISCONTINUED_CABLA">
+                      Discontinued CAB-LA
+                    </option>
                   </Input>
                   {errors.interruptionType !== '' ? (
                     <span className={classes.error}>
@@ -789,6 +807,74 @@ const PrEPEligibiltyScreeningForm = props => {
                     </div>
                   )}
                 </>
+              )}
+              {containsDiscontinued(objValues.interruptionType) ? (
+                <div className="form-group mb-3 col-md-6">
+                  <FormGroup>
+                    <Label>Reason for discontinuation</Label>
+                    <span style={{ color: 'red' }}> *</span>
+                    <Input
+                      type="select"
+                      name="reasonsForPrepDiscontinuation"
+                      id="reasonsForPrepDiscontinuation"
+                      value={objValues.reasonsForPrepDiscontinuation}
+                      onChange={handleInputChange}
+                      style={{
+                        border: '1px solid #014D88',
+                        borderRadius: '0.25rem',
+                      }}
+                      disabled={disabledField}
+                    >
+                      <option value="">Select</option>
+                      <option value="PREP_INTERRUPTIONS_REASON_RISK_REDUCTION">
+                        Risk reduction
+                      </option>
+                      <option value="PREP_INTERRUPTIONS_REASON_SEVERE_ADVERSE_EVENT">
+                        {' '}
+                        Severe adverse event
+                      </option>
+                    </Input>
+                  </FormGroup>
+                  {errors.reasonsForPrepDiscontinuation !== '' ? (
+                    <span className={classes.error}>
+                      {errors.reasonsForPrepDiscontinuation}
+                    </span>
+                  ) : (
+                    ''
+                  )}
+                </div>
+              ) : (
+                <div className="form-group mb-3 col-md-6">
+                  <FormGroup>
+                    <Label>Reason for PrEP Interruption</Label>
+                    <span style={{ color: 'red' }}> *</span>
+                    <Input
+                      type="select"
+                      name="interruptionReason"
+                      id="interruptionReason"
+                      value={objValues.interruptionReason}
+                      onChange={handleInputChange}
+                      style={{
+                        border: '1px solid #014D88',
+                        borderRadius: '0.25rem',
+                      }}
+                      disabled={disabledField}
+                    >
+                      <option value="">Select</option>
+                      <option value="A">Treatment Stop</option>
+                      <option value="B">Death</option>
+                      <option value="C">Self-transfer</option>
+                      <option value="C">Transfer Out</option>
+                    </Input>
+                  </FormGroup>
+                  {errors.interruptionReason !== '' ? (
+                    <span className={classes.error}>
+                      {errors.interruptionReason}
+                    </span>
+                  ) : (
+                    ''
+                  )}
+                </div>
               )}
             </div>
 

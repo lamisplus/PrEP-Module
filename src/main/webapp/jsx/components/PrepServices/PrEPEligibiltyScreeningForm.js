@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { FormGroup, Label, CardBody, Spinner, Input, Form } from 'reactstrap';
 import { makeStyles } from '@material-ui/core/styles';
+import DualListBox from 'react-dual-listbox';
+import 'react-dual-listbox/lib/react-dual-listbox.css';
 import {
   Card,
   Checkbox,
@@ -13,8 +15,6 @@ import MatButton from '@material-ui/core/Button';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-widgets/dist/css/react-widgets.css';
-// import {Link, useHistory, useLocation} from "react-router-dom";
-// import {TiArrowBack} from 'react-icons/ti'
 import { token, url as baseUrl } from '../../../api';
 import 'react-phone-input-2/lib/style.css';
 import {
@@ -110,6 +110,41 @@ export const DateInputWrapper = ({ children }) => {
 
   return clonedChildren;
 };
+export const LiverFunctionTest = ({
+  objValues,
+  handleInputChange,
+  disabledField,
+  liverFunctionTestResult,
+  isAutoPop,
+}) => {
+  const [selectedValues, setSelectedValues] = useState(
+    objValues?.liverFunctionTestResults
+  );
+
+  const handleChange = selected => {
+    setSelectedValues(selected);
+    handleInputChange({
+      target: { name: 'liverFunctionTestResults', value: selected },
+    });
+  };
+
+  const options = liverFunctionTestResult.map(value => ({
+    value: value.code,
+    label: value.display,
+  }));
+  useEffect(() => {
+    setSelectedValues(objValues.liverFunctionTestResults);
+  }, [objValues.liverFunctionTestResults]);
+  return (
+    <DualListBox
+      options={options}
+      selected={selectedValues}
+      onChange={handleChange}
+      disabled={isAutoPop || disabledField}
+      canFilter
+    />
+  );
+};
 
 const BasicInfo = props => {
   const classes = useStyles();
@@ -148,8 +183,19 @@ const BasicInfo = props => {
     visitType: '',
     populationType: '',
     pregnancyStatus: '',
+    lftConducted: 'false',
+    liverFunctionTestResults: [],
+    dateLiverFunctionTestResults: '',
     score: 0,
   });
+  const handleLftInputChange = event => {
+    const { name, value } = event.target;
+    setObjValues(prevValues => ({
+      ...prevValues,
+      [name]: value,
+    }));
+  };
+
   useEffect(async () => {
     CounselingType();
     VisitType();
@@ -194,7 +240,6 @@ const BasicInfo = props => {
       });
   };
 
-  // useEffect(()=>console.log('uniqueId: ',props.patientObj))
   const CounselingType = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/COUNSELING_TYPE`, {
@@ -411,18 +456,25 @@ const BasicInfo = props => {
 
   const [assessmentScore, setAssessmentScore] = useState(0);
 
-  /*****  Validation  */
   const validate = () => {
-    //PREP FORM VALIDATION
+    // PREP FORM VALIDATION
     temp.visitDate = objValues.visitDate ? '' : 'This field is required.';
+    temp.lftConducted = objValues.lftConducted ? '' : 'This field is required';
+    temp.liverFunctionTestResults =
+      objValues.lftConducted === 'true' &&
+      objValues.liverFunctionTestResults.length === 0
+        ? 'LFT is required'
+        : '';
     temp.sexPartner = objValues.sexPartner ? '' : 'This field is required.';
     temp.hivTestResultAtvisit = drugHistory.hivTestResultAtvisit
       ? ''
       : 'This field is required.';
 
     setErrors({ ...temp });
+
     return Object.values(temp).every(x => x === '');
   };
+
   const handleSubmit = e => {
     e.preventDefault();
 
@@ -629,7 +681,27 @@ const BasicInfo = props => {
         //console.log(error);
       });
   };
-  useEffect(() => getRecentActivities(), []);
+  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
+
+  const getLiverFunctionTestResult = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(response => {
+        setLiverFunctionTestResult(response.data);
+      })
+      .catch(error => {
+        //console.log(error);
+      });
+  };
+  useEffect(() => {
+    getRecentActivities();
+    getLiverFunctionTestResult();
+  }, []);
+
+  useEffect(() => console.log('objValues: ', objValues));
+  useEffect(() => console.log('temp: ', temp));
   return (
     <>
       <Card className={classes.root}>
@@ -859,7 +931,88 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <FormLabel>Liver Function Test conducted</FormLabel>
+                  <span style={{ color: 'red' }}> *</span>
+                  <Input
+                    type="select"
+                    name="lftConducted"
+                    id="lftConducted"
+                    value={objValues.lftConducted}
+                    onChange={handleInputChange}
+                    style={{
+                      border: '1px solid #014D88',
+                      borderRadius: '0.25rem',
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value="">Select</option>
+                    <option value={true}>Yes</option>
+                    <option value={false}>No</option>
+                  </Input>
+                </FormGroup>
+                {errors.lftConducted !== '' ? (
+                  <span className={classes.error}>{errors.lftConducted}</span>
+                ) : (
+                  ''
+                )}
+              </div>
+              {objValues.lftConducted === 'true' && (
+                <>
+                  <div className="form-group mb-3 col-md-8">
+                    <FormGroup>
+                      <Label for="liverFunctionTestResults">
+                        Liver Function Tests Result
+                        <span style={{ color: 'red' }}> *</span>
+                      </Label>
+                      <LiverFunctionTest
+                        objValues={objValues}
+                        handleInputChange={handleLftInputChange}
+                        liverFunctionTestResult={liverFunctionTestResult}
+                        disabledField={disabledField}
+                      />
+                      {errors.liverFunctionTestResults !== '' ? (
+                        <span className={classes.error}>
+                          {errors.liverFunctionTestResults}
+                        </span>
+                      ) : (
+                        ''
+                      )}
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-8">
+                    <FormGroup>
+                      <Label for="dateLiverFunctionTestResults">
+                        Date of Liver Function Tests Result{' '}
+                        <span style={{ color: 'red' }}> *</span>
+                      </Label>
+                      <Input
+                        className="form-control"
+                        type="date"
+                        onKeyDown={e => e.preventDefault()}
+                        name="dateLiverFunctionTestResults"
+                        id="dateLiverFunctionTestResults"
+                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        value={objValues.dateLiverFunctionTestResults}
+                        onChange={handleInputChange}
+                        style={{
+                          border: '1px solid #014D88',
+                          borderRadius: '0.25rem',
+                        }}
+                        disabled={disabledField}
+                      />
+                      {errors.dateLiverFunctionTestResults !== '' ? (
+                        <span className={classes.error}>
+                          {errors.dateLiverFunctionTestResults}
+                        </span>
+                      ) : (
+                        ''
+                      )}
+                    </FormGroup>
+                  </div>
+                </>
+              )}
               <div
                 className="form-group my-4 col-md-12 text-center pt-2 mb-4"
                 style={{
@@ -2229,7 +2382,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group  col-md-4 p-3">
+              <div className="form-group  col-md-6 p-3">
                 <FormGroup>
                   <Label>Anal discharge?</Label>
                   <select
@@ -2366,7 +2519,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group  col-md-6 p-3">
+              <div className="form-group  col-md-4 p-3">
                 <FormGroup>
                   <Label>{`No history of PrEP drug interaction (CAB-LA)`}</Label>
                   <select
@@ -2396,7 +2549,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group  col-md-6 p-3">
+              <div className="form-group  col-md-8 p-3">
                 <FormGroup>
                   <Label>{`No history of drug hypersensitivity (CAB-LA)`}</Label>
                   <select
@@ -2490,7 +2643,7 @@ const BasicInfo = props => {
               >
                 Services Received by Client
               </div>
-              <div className="form-group  col-md-4 ">
+              <div className="form-group  col-md-6">
                 <FormGroup>
                   <Label>Willing to commence PrEP</Label>
                   <select

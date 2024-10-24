@@ -167,6 +167,15 @@ function PatientCard(props) {
                         <b style={{ color: '#0B72AA' }}>{patientObj?.gender}</b>
                       </span>
                     </Col>
+                    <Col md={4}>
+                      <span>
+                        {' '}
+                        Sex at Birth :{' '}
+                        <b style={{ color: '#0B72AA' }}>
+                          {patientObj?.sexAtBirth || patientObj?.gender}
+                        </b>
+                      </span>
+                    </Col>
                     <Col md={4} className={classes.root2}>
                       <span>
                         {' '}
@@ -176,7 +185,7 @@ function PatientCard(props) {
                         </b>
                       </span>
                     </Col>
-                    <Col md={4} className={classes.root2}>
+                    <Col md={6} className={classes.root2}>
                       <span>
                         {' '}
                         Address :{' '}
