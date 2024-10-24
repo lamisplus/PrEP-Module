@@ -128,7 +128,9 @@ public class PrepEligibilityService {
         prepEligibility.setPregnancyStatus(eligibilityDto.getPregnancyStatus());
 
         prepEligibility.setVisitDate( eligibilityDto.getVisitDate());
-
+        prepEligibility.setLftConducted(eligibilityDto.getLftConducted());
+        prepEligibility.setDateLiverFunctionTestResults(eligibilityDto.getDateLiverFunctionTestResults());
+        prepEligibility.setLiverFunctionTestResults(eligibilityDto.getLiverFunctionTestResults());
         return prepEligibility;
     }
     public PrepEligibility eligibilityRequestDtoToEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto, String personUuid) {
@@ -162,7 +164,9 @@ public class PrepEligibilityService {
         prepEligibility.setPregnancyStatus(prepEligibilityRequestDto.getPregnancyStatus());
 
         prepEligibility.setVisitDate( prepEligibilityRequestDto.getVisitDate());
-
+        prepEligibility.setLftConducted(prepEligibilityRequestDto.getLftConducted());
+        prepEligibility.setDateLiverFunctionTestResults(prepEligibilityRequestDto.getDateLiverFunctionTestResults());
+        prepEligibility.setLiverFunctionTestResults(prepEligibilityRequestDto.getLiverFunctionTestResults());
         return prepEligibility;
     }
 
@@ -200,7 +204,9 @@ public class PrepEligibilityService {
         //prepEligibilityDto.setPersonResponseDto(personResponseDto);
 
         prepEligibilityDto.setVisitDate( eligibility.getVisitDate() );
-
+        prepEligibilityDto.setLftConducted(eligibility.getLftConducted());
+        prepEligibilityDto.setDateLiverFunctionTestResults(eligibility.getDateLiverFunctionTestResults());
+        prepEligibilityDto.setLiverFunctionTestResults(eligibility.getLiverFunctionTestResults());
         return prepEligibilityDto;
     }
 

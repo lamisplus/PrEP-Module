@@ -2,6 +2,7 @@ package org.lamisplus.modules.prep.domain.dto;
 
 
 import lombok.*;
+import org.codehaus.jackson.JsonNode;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Basic;
@@ -85,7 +86,9 @@ public class PrepClinicDto implements Serializable{
     private Integer duration;
 
     private String regimen;
-
+    private String otherPrepGiven;
+    private String otherPrepType;
+    private String otherRegimenId;
     private int visitCount;
 
     private String prepGiven;
@@ -99,7 +102,10 @@ public class PrepClinicDto implements Serializable{
     private String visitType;
     private String healthCareWorkerSignature;
     private LocalDate dateLiverFunctionTestResults;
-    private String liverFunctionTestResults;
+    private JsonNode liverFunctionTestResults;
+    private String reasonForSwitch;
+    private String wasPrepAdministered;
+
     private String historyOfDrugToDrugInteraction;
     private String historyOfDrugAllergies;
     private LocalDate hivTestResultDate;

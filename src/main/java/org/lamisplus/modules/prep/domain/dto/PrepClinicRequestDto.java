@@ -2,6 +2,7 @@ package org.lamisplus.modules.prep.domain.dto;
 
 
 import lombok.*;
+import org.codehaus.jackson.JsonNode;
 
 import javax.persistence.Column;
 import javax.validation.constraints.NotBlank;
@@ -83,6 +84,11 @@ public class PrepClinicRequestDto implements Serializable{
     private Integer duration;
 
     private String prepGiven;
+    private String otherPrepGiven;
+    private String otherPrepType;
+
+    private String otherRegimenId;
+
     private String prepDistributionSetting;
     private String familyPlanning;
     private LocalDate dateOfFamilyPlanning;
@@ -94,7 +100,10 @@ public class PrepClinicRequestDto implements Serializable{
     private String visitType;
 
     private LocalDate dateLiverFunctionTestResults;
-    private String liverFunctionTestResults;
+    private JsonNode liverFunctionTestResults;
+    private String reasonForSwitch;
+
+    private String wasPrepAdministered;
     private String historyOfDrugToDrugInteraction;
     private String historyOfDrugAllergies;
     private LocalDate hivTestResultDate;

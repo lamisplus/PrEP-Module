@@ -130,14 +130,18 @@ public class PrepEligibility  extends Audit implements Serializable {
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     private String uuid;
-
     @Column(name = "archived")
     private Integer archived;
-
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private Person person;
-
+    @Column(name = "lft_conducted")
+    private String lftConducted;
+    @Column(name = "date_liver_function_test_results")
+    private LocalDate dateLiverFunctionTestResults;
+    @Type(type = "jsonb")
+    @Column(name = "liver_function_test_results", columnDefinition = "jsonb")
+    private String liverFunctionTestResults;
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){
@@ -146,5 +150,9 @@ public class PrepEligibility  extends Audit implements Serializable {
         if(archived == null){
             archived = 0;
         }
+    }
+
+    public String getLiverFunctionTestResults() {
+        return liverFunctionTestResults;
     }
 }

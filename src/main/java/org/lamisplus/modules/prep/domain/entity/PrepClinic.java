@@ -10,6 +10,7 @@ import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.JsonNode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
@@ -158,13 +159,26 @@ public class PrepClinic extends Audit implements Serializable{
 
     @Column(name = "prep_given")
     private String prepGiven;
-
+    @Column(name = "date_liver_function_test_results")
+    private LocalDate dateLiverFunctionTestResults;
+    @Type(type = "jsonb")
+    @Column(name = "liver_function_test_results", columnDefinition = "jsonb")
+    private JsonNode liverFunctionTestResults;
+    @Column(name = "reason_for_switch")
+    private String reasonForSwitch;
+    @Column(name = "was_prep_administered")
+    private String wasPrepAdministered;
+    @Column(name = "other_prep_given")
+    private String otherPrepGiven;
+    @Column(name = "other_prep_type")
+    private String otherPrepType;
+    @Column(name = "other_regimen_id")
+    private String otherRegimenId;
     @Column(name = "prep_distribution_setting")
     private String prepDistributionSetting;
 
     @Column(name = "family_planning")
      private String familyPlanning;
-
     @Column(name = "date_of_family_planning")
     private LocalDate dateOfFamilyPlanning;
 
@@ -175,8 +189,6 @@ public class PrepClinic extends Audit implements Serializable{
     private String hivTestResult;
     @Column(name = "hiv_test_result_date")
     private LocalDate hivTestResultDate;
-
-
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "urinalysis", columnDefinition = "jsonb")
@@ -214,16 +226,10 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "noted_side_effects")
     private String notedSideEffects;
 
-    @Column(name = "date_of_liver_function_test_results")
-    private LocalDate dateLiverFunctionTestResults;
-
     @Column(name = "prep_type")
     private String prepType;
     @Column(name = "population_type")
     private String populationType;
-
-    @Column(name = "liver_function_test_result")
-    private String liverFunctionTestResults;
 
     @Column(name = "history_of_drug_to_drug_interaction")
     private String historyOfDrugToDrugInteraction;

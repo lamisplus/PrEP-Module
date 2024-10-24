@@ -216,7 +216,13 @@ public class PrepClinicService {
         prepClinic.setMonthsOfRefill(prepClinicDto.getMonthsOfRefill());
         prepClinic.setHivTestResultDate(prepClinicDto.getHivTestResultDate());
         prepClinic.setHistoryOfDrugAllergies(prepClinicDto.getHistoryOfDrugAllergies());
-
+        prepClinic.setDateLiverFunctionTestResults(prepClinicDto.getDateLiverFunctionTestResults());
+        prepClinic.setLiverFunctionTestResults(prepClinicDto.getLiverFunctionTestResults());
+        prepClinic.setReasonForSwitch(prepClinicDto.getReasonForSwitch());
+        prepClinic.setWasPrepAdministered(prepClinicDto.getWasPrepAdministered());
+        prepClinic.setOtherPrepGiven(prepClinicDto.getOtherPrepGiven());
+        prepClinic.setOtherPrepType(prepClinicDto.getOtherPrepType());
+        prepClinic.setOtherRegimenId(prepClinicDto.getOtherRegimenId());
         return prepClinic;
     }
 
@@ -282,7 +288,13 @@ public class PrepClinicService {
         prepClinic.setHistoryOfDrugToDrugInteraction(prepClinicRequestDto.getHistoryOfDrugToDrugInteraction());
         prepClinic.setHivTestResultDate(prepClinicRequestDto.getHivTestResultDate());
         prepClinic.setMonthsOfRefill(prepClinicRequestDto.getMonthsOfRefill());
-
+        prepClinic.setDateLiverFunctionTestResults(prepClinicRequestDto.getDateLiverFunctionTestResults());
+        prepClinic.setLiverFunctionTestResults(prepClinicRequestDto.getLiverFunctionTestResults());
+        prepClinic.setReasonForSwitch(prepClinicRequestDto.getReasonForSwitch());
+        prepClinic.setWasPrepAdministered(prepClinicRequestDto.getWasPrepAdministered());
+        prepClinic.setOtherPrepGiven(prepClinicRequestDto.getOtherPrepGiven());
+        prepClinic.setOtherPrepType(prepClinicRequestDto.getOtherPrepType());
+        prepClinic.setOtherRegimenId(prepClinicRequestDto.getOtherRegimenId());
         return prepClinic;
     }
     private PrepClinicDto clinicToClinicDto(PrepClinic clinic, Boolean last) {
@@ -356,6 +368,13 @@ public class PrepClinicService {
         prepClinicDto.setHivTestResultDate(clinic.getHivTestResultDate());
         prepClinicDto.setMonthsOfRefill(clinic.getMonthsOfRefill());
         prepClinicDto.setHistoryOfDrugAllergies(clinic.getHistoryOfDrugAllergies());
+        prepClinicDto.setDateLiverFunctionTestResults(clinic.getDateLiverFunctionTestResults());
+        prepClinicDto.setLiverFunctionTestResults(clinic.getLiverFunctionTestResults());
+        prepClinicDto.setReasonForSwitch(clinic.getReasonForSwitch());
+        prepClinicDto.setWasPrepAdministered(clinic.getWasPrepAdministered());
+        prepClinicDto.setOtherPrepGiven(clinic.getOtherPrepGiven());
+        prepClinicDto.setOtherPrepType(clinic.getOtherPrepType());
+        prepClinicDto.setOtherRegimenId(clinic.getOtherRegimenId());
 
         return prepClinicDto;
     }

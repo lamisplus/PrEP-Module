@@ -1,6 +1,7 @@
 package org.lamisplus.modules.prep.domain.dto;
 
 import lombok.*;
+import org.codehaus.jackson.JsonNode;
 import org.lamisplus.modules.patient.domain.dto.PersonDto;
 
 import javax.validation.constraints.NotBlank;
@@ -39,6 +40,11 @@ public class PrepEligibilityRequestDto implements Serializable {
     private  Object assessmentForPepIndication;
     private  Object assessmentForAcuteHivInfection;
     private  Object assessmentForPrepEligibility;
+    private String lftConducted;
+
+    private JsonNode liverFunctionTestResults;
+
+    private LocalDate dateLiverFunctionTestResults;
     private  Object servicesReceivedByClient;
     private String populationType;
     private String visitType;

@@ -146,5 +146,31 @@
             ALTER TABLE prep_clinic ADD COLUMN visit_type VARCHAR(255);
         </sql>
     </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-1">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN date_liver_function_test_results VARCHAR(255);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-2">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN liver_function_test_results VARCHAR(255);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-3">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN reason_for_switch VARCHAR(255);
+        </sql>
+    </changeSet>
 
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-4">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN other_prep_given VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-5">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN was_prep_administered VARCHAR(255);
+        </sql>
+    </changeSet>
 </databaseChangeLog>
