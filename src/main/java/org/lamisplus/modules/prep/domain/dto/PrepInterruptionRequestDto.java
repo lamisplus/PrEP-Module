@@ -16,7 +16,6 @@ import java.time.LocalDate;
 public class PrepInterruptionRequestDto implements Serializable {
     @NotBlank(message = "interruptionType is mandatory")
     private String interruptionType;
-    @NotNull(message = "interruptionDate is mandatory")
     private LocalDate interruptionDate;
     private LocalDate dateClientDied;
     private String causeOfDeath;
@@ -29,7 +28,7 @@ public class PrepInterruptionRequestDto implements Serializable {
     private LocalDate dateSeroConverted;
     private LocalDate dateRestartPlacedBackMedication;
     private Boolean linkToArt;
-
+    private String reasonForPrepDiscontinuation;
     private String reasonStopped;
     private String reasonStoppedOthers;
 }

@@ -102,7 +102,7 @@ public class PrepClinicDto implements Serializable{
     private String visitType;
     private String healthCareWorkerSignature;
     private LocalDate dateLiverFunctionTestResults;
-    private JsonNode liverFunctionTestResults;
+    private Object liverFunctionTestResults;
     private String reasonForSwitch;
     private String wasPrepAdministered;
 

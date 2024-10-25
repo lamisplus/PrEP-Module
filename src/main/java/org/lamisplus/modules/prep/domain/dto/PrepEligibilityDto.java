@@ -46,7 +46,7 @@ public class PrepEligibilityDto implements Serializable {
     private String visitType;
     private String lftConducted;
     private LocalDate dateLiverFunctionTestResults;
-    private JsonNode liverFunctionTestResults;
+    private Object liverFunctionTestResults;
     private String pregnancyStatus;
 
     //private PersonResponseDto personResponseDto;

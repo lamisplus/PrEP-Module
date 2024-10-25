@@ -504,6 +504,7 @@ const PrEPCommencementForm = props => {
     }
   }, [latestFromEligibility]);
 
+  useEffect(() => console.log('objValues: ', objValues));
   return (
     <div>
       <Card className={classes.root}>
@@ -865,6 +866,7 @@ const PrEPCommencementForm = props => {
                       handleInputChange={handleLftInputChange}
                       liverFunctionTestResult={liverFunctionTestResult}
                       disabledField={disabledField}
+                      isAutoPop={true}
                     />
                     {errors.liverFunctionTestResults !== '' ? (
                       <span className={classes.error}>

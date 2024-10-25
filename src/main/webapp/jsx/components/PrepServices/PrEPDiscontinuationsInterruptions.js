@@ -109,7 +109,7 @@ const PrEPEligibiltyScreeningForm = props => {
     dateSeroconverted: '',
     reasonStopped: '',
     reasonStoppedOthers: '',
-    reasonsForPrepDiscontinuation: '',
+    reasonForPrepDiscontinuation: '',
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -256,9 +256,9 @@ const PrEPEligibiltyScreeningForm = props => {
     let temp = { ...errors };
     if (
       containsDiscontinued(objValues.interruptionType) &&
-      !objValues.reasonsForPrepDiscontinuation
+      !objValues.reasonForPrepDiscontinuation
     ) {
-      temp.reasonsForPrepDiscontinuation = 'This field is required';
+      temp.reasonForPrepDiscontinuation = 'This field is required';
     }
     temp.interruptionType = objValues.interruptionType
       ? ''
@@ -815,9 +815,9 @@ const PrEPEligibiltyScreeningForm = props => {
                     <span style={{ color: 'red' }}> *</span>
                     <Input
                       type="select"
-                      name="reasonsForPrepDiscontinuation"
-                      id="reasonsForPrepDiscontinuation"
-                      value={objValues.reasonsForPrepDiscontinuation}
+                      name="reasonForPrepDiscontinuation"
+                      id="reasonForPrepDiscontinuation"
+                      value={objValues.reasonForPrepDiscontinuation}
                       onChange={handleInputChange}
                       style={{
                         border: '1px solid #014D88',
@@ -835,9 +835,9 @@ const PrEPEligibiltyScreeningForm = props => {
                       </option>
                     </Input>
                   </FormGroup>
-                  {errors.reasonsForPrepDiscontinuation !== '' ? (
+                  {errors.reasonForPrepDiscontinuation !== '' ? (
                     <span className={classes.error}>
-                      {errors.reasonsForPrepDiscontinuation}
+                      {errors.reasonForPrepDiscontinuation}
                     </span>
                   ) : (
                     ''

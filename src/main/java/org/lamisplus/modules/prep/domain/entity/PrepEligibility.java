@@ -9,6 +9,7 @@ import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.JsonNode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
@@ -137,11 +138,12 @@ public class PrepEligibility  extends Audit implements Serializable {
     private Person person;
     @Column(name = "lft_conducted")
     private String lftConducted;
-    @Column(name = "date_liver_function_test_results")
+    @Column(name = "date_of_liver_function_test_results")
     private LocalDate dateLiverFunctionTestResults;
     @Type(type = "jsonb")
-    @Column(name = "liver_function_test_results", columnDefinition = "jsonb")
-    private String liverFunctionTestResults;
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "liver_function_test_results", columnDefinition = "jsonb", nullable = true)
+    private Object liverFunctionTestResults;
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){
@@ -152,7 +154,7 @@ public class PrepEligibility  extends Audit implements Serializable {
         }
     }
 
-    public String getLiverFunctionTestResults() {
-        return liverFunctionTestResults;
-    }
+//    public String getLiverFunctionTestResults() {
+//        return liverFunctionTestResults;
+//    }
 }

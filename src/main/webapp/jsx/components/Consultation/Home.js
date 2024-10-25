@@ -2413,44 +2413,19 @@ const ClinicVisit = props => {
                             }}
                           >
                             <option value=""> Select</option>
-                            {['update', 'view'].includes(
-                              props.activeContent.actionType
-                            )
-                              ? prepRegimen
-                                  ?.filter(
-                                    (each, index) =>
-                                      each.code !== 'CAB-LA(600mg/3mL)'
-                                  )
-                                  .map(value => (
-                                    <option key={value.id} value={value.id}>
-                                      {value.regimen}
-                                    </option>
-                                  ))
-                              : objValues?.visitType ===
-                                'PREP_VISIT_TYPE_METHOD_SWITCH'
-                              ? filterOutLastRegimen(
-                                  prepRegimen,
-                                  props.recentActivities[0]?.regimenId
-                                )
-                                  .filter(
-                                    (each, index) =>
-                                      each.code !== 'CAB-LA(600mg/3mL)'
-                                  )
-                                  .map(value => (
-                                    <option key={value.id} value={value.id}>
-                                      {value.regimen}
-                                    </option>
-                                  ))
-                              : prepRegimen
-                                  ?.filter(
-                                    (each, index) =>
-                                      each.code !== 'CAB-LA(600mg/3mL)'
-                                  )
-                                  .map(value => (
-                                    <option key={value.id} value={value.id}>
-                                      {value.regimen}
-                                    </option>
-                                  ))}
+                            {objValues.otherPrepType === 'PREP_TYPE_ORAL' ? (
+                              <option value="1">TDF(300mg)+3TC(300mg)</option>
+                            ) : null}
+                            {objValues.otherPrepType ===
+                            'PREP_TYPE_INJECTIBLES' ? (
+                              <option value="2">IM CAB-LA(600mg/3mL)</option>
+                            ) : null}
+                            {objValues.otherPrepType === 'PREP_TYPE_ED_PREP' ? (
+                              <>
+                                <option value="2">IM CAB-LA(600mg/3mL)</option>
+                                <option value="1">TDF(300mg)+3TC(300mg)</option>
+                              </>
+                            ) : null}
                           </Input>
                           {errors.otherRegimenId !== '' ? (
                             <span className={classes.error}>

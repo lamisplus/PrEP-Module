@@ -22,6 +22,8 @@ public class PrepInterruptionDto implements Serializable {
     private String interruptionReason;
     private LocalDate dateSeroConverted;
     private LocalDate dateRestartPlacedBackMedication;
+    private String reasonForPrepDiscontinuation;
+
     private Boolean linkToArt;
 
     private String reasonStopped;

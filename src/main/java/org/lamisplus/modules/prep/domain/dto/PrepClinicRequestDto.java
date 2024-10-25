@@ -100,7 +100,7 @@ public class PrepClinicRequestDto implements Serializable{
     private String visitType;
 
     private LocalDate dateLiverFunctionTestResults;
-    private JsonNode liverFunctionTestResults;
+    private Object liverFunctionTestResults;
     private String reasonForSwitch;
 
     private String wasPrepAdministered;
@@ -108,5 +108,6 @@ public class PrepClinicRequestDto implements Serializable{
     private String historyOfDrugAllergies;
     private LocalDate hivTestResultDate;
     private Integer monthsOfRefill;
+
 }
 

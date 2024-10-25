@@ -109,7 +109,8 @@ public class PrepInterruption extends Audit implements Serializable {
 
     @Column(name = "reason_stopped_others")
     private String reasonStoppedOthers;
-
+    @Column(name = "reason_for_prep_discontinuation")
+    private String reasonForPrepDiscontinuation;
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){
