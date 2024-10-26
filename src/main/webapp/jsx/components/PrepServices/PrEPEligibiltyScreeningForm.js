@@ -128,17 +128,17 @@ export const LiverFunctionTest = ({
     });
   };
 
-  const options = liverFunctionTestResult.map(value => ({
-    value: value.code,
-    label: value.display,
+  const options = liverFunctionTestResult?.map(value => ({
+    value: value?.code,
+    label: value?.display,
   }));
   useEffect(() => {
     setSelectedValues(objValues.liverFunctionTestResults);
   }, [objValues.liverFunctionTestResults]);
   return (
     <DualListBox
-      options={options}
-      selected={selectedValues}
+      options={options || []}
+      selected={selectedValues || []}
       onChange={handleChange}
       disabled={isAutoPop || disabledField}
       canFilter
@@ -153,8 +153,6 @@ const BasicInfo = props => {
     props.patientDetail && props.patientDetail.personResponseDto
       ? props.patientDetail.personResponseDto.id
       : '';
-  console.log('patient ID OBS: ', props);
-  //const clientId = props.patientObj && props.patientObj ? props.patientObj.id : "";
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [counselingType, setCounselingType] = useState([]);
@@ -220,7 +218,6 @@ const BasicInfo = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        // console.log(response.data);
         setObjValues(response.data);
         setRiskAssessment(response.data.personalHivRiskAssessment);
         setRiskAssessmentPartner(response.data.sexPartnerRisk);
