@@ -159,7 +159,7 @@ public class PrepClinic extends Audit implements Serializable{
 
     @Column(name = "prep_given")
     private String prepGiven;
-    
+
     @Column(name = "date_of_liver_function_test_results")
     private LocalDate dateLiverFunctionTestResults;
     @Type(type = "jsonb")
@@ -195,7 +195,12 @@ public class PrepClinic extends Audit implements Serializable{
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "urinalysis", columnDefinition = "jsonb")
     private Object urinalysis;
-
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "creatinine", columnDefinition = "jsonb")
+    private Object creatinine;
+    @Column(name = "creatinine_result")
+    private String creatinineResult;
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "hepatitis", columnDefinition = "jsonb")

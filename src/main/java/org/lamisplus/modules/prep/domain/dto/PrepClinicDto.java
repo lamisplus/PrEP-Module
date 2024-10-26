@@ -70,6 +70,8 @@ public class PrepClinicDto implements Serializable{
     private LocalDate datePrepGiven;
 
     private Object urinalysis;
+    private Object creatinine;
+    private String creatinineResult;
 
     private Object hepatitis;
 

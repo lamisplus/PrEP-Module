@@ -66,7 +66,8 @@ public class PrepClinicRequestDto implements Serializable{
     private LocalDate datePrepGiven;
 
     private Object urinalysis;
-
+    private Object creatinine;
+    private String creatinineResult;
     private Object hepatitis;
 
     private Object syphilis;

@@ -534,6 +534,7 @@ public class PrepService {
         prepClinic.setPrepEnrollmentUuid( prepClinicRequestDto.getPrepEnrollmentUuid() );
         prepClinic.setRegimenId( prepClinicRequestDto.getRegimenId() );
         prepClinic.setUrinalysisResult( prepClinicRequestDto.getUrinalysisResult() );
+        prepClinic.setCreatinineResult( prepClinicRequestDto.getCreatinineResult() );
         prepClinic.setReferred( prepClinicRequestDto.getReferred() );
         prepClinic.setDateReferred( prepClinicRequestDto.getDateReferred() );
         prepClinic.setNextAppointment( prepClinicRequestDto.getNextAppointment() );
@@ -550,6 +551,8 @@ public class PrepService {
         prepClinic.setWhy( prepClinicRequestDto.getWhy());
         prepClinic.setDatePrepGiven( prepClinicRequestDto.getDatePrepGiven());
         prepClinic.setUrinalysis( prepClinicRequestDto.getUrinalysis());
+        prepClinic.setCreatinine( prepClinicRequestDto.getCreatinine());
+
         prepClinic.setHepatitis( prepClinicRequestDto.getHepatitis());
         prepClinic.setSyphilis( prepClinicRequestDto.getSyphilis());
         prepClinic.setOtherTestsDone( prepClinicRequestDto.getOtherTestsDone());
@@ -595,6 +598,7 @@ public class PrepService {
         prepClinicDto.setPrepEnrollmentUuid( clinic.getPrepEnrollmentUuid() );
         prepClinicDto.setRegimenId( clinic.getRegimenId() );
         prepClinicDto.setUrinalysisResult( clinic.getUrinalysisResult() );
+        prepClinicDto.setCreatinineResult( clinic.getCreatinineResult() );
         prepClinicDto.setReferred( clinic.getReferred() );
         prepClinicDto.setNextAppointment( clinic.getNextAppointment() );
         prepClinicDto.setIsCommencement(clinic.getIsCommencement());
@@ -610,6 +614,10 @@ public class PrepService {
         prepClinicDto.setWhy( clinic.getWhy());
         prepClinicDto.setDatePrepGiven( clinic.getDatePrepGiven());
         prepClinicDto.setUrinalysis( clinic.getUrinalysis());
+        prepClinicDto.setCreatinine( clinic.getCreatinine());
+
+        prepClinicDto.setCreatinine( clinic.getCreatinine());
+
         prepClinicDto.setHepatitis( clinic.getHepatitis());
         prepClinicDto.setSyphilis( clinic.getSyphilis());
         prepClinicDto.setOtherTestsDone( clinic.getOtherTestsDone());

@@ -207,4 +207,25 @@
             ALTER TABLE prep_clinic ADD COLUMN liver_function_test_results JSONB;
         </sql>
     </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-711">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN creatinine JSONB;
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-712">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN creatinine_result JSONB;
+        </sql>
+    </changeSet>
+    <changeSet author="Gamaliel" id="24-10-2024-713" failOnError="true">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN creatinine_result_varchar VARCHAR(255);
+
+            UPDATE prep_clinic SET creatinine_result_varchar = creatinine_result::text;
+
+            ALTER TABLE prep_clinic DROP COLUMN creatinine_result;
+
+            ALTER TABLE prep_clinic RENAME COLUMN creatinine_result_varchar TO creatinine_result;
+        </sql>
+    </changeSet>
 </databaseChangeLog>
