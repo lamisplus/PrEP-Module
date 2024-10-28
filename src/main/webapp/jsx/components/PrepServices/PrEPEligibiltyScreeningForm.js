@@ -181,7 +181,7 @@ const BasicInfo = props => {
     visitType: '',
     populationType: '',
     pregnancyStatus: '',
-    lftConducted: 'false',
+    lftConducted: '',
     liverFunctionTestResults: [],
     dateLiverFunctionTestResults: '',
     score: 0,

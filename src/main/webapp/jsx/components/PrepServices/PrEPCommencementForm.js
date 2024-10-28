@@ -901,7 +901,7 @@ const PrEPCommencementForm = props => {
                         border: '1px solid #014D88',
                         borderRadius: '0.25rem',
                       }}
-                      disabled={disabledField}
+                      disabled
                     />
                     {errors.dateLiverFunctionTestResults !== '' ? (
                       <span className={classes.error}>

@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { Grid, Segment, Label, List, Card } from 'semantic-ui-react';
-// Page titie
+import React, { useState, useEffect, useRef } from 'react';
+import { Grid, Segment, Label } from 'semantic-ui-react';
 import {
   FormGroup,
   Label as FormLabelName,
@@ -16,13 +15,8 @@ import AddIcon from '@mui/icons-material/Add';
 import axios from 'axios';
 import moment from 'moment';
 import { toast } from 'react-toastify';
-import Select from 'react-select';
 import Divider from '@mui/material/Divider';
 import { TiTrash } from 'react-icons/ti';
-
-import { formValues } from 'redux-form';
-
-import { CSSTransition } from 'react-transition-group';
 import { LiverFunctionTest } from '../PrepServices/PrEPEligibiltyScreeningForm';
 
 const useStyles = makeStyles(theme => ({
@@ -95,8 +89,6 @@ const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
   const [disabledField, setDisabledField] = useState(false);
   const [patientDto, setPatientDto] = useState();
-  let temp = { ...errors };
-  const classes = useStyles();
   const [saving, setSaving] = useState(false);
   const [adherenceLevel, setAdherenceLevel] = useState([]);
   const [sti, setSti] = useState([]);
@@ -117,13 +109,15 @@ const ClinicVisit = props => {
   const [prepType, setPrepType] = useState([]);
   const [populationType, setPopulationType] = useState([]);
   const [visitType, setVisitType] = useState([]);
-  // const [selectedPregnant, setSelectedPregnant] = useState("");
   const [selectedPopulationType, setSelectedPopulationType] = useState('');
-  // const [selectedVisitType, setSelectedVisitType] = useState("");
   const [latestFromEligibility, setLatestFromEligibility] = useState(null);
-  let testsOptions = [];
   const [hivTestValue, setHivTestValue] = useState('');
   const [hivTestResultDate, setHivTestResultDate] = useState('');
+  const [reasonForSwitchOptions, setReasonForSwitchOptions] = useState([]);
+  const [prepRiskReductionPlan, setPrepRiskReductionPlan] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
+
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: '',
     diastolic: '',
@@ -147,16 +141,16 @@ const ClinicVisit = props => {
     hepatitis: {},
     nextAppointment: '',
     notedSideEffects: '',
-    wasPrepAdministered: 'false',
+    wasPrepAdministered: '',
     otherTestsDone: [],
-    personId: props.patientObj.personId, //should person id be from patientObj?
+    personId: props.patientObj.personId,
     pregnant: '',
     prepEnrollmentUuid: '',
     pulse: '',
     referred: '',
     regimenId: '',
     otherRegimenId: '',
-    otherPrepGiven: 'false',
+    otherPrepGiven: '',
     respiratoryRate: '',
     riskReductionServices: '',
     healthCareWorkerSignature: '',
@@ -198,11 +192,6 @@ const ClinicVisit = props => {
     testDate: '',
     result: '',
   });
-  // const [otherPrepgiven, setOtherPrepgiven] = useState({
-  //   prepType: 'Yes',
-  //   prepRegimen: '',
-  //   datePrepgiven: '',
-  // });
   const [syphilisTest, setSyphilisTest] = useState({
     syphilisTest: 'Yes',
     testDate: '',
@@ -225,101 +214,10 @@ const ClinicVisit = props => {
       otherTestName: '',
     },
   ]);
-  useEffect(async () => {
-    // Check if the fields exist in objValues first
-    if (
-      objValues.urinalysis.testDate &&
-      objValues.urinalysis.result &&
-      objValues.urinalysis.urinalysisTest
-    ) {
-      setUrinalysisTest({
-        ...urinalysisTest,
-        testDate: objValues.urinalysis.testDate,
-        result: objValues.urinalysis.result,
-        urinalysisTest: objValues.urinalysis.urinalysisTest,
-      });
-    }
-    if (
-      objValues.creatinine?.testDate &&
-      objValues.creatinine?.result &&
-      objValues.creatinine?.creatinineTest
-    ) {
-      setCreatinineTest({
-        ...creatinineTest,
-        testDate: objValues.creatinine?.testDate,
-        result: objValues.creatinine?.result,
-        creatinineTest: objValues.creatinine?.creatinineTest,
-      });
-    }
-    // if (
-    //   objValues.otherPrepgiven.prepType &&
-    //   objValues.otherPrepgiven.prepRegimen &&
-    //   objValues.otherPrepgiven.datePrepgiven
-    // ) {
-    //   setOtherPrepgiven({
-    //     ...otherPrepgiven,
-    //     prepType: objValues.otherPrepgiven.prepType,
-    //     prepRegimen: objValues.otherPrepgiven.prepRegimen,
-    //     datePrepgiven: objValues.otherPrepgiven.datePrepgiven,
-    //   });
-    // }
-    if (
-      objValues.syphilis?.testDate &&
-      objValues.syphilis?.result &&
-      objValues.syphilis?.syphilisTest
-    ) {
-      setSyphilisTest({
-        ...syphilisTest,
-        testDate: objValues.syphilis?.testDate,
-        result: objValues.syphilis?.result,
-        syphilisTest: objValues.syphilis?.syphilisTest,
-        others: objValues.syphilis?.others,
-      });
-    }
-    if (
-      objValues.hepatitis?.testDate &&
-      objValues.hepatitis?.result &&
-      objValues.hepatitis?.hepatitisTest
-    ) {
-      setHepatitisTest({
-        ...hepatitisTest,
-        testDate: objValues.hepatitis?.testDate,
-        result: objValues.hepatitis?.result,
-        hepatitisTest: objValues.hepatitis?.hepatitisTest,
-      });
-    }
-  }, [objValues]);
 
-  useEffect(() => {
-    AdherenceLevel();
-    SYNDROMIC_STI_SCREENING();
-    PREP_RISK_REDUCTION_PLAN();
-    PREP_STATUS();
-    HTS_RESULT();
-    PREP_SIDE_EFFECTS();
-    GetPatientDTOObj();
-    WHY_POOR_FAIR_ADHERENCE();
-    PrepEligibilityObj();
-    TestGroup();
-    PREP_URINALYSIS_RESULT();
-    PREP_OTHER_TEST();
-    HEPATITIS_SCREENING_RESULT();
-    SYPHILIS_RESULT();
-    PREGANACY_STATUS();
-    PREP_ENTRY_POINT();
-    PREP_TYPE();
-    POPULATION_TYPE();
-    VISIT_TYPE();
-    FAMILY_PLANNING_METHOD();
-    getPatientVisit(props.activeContent.id);
-    setDisabledField(
-      !['update', undefined].includes(props.activeContent.actionType)
-    );
-  }, [props.activeContent]);
-
-  useEffect(() => {
-    getLatestFromEligibility();
-  }, []);
+  const classes = useStyles();
+  let temp = { ...errors };
+  let testsOptions = [];
 
   const PREGANACY_STATUS = () => {
     axios
@@ -376,10 +274,9 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const [reasonForSwitchOptions, setReasonForSwitchOptions] = useState([]);
   const getReasonForSwitch = () => {
     axios
-      .get(`${baseUrl}application-codesets/v2/REASON_FOR_SWITCH`, {
+      .get(`${baseUrl}application-codesets/v2/REASON_METHOD_SWITCH`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
@@ -470,7 +367,6 @@ const ClinicVisit = props => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
-        //setPrepStatus(response.data);
         objValues.prepEnrollmentUuid = '';
       })
       .catch(error => {});
@@ -481,10 +377,7 @@ const ClinicVisit = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        let isEligibleForCABLA = checkEligibleForCABLA(
-          currentDate,
-          response.data
-        );
+        checkEligibleForCABLA(currentDate, response.data);
       })
       .catch(error => {});
   };
@@ -498,7 +391,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  const [prepRiskReductionPlan, setPrepRiskReductionPlan] = useState([]);
+
   const PREP_RISK_REDUCTION_PLAN = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PrEP_RISK_REDUCTION_PLAN`, {
@@ -530,55 +423,6 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  const LAST_HIV_TEST_RESULT = () => {
-    axios
-      .get(`${baseUrl}hts/persons/${objValues.personId}/current-hts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        var lastHivTest = response?.data?.hivTestResult;
-        if (!lastHivTest) {
-          setHivTestValue(response.data.hivTestResult);
-          setHivTestResultDate(response.data.test1.date);
-          objValues.hivTestResultDate = response.data.hivTestResult;
-          objValues.hivTestResultDate = response.data.test1.date;
-        } else {
-          setHivTestValue('NOT DONE');
-        }
-      })
-      .catch(error => {});
-  };
-
-  useEffect(() => {
-    if (latestFromEligibility !== null) {
-      setObjValues({
-        ...objValues,
-        populationType:
-          latestFromEligibility !== null
-            ? latestFromEligibility?.populationType
-            : '',
-        visitType:
-          latestFromEligibility !== null
-            ? latestFromEligibility?.visitType
-            : '',
-        pregnant:
-          latestFromEligibility !== null
-            ? latestFromEligibility?.pregnancyStatus
-            : '',
-      });
-      // await POPULATION_TYPE();
-      const autoPopulatePopulationType = populationType?.find(
-        type => type?.code === latestFromEligibility?.populationType
-      )?.display;
-      const autoPopulateVisitType = visitType.find(
-        type => type?.code === latestFromEligibility?.visitType
-      )?.display;
-      const autoPopulatePregnant = pregnant?.find(
-        type => type?.code === latestFromEligibility?.pregnancyStatus
-      )?.display;
-      setSelectedPopulationType(autoPopulatePopulationType);
-    }
-  }, [latestFromEligibility]);
 
   const getLatestFromEligibility = async () => {
     axios
@@ -594,35 +438,6 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  function checkEligibleForCabLaFromLatestEligibility(
-    assessmentForPrepEligibility
-  ) {
-    const keysToCheck = [
-      'noHistoryOfDrugHypersensitivityCabLa',
-      'noHistoryOfDrugToDrugInteractionCabLa',
-      'noHistoryOrSignsOfLiverAbnormalitiesCabLa',
-    ];
-
-    for (let key of keysToCheck) {
-      if (assessmentForPrepEligibility?.[key] === 'Yes') {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  useEffect(() => {
-    if (
-      objValues.populationType !== null &&
-      objValues.populationType !== undefined
-    ) {
-      const autoPopulate = populationType.find(
-        type => type.code === objValues.populationType
-      );
-
-      setSelectedPopulationType(autoPopulate ? autoPopulate.display : '');
-    }
-  }, [objValues.populationType]);
   const POPULATION_TYPE = async () => {
     axios
       .get(`${baseUrl}application-codesets/v2/POPULATION_TYPE`, {
@@ -642,9 +457,7 @@ const ClinicVisit = props => {
       .then(response => {
         setVisitType(response.data);
       })
-      .catch(error => {
-        //console.log(error);
-      });
+      .catch(error => {});
   };
   const WHY_POOR_FAIR_ADHERENCE = () => {
     axios
@@ -656,8 +469,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  ///GET LIST OF FUNCTIONAL%20_STATUS
-  // TB STATUS
+
   const SYNDROMIC_STI_SCREENING = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/SYNDROMIC_STI_SCREENING`, {
@@ -668,7 +480,6 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  //PREP_URINALYSIS_RESULT
   const PREP_URINALYSIS_RESULT = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`, {
@@ -690,7 +501,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  //PREP_OTHER_TEST
+
   const PREP_OTHER_TEST = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREP_OTHER_TEST`, {
@@ -701,7 +512,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  //SYPHILIS_RESULT
+
   const SYPHILIS_RESULT = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/SYPHILIS_RESULT`, {
@@ -712,7 +523,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  //HEPATITIS_SCREENING_RESULT
+
   const HEPATITIS_SCREENING_RESULT = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/HEPATITIS_SCREENING_RESULT`, {
@@ -724,7 +535,6 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  // FAMILY_PLANNING_METHOD
   const FAMILY_PLANNING_METHOD = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/FAMILY_PLANNING_METHOD`, {
@@ -736,7 +546,6 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  ///Level of Adherence
   async function AdherenceLevel() {
     axios
       .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
@@ -747,6 +556,8 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   }
+  const [eligibilityVisitDateSync, setEligibilityVisitDateSync] =
+    useState(false);
 
   const handleInputChange = e => {
     setErrors({ ...errors, [e.target.name]: '' });
@@ -758,15 +569,31 @@ const ClinicVisit = props => {
         duration: `${durationInDays}`,
       });
     } else if (e.target.name === 'encounterDate') {
+      setEligibilityVisitDateSync(
+        areDatesInSync(e.target.value, latestFromEligibility?.visitDate)
+      );
       PrepRegimen(e.target.value);
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
     } else if (e.target.name === 'otherPrepGiven') {
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
     } else {
-      // if the encounterDate is the same as the commencement date, the prep regimen id should be automatically populated from the commencement
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
     }
   };
+  useEffect(() => {
+    if (!eligibilityVisitDateSync) {
+      setObjValues(prevValues => ({
+        ...prevValues,
+        populationType: '',
+        visitType: '',
+        pregnant: '',
+        liverFunctionTestResults: [],
+        dateLiverFunctionTestResults: '',
+      }));
+      setSelectedPopulationType('');
+    }
+  }, [eligibilityVisitDateSync]);
+
   const handleInputChangeUrinalysisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     setUrinalysisTest({ ...urinalysisTest, [e.target.name]: e.target.value });
@@ -834,27 +661,9 @@ const ClinicVisit = props => {
       setOtherTest([]);
     }
   };
+
   const otherTestInputRef = useRef();
 
-  const loadOtherTestOptions = () => {
-    setErrors({ ...errors, [otherTestInputRef.current.name]: '' });
-    if (otherTestInputRef.current.checked) {
-      setOtherTest([
-        ...otherTest,
-        ...objValues.otherTestsDone,
-        {
-          localId: objValues.otherTestsDone?.length || 0,
-          otherTest: 'Yes',
-          testDate: '',
-          result: '',
-          name: '',
-          otherTestName: '',
-        },
-      ]);
-    } else {
-      setOtherTest([]);
-    }
-  };
   const handleCheckBoxUrinalysisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     if (e.target.checked) {
@@ -963,15 +772,6 @@ const ClinicVisit = props => {
     }
   };
 
-  useEffect(() => {
-    if (
-      props.activeContent.actionType === '' ||
-      props.activeContent.actionType === null
-    ) {
-      emptyObjValues();
-    }
-  }, [props.activeContent.actionType]);
-
   const emptyObjValues = () => {
     setObjValues({
       adherenceLevel: '',
@@ -1020,12 +820,8 @@ const ClinicVisit = props => {
     setOtherTest([]);
   };
 
-  //Validations of the forms
   const validate = () => {
     temp.lastHts = hivTestValue ? '' : 'Atleast, 1 HIV test result is required';
-    // temp.otherTestsDone = otherTest.length
-    //   ? ''
-    //   : 'You must submit atleast, a test result.';
     temp.monthsOfRefill = objValues.monthsOfRefill
       ? ''
       : 'This field is required';
@@ -1087,12 +883,10 @@ const ClinicVisit = props => {
     });
     return Object.values(temp).every(x => x === '');
   };
-  /**** Submit Button Processing  */
   const handleSubmit = e => {
     e.preventDefault();
     if (validate()) {
       setSaving(true);
-      //objValues.visitDate = vital.encounterDate
       objValues.hivTestResultDate = hivTestResultDate;
       objValues.hivTestResult = hivTestValue;
       objValues.syphilis = syphilisTest;
@@ -1108,7 +902,6 @@ const ClinicVisit = props => {
             headers: { Authorization: `Bearer ${token}` },
           })
           .then(response => {
-            //PatientDetaild();
             setSaving(false);
             toast.success('Clinic visit update successful', {
               position: toast.POSITION.BOTTOM_CENTER,
@@ -1231,11 +1024,6 @@ const ClinicVisit = props => {
     setErrors({ ...errors, [e.target.name]: '' });
   };
 
-  function joinActivities(data) {
-    return data.reduce((acc, item) => {
-      return acc.concat(item.activities);
-    }, []);
-  }
   function countPrepEligibility(data) {
     let count = 0;
     let relevantActivities = ['Prep Commencement', 'Prep Clinic'];
@@ -1253,7 +1041,6 @@ const ClinicVisit = props => {
     return date instanceof Date && !isNaN(date);
   }
   function areDatesSame(date1, date2) {
-    // if (!isValidDate(date1) || !isValidDate(date2)) return alert('Invalid eligibility or visit date.')
     return (
       date1.getFullYear() === date2.getFullYear() &&
       date1.getMonth() === date2.getMonth() &&
@@ -1273,7 +1060,6 @@ const ClinicVisit = props => {
     }
     return false;
   }
-  const [recentActivities, setRecentActivities] = useState([]);
   const getRecentActivities = () => {
     axios
       .get(
@@ -1283,54 +1069,13 @@ const ClinicVisit = props => {
       .then(response => {
         setRecentActivities(response.data);
       })
-      .catch(error => {
-        //console.log(error);
-      });
+      .catch(error => {});
   };
 
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
     codeSet.filter(regimen => {
       return regimen.id !== lastRegimenId;
     });
-  const handleOtherTestsDone = e => {
-    setOtherTestResult(prev =>
-      prev?.filter(eachTest => eachTest?.name !== e.target.value)
-    );
-  };
-  useEffect(() => {
-    getRecentActivities();
-    getHIVresult();
-    getReasonForSwitch();
-    getCreatinineTestResultOptions();
-  }, []);
-  const handleOtherTestDoneChange = e => {
-    const { name, value } = e.target;
-
-    if (name !== 'otherTestsDone') {
-      setObjValues(prev => ({
-        ...prev,
-        [name]: value,
-      }));
-    } else {
-      const { localId, field } = e.target.dataset;
-      const updatedTests = [...objValues.otherTestsDone];
-
-      const index = updatedTests.findIndex(
-        test => test.localId === Number(localId)
-      );
-      if (index !== -1) {
-        updatedTests[index] = {
-          ...updatedTests[index],
-          [field]: value,
-        };
-      }
-
-      setObjValues(prev => ({
-        ...prev,
-        otherTestsDone: updatedTests,
-      }));
-    }
-  };
 
   const prepRegimenUpdateView = () => {
     axios
@@ -1342,28 +1087,6 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  useEffect(() => {
-    if (['update', 'view'].includes(props.activeContent.actionType))
-      prepRegimenUpdateView();
-  }, [props.activeContent.actionType]);
-
-  // const handleCheckBoxOtherPrepgiven = e => {
-  //   setErrors({ ...errors, [e.target.name]: '' });
-  //   if (e.target.checked) {
-  //     setOtherPrepgiven({ ...otherPrepgiven, ['prepType']: 'Yes' });
-  //   } else {
-  //     setOtherPrepgiven({ ...otherPrepgiven, ['prepType']: 'No' });
-  //   }
-  // };
-  const handleLftInputChange = event => {
-    const { name, value } = event.target;
-    setObjValues(prevValues => ({
-      ...prevValues,
-      [name]: value,
-    }));
-  };
-
-  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
 
   const getLiverFunctionTestResult = () => {
     axios
@@ -1373,16 +1096,118 @@ const ClinicVisit = props => {
       .then(response => {
         setLiverFunctionTestResult(response.data);
       })
-      .catch(error => {
-        //console.log(error);
-      });
+      .catch(error => {});
   };
   useEffect(() => {
+    if (
+      props.activeContent.actionType === '' ||
+      props.activeContent.actionType === null
+    ) {
+      emptyObjValues();
+    }
+  }, [props.activeContent.actionType]);
+  useEffect(() => {
+    if (
+      objValues.populationType !== null &&
+      objValues.populationType !== undefined
+    ) {
+      const autoPopulate = populationType.find(
+        type => type.code === objValues.populationType
+      );
+
+      setSelectedPopulationType(autoPopulate ? autoPopulate.display : '');
+    }
+  }, [objValues.populationType]);
+
+  useEffect(() => {
+    if (eligibilityVisitDateSync && latestFromEligibility !== null) {
+      const autoPopulate = populationType.find(
+        type => type.code === latestFromEligibility?.populationType
+      );
+
+      setObjValues(prevValues => ({
+        ...prevValues,
+        populationType: autoPopulate ? autoPopulate.code : '',
+        visitType: latestFromEligibility?.visitType || '',
+        pregnant: latestFromEligibility?.pregnancyStatus || '',
+      }));
+
+      setSelectedPopulationType(autoPopulate ? autoPopulate.display : '');
+    }
+  }, [latestFromEligibility, eligibilityVisitDateSync, populationType]);
+
+  useEffect(() => {
+    const updateTest = (testType, setTestFunction) => {
+      const testData = objValues[testType];
+      if (
+        testData?.testDate &&
+        testData?.result &&
+        testData?.[`${testType}Test`]
+      ) {
+        setTestFunction({
+          ...testData,
+          testDate: testData.testDate,
+          result: testData.result,
+          [`${testType}Test`]: testData[`${testType}Test`],
+        });
+      }
+    };
+
+    updateTest('urinalysis', setUrinalysisTest);
+    updateTest('creatinine', setCreatinineTest);
+    updateTest('syphilis', setSyphilisTest);
+    updateTest('hepatitis', setHepatitisTest);
+  }, [objValues]);
+
+  useEffect(() => {
+    AdherenceLevel();
+    SYNDROMIC_STI_SCREENING();
+    PREP_RISK_REDUCTION_PLAN();
+    PREP_STATUS();
+    HTS_RESULT();
+    PREP_SIDE_EFFECTS();
+    GetPatientDTOObj();
+    WHY_POOR_FAIR_ADHERENCE();
+    PrepEligibilityObj();
+    TestGroup();
+    PREP_URINALYSIS_RESULT();
+    PREP_OTHER_TEST();
+    HEPATITIS_SCREENING_RESULT();
+    SYPHILIS_RESULT();
+    PREGANACY_STATUS();
+    PREP_ENTRY_POINT();
+    PREP_TYPE();
+    POPULATION_TYPE();
+    VISIT_TYPE();
+    FAMILY_PLANNING_METHOD();
+    getPatientVisit(props.activeContent.id);
+    setDisabledField(
+      !['update', undefined].includes(props.activeContent.actionType)
+    );
+  }, [props.activeContent]);
+
+  useEffect(() => {
+    getRecentActivities();
+    getHIVresult();
+    getReasonForSwitch();
+    getCreatinineTestResultOptions();
     getLiverFunctionTestResult();
+    getLatestFromEligibility();
   }, []);
 
   useEffect(() => {
-    if (latestFromEligibility) {
+    if (['update', 'view'].includes(props.activeContent.actionType))
+      prepRegimenUpdateView();
+  }, [props.activeContent.actionType]);
+  const handleLftInputChange = event => {
+    const { name, value } = event.target;
+    setObjValues(prevValues => ({
+      ...prevValues,
+      [name]: value,
+    }));
+  };
+  useEffect(() => {
+    if (eligibilityVisitDateSync && latestFromEligibility) {
       setObjValues(prevValues => ({
         ...prevValues,
         liverFunctionTestResults:
@@ -1391,13 +1216,34 @@ const ClinicVisit = props => {
           latestFromEligibility.dateLiverFunctionTestResults || '',
       }));
     }
-  }, [latestFromEligibility]);
+  }, [latestFromEligibility, eligibilityVisitDateSync]);
+
+  function areDatesInSync(date1, date2) {
+    return date1 === date2;
+  }
+  const getOptions = () => {
+    switch (objValues.otherPrepType) {
+      case 'PREP_TYPE_ORAL':
+        return <option value="1">TDF(300mg)+3TC(300mg)</option>;
+      case 'PREP_TYPE_INJECTIBLES':
+        return <option value="2">IM CAB-LA(600mg/3mL)</option>;
+      case 'PREP_TYPE_ED_PREP':
+        return (
+          <>
+            <option value="2">IM CAB-LA(600mg/3mL)</option>
+            <option value="1">TDF(300mg)+3TC(300mg)</option>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className={classes.root}>
+    <div className={`${classes.root} container-fluid`}>
       <div className="row">
-        <div className="col-md-6">
-          <h2>Clinic Follow-up Visit</h2>
+        <div className="col-12">
+          <h2 className="p-2">Clinic Follow-up Visit</h2>
         </div>
       </div>
       <Grid>
@@ -1845,7 +1691,7 @@ const ClinicVisit = props => {
                         id="pregnant"
                         onChange={handleInputChange}
                         value={objValues.pregnant}
-                        disabled={disabledField}
+                        disabled
                         style={{
                           border: '1px solid #014D88',
                           borderRadius: '0.25rem',
@@ -1957,7 +1803,7 @@ const ClinicVisit = props => {
                       objValues={objValues}
                       handleInputChange={handleLftInputChange}
                       liverFunctionTestResult={liverFunctionTestResult}
-                      disabledField={disabledField}
+                      disabledField={true}
                       isAutoPop={true}
                     />
                     {errors.liverFunctionTestResults !== '' ? (
@@ -1981,11 +1827,6 @@ const ClinicVisit = props => {
                       onKeyDown={e => e.preventDefault()}
                       name="dateLiverFunctionTestResults"
                       id="dateLiverFunctionTestResults"
-                      // min={
-                      //   patientDto && patientDto.dateEnrolled
-                      //     ? patientDto.dateEnrolled
-                      //     : ''
-                      // }
                       max={moment(new Date()).format('YYYY-MM-DD')}
                       value={objValues.dateLiverFunctionTestResults}
                       onChange={handleInputChange}
@@ -2029,26 +1870,6 @@ const ClinicVisit = props => {
                   </Input>
                 </FormGroup>
               </div>
-              {/* <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName >Regimen at Start of PrEP </FormLabelName>
-                  <Input
-                    type="select"
-                    name="regimenStartPrep"
-                    id="regimenStartPrep"
-                    value={objValues.regimenStartPrep}
-                    onChange={handleInputChange}
-                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
-                  >
-                    <option value="">Select </option>
-                    <option value="TDF/FTC">TDF/FTC </option>
-                    <option value="TDF/3TC">TDF/3TC </option>
-                  </Input>
-                 
-                </FormGroup>
-              </div>
-               */}
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>STI Screening</FormLabelName>
@@ -2124,10 +1945,7 @@ const ClinicVisit = props => {
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName>
-                    Level of Adherence
-                    {/* {countPrepEligibility(recentActivities) < 2 && <span style={{ color: "red" }}> *</span>} */}
-                  </FormLabelName>
+                  <FormLabelName>Level of Adherence</FormLabelName>
                   <Input
                     type="select"
                     name="adherenceLevel"
@@ -2197,7 +2015,7 @@ const ClinicVisit = props => {
                     id="populationType"
                     onChange={handleInputChange}
                     value={objValues.populationType}
-                    disabled={disabledField}
+                    disabled
                     style={{
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
@@ -2230,7 +2048,7 @@ const ClinicVisit = props => {
                     id="visitType"
                     onChange={handleInputChange}
                     value={objValues.visitType}
-                    disabled={disabledField}
+                    disabled
                     style={{
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
@@ -2255,7 +2073,7 @@ const ClinicVisit = props => {
                   <FormGroup>
                     <FormLabelName>Reason for switch</FormLabelName>
                     <span style={{ color: 'red' }}> *</span>
-                    {/* <Input
+                    <Input
                       type="select"
                       name="reasonForSwitch"
                       id="reasonForSwitch"
@@ -2268,25 +2086,13 @@ const ClinicVisit = props => {
                       disabled={disabledField}
                     >
                       <option value="">Select</option>
+
                       {reasonForSwitchOptions.map(value => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                    </Input> */}
-                    <Input
-                      type="text"
-                      name="reasonForSwitch"
-                      id="reasonForSwitch"
-                      placeholder="Enter reason for switch..."
-                      value={objValues.reasonForSwitch}
-                      onChange={handleInputChange}
-                      style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.25rem',
-                      }}
-                      disabled={disabledField}
-                    ></Input>
+                        <option key={value.id} value={value.code}>
+                          {value.display}
+                        </option>
+                      ))}
+                    </Input>
                   </FormGroup>
                   {errors.reasonForSwitch !== '' ? (
                     <span className={classes.error}>
@@ -2297,6 +2103,35 @@ const ClinicVisit = props => {
                   )}
                 </div>
               )}
+              <div className="form-group mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName>Was PrEP Administered?</FormLabelName>
+                  <span style={{ color: 'red' }}> *</span>
+                  <Input
+                    type="select"
+                    name="wasPrepAdministered"
+                    id="wasPrepAdministered"
+                    value={objValues.wasPrepAdministered}
+                    onChange={handleInputChange}
+                    style={{
+                      border: '1px solid #014D88',
+                      borderRadius: '0.25rem',
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value="">Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </Input>
+                </FormGroup>
+                {errors.wasPrepAdministered !== '' ? (
+                  <span className={classes.error}>
+                    {errors.wasPrepAdministered}
+                  </span>
+                ) : (
+                  ''
+                )}
+              </div>
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName for="">
@@ -2375,7 +2210,35 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
-              {objValues.prepType === 'PREP_TYPE_INJECTIBLES' && (
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName>
+                    {`Duration of refill (Day[s])`}{' '}
+                    <span style={{ color: 'red' }}> *</span>
+                  </FormLabelName>
+                  <Input
+                    type="number"
+                    name="monthsOfRefill"
+                    id="monthsOfRefill"
+                    value={objValues.monthsOfRefill}
+                    min={0}
+                    onChange={handleInputChange}
+                    style={{
+                      border: '1px solid #014D88',
+                      borderRadius: '0.25rem',
+                    }}
+                    disabled={disabledField}
+                  />
+                  {errors.monthsOfRefill !== '' ? (
+                    <span className={classes.error}>
+                      {errors.monthsOfRefill}
+                    </span>
+                  ) : (
+                    ''
+                  )}
+                </FormGroup>
+              </div>
+              {objValues.prepType && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <>
@@ -2408,7 +2271,7 @@ const ClinicVisit = props => {
                       )}
                     </>
                   </div>
-                  {objValues.otherPrepgiven === 'true' && (
+                  {objValues.otherPrepGiven === 'true' && (
                     <>
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
@@ -2432,7 +2295,11 @@ const ClinicVisit = props => {
                             {prepType
                               .filter(
                                 (each, index) =>
-                                  each.code !== 'PREP_TYPE_INJECTIBLES'
+                                  each.code !== 'PREP_TYPE_ED_PREP'
+                              )
+                              .filter(
+                                (each, index) =>
+                                  each.code !== objValues.prepType
                               )
                               .map(value => (
                                 <option key={value.id} value={value.code}>
@@ -2467,20 +2334,8 @@ const ClinicVisit = props => {
                               borderRadius: '0.25rem',
                             }}
                           >
-                            <option value=""> Select</option>
-                            {objValues.otherPrepType === 'PREP_TYPE_ORAL' ? (
-                              <option value="1">TDF(300mg)+3TC(300mg)</option>
-                            ) : null}
-                            {objValues.otherPrepType ===
-                            'PREP_TYPE_INJECTIBLES' ? (
-                              <option value="2">IM CAB-LA(600mg/3mL)</option>
-                            ) : null}
-                            {objValues.otherPrepType === 'PREP_TYPE_ED_PREP' ? (
-                              <>
-                                <option value="2">IM CAB-LA(600mg/3mL)</option>
-                                <option value="1">TDF(300mg)+3TC(300mg)</option>
-                              </>
-                            ) : null}
+                            <option value="">Select</option>
+                            {getOptions()}
                           </Input>
                           {errors.otherRegimenId !== '' ? (
                             <span className={classes.error}>
@@ -2523,35 +2378,6 @@ const ClinicVisit = props => {
                   {errors.prepDistributionSetting !== '' ? (
                     <span className={classes.error}>
                       {errors.prepDistributionSetting}
-                    </span>
-                  ) : (
-                    ''
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName>
-                    {`Duration of refill (Day[s])`}{' '}
-                    <span style={{ color: 'red' }}> *</span>
-                  </FormLabelName>
-                  <Input
-                    type="number"
-                    name="monthsOfRefill"
-                    id="monthsOfRefill"
-                    value={objValues.monthsOfRefill}
-                    min={0}
-                    onChange={handleInputChange}
-                    style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
-                    }}
-                    disabled={disabledField}
-                  />
-                  {errors.monthsOfRefill !== '' ? (
-                    <span className={classes.error}>
-                      {errors.monthsOfRefill}
                     </span>
                   ) : (
                     ''
@@ -2669,140 +2495,6 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName>Was PrEP Administered?</FormLabelName>
-                  <span style={{ color: 'red' }}> *</span>
-                  <Input
-                    type="select"
-                    name="wasPrepAdministered"
-                    id="wasPrepAdministered"
-                    value={objValues.wasPrepAdministered}
-                    onChange={handleInputChange}
-                    style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value="">Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </Input>
-                </FormGroup>
-                {errors.wasPrepAdministered !== '' ? (
-                  <span className={classes.error}>
-                    {errors.wasPrepAdministered}
-                  </span>
-                ) : (
-                  ''
-                )}
-              </div>
-
-              <br />
-              <br />
-              {/* <Label
-                as="a"
-                color="purple"
-                style={{ width: '106%', height: '35px' }}
-                ribbon
-              >
-                <h4 style={{ color: '#fff' }}>
-                  <input
-                    type="checkbox"
-                    name="otherPrepgiven"
-                    value="Yes"
-                    onChange={handleCheckBoxOtherPrepgiven}
-                    checked={otherPrepgiven.prepType == 'Yes' ? true : false}
-                  />{' '}
-                  Other PrEP Given
-                </h4>
-              </Label>
-              <br />
-              <br />
-              {otherPrepgiven.prepType === 'Yes' && (
-                <>
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <FormLabelName for="">PrEP Type</FormLabelName>
-                      <Input
-                        type="select"
-                        name="prepType"
-                        id="prepType"
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
-                        // disabled
-                        onChange={handlePrepTypeChange}
-                        value={objValues.prepType}
-                        disabled={disabledField}
-                      >
-                        <option value=""> Select Prep Type</option>
-                        {prepType.map(value => (
-                          <option key={value.id} value={value.code}>
-                            {value.display}
-                          </option>
-                        ))}
-                      </Input>
-                      {errors.prepType !== '' ? (
-                        <span className={classes.error}>{errors.prepType}</span>
-                      ) : (
-                        ''
-                      )}
-                    </FormGroup>
-                  </div>
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <FormLabelName for="">PrEP Regimen</FormLabelName>
-                      <Input
-                        type="select"
-                        name="regimenId"
-                        id="regimenId"
-                        onChange={handleInputChange}
-                        value={objValues.regimenId}
-                        disabled={disabledField}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
-                      >
-                        <option value=""> Select</option>
-                        {['update', 'view'].includes(
-                          props.activeContent.actionType
-                        )
-                          ? prepRegimen?.map(value => (
-                              <option key={value.id} value={value.id}>
-                                {value.regimen}
-                              </option>
-                            ))
-                          : objValues?.visitType ===
-                            'PREP_VISIT_TYPE_METHOD_SWITCH'
-                          ? filterOutLastRegimen(
-                              prepRegimen,
-                              props.recentActivities[0]?.regimenId
-                            ).map(value => (
-                              <option key={value.id} value={value.id}>
-                                {value.regimen}
-                              </option>
-                            ))
-                          : prepRegimen?.map(value => (
-                              <option key={value.id} value={value.id}>
-                                {value.regimen}
-                              </option>
-                            ))}
-                      </Input>
-                      {errors.regimenId !== '' ? (
-                        <span className={classes.error}>
-                          {errors.regimenId}
-                        </span>
-                      ) : (
-                        ''
-                      )}
-                    </FormGroup>
-                  </div>
-                </>
-              )} */}
               <br />
               <br />
               <Label
@@ -2864,25 +2556,6 @@ const ClinicVisit = props => {
                         Creatinine Test Result{' '}
                         <span style={{ color: 'red' }}> *</span>
                       </FormLabelName>
-                      {/* <Input
-                        type="select"
-                        name="result"
-                        id="result"
-                        value={creatinineTest.result}
-                        onChange={handleInputChangeCreatinineTest}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
-                        disabled={disabledField}
-                      >
-                        <option value="">Select</option>
-                        {creatinineTestResult.map(value => (
-                          <option key={value.id} value={value.display}>
-                            {value.display}
-                          </option>
-                        ))}
-                      </Input> */}
                       <Input
                         type="text"
                         name="result"

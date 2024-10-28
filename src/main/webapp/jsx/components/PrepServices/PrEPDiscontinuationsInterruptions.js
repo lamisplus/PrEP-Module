@@ -698,20 +698,6 @@ const PrEPEligibiltyScreeningForm = props => {
                   </div>
                 </>
               )}
-              {/* <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                        <Label for="eligibilityScreeningOccupation">Why ? </Label>
-                        <Input
-                            type="text"
-                            name="why"
-                            id="why"
-                            onChange={handleInputChange}
-                            value={objValues.why}
-                            required
-                        />
-                        
-                        </FormGroup>
-                    </div> */}
               {objValues.interruptionType === 'PREP_STATUS_RESTART' && (
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
@@ -838,24 +824,6 @@ const PrEPEligibiltyScreeningForm = props => {
                   <FormGroup>
                     <Label>Reason for discontinuation</Label>
                     <span style={{ color: 'red' }}> *</span>
-                    {/* <Input
-                      type="select"
-                      name="reasonForPrepDiscontinuation"
-                      id="reasonForPrepDiscontinuation"
-                      value={objValues.reasonForPrepDiscontinuation}
-                      onChange={handleInputChange}
-                      style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.25rem',
-                      }}
-                      disabled={disabledField}
-                    >
-                      {reasonForDiscontinuationOptions.map(value => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                    </Input> */}
                     <Input
                       type="text"
                       name="reasonForPrepDiscontinuation"
@@ -878,52 +846,7 @@ const PrEPEligibiltyScreeningForm = props => {
                     ''
                   )}
                 </div>
-              ) : (
-                <div className="form-group mb-3 col-md-6">
-                  <FormGroup>
-                    <Label>Reason for PrEP Interruption</Label>
-                    <span style={{ color: 'red' }}> *</span>
-                    {/* <Input
-                      type="select"
-                      name="interruptionReason"
-                      id="interruptionReason"
-                      value={objValues.interruptionReason}
-                      onChange={handleInputChange}
-                      style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.25rem',
-                      }}
-                      disabled={disabledField}
-                    >
-                       {reasonForPrepInterruptions.map(value => (
-                      <option key={value.id} value={value.display}>
-                        {value.display}
-                      </option>
-                    ))}
-                    </Input> */}
-                    <Input
-                      type="text"
-                      name="interruptionReason"
-                      id="interruptionReason"
-                      value={objValues.interruptionReason}
-                      onChange={handleInputChange}
-                      placeholder="Enter reason for PrEP interruptions..."
-                      style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.25rem',
-                      }}
-                      disabled={disabledField}
-                    ></Input>
-                  </FormGroup>
-                  {errors.interruptionReason !== '' ? (
-                    <span className={classes.error}>
-                      {errors.interruptionReason}
-                    </span>
-                  ) : (
-                    ''
-                  )}
-                </div>
-              )}
+              ) : null}
             </div>
 
             {saving ? <Spinner /> : ''}
