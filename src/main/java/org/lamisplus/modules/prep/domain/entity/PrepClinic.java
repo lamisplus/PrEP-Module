@@ -166,6 +166,10 @@ public class PrepClinic extends Audit implements Serializable{
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "liver_function_test_results", columnDefinition = "jsonb", nullable = true)
     private Object liverFunctionTestResults;
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "prep_noted_side_effects", columnDefinition = "jsonb", nullable = true)
+    private Object prepNotedSideEffects;
     @Column(name = "reason_for_switch")
     private String reasonForSwitch;
     @Column(name = "was_prep_administered")

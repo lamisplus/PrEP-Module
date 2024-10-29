@@ -567,6 +567,7 @@ public class PrepService {
         prepClinic.setPrepType(prepClinicRequestDto.getPrepType());
         prepClinic.setPopulationType(prepClinicRequestDto.getPopulationType());
         prepClinic.setLiverFunctionTestResults(prepClinicRequestDto.getLiverFunctionTestResults());
+        prepClinic.setPrepNotedSideEffects(prepClinicRequestDto.getPrepNotedSideEffects());
         prepClinic.setHistoryOfDrugToDrugInteraction(prepClinicRequestDto.getHistoryOfDrugToDrugInteraction());
         prepClinic.setHivTestResultDate(prepClinicRequestDto.getHivTestResultDate());
         prepClinic.setMonthsOfRefill(prepClinicRequestDto.getMonthsOfRefill());
@@ -642,6 +643,7 @@ public class PrepService {
         prepClinicDto.setHistoryOfDrugAllergies(clinic.getHistoryOfDrugAllergies());
         prepClinicDto.setDateLiverFunctionTestResults(clinic.getDateLiverFunctionTestResults());
         prepClinicDto.setLiverFunctionTestResults(clinic.getLiverFunctionTestResults());
+        prepClinicDto.setPrepNotedSideEffects(clinic.getPrepNotedSideEffects());
         prepClinicDto.setReasonForSwitch(clinic.getReasonForSwitch());
         prepClinicDto.setWasPrepAdministered(clinic.getWasPrepAdministered());
         prepClinicDto.setOtherPrepGiven(clinic.getOtherPrepGiven());

@@ -228,4 +228,9 @@
             ALTER TABLE prep_clinic RENAME COLUMN creatinine_result_varchar TO creatinine_result;
         </sql>
     </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="28-10-2024-01">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN prep_noted_side_effects JSONB;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

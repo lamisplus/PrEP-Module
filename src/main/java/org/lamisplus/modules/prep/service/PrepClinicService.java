@@ -215,6 +215,7 @@ public class PrepClinicService {
         prepClinic.setPrepType(prepClinicDto.getPrepType());
         prepClinic.setPopulationType(prepClinicDto.getPopulationType());
         prepClinic.setLiverFunctionTestResults(prepClinicDto.getLiverFunctionTestResults());
+        prepClinic.setPrepNotedSideEffects(prepClinicDto.getPrepNotedSideEffects());
         prepClinic.setHistoryOfDrugToDrugInteraction(prepClinicDto.getHistoryOfDrugToDrugInteraction());
         prepClinic.setMonthsOfRefill(prepClinicDto.getMonthsOfRefill());
         prepClinic.setHivTestResultDate(prepClinicDto.getHivTestResultDate());
@@ -290,6 +291,7 @@ public class PrepClinicService {
         prepClinic.setPrepType(prepClinicRequestDto.getPrepType());
         prepClinic.setPopulationType(prepClinicRequestDto.getPopulationType());
         prepClinic.setLiverFunctionTestResults(prepClinicRequestDto.getLiverFunctionTestResults());
+        prepClinic.setPrepNotedSideEffects(prepClinicRequestDto.getPrepNotedSideEffects());
         prepClinic.setHistoryOfDrugToDrugInteraction(prepClinicRequestDto.getHistoryOfDrugToDrugInteraction());
         prepClinic.setHivTestResultDate(prepClinicRequestDto.getHivTestResultDate());
         prepClinic.setMonthsOfRefill(prepClinicRequestDto.getMonthsOfRefill());
@@ -367,11 +369,11 @@ public class PrepClinicService {
         prepClinicDto.setPrepGiven( clinic.getHivTestResult());
         prepClinicDto.setOtherDrugs( clinic.getOtherDrugs());
         prepClinicDto.setHivTestResult( clinic.getHivTestResult());
-
         prepClinicDto.setDateLiverFunctionTestResults(clinic.getDateLiverFunctionTestResults());
         prepClinicDto.setPrepType(clinic.getPrepType());
         prepClinicDto.setPopulationType(clinic.getPopulationType());
         prepClinicDto.setLiverFunctionTestResults(clinic.getLiverFunctionTestResults());
+        prepClinicDto.setPrepNotedSideEffects(clinic.getPrepNotedSideEffects());
         prepClinicDto.setHistoryOfDrugToDrugInteraction(clinic.getHistoryOfDrugToDrugInteraction());
         prepClinicDto.setHivTestResultDate(clinic.getHivTestResultDate());
         prepClinicDto.setMonthsOfRefill(clinic.getMonthsOfRefill());

@@ -105,6 +105,7 @@ public class PrepClinicDto implements Serializable{
     private String healthCareWorkerSignature;
     private LocalDate dateLiverFunctionTestResults;
     private Object liverFunctionTestResults;
+    private Object prepNotedSideEffects;
     private String reasonForSwitch;
     private String wasPrepAdministered;
 

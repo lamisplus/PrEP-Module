@@ -18,6 +18,8 @@ import { toast } from 'react-toastify';
 import Divider from '@mui/material/Divider';
 import { TiTrash } from 'react-icons/ti';
 import { LiverFunctionTest } from '../PrepServices/PrEPEligibiltyScreeningForm';
+import DualListBox from 'react-dual-listbox';
+import 'react-dual-listbox/lib/react-dual-listbox.css';
 
 const useStyles = makeStyles(theme => ({
   card: {
@@ -140,6 +142,7 @@ const ClinicVisit = props => {
     height: '',
     hepatitis: {},
     nextAppointment: '',
+    prepNotedSideEffects: [],
     notedSideEffects: '',
     wasPrepAdministered: '',
     otherTestsDone: [],
@@ -786,6 +789,7 @@ const ClinicVisit = props => {
       hepatitis: {},
       nextAppointment: '',
       notedSideEffects: '',
+      prepNotedSideEffects: '',
       otherTestsDone: [],
       personId: props.patientObj.personId,
       pregnant: '',
@@ -847,11 +851,6 @@ const ClinicVisit = props => {
         : 'This field is required';
     }
     temp.weight = objValues.weight ? '' : 'This field is required';
-    temp.urinalysisTest = urinalysisTest.urinalysisTest
-      ? ''
-      : 'This field is required';
-    temp.testDate = urinalysisTest.testDate ? '' : 'This field is required';
-    temp.result = urinalysisTest.result ? '' : 'This field is required';
     temp.creatinineTest = creatinineTest.creatinineTest
       ? ''
       : 'This field is required';
@@ -895,7 +894,8 @@ const ClinicVisit = props => {
       objValues.creatinine = creatinineTest;
       objValues.otherTestsDone = otherTest;
       objValues.prepEnrollmentUuid = patientDto.uuid;
-
+      objValues.prepNotedSideEffects = notedSideEffects;
+      objValues.notedSideEffects = '';
       if (props.activeContent && props.activeContent.actionType === 'update') {
         axios
           .put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues, {
@@ -1238,7 +1238,13 @@ const ClinicVisit = props => {
         return null;
     }
   };
+  const [notedSideEffects, setNotedSideEffects] = useState([]);
+  const handleNotedSideEffectsChange = selected => {
+    setNotedSideEffects(selected);
+    setObjValues({ ...objValues, notedSideEffects: selected });
+  };
 
+  console.log('currentObjvalues: ', objValues);
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
@@ -1277,7 +1283,6 @@ const ClinicVisit = props => {
                       borderRadius: '0.25rem',
                     }}
                     onChange={handleInputChange}
-                    //min={props.patientDetail && props.patientDetail.dateHivPositive!==null ? props.patientDetail.dateHivPositive : props.patientDetail.personResponseDto.dateOfRegistration}
                     min={
                       patientDto && patientDto.dateEnrolled
                         ? patientDto.dateEnrolled
@@ -1848,26 +1853,23 @@ const ClinicVisit = props => {
               </>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName>Noted Side Effects </FormLabelName>
-                  <Input
-                    type="select"
-                    name="notedSideEffects"
-                    id="notedSideEffects"
-                    value={objValues.notedSideEffects}
-                    onChange={handleInputChange}
-                    style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
-                    }}
+                  <FormLabelName>Noted Side Effects</FormLabelName>
+                  <DualListBox
+                    options={prepSideEffect.map(effect => ({
+                      value: effect.code,
+                      label: effect.display,
+                    }))}
+                    selected={notedSideEffects}
+                    onChange={handleNotedSideEffectsChange}
                     disabled={disabledField}
-                  >
-                    <option value="">Select</option>
-                    {prepSideEffect.map(value => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
+                  />
+                  {errors.notedSideEffects !== '' ? (
+                    <span className={classes.error}>
+                      {errors.notedSideEffects}
+                    </span>
+                  ) : (
+                    ''
+                  )}
                 </FormGroup>
               </div>
               <div className="form-group mb-3 col-md-6">
@@ -2607,10 +2609,7 @@ const ClinicVisit = props => {
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
-                      <FormLabelName>
-                        Urinalysis Test Date{' '}
-                        <span style={{ color: 'red' }}> *</span>
-                      </FormLabelName>
+                      <FormLabelName>Urinalysis Test Date </FormLabelName>
                       <Input
                         type="date"
                         onKeyDown={e => e.preventDefault()}
@@ -2636,10 +2635,7 @@ const ClinicVisit = props => {
                   </div>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
-                      <FormLabelName>
-                        Urinalysis Test Result{' '}
-                        <span style={{ color: 'red' }}> *</span>
-                      </FormLabelName>
+                      <FormLabelName>Urinalysis Test Result </FormLabelName>
                       <Input
                         type="select"
                         name="result"
