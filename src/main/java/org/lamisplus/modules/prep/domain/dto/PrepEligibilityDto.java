@@ -45,6 +45,7 @@ public class PrepEligibilityDto implements Serializable {
     private String populationType;
     private String visitType;
     private String lftConducted;
+    private String reasonForSwitch;
     private LocalDate dateLiverFunctionTestResults;
     private Object liverFunctionTestResults;
     private String pregnancyStatus;

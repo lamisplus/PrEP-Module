@@ -8896,7 +8896,7 @@ svg.pulse-svg {
     .search-area {
       width: 260px; }
       .search-area .input-group-text {
-        height: 41px; } }
+        height: 2.5625em; } }
   @media only screen and (max-width: 1400px) {
     .search-area .input-group-text {
       height: 50px; }
@@ -32718,7 +32718,7 @@ $color_pallate_15: #ed0b4c; */
   border-radius: 1.25rem; }
   @media only screen and (max-width: 1400px) {
     .form-control {
-      height: 41px; } }
+      height: 2.5625em; } }
   .form-control:hover, .form-control:focus, .form-control.active {
     box-shadow: none;
     background: #fff;

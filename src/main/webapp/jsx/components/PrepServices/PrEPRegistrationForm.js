@@ -50,7 +50,7 @@ const useStyles = makeStyles(theme => ({
     },
     '& .form-control': {
       borderRadius: '0.25rem',
-      height: '41px',
+      height: '2.5625em',
     },
     '& .card-header:first-child': {
       borderRadius: 'calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0',
@@ -84,9 +84,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const PrEPRegistrationForm = props => {
-  ///const patientObj = props.patientObj;
   const [entryPoint, setEntryPoint] = useState([]);
-  //let history = useHistory();
   const classes = useStyles();
   const [objValues, setObjValues] = useState({
     dateEnrolled: '',
@@ -125,7 +123,6 @@ const PrEPRegistrationForm = props => {
         props.activeContent.actionType === 'view' ? true : false
       );
     }
-    //GetPatientPrepEnrollment
   }, []);
   const getTargetGroupvalue = () => {
     axios
@@ -133,7 +130,6 @@ const PrEPRegistrationForm = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        //console.log(response.data?.htsClientDtoList[0]?.targetGroup);
         setTargetGroupValue(response.data?.htsClientDtoList[0]?.targetGroup);
       })
       .catch(error => {
@@ -146,7 +142,6 @@ const PrEPRegistrationForm = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        //console.log(response.data);
         setEntryPoint(response.data);
       })
       .catch(error => {
@@ -184,7 +179,6 @@ const PrEPRegistrationForm = props => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
-        //console.log(response.data)
         setPatientDto(response.data);
         getTargetGroupvalue();
       })
@@ -198,7 +192,6 @@ const PrEPRegistrationForm = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        //console.log(response.data.find((x)=> x.id===id));
         setObjValues(response.data.find(x => x.id === id));
       })
       .catch(error => {
@@ -215,26 +208,21 @@ const PrEPRegistrationForm = props => {
 
   const validate = () => {
     let temp = { ...errors };
-    temp.dateEnrolled = objValues.dateEnrolled ? '' : 'This field is required';
-    temp.dateReferred = objValues.dateReferred ? '' : 'This field is required';
-    temp.riskType = objValues.riskType ? '' : 'This field is required';
-    //temp.supporterName = objValues.supporterName ? "" : "This field is required"
-    //temp.supporterPhone = objValues.supporterPhone ? "" : "This field is required"
-    //temp.supporterRelationshipType = objValues.supporterRelationshipType ? "" : "This field is required"
-    temp.uniqueId = objValues.uniqueId ? '' : 'This field is required';
+    temp.dateEnrolled = objValues.dateEnrolled ? '' : 'This field is required⚠';
+    temp.dateReferred = objValues.dateReferred ? '' : 'This field is required⚠';
+    temp.riskType = objValues.riskType ? '' : 'This field is required⚠';
+    temp.uniqueId = objValues.uniqueId ? '' : 'This field is required⚠';
     setErrors({
       ...temp,
     });
     return Object.values(temp).every(x => x == '');
   };
-  /**** Submit Button Processing  */
   const handleSubmit = e => {
     e.preventDefault();
     if (validate()) {
       objValues.personId = props.patientObj.personId;
       objValues.prepEligibilityUuid = patientDto.uuid;
       objValues.targetGroup = targetGroupValue;
-      //console.log("prep", objValues);
       setSaving(true);
       if (props.activeContent && props.activeContent.actionType) {
         axios
@@ -247,7 +235,7 @@ const PrEPRegistrationForm = props => {
             setSaving(false);
             props.patientObj.prepCount = '1';
             props.PatientObject();
-            toast.success('Prep Enrollment save successful!', {
+            toast.success('PrEP enrolment saved successfully!✔', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -257,7 +245,7 @@ const PrEPRegistrationForm = props => {
           })
           .catch(error => {
             setSaving(false);
-            toast.error('Something went wrong');
+            toast.error('Something went wrong❌');
           });
       } else {
         axios
@@ -267,7 +255,7 @@ const PrEPRegistrationForm = props => {
           .then(response => {
             setSaving(false);
             props.patientObj.prepCount = '1';
-            toast.success('Prep Enrollment save successful!', {
+            toast.success('PrEP enrolment saved successfully!✔', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -277,11 +265,11 @@ const PrEPRegistrationForm = props => {
           })
           .catch(error => {
             setSaving(false);
-            toast.error('Something went wrong');
+            toast.error('Something went wrong❌');
           });
       }
     } else {
-      toast.error('All fields are required ', {
+      toast.error('All fields are required❌', {
         position: toast.POSITION.BOTTOM_CENTER,
       });
     }

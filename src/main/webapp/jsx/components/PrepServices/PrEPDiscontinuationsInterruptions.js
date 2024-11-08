@@ -52,7 +52,7 @@ const useStyles = makeStyles(theme => ({
     },
     '& .form-control': {
       borderRadius: '0.25rem',
-      height: '41px',
+      height: '2.5625em',
     },
     '& .card-header:first-child': {
       borderRadius: 'calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0',
@@ -327,8 +327,6 @@ const PrEPEligibiltyScreeningForm = props => {
       objValues.dateClientDied !== ''
     ) {
       objValues.interruptionDate = objValues.dateClientDied;
-    } else {
-      //objValues.interruptionDate = objValues.interruptionDate
     }
     if (validate()) {
       setSaving(true);
@@ -341,7 +339,7 @@ const PrEPEligibiltyScreeningForm = props => {
           )
           .then(response => {
             setSaving(false);
-            toast.success('Record save successful');
+            toast.success('Record saved successfully! ✔');
             props.PatientObject();
             props.setActiveContent({
               ...props.activeContent,
@@ -355,7 +353,7 @@ const PrEPEligibiltyScreeningForm = props => {
                 error.response.data.apierror &&
                 error.response.data.apierror.message !== ''
                   ? error.response.data.apierror.message
-                  : 'Something went wrong, please try again';
+                  : 'Something went wrong ❌ please try again...';
               if (error.response.data.apierror) {
                 toast.error(error.response.data.apierror.message, {
                   position: toast.POSITION.BOTTOM_CENTER,
@@ -366,7 +364,7 @@ const PrEPEligibiltyScreeningForm = props => {
                 });
               }
             } else {
-              toast.error('Something went wrong, please try again...', {
+              toast.error('Something went wrong ❌ Please try again...', {
                 position: toast.POSITION.BOTTOM_CENTER,
               });
             }
@@ -379,7 +377,7 @@ const PrEPEligibiltyScreeningForm = props => {
           .then(response => {
             const newStatus = getNewPrepStatus(response.data, prepStatus);
             setSaving(false);
-            toast.success('Record save successful');
+            toast.success('Record saved successfully! ✔');
             props.PatientObject();
             props.setActiveContent({
               ...props.activeContent,
@@ -394,7 +392,7 @@ const PrEPEligibiltyScreeningForm = props => {
                 error.response.data.apierror &&
                 error.response.data.apierror.message !== ''
                   ? error.response.data.apierror.message
-                  : 'Something went wrong, please try again';
+                  : 'Something went wrong ❌ Please try again...';
               if (error.response.data.apierror) {
                 toast.error(error.response.data.apierror.message, {
                   position: toast.POSITION.BOTTOM_CENTER,
@@ -405,7 +403,7 @@ const PrEPEligibiltyScreeningForm = props => {
                 });
               }
             } else {
-              toast.error('Something went wrong, please try again...', {
+              toast.error('Something went wrong ❌ Please try again...', {
                 position: toast.POSITION.BOTTOM_CENTER,
               });
             }

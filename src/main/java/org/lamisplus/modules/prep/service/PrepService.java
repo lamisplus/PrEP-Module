@@ -438,6 +438,7 @@ public class PrepService {
         prepEligibility.setVisitType(prepEligibilityRequestDto.getVisitType());
         prepEligibility.setPregnancyStatus(prepEligibilityRequestDto.getPregnancyStatus());
         prepEligibility.setVisitDate( prepEligibilityRequestDto.getVisitDate());
+        prepEligibility.setReasonForSwitch(prepEligibilityRequestDto.getReasonForSwitch());
         prepEligibility.setLftConducted(prepEligibilityRequestDto.getLftConducted());
         prepEligibility.setDateLiverFunctionTestResults(prepEligibilityRequestDto.getDateLiverFunctionTestResults());
         prepEligibility.setLiverFunctionTestResults(prepEligibilityRequestDto.getLiverFunctionTestResults());
@@ -474,6 +475,7 @@ public class PrepService {
         prepEligibilityDto.setPopulationType(eligibility.getPopulationType());
         prepEligibilityDto.setVisitType(eligibility.getVisitType());
         prepEligibilityDto.setPregnancyStatus(eligibility.getPregnancyStatus());
+        prepEligibilityDto.setReasonForSwitch(eligibility.getReasonForSwitch());
         prepEligibilityDto.setLftConducted(eligibility.getLftConducted());
         prepEligibilityDto.setDateLiverFunctionTestResults(eligibility.getDateLiverFunctionTestResults());
         prepEligibilityDto.setLiverFunctionTestResults(eligibility.getLiverFunctionTestResults());
@@ -616,9 +618,6 @@ public class PrepService {
         prepClinicDto.setDatePrepGiven( clinic.getDatePrepGiven());
         prepClinicDto.setUrinalysis( clinic.getUrinalysis());
         prepClinicDto.setCreatinine( clinic.getCreatinine());
-
-        prepClinicDto.setCreatinine( clinic.getCreatinine());
-
         prepClinicDto.setHepatitis( clinic.getHepatitis());
         prepClinicDto.setSyphilis( clinic.getSyphilis());
         prepClinicDto.setOtherTestsDone( clinic.getOtherTestsDone());

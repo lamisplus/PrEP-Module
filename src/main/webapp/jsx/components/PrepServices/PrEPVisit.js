@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Row, Card, CardBody, FormGroup, Label, Input } from 'reactstrap';
+import { Card, CardBody, FormGroup, Label, Input } from 'reactstrap';
 import MatButton from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
 import SaveIcon from '@material-ui/icons/Save';
 import CancelIcon from '@material-ui/icons/Cancel';
-// import { Alert } from 'reactstrap';
-// import { Spinner } from 'reactstrap';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { url as baseUrl, token } from '../../../api';
-import { useHistory } from 'react-router-dom';
-import { Modal, Button } from 'react-bootstrap';
 import 'react-widgets/dist/css/react-widgets.css';
-import { DateTimePicker } from 'react-widgets';
 import { Spinner } from 'reactstrap';
 
 const useStyles = makeStyles(theme => ({
@@ -23,7 +18,7 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
   },
   form: {
-    width: '100%', // Fix IE 11 issue.
+    width: '100%',
     marginTop: theme.spacing(3),
   },
   submit: {
@@ -52,7 +47,6 @@ const useStyles = makeStyles(theme => ({
 
 const PrEPVisit = props => {
   const patientObj = props.patientObj;
-  let history = useHistory();
   const classes = useStyles();
   const [objValues, setObjValues] = useState({
     id: '',
@@ -75,10 +69,7 @@ const PrEPVisit = props => {
   const [errors, setErrors] = useState({});
   const [carePoints, setCarePoints] = useState([]);
   const [hivStatus, setHivStatus] = useState([]);
-  //set ro show the facility name field if is transfer in
   const [transferIn, setTransferIn] = useState(false);
-  // display the OVC number if patient is enrolled into OVC
-  const [ovcEnrolled, setOvcEnrolled] = useState(false);
 
   useEffect(() => {}, []);
 
@@ -93,28 +84,8 @@ const PrEPVisit = props => {
     }
   };
 
-  //Handle CheckBox
-  const handleCheckBox = e => {
-    if (e.target.checked) {
-      setOvcEnrolled(true);
-    } else {
-      setOvcEnrolled(false);
-    }
-  };
-
-  const validate = () => {
-    let temp = { ...errors };
-    //temp.name = details.name ? "" : "This field is required"
-    //temp.description = details.description ? "" : "This field is required"
-    setErrors({
-      ...temp,
-    });
-    return Object.values(temp).every(x => x == '');
-  };
-  /**** Submit Button Processing  */
   const handleSubmit = e => {
     e.preventDefault();
-
     objValues.personId = patientObj.id;
     patientObj.enrolled = true;
     delete objValues['tableData'];
@@ -125,14 +96,14 @@ const PrEPVisit = props => {
       })
       .then(response => {
         setSaving(false);
-        toast.success('Record save successful');
+        toast.success('Record saved successfully! ✔');
         props.toggle();
         props.patientObj.enrolled = true;
         props.PatientCurrentStatus();
       })
       .catch(error => {
         setSaving(false);
-        toast.error('Something went wrong');
+        toast.error('Something went wrong ❌');
       });
   };
 
@@ -326,9 +297,6 @@ const PrEPVisit = props => {
                         {value.display}
                       </option>
                     ))}
-                    {/* {errors.statusAtRegistrationId !=="" ? (
-                                    <span className={classes.error}>{errors.statusAtRegistrationId}</span>
-                                ) : "" } */}
                   </Input>
                 </FormGroup>
               </div>

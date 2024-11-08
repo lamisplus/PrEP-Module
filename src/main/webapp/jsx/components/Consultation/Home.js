@@ -8,8 +8,7 @@ import {
   Input,
 } from 'reactstrap';
 import { url as baseUrl, token } from '../../../api';
-import MatButton from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, Button as MatButton } from '@material-ui/core';
 import SaveIcon from '@material-ui/icons/Save';
 import AddIcon from '@mui/icons-material/Add';
 import axios from 'axios';
@@ -17,9 +16,9 @@ import moment from 'moment';
 import { toast } from 'react-toastify';
 import Divider from '@mui/material/Divider';
 import { TiTrash } from 'react-icons/ti';
-import { LiverFunctionTest } from '../PrepServices/PrEPEligibiltyScreeningForm';
 import DualListBox from 'react-dual-listbox';
 import 'react-dual-listbox/lib/react-dual-listbox.css';
+import { LiverFunctionTest } from '../PrepServices/PrEPEligibiltyScreeningForm';
 
 const useStyles = makeStyles(theme => ({
   card: {
@@ -86,6 +85,16 @@ const useStyles = makeStyles(theme => ({
     fontSize: '11px',
   },
 }));
+export const CleanupWrapper = ({ isVisible, cleanup, children }) => {
+  useEffect(() => {
+    return () => {
+      if (!isVisible) {
+        cleanup();
+      }
+    };
+  }, [isVisible, cleanup]);
+  return isVisible ? children : null;
+};
 
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
@@ -129,7 +138,7 @@ const ClinicVisit = props => {
     temperature: '',
     respiratoryRate: '',
   });
-
+  //faciliId
   const [objValues, setObjValues] = useState({
     adherenceLevel: '',
     dateInitialAdherenceCounseling: '',
@@ -222,7 +231,7 @@ const ClinicVisit = props => {
   let temp = { ...errors };
   let testsOptions = [];
 
-  const PREGANACY_STATUS = () => {
+  const getPregnancyStatus = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -233,7 +242,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const PREP_ENTRY_POINT = () => {
+  const getPrepEntryPoint = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PrEP_ENTRY_POINT`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -244,7 +253,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const PREP_TYPE = () => {
+  const getPrepType = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PrEP_TYPE`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -255,14 +264,14 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const TestGroup = () => {
+  const getTestGroup = () => {
     axios
       .get(`${baseUrl}laboratory/labtestgroups`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        response.data.map(x => {
-          x.labTests.map(x2 => {
+        response?.data?.map(x => {
+          x?.labTests?.map(x2 => {
             testsOptions.push({
               value: x2.id,
               label: x2.labTestName,
@@ -288,7 +297,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const checkEligibleForCABLA = async (currentDate, regimenList) => {
+  const checkEligibleForCabLa = async (currentDate, regimenList) => {
     if (currentDate) {
       await axios
         .get(
@@ -334,7 +343,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const getHIVresult = () => {
+  const getHivResult = () => {
     axios
       .get(`${baseUrl}prep-clinic/hts-record/${props.patientObj.personId}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -342,17 +351,17 @@ const ClinicVisit = props => {
       .then(response => {
         if (response.data?.length === 0) {
           toast.error(
-            'No HTS record found. Atleast, 1 test result is required to proceed.'
+            'No HTS record found ⚠ Atleast, 1 test result is required to proceed.'
           );
         } else if (response.data?.length > 0) {
-          toast.success('HTS record found. You may proceed.');
+          toast.success('HTS record found 👍 You may proceed.');
         }
         setHivTestValue(response?.data?.[0]?.hivTestResult);
         setHivTestResultDate(response?.data?.[0]?.visitDate);
       })
       .catch(error => {});
   };
-  const GetPatientDTOObj = () => {
+  const getPatientDtoObj = () => {
     axios
       .get(
         `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
@@ -363,7 +372,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  const PrepEligibilityObj = () => {
+  const getPrepEligibilityObj = () => {
     axios
       .get(
         `${baseUrl}prep/eligibility/open/patients/${props.patientObj.personId}`,
@@ -380,11 +389,11 @@ const ClinicVisit = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        checkEligibleForCABLA(currentDate, response.data);
+        checkEligibleForCabLa(currentDate, response.data);
       })
       .catch(error => {});
   };
-  const PREP_STATUS = () => {
+  const getPrepStatus = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREP_STATUS`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -395,7 +404,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const PREP_RISK_REDUCTION_PLAN = () => {
+  const getPrepRiskReductionPlan = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PrEP_RISK_REDUCTION_PLAN`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -405,18 +414,16 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  const PREP_SIDE_EFFECTS = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`, {
+  const getPrepSideEffects = async () => {
+    return await axios.get(
+      `${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
+      {
         headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepSideEffect(response.data);
-      })
-      .catch(error => {});
+      }
+    );
   };
 
-  const HTS_RESULT = () => {
+  const getHts = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/HTS_RESULT`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -441,7 +448,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const POPULATION_TYPE = async () => {
+  const getPopulationType = async () => {
     axios
       .get(`${baseUrl}application-codesets/v2/POPULATION_TYPE`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -452,7 +459,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const VISIT_TYPE = () => {
+  const getVisitType = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PrEP_VISIT_TYPE`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -462,7 +469,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  const WHY_POOR_FAIR_ADHERENCE = () => {
+  const getWhyPoorFairAdherence = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/WHY_POOR_FAIR_ADHERENCE`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -473,7 +480,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const SYNDROMIC_STI_SCREENING = () => {
+  const getSyndromicStiScreening = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/SYNDROMIC_STI_SCREENING`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -483,7 +490,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  const PREP_URINALYSIS_RESULT = () => {
+  const getPrepUrinalysisResult = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -505,7 +512,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const PREP_OTHER_TEST = () => {
+  const getPrepOtherTests = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREP_OTHER_TEST`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -516,7 +523,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const SYPHILIS_RESULT = () => {
+  const getSyphilisResult = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/SYPHILIS_RESULT`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -527,7 +534,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const HEPATITIS_SCREENING_RESULT = () => {
+  const getHapetitisScreeningResult = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/HEPATITIS_SCREENING_RESULT`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -538,7 +545,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const FAMILY_PLANNING_METHOD = () => {
+  const getFamilyPlanningMethod = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/FAMILY_PLANNING_METHOD`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -549,7 +556,7 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  async function AdherenceLevel() {
+  async function getAdherenceLevel() {
     axios
       .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -691,7 +698,7 @@ const ClinicVisit = props => {
       (e.target.value < 48.26 || e.target.value > 216.408)
     ) {
       const message =
-        'Height cannot be greater than 216.408 and less than 48.26';
+        'Height cannot be greater than 216.408 and less than 48.26 ⚠';
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: '' });
@@ -703,7 +710,7 @@ const ClinicVisit = props => {
       (e.target.value < 3 || e.target.value > 150)
     ) {
       const message =
-        'Body weight must not be greater than 150 and less than 3';
+        'Body weight must not be greater than 150 and less than 3 ⚠';
       setVitalClinicalSupport({ ...vitalClinicalSupport, weight: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, weight: '' });
@@ -715,7 +722,7 @@ const ClinicVisit = props => {
       (e.target.value < 90 || e.target.value > 240)
     ) {
       const message =
-        'Blood Pressure systolic must not be greater than 240 and less than 90';
+        'Blood Pressure systolic must not be greater than 240 and less than 90 ⚠';
       setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: '' });
@@ -727,7 +734,7 @@ const ClinicVisit = props => {
       (e.target.value < 60 || e.target.value > 140)
     ) {
       const message =
-        'Blood Pressure diastolic must not be greater than 140 and less than 60';
+        'Blood Pressure diastolic must not be greater than 140 and less than 60 ⚠';
       setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: '' });
@@ -738,7 +745,7 @@ const ClinicVisit = props => {
       e.target.name === 'pulse' &&
       (e.target.value < 40 || e.target.value > 120)
     ) {
-      const message = 'Pulse must not be greater than 120 and less than 40';
+      const message = 'Pulse must not be greater than 120 and less than 40 ⚠';
       setVitalClinicalSupport({ ...vitalClinicalSupport, pulse: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, pulse: '' });
@@ -750,7 +757,7 @@ const ClinicVisit = props => {
       (e.target.value < 10 || e.target.value > 70)
     ) {
       const message =
-        'Respiratory Rate must not be greater than 70 and less than 10';
+        'Respiratory Rate must not be greater than 70 and less than 10 ⚠';
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
         respiratoryRate: message,
@@ -765,7 +772,7 @@ const ClinicVisit = props => {
       (e.target.value < 35 || e.target.value > 47)
     ) {
       const message =
-        'Temperature must not be greater than 47 and less than 35';
+        'Temperature must not be greater than 47 and less than 35 ⚠';
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
         temperature: message,
@@ -825,54 +832,56 @@ const ClinicVisit = props => {
   };
 
   const validate = () => {
-    temp.lastHts = hivTestValue ? '' : 'Atleast, 1 HIV test result is required';
+    temp.lastHts = hivTestValue
+      ? ''
+      : 'Atleast, 1 HIV test result is required ⚠';
     temp.monthsOfRefill = objValues.monthsOfRefill
       ? ''
-      : 'This field is required';
+      : 'This field is required ⚠';
     temp.wasPrepAdministered = objValues.wasPrepAdministered
       ? ''
-      : 'This field is required';
+      : 'This field is required ⚠';
     hasPrepEligibility(temp.encounterDate, props.encounters);
     temp.encounterDate = objValues.encounterDate
       ? ''
-      : 'This field is required';
+      : 'This field is required ⚠';
 
     if (isFemale()) {
-      temp.pregnant = objValues.pregnant ? '' : 'This field is required';
+      temp.pregnant = objValues.pregnant ? '' : 'This field is required ⚠';
     }
     temp.nextAppointment = objValues.nextAppointment
       ? ''
-      : 'This field is required';
+      : 'This field is required ⚠';
 
-    temp.height = objValues.height ? '' : 'This field is required';
+    temp.height = objValues.height ? '' : 'This field is required ⚠';
     if (objValues.prepType === 'PREP_TYPE_INJECTIBLES') {
       temp.otherPrepGiven = objValues.otherPrepGiven
         ? ''
-        : 'This field is required';
+        : 'This field is required ⚠';
     }
-    temp.weight = objValues.weight ? '' : 'This field is required';
+    temp.weight = objValues.weight ? '' : 'This field is required ⚠';
     temp.creatinineTest = creatinineTest.creatinineTest
       ? ''
-      : 'This field is required';
+      : 'This field is required ⚠';
     temp.creatinineTestDate = creatinineTest.testDate
       ? ''
-      : 'This field is required';
+      : 'This field is required ⚠';
     temp.creatinineResult = creatinineTest.result
       ? ''
-      : 'This field is required';
-    temp.regimenId = objValues.regimenId ? '' : 'This field is required';
-    temp.duration = objValues.duration ? '' : 'This field is required';
+      : 'This field is required ⚠';
+    temp.regimenId = objValues.regimenId ? '' : 'This field is required ⚠';
+    temp.duration = objValues.duration ? '' : 'This field is required ⚠';
     temp.prepDistributionSetting = objValues.prepDistributionSetting
       ? ''
-      : 'This field is required';
+      : 'This field is required ⚠';
     temp.populationType = objValues.populationType
       ? ''
-      : 'This field is required';
-    temp.visitType = objValues.visitType ? '' : 'This field is required';
+      : 'This field is required ⚠';
+    temp.visitType = objValues.visitType ? '' : 'This field is required ⚠';
     if (objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH') {
       temp.reasonForSwitch = objValues.reasonForSwitch
         ? ''
-        : 'This field is required';
+        : 'This field is required ⚠';
     } else {
       temp.reasonForSwitch = '';
     }
@@ -903,7 +912,7 @@ const ClinicVisit = props => {
           })
           .then(response => {
             setSaving(false);
-            toast.success('Clinic visit update successful', {
+            toast.success('Clinic visit updated successfully! ✔', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -920,7 +929,7 @@ const ClinicVisit = props => {
                 error.response.data.apierror &&
                 error.response.data.apierror.message !== ''
                   ? error.response.data.apierror.message
-                  : 'Something went wrong, please try again';
+                  : 'Something went wrong ❌ please try again';
               if (error.response.data.apierror) {
                 toast.error(error.response.data.apierror.message, {
                   position: toast.POSITION.BOTTOM_CENTER,
@@ -931,7 +940,7 @@ const ClinicVisit = props => {
                 });
               }
             } else {
-              toast.error('Something went wrong, please try again...', {
+              toast.error('Something went wrong ❌ please try again...', {
                 position: toast.POSITION.BOTTOM_CENTER,
               });
             }
@@ -942,10 +951,9 @@ const ClinicVisit = props => {
             headers: { Authorization: `Bearer ${token}` },
           })
           .then(response => {
-            //PatientDetaild();
             setSaving(false);
             emptyObjValues();
-            toast.success('Clinic Visit save successful', {
+            toast.success('Clinic Visit saved successfully! ✔', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -963,7 +971,7 @@ const ClinicVisit = props => {
                 error.response.data.apierror &&
                 error.response.data.apierror.message !== ''
                   ? error.response.data.apierror.message
-                  : 'Something went wrong, please try again';
+                  : 'Something went wrong ❌ please try again';
               if (error.response.data.apierror) {
                 toast.error(error.response.data.apierror.message, {
                   position: toast.POSITION.BOTTOM_CENTER,
@@ -974,7 +982,7 @@ const ClinicVisit = props => {
                 });
               }
             } else {
-              toast.error('Something went wrong, please try again...', {
+              toast.error('Something went wrong ❌ please try again...', {
                 position: toast.POSITION.BOTTOM_CENTER,
               });
             }
@@ -1014,7 +1022,7 @@ const ClinicVisit = props => {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
-          checkEligibleForCABLA(objValues.encounterDate, response.data);
+          checkEligibleForCabLa(objValues.encounterDate, response.data);
         })
         .catch(error => {
           //console.log(error);
@@ -1027,7 +1035,7 @@ const ClinicVisit = props => {
   function countPrepEligibility(data) {
     let count = 0;
     let relevantActivities = ['Prep Commencement', 'Prep Clinic'];
-    data.forEach(entry => {
+    data?.forEach(entry => {
       entry?.activities?.forEach(activity => {
         if (relevantActivities.includes(activity?.name)) {
           count++;
@@ -1129,6 +1137,7 @@ const ClinicVisit = props => {
         ...prevValues,
         populationType: autoPopulate ? autoPopulate.code : '',
         visitType: latestFromEligibility?.visitType || '',
+        reasonForSwitch: latestFromEligibility?.reasonForSwitch || '',
         pregnant: latestFromEligibility?.pregnancyStatus || '',
       }));
 
@@ -1158,28 +1167,37 @@ const ClinicVisit = props => {
     updateTest('syphilis', setSyphilisTest);
     updateTest('hepatitis', setHepatitisTest);
   }, [objValues]);
+  useEffect(async () => {
+    if (
+      props.activeContent.id &&
+      props.activeContent.id !== '' &&
+      props.activeContent.id !== null
+    ) {
+      getPrepEligibilityObj(props.activeContent.id);
+      setDisabledField(props.activeContent.actionType === 'view');
+    }
+  }, [props.activeContent]);
 
-  useEffect(() => {
-    AdherenceLevel();
-    SYNDROMIC_STI_SCREENING();
-    PREP_RISK_REDUCTION_PLAN();
-    PREP_STATUS();
-    HTS_RESULT();
-    PREP_SIDE_EFFECTS();
-    GetPatientDTOObj();
-    WHY_POOR_FAIR_ADHERENCE();
-    PrepEligibilityObj();
-    TestGroup();
-    PREP_URINALYSIS_RESULT();
-    PREP_OTHER_TEST();
-    HEPATITIS_SCREENING_RESULT();
-    SYPHILIS_RESULT();
-    PREGANACY_STATUS();
-    PREP_ENTRY_POINT();
-    PREP_TYPE();
-    POPULATION_TYPE();
-    VISIT_TYPE();
-    FAMILY_PLANNING_METHOD();
+  useEffect(async () => {
+    setAdherenceLevel((await getAdherenceLevel())?.data);
+    setPrepRiskReductionPlan(getSyndromicStiScreening()?.data);
+    setPrepStatus(getPrepStatus()?.data);
+    setHtsResult(getHts()?.data);
+    setPrepSideEffect((await getPrepSideEffects())?.data);
+    setPatientDto(getPatientDtoObj()?.data);
+    setWhyAdherenceLevelPoor(getWhyPoorFairAdherence()?.data);
+    getPrepEligibilityObj();
+    setLabTestOptions(getTestGroup()?.data);
+    setUrineTestResult(getPrepUrinalysisResult()?.data);
+    setOtherTestResult(getPrepOtherTests()?.data);
+    setHepaTestResult(getHapetitisScreeningResult()?.data);
+    setSyphilisTest(getSyphilisResult()?.data);
+    setpregnant(getPregnancyStatus()?.data);
+    setPrepEntryPoints(getPrepEntryPoint()?.data);
+    setPrepType(getPrepType()?.data);
+    setPopulationType(getPopulationType().data);
+    setVisitType(getVisitType()?.data);
+    setFamilyPlanningMethod(getFamilyPlanningMethod()?.data);
     getPatientVisit(props.activeContent.id);
     setDisabledField(
       !['update', undefined].includes(props.activeContent.actionType)
@@ -1188,7 +1206,7 @@ const ClinicVisit = props => {
 
   useEffect(() => {
     getRecentActivities();
-    getHIVresult();
+    getHivResult();
     getReasonForSwitch();
     getCreatinineTestResultOptions();
     getLiverFunctionTestResult();
@@ -1243,8 +1261,24 @@ const ClinicVisit = props => {
     setNotedSideEffects(selected);
     setObjValues({ ...objValues, notedSideEffects: selected });
   };
-
-  console.log('currentObjvalues: ', objValues);
+  useEffect(() => {
+    return () => {
+      setObjValues(prev => ({
+        ...prev,
+        otherPrepType: '',
+        otherRegimenId: '',
+      }));
+    };
+  }, []);
+  useEffect(() => {
+    if (objValues.otherPrepGiven === 'false') {
+      setObjValues(prevValues => ({
+        ...prevValues,
+        otherPrepType: '',
+        otherRegimenId: '',
+      }));
+    }
+  }, [objValues.otherPrepGiven]);
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
@@ -1703,7 +1737,7 @@ const ClinicVisit = props => {
                         }}
                       >
                         <option value="">Select Pregnancy Status</option>
-                        {pregnant.map(value => (
+                        {pregnant?.map(value => (
                           <option key={value.id} value={value.code}>
                             {value.display}
                           </option>
@@ -1855,7 +1889,7 @@ const ClinicVisit = props => {
                 <FormGroup>
                   <FormLabelName>Noted Side Effects</FormLabelName>
                   <DualListBox
-                    options={prepSideEffect.map(effect => ({
+                    options={prepSideEffect?.map(effect => ({
                       value: effect.code,
                       label: effect.display,
                     }))}
@@ -1910,7 +1944,7 @@ const ClinicVisit = props => {
                       disabled={disabledField}
                     >
                       <option value="">Select</option>
-                      {sti.map(value => (
+                      {sti?.map(value => (
                         <option key={value.id} value={value.id}>
                           {value.display}
                         </option>
@@ -1937,7 +1971,7 @@ const ClinicVisit = props => {
                     <option key={100} value="">
                       Select
                     </option>
-                    {prepRiskReductionPlan.map(plan => (
+                    {prepRiskReductionPlan?.map(plan => (
                       <option key={plan.id} value={plan.id}>
                         {plan.display}
                       </option>
@@ -1962,7 +1996,7 @@ const ClinicVisit = props => {
                   >
                     <option value="">Select</option>
 
-                    {adherenceLevel.map(value => (
+                    {adherenceLevel?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -1996,7 +2030,7 @@ const ClinicVisit = props => {
                     >
                       <option value="">Select</option>
 
-                      {whyAdherenceLevelPoor.map(value => (
+                      {whyAdherenceLevelPoor?.map(value => (
                         <option key={value.id} value={value.code}>
                           {value.display}
                         </option>
@@ -2057,7 +2091,7 @@ const ClinicVisit = props => {
                     }}
                   >
                     <option value=""> Select Visit Type</option>
-                    {visitType.map(value => (
+                    {visitType?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -2085,11 +2119,11 @@ const ClinicVisit = props => {
                         border: '1px solid #014D88',
                         borderRadius: '0.25rem',
                       }}
-                      disabled={disabledField}
+                      disabled
                     >
                       <option value="">Select</option>
 
-                      {reasonForSwitchOptions.map(value => (
+                      {reasonForSwitchOptions?.map(value => (
                         <option key={value.id} value={value.code}>
                           {value.display}
                         </option>
@@ -2153,7 +2187,7 @@ const ClinicVisit = props => {
                     disabled={disabledField}
                   >
                     <option value=""> Select PrEP Type</option>
-                    {prepType.map(value => (
+                    {prepType?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -2194,7 +2228,7 @@ const ClinicVisit = props => {
                       ? filterOutLastRegimen(
                           prepRegimen,
                           props.recentActivities[0]?.regimenId
-                        ).map(value => (
+                        )?.map(value => (
                           <option key={value.id} value={value.id}>
                             {value.regimen}
                           </option>
@@ -2371,7 +2405,7 @@ const ClinicVisit = props => {
                     }}
                   >
                     <option value=""></option>
-                    {prepEntryPoint.map(value => (
+                    {prepEntryPoint?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -2463,7 +2497,7 @@ const ClinicVisit = props => {
                     }}
                   >
                     <option value=""></option>
-                    {familyPlanningMethod.map(value => (
+                    {familyPlanningMethod?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -2616,7 +2650,6 @@ const ClinicVisit = props => {
                         name="testDate"
                         id="testDate"
                         value={urinalysisTest.testDate}
-                        // defaultValue={objValues.urinalysis?.testDate}
                         onChange={handleInputChangeUrinalysisTest}
                         style={{
                           border: '1px solid #014D88',
@@ -2649,7 +2682,7 @@ const ClinicVisit = props => {
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        {urineTestResult.map(value => (
+                        {urineTestResult?.map(value => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
@@ -2725,7 +2758,7 @@ const ClinicVisit = props => {
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        {hepaTestResult.map(value => (
+                        {hepaTestResult?.map(value => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
@@ -2749,14 +2782,16 @@ const ClinicVisit = props => {
                     name="syphilisTest"
                     value="Yes"
                     onChange={handleCheckBoxSyphilisTest}
-                    checked={syphilisTest.syphilisTest === 'Yes' ? true : false}
+                    checked={
+                      syphilisTest?.syphilisTest === 'Yes' ? true : false
+                    }
                   />{' '}
                   Syphilis Test{' '}
                 </h4>
               </Label>
               <br />
               <br />
-              {syphilisTest.syphilisTest === 'Yes' && (
+              {syphilisTest?.syphilisTest === 'Yes' && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -2794,7 +2829,7 @@ const ClinicVisit = props => {
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        {sphylisTestResult.map(value => (
+                        {sphylisTestResult?.map(value => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
@@ -2849,7 +2884,7 @@ const ClinicVisit = props => {
               <br />
               {/* {otherTest.otherTest === 'Yes' && (<> */}
               {otherTest.length > 0 &&
-                otherTest.map(eachTest => (
+                otherTest?.map(eachTest => (
                   <div className="row" key={eachTest.localId}>
                     <div className=" mb-1 col-md-3">
                       <FormGroup>
@@ -2985,7 +3020,7 @@ const ClinicVisit = props => {
                 ''
               )}
               {otherTest.length > 0 && (
-                <div>
+                <div className="p-2">
                   <MatButton
                     type="button"
                     variant="contained"
@@ -3010,13 +3045,15 @@ const ClinicVisit = props => {
                 style={{ width: '106%', height: '35px' }}
                 ribbon
               >
-                <h4 style={{ color: '#fff' }}>NEXT APPOINTMENT DATE </h4>
+                <h4 style={{ color: '#fff' }}>NEXT APPOINTMENT DATE</h4>
               </Label>
               <br />
               <br />
               <br />
               <div className="mb-3 col-md-6">
-                <FormLabelName>Next Appointment Date</FormLabelName>
+                <FormLabelName>
+                  Next Appointment Date <span style={{ color: 'red' }}> *</span>
+                </FormLabelName>
                 <Input
                   type="date"
                   onKeyDown={e => e.preventDefault()}
@@ -3040,7 +3077,8 @@ const ClinicVisit = props => {
                 )}
               </div>
               <div className=" mb-3 col-md-6">
-                <FormLabelName>Healthcare Worker Signature</FormLabelName>
+                <FormLabelName>Healthcare Worker Signature </FormLabelName>
+
                 <Input
                   name="healthCareWorkerSignature"
                   id="healthCareWorkerSignature"

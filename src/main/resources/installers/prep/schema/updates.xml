@@ -151,6 +151,12 @@
         </sql>
     </changeSet>
 
+    <changeSet failOnError="true" author="Gamaliel" id="06-11-2024-1">
+        <sql>
+            ALTER TABLE prep_eligibility ADD COLUMN reason_for_switch VARCHAR(255);
+        </sql>
+    </changeSet>
+
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-4">
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN other_prep_given VARCHAR(255);

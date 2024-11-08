@@ -1,37 +1,37 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FormGroup, Label, CardBody, Spinner, Input, Form } from 'reactstrap';
-import { makeStyles } from '@material-ui/core/styles';
+import { FormGroup, Label, CardBody, Spinner, Input } from 'reactstrap';
 import DualListBox from 'react-dual-listbox';
 import 'react-dual-listbox/lib/react-dual-listbox.css';
 import {
   Card,
-  Checkbox,
-  FormControl,
-  FormControlLabel,
   FormLabel,
+  makeStyles,
+  Button as MatButton,
 } from '@material-ui/core';
-import MatButton from '@material-ui/core/Button';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import 'react-widgets/dist/css/react-widgets.css';
 import { token, url as baseUrl } from '../../../api';
 import 'react-phone-input-2/lib/style.css';
-import {
-  Label as LabelRibbon,
-  Button,
-  Message,
-  Select,
-  Dropdown,
-} from 'semantic-ui-react';
-// import 'semantic-ui-css/semantic.min.css';
+import { Message, Dropdown } from 'semantic-ui-react';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-widgets/dist/css/react-widgets.css';
 import * as moment from 'moment';
 import SaveIcon from '@material-ui/icons/Save';
-import ReactReadMoreReadLess from 'react-read-more-read-less';
+
+import {
+  savePrepEligibility,
+  getCounselingType,
+  getPatientPrepEligibility,
+  getVisitType,
+  getRecentActivities,
+  getPregnancyStatus,
+  getReasonForDecline,
+  getLiverFunctionTestResult,
+} from '../../../apiCalls/eligibility';
+
 import '../../index.css';
-import { color } from 'highcharts';
+import { getPopulationType } from '../../../apiCalls/eligibility';
 
 const useStyles = makeStyles(theme => ({
   card: {
@@ -149,17 +149,17 @@ export const LiverFunctionTest = ({
 const BasicInfo = props => {
   const classes = useStyles();
   const [disabledField, setSisabledField] = useState(false);
-  const patientID =
-    props.patientDetail && props.patientDetail.personResponseDto
-      ? props.patientDetail.personResponseDto.id
-      : '';
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [counselingType, setCounselingType] = useState([]);
   const [visitType, setVisitType] = useState([]);
+  const [reasonForSwitchOptions, setReasonForSwitchOptions] = useState([]);
   const [reasonForDecline, setReasonForDecline] = useState([]);
   const [populationType, setPopulationType] = useState([]);
   const [pregnancyStatus, setPregnancyStatus] = useState([]);
+  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+
   let temp = { ...errors };
 
   const [objValues, setObjValues] = useState({
@@ -179,6 +179,7 @@ const BasicInfo = props => {
     uniqueId: '',
     visitDate: '',
     visitType: '',
+    reasonForSwitch: '',
     populationType: '',
     pregnancyStatus: '',
     lftConducted: '',
@@ -186,122 +187,6 @@ const BasicInfo = props => {
     dateLiverFunctionTestResults: '',
     score: 0,
   });
-  const handleLftInputChange = event => {
-    const { name, value } = event.target;
-    setObjValues(prevValues => ({
-      ...prevValues,
-      [name]: value,
-    }));
-  };
-
-  useEffect(async () => {
-    CounselingType();
-    VisitType();
-    await ReasonForDecline();
-    PopulationType();
-    PregnancyStatus();
-    if (
-      props.activeContent.id &&
-      props.activeContent.id !== '' &&
-      props.activeContent.id !== null
-    ) {
-      GetPatientPrepEligibility(props.activeContent.id);
-      setSisabledField(
-        props.activeContent.actionType === 'view' ? true : false
-      );
-    }
-  }, [props.patientObj]);
-
-  const GetPatientPrepEligibility = id => {
-    axios
-      .get(`${baseUrl}prep/eligibility/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setObjValues(response.data);
-        setRiskAssessment(response.data.personalHivRiskAssessment);
-        setRiskAssessmentPartner(response.data.sexPartnerRisk);
-        setStiScreening(response.data.stiScreening);
-        setDrugHistory(response.data.drugUseHistory);
-        setAssessmentForPepIndication(response.data.assessmentForPepIndication);
-        setAssessmentForAcuteHivInfection(
-          response.data.assessmentForAcuteHivInfection
-        );
-        setServicesReceivedByClient(response.data.servicesReceivedByClient);
-        setAssessmentForPrepEligibility(
-          response.data.assessmentForPrepEligibility
-        );
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const CounselingType = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/COUNSELING_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setCounselingType(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-  const VisitType = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_VISIT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setVisitType(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-  const ReasonForDecline = async () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/REASON_PREP_DECLINED`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setReasonForDecline(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-  const PopulationType = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/POPULATION_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPopulationType(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-  const PregnancyStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPregnancyStatus(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const handleInputChange = e => {
-    setErrors({ ...temp, [e.target.name]: '' });
-    setObjValues({ ...objValues, [e.target.name]: e.target.value });
-  };
   const [riskAssessment, setRiskAssessment] = useState({
     unprotectedVaginalSexCasual: '',
     unprotectedVaginalSexRegular: '',
@@ -317,13 +202,6 @@ const BasicInfo = props => {
     experienceCondomBreakage: '',
     takenPartInSexualOrgy: '',
   });
-  const handleInputChangeRiskAssessment = e => {
-    //setErrors({...temp, [e.target.name]:""})
-    setRiskAssessment({ ...riskAssessment, [e.target.name]: e.target.value });
-  };
-  // Getting the number count of riskAssessment True
-  const actualRiskCountTrue = Object.values(riskAssessment);
-  const riskCount = actualRiskCountTrue.filter(x => x === 'true');
   const [riskAssessmentPartner, setRiskAssessmentPartner] = useState({
     haveSexWithHIVPositive: '',
     haveSexWithPartnerInjectDrug: '',
@@ -331,16 +209,6 @@ const BasicInfo = props => {
     haveSexWithPartnerTransgender: '',
     sexWithPartnersWithoutCondoms: '',
   });
-  const handleInputChangeRiskAssessmentPartner = e => {
-    setErrors({ ...temp, [e.target.name]: '' });
-    setRiskAssessmentPartner({
-      ...riskAssessmentPartner,
-      [e.target.name]: e.target.value,
-    });
-  };
-  // Getting the number count of sexPartRiskCount True
-  const actualSexPartRiskCountTrue = Object.values(riskAssessmentPartner);
-  const sexPartRiskCount = actualSexPartRiskCountTrue.filter(x => x === 'true');
   const [stiScreening, setStiScreening] = useState({
     vaginalDischarge: '',
     lowerAbdominalPains: '',
@@ -353,13 +221,7 @@ const BasicInfo = props => {
     swollenIguinal: '',
     genitalScore: '',
   });
-  const handleInputChangeStiScreening = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
-    setStiScreening({ ...stiScreening, [e.target.name]: e.target.value });
-  };
-  // Getting the number count of STI True
-  const actualStiTrue = Object.values(stiScreening);
-  const stiCount = actualStiTrue.filter(x => x === 'true');
+
   const [drugHistory, setDrugHistory] = useState({
     useAnyOfTheseDrugs: '',
     inject: '',
@@ -372,39 +234,23 @@ const BasicInfo = props => {
     clinicalSetting: '',
     reportHivRisk: '',
     hivExposure: '',
-    hivTestResultAtvisit: '', //
+    hivTestResultAtvisit: '',
     lastTest: '',
   });
-  const handleInputChangeDrugHistory = e => {
-    setErrors({ ...temp, [e.target.name]: '' });
-    if (drugHistory.hivTestedBefore === 'true') {
-      setDrugHistory({ ...drugHistory, lastTest: '' });
-    }
-    setDrugHistory({ ...drugHistory, [e.target.name]: e.target.value });
-  };
   const [assessmentForPepIndication, setAssessmentForPepIndication] = useState({
     unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours: '',
     sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours: '',
   });
-  const handleInputChangeAssessmentForPepIndication = e => {
-    setErrors({ ...temp, [e.target.name]: '' });
-    setAssessmentForPepIndication({
-      ...assessmentForPepIndication,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const [servicesReceivedByClient, setServicesReceivedByClient] = useState({
+    willingToCommencePrep: '',
+    reasonsForDecline: [],
+    otherReasonsForDecline: '',
+  });
   const [assessmentForAcuteHivInfection, setAssessmentForAcuteHivInfection] =
     useState({
       acuteHivSymptomsLasttwoWeeks: '',
       unprotectedAnalOrVaginalOrSharedNeedlesLast28Days: '',
     });
-  const handleInputChangeAssessmentForAcuteHivInfection = e => {
-    setErrors({ ...temp, [e.target.name]: '' });
-    setAssessmentForAcuteHivInfection({
-      ...assessmentForAcuteHivInfection,
-      [e.target.name]: e.target.value,
-    });
-  };
   const [assessmentForPrepEligibility, setAssessmentForPrepEligibility] =
     useState({
       hivNegative: '',
@@ -415,6 +261,127 @@ const BasicInfo = props => {
       noHistoryOfDrugToDrugInteractionCabLa: '',
       noHistoryOfDrugHypersensitivityCabLa: '',
     });
+
+  const handleLftInputChange = event => {
+    const { name, value } = event.target;
+    setObjValues(prevValues => ({
+      ...prevValues,
+      [name]: value,
+    }));
+  };
+
+  useEffect(async () => {
+    setCounselingType((await getCounselingType()).data);
+    setReasonForDecline((await getReasonForDecline()).data);
+    setPopulationType((await getPopulationType()).data);
+    setPregnancyStatus((await getPregnancyStatus()).data);
+    setVisitType((await getVisitType()).data);
+    if (
+      props.activeContent.id &&
+      props.activeContent.id !== '' &&
+      props.activeContent.id !== null
+    ) {
+      getPatientPrepEligibility(props.activeContent.id);
+      setSisabledField(props.activeContent.actionType === 'view');
+    }
+  }, [props.activeContent]);
+
+  const getPatientPrepEligibility = id => {
+    axios
+      .get(`${baseUrl}prep/eligibility/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(response => {
+        const {
+          personalHivRiskAssessment,
+          sexPartnerRisk,
+          stiScreening,
+          drugUseHistory,
+          assessmentForPepIndication,
+          assessmentForAcuteHivInfection,
+          servicesReceivedByClient,
+          assessmentForPrepEligibility,
+        } = response.data;
+        setObjValues(response.data);
+        setRiskAssessment(personalHivRiskAssessment);
+        setRiskAssessmentPartner(sexPartnerRisk);
+        setStiScreening(stiScreening);
+        setDrugHistory(drugUseHistory);
+        setAssessmentForPepIndication(assessmentForPepIndication);
+        setAssessmentForAcuteHivInfection(assessmentForAcuteHivInfection);
+        setServicesReceivedByClient(servicesReceivedByClient);
+        setAssessmentForPrepEligibility(assessmentForPrepEligibility);
+      })
+      .catch(error => {
+        console.error('Error fetching patient eligibility data:', error);
+      });
+  };
+  const getReasonForSwitch = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/REASON_METHOD_SWITCH`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(response => {
+        setReasonForSwitchOptions(response.data);
+      })
+      .catch(error => {});
+  };
+
+  const handleInputChange = e => {
+    setErrors({ ...temp, [e.target.name]: '' });
+    setObjValues({ ...objValues, [e.target.name]: e.target.value });
+  };
+
+  const handleInputChangeRiskAssessment = e => {
+    setRiskAssessment({ ...riskAssessment, [e.target.name]: e.target.value });
+  };
+
+  const actualRiskCountTrue = Object.values(riskAssessment);
+  const riskCount = actualRiskCountTrue.filter(x => x === 'true');
+
+  const handleInputChangeRiskAssessmentPartner = e => {
+    setErrors({ ...temp, [e.target.name]: '' });
+    setRiskAssessmentPartner({
+      ...riskAssessmentPartner,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const actualSexPartRiskCountTrue = Object.values(riskAssessmentPartner);
+  const sexPartRiskCount = actualSexPartRiskCountTrue.filter(x => x === 'true');
+
+  const handleInputChangeStiScreening = e => {
+    setErrors({ ...errors, [e.target.name]: '' });
+    setStiScreening({ ...stiScreening, [e.target.name]: e.target.value });
+  };
+
+  const actualStiTrue = Object.values(stiScreening);
+  const stiCount = actualStiTrue.filter(x => x === 'true');
+
+  const handleInputChangeDrugHistory = e => {
+    setErrors({ ...temp, [e.target.name]: '' });
+    if (drugHistory.hivTestedBefore === 'true') {
+      setDrugHistory({ ...drugHistory, lastTest: '' });
+    }
+    setDrugHistory({ ...drugHistory, [e.target.name]: e.target.value });
+  };
+
+  const handleInputChangeAssessmentForPepIndication = e => {
+    setErrors({ ...temp, [e.target.name]: '' });
+    setAssessmentForPepIndication({
+      ...assessmentForPepIndication,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleInputChangeAssessmentForAcuteHivInfection = e => {
+    setErrors({ ...temp, [e.target.name]: '' });
+    setAssessmentForAcuteHivInfection({
+      ...assessmentForAcuteHivInfection,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handleInputChangeAssessmentForPrepEligibility = e => {
     setErrors({ ...temp, [e.target.name]: '' });
     setAssessmentForPrepEligibility({
@@ -422,11 +389,7 @@ const BasicInfo = props => {
       [e.target.name]: e.target.value,
     });
   };
-  const [servicesReceivedByClient, setServicesReceivedByClient] = useState({
-    willingToCommencePrep: '',
-    reasonsForDecline: [],
-    otherReasonsForDecline: '',
-  });
+
   const handleInputChangeServicesReceivedByClient = (e, data) => {
     setErrors({ ...temp, [e.target.name]: '' });
 
@@ -451,10 +414,7 @@ const BasicInfo = props => {
     });
   };
 
-  const [assessmentScore, setAssessmentScore] = useState(0);
-
   const validate = () => {
-    // PREP FORM VALIDATION
     temp.visitDate = objValues.visitDate ? '' : 'This field is required.';
     temp.lftConducted = objValues.lftConducted ? '' : 'This field is required';
     temp.liverFunctionTestResults =
@@ -466,6 +426,13 @@ const BasicInfo = props => {
     temp.hivTestResultAtvisit = drugHistory.hivTestResultAtvisit
       ? ''
       : 'This field is required.';
+    if (objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH') {
+      temp.reasonForSwitch = objValues.reasonForSwitch
+        ? ''
+        : 'This field is required';
+    } else {
+      temp.reasonForSwitch = '';
+    }
 
     setErrors({ ...temp });
 
@@ -477,7 +444,6 @@ const BasicInfo = props => {
 
     if (validate()) {
       setSaving(true);
-      //objValues.htsClientId= clientId
       objValues.drugUseHistory = drugHistory;
       objValues.personalHivRiskAssessment = riskAssessment;
       objValues.sexPartnerRisk = riskAssessmentPartner;
@@ -490,7 +456,6 @@ const BasicInfo = props => {
       objValues.servicesReceivedByClient = servicesReceivedByClient;
       objValues.score = getPrepEligibilityScore();
       if (props.activeContent && props.activeContent.actionType === 'update') {
-        //Perform operation for updation action
         axios
           .put(
             `${baseUrl}prep-eligibility/${props.activeContent.id}`,
@@ -503,7 +468,7 @@ const BasicInfo = props => {
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
             props.PatientObject();
-            toast.success('Prep Eligilibility save successful!', {
+            toast.success('Prep eligilibility saved successfully! ✔', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -518,7 +483,7 @@ const BasicInfo = props => {
                 error.response.data.apierror &&
                 error.response.data.apierror.message !== ''
                   ? error.response.data.apierror.message
-                  : 'Something went wrong, please try again';
+                  : 'Something went wrong ❌ please try again';
               if (error.response.data.apierror) {
                 toast.error(error.response.data.apierror.message, {
                   position: toast.POSITION.BOTTOM_CENTER,
@@ -529,7 +494,7 @@ const BasicInfo = props => {
                 });
               }
             } else {
-              toast.error('Something went wrong, please try again...', {
+              toast.error('Something went wrong ❌ please try again...', {
                 position: toast.POSITION.BOTTOM_CENTER,
               });
             }
@@ -542,10 +507,9 @@ const BasicInfo = props => {
           .then(response => {
             setSaving(false);
             props.patientObj.eligibilityCount = 1;
-            //props.setPatientObj(response.data)
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
-            toast.success('Prep Eligilibility save successful!', {
+            toast.success('Prep eligilibility saved successfull! ✔', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -560,7 +524,7 @@ const BasicInfo = props => {
                 error.response.data.apierror &&
                 error.response.data.apierror.message !== ''
                   ? error.response.data.apierror.message
-                  : 'Something went wrong, please try again';
+                  : 'Something went wrong ❌ please try again';
               if (error.response.data.apierror) {
                 toast.error(error.response.data.apierror.message, {
                   position: toast.POSITION.BOTTOM_CENTER,
@@ -571,7 +535,7 @@ const BasicInfo = props => {
                 });
               }
             } else {
-              toast.error('Something went wrong, please try again...', {
+              toast.error('Something went wrong ❌ please try again...', {
                 position: toast.POSITION.BOTTOM_CENTER,
               });
             }
@@ -579,7 +543,7 @@ const BasicInfo = props => {
       }
     } else {
       setSaving(false);
-      toast.error('All field are required ', {
+      toast.error('All field are required ⚠', {
         position: toast.POSITION.BOTTOM_CENTER,
       });
     }
@@ -651,20 +615,7 @@ const BasicInfo = props => {
       return score >= 7 ? 1 : 0;
     }
   };
-  const [recentActivities, setRecentActivities] = useState([]);
-  function countPrepEligibility(data) {
-    let count = 0;
-    let relevantActivities = ['Prep Commencement', 'Prep Clinic'];
-    data.forEach(entry => {
-      entry?.activities?.forEach(activity => {
-        if (relevantActivities.includes(activity?.name)) {
-          count++;
-        }
-      });
-    });
 
-    return count;
-  }
   const getRecentActivities = () => {
     axios
       .get(
@@ -678,7 +629,6 @@ const BasicInfo = props => {
         //console.log(error);
       });
   };
-  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
 
   const getLiverFunctionTestResult = () => {
     axios
@@ -695,15 +645,32 @@ const BasicInfo = props => {
   useEffect(() => {
     getRecentActivities();
     getLiverFunctionTestResult();
+    getReasonForSwitch();
   }, []);
-
-  useEffect(() => console.log('objValues: ', objValues));
-  useEffect(() => console.log('temp: ', temp));
+  useEffect(() => {
+    if (objValues.lftConducted === 'false') {
+      setObjValues(prevValues => ({
+        ...prevValues,
+        liverFunctionTestResults: [],
+        dateLiverFunctionTestResults: '',
+      }));
+    }
+  }, [objValues.lftConducted]);
+  useEffect(() => {
+    if (drugHistory.hivTestedBefore === 'false') {
+      setDrugHistory(prevHistory => ({
+        ...prevHistory,
+        lastTest: '',
+      }));
+    }
+  }, [drugHistory.hivTestedBefore]);
   return (
     <>
       <Card className={classes.root}>
         <CardBody>
-          <h2>PrEP Eligibilty Screening Form</h2>
+          <h1 style={{ fontSize: '1.1rem' }}>
+            PrEP Eligibility Screening Form
+          </h1>
           <form>
             <div className="row">
               <div className="form-group col-md-4 p-2">
@@ -769,7 +736,41 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
+              {objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH' && (
+                <div className="form-group col-md-4 p-2">
+                  <FormGroup className="p-2">
+                    <Label>Reason for switch</Label>
+                    <span style={{ color: 'red' }}> *</span>
+                    <Input
+                      type="select"
+                      name="reasonForSwitch"
+                      id="reasonForSwitch"
+                      value={objValues.reasonForSwitch}
+                      onChange={handleInputChange}
+                      style={{
+                        border: '1px solid #014D88',
+                        borderRadius: '0.25rem',
+                      }}
+                      disabled={disabledField}
+                    >
+                      <option value="">Select</option>
 
+                      {reasonForSwitchOptions?.map(value => (
+                        <option key={value.id} value={value.code}>
+                          {value.display}
+                        </option>
+                      ))}
+                    </Input>
+                  </FormGroup>
+                  {errors.reasonForSwitch !== '' ? (
+                    <span className={classes.error}>
+                      {errors.reasonForSwitch}
+                    </span>
+                  ) : (
+                    ''
+                  )}
+                </div>
+              )}
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
                   <Label>
@@ -928,8 +929,8 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
+              <div className="form-group mb-3 col-md-4 p-2">
+                <FormGroup className="p-2">
                   <FormLabel>Liver Function Test conducted</FormLabel>
                   <span style={{ color: 'red' }}> *</span>
                   <Input
@@ -958,7 +959,7 @@ const BasicInfo = props => {
               {objValues.lftConducted === 'true' && (
                 <>
                   <div className="form-group mb-3 col-md-8">
-                    <FormGroup>
+                    <FormGroup className="p-2">
                       <Label for="liverFunctionTestResults">
                         Liver Function Tests Result
                         <span style={{ color: 'red' }}> *</span>
@@ -978,8 +979,8 @@ const BasicInfo = props => {
                       )}
                     </FormGroup>
                   </div>
-                  <div className="form-group mb-3 col-md-8">
-                    <FormGroup>
+                  <div className="form-group mb-3 col-md-8 p-2">
+                    <FormGroup className="p-2">
                       <Label for="dateLiverFunctionTestResults">
                         Date of Liver Function Tests Result{' '}
                         <span style={{ color: 'red' }}> *</span>

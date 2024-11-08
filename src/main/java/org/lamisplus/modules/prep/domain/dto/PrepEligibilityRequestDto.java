@@ -41,6 +41,8 @@ public class PrepEligibilityRequestDto implements Serializable {
     private  Object assessmentForAcuteHivInfection;
     private  Object assessmentForPrepEligibility;
     private String lftConducted;
+    private String reasonForSwitch;
+
     private Object liverFunctionTestResults;
 
     private LocalDate dateLiverFunctionTestResults;

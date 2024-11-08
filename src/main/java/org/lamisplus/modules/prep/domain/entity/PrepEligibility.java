@@ -138,6 +138,8 @@ public class PrepEligibility  extends Audit implements Serializable {
     private Person person;
     @Column(name = "lft_conducted")
     private String lftConducted;
+    @Column(name = "reason_for_switch")
+    private String reasonForSwitch;
     @Column(name = "date_of_liver_function_test_results")
     private LocalDate dateLiverFunctionTestResults;
     @Type(type = "jsonb")
