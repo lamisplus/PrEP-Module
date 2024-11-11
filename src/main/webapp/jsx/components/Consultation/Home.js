@@ -351,10 +351,10 @@ const ClinicVisit = props => {
       .then(response => {
         if (response.data?.length === 0) {
           toast.error(
-            'No HTS record found ⚠ Atleast, 1 test result is required to proceed.'
+            '⚠ No HTS record found. Atleast, 1 test result is required to proceed'
           );
         } else if (response.data?.length > 0) {
-          toast.success('HTS record found 👍 You may proceed.');
+          toast.success('👍 HTS record found. You may proceed ✔');
         }
         setHivTestValue(response?.data?.[0]?.hivTestResult);
         setHivTestResultDate(response?.data?.[0]?.visitDate);
@@ -609,7 +609,11 @@ const ClinicVisit = props => {
     setUrinalysisTest({ ...urinalysisTest, [e.target.name]: e.target.value });
   };
   const handleInputChangeCreatinineTest = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
+    setErrors({
+      ...errors,
+      creatinineResult: '',
+      creatinineTestDate: '',
+    });
     setCreatinineTest({ ...creatinineTest, [e.target.name]: e.target.value });
   };
   const handleInputChangeOtherTest = (e, localId) => {
@@ -698,7 +702,7 @@ const ClinicVisit = props => {
       (e.target.value < 48.26 || e.target.value > 216.408)
     ) {
       const message =
-        'Height cannot be greater than 216.408 and less than 48.26 ⚠';
+        '⚠ Height cannot be greater than 216.408 and less than 48.26';
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: '' });
@@ -710,7 +714,7 @@ const ClinicVisit = props => {
       (e.target.value < 3 || e.target.value > 150)
     ) {
       const message =
-        'Body weight must not be greater than 150 and less than 3 ⚠';
+        '⚠ Body weight must not be greater than 150 and less than 3';
       setVitalClinicalSupport({ ...vitalClinicalSupport, weight: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, weight: '' });
@@ -722,7 +726,7 @@ const ClinicVisit = props => {
       (e.target.value < 90 || e.target.value > 240)
     ) {
       const message =
-        'Blood Pressure systolic must not be greater than 240 and less than 90 ⚠';
+        '⚠ Blood Pressure systolic must not be greater than 240 and less than 90';
       setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: '' });
@@ -734,7 +738,7 @@ const ClinicVisit = props => {
       (e.target.value < 60 || e.target.value > 140)
     ) {
       const message =
-        'Blood Pressure diastolic must not be greater than 140 and less than 60 ⚠';
+        '⚠ Blood Pressure diastolic must not be greater than 140 and less than 60';
       setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: '' });
@@ -745,7 +749,7 @@ const ClinicVisit = props => {
       e.target.name === 'pulse' &&
       (e.target.value < 40 || e.target.value > 120)
     ) {
-      const message = 'Pulse must not be greater than 120 and less than 40 ⚠';
+      const message = '⚠ Pulse must not be greater than 120 and less than 40';
       setVitalClinicalSupport({ ...vitalClinicalSupport, pulse: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, pulse: '' });
@@ -757,7 +761,7 @@ const ClinicVisit = props => {
       (e.target.value < 10 || e.target.value > 70)
     ) {
       const message =
-        'Respiratory Rate must not be greater than 70 and less than 10 ⚠';
+        '⚠ Respiratory Rate must not be greater than 70 and less than 10';
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
         respiratoryRate: message,
@@ -772,7 +776,7 @@ const ClinicVisit = props => {
       (e.target.value < 35 || e.target.value > 47)
     ) {
       const message =
-        'Temperature must not be greater than 47 and less than 35 ⚠';
+        '⚠ Temperature must not be greater than 47 and less than 35';
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
         temperature: message,
@@ -834,54 +838,52 @@ const ClinicVisit = props => {
   const validate = () => {
     temp.lastHts = hivTestValue
       ? ''
-      : 'Atleast, 1 HIV test result is required ⚠';
+      : '⚠ Atleast, 1 HIV test result is required';
     temp.monthsOfRefill = objValues.monthsOfRefill
       ? ''
-      : 'This field is required ⚠';
+      : '⚠ This field is required';
     temp.wasPrepAdministered = objValues.wasPrepAdministered
       ? ''
-      : 'This field is required ⚠';
+      : '⚠ This field is required';
     hasPrepEligibility(temp.encounterDate, props.encounters);
     temp.encounterDate = objValues.encounterDate
       ? ''
-      : 'This field is required ⚠';
+      : '⚠ This field is required';
 
     if (isFemale()) {
-      temp.pregnant = objValues.pregnant ? '' : 'This field is required ⚠';
+      temp.pregnant = objValues.pregnant ? '' : '⚠ This field is required';
     }
     temp.nextAppointment = objValues.nextAppointment
       ? ''
-      : 'This field is required ⚠';
+      : '⚠ This field is required';
 
-    temp.height = objValues.height ? '' : 'This field is required ⚠';
+    temp.height = objValues.height ? '' : '⚠ This field is required';
     if (objValues.prepType === 'PREP_TYPE_INJECTIBLES') {
       temp.otherPrepGiven = objValues.otherPrepGiven
         ? ''
-        : 'This field is required ⚠';
+        : '⚠ This field is required';
     }
-    temp.weight = objValues.weight ? '' : 'This field is required ⚠';
-    temp.creatinineTest = creatinineTest.creatinineTest
-      ? ''
-      : 'This field is required ⚠';
+    temp.weight = objValues.weight ? '' : '⚠ This field is required';
     temp.creatinineTestDate = creatinineTest.testDate
       ? ''
-      : 'This field is required ⚠';
+      : '⚠ This field is required';
     temp.creatinineResult = creatinineTest.result
       ? ''
-      : 'This field is required ⚠';
-    temp.regimenId = objValues.regimenId ? '' : 'This field is required ⚠';
-    temp.duration = objValues.duration ? '' : 'This field is required ⚠';
+      : '⚠ This field is required';
+    temp.regimenId = objValues.regimenId ? '' : '⚠ This field is required';
+    temp.duration = objValues.duration ? '' : '⚠ This field is required';
     temp.prepDistributionSetting = objValues.prepDistributionSetting
       ? ''
-      : 'This field is required ⚠';
+      : '⚠ This field is required';
     temp.populationType = objValues.populationType
       ? ''
-      : 'This field is required ⚠';
-    temp.visitType = objValues.visitType ? '' : 'This field is required ⚠';
+      : '⚠ This field is required';
+    temp.visitType = objValues.visitType ? '' : '⚠ This field is required';
+
     if (objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH') {
       temp.reasonForSwitch = objValues.reasonForSwitch
         ? ''
-        : 'This field is required ⚠';
+        : '⚠ This field is required';
     } else {
       temp.reasonForSwitch = '';
     }
@@ -929,7 +931,7 @@ const ClinicVisit = props => {
                 error.response.data.apierror &&
                 error.response.data.apierror.message !== ''
                   ? error.response.data.apierror.message
-                  : 'Something went wrong ❌ please try again';
+                  : '❌ Something went wrong. Please try again';
               if (error.response.data.apierror) {
                 toast.error(error.response.data.apierror.message, {
                   position: toast.POSITION.BOTTOM_CENTER,
@@ -1119,7 +1121,7 @@ const ClinicVisit = props => {
       objValues.populationType !== null &&
       objValues.populationType !== undefined
     ) {
-      const autoPopulate = populationType.find(
+      const autoPopulate = populationType?.find(
         type => type.code === objValues.populationType
       );
 
@@ -1129,7 +1131,7 @@ const ClinicVisit = props => {
 
   useEffect(() => {
     if (eligibilityVisitDateSync && latestFromEligibility !== null) {
-      const autoPopulate = populationType.find(
+      const autoPopulate = populationType?.find(
         type => type.code === latestFromEligibility?.populationType
       );
 
@@ -1167,6 +1169,7 @@ const ClinicVisit = props => {
     updateTest('syphilis', setSyphilisTest);
     updateTest('hepatitis', setHepatitisTest);
   }, [objValues]);
+
   useEffect(async () => {
     if (
       props.activeContent.id &&
@@ -1224,6 +1227,7 @@ const ClinicVisit = props => {
       [name]: value,
     }));
   };
+
   useEffect(() => {
     if (eligibilityVisitDateSync && latestFromEligibility) {
       setObjValues(prevValues => ({
@@ -1256,11 +1260,13 @@ const ClinicVisit = props => {
         return null;
     }
   };
+
   const [notedSideEffects, setNotedSideEffects] = useState([]);
   const handleNotedSideEffectsChange = selected => {
     setNotedSideEffects(selected);
     setObjValues({ ...objValues, notedSideEffects: selected });
   };
+
   useEffect(() => {
     return () => {
       setObjValues(prev => ({
@@ -1270,6 +1276,7 @@ const ClinicVisit = props => {
       }));
     };
   }, []);
+
   useEffect(() => {
     if (objValues.otherPrepGiven === 'false') {
       setObjValues(prevValues => ({
@@ -1279,6 +1286,7 @@ const ClinicVisit = props => {
       }));
     }
   }, [objValues.otherPrepGiven]);
+
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
@@ -2073,6 +2081,7 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
+
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName for="">
@@ -2104,6 +2113,7 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
+
               {objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH' && (
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
