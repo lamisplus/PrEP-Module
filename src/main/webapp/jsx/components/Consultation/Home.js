@@ -314,10 +314,10 @@ const ClinicVisit = props => {
               setPrepType(prepType);
               setprepRegimen(regimenList);
             } else {
-              let reg = regimenList.filter((each, index) => {
+              let reg = regimenList?.filter((each, index) => {
                 return each.code !== 'CAB-LA(600mg/3mL)';
               });
-              let pTypes = prepType.filter((each, index) => {
+              let pTypes = prepType?.filter((each, index) => {
                 return each.code !== 'PREP_TYPE_INJECTIBLES';
               });
               setPrepType(pTypes);
@@ -623,7 +623,7 @@ const ClinicVisit = props => {
     setOtherTest(temp);
   };
   const handleRemoveTest = localId => {
-    setOtherTest(prev => prev.filter(test => test.localId !== localId));
+    setOtherTest(prev => prev?.filter(test => test.localId !== localId));
   };
   const handleInputChangeHepatitisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
@@ -1034,22 +1034,6 @@ const ClinicVisit = props => {
     setErrors({ ...errors, [e.target.name]: '' });
   };
 
-  function countPrepEligibility(data) {
-    let count = 0;
-    let relevantActivities = ['Prep Commencement', 'Prep Clinic'];
-    data?.forEach(entry => {
-      entry?.activities?.forEach(activity => {
-        if (relevantActivities.includes(activity?.name)) {
-          count++;
-        }
-      });
-    });
-
-    return count;
-  }
-  function isValidDate(date) {
-    return date instanceof Date && !isNaN(date);
-  }
   function areDatesSame(date1, date2) {
     return (
       date1.getFullYear() === date2.getFullYear() &&
@@ -1083,7 +1067,7 @@ const ClinicVisit = props => {
   };
 
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
-    codeSet.filter(regimen => {
+    codeSet?.filter(regimen => {
       return regimen.id !== lastRegimenId;
     });
 
@@ -2339,15 +2323,15 @@ const ClinicVisit = props => {
                           >
                             <option value=""> Select Prep Type</option>
                             {prepType
-                              .filter(
+                              ?.filter(
                                 (each, index) =>
                                   each.code !== 'PREP_TYPE_ED_PREP'
                               )
-                              .filter(
+                              ?.filter(
                                 (each, index) =>
                                   each.code !== objValues.prepType
                               )
-                              .map(value => (
+                              ?.map(value => (
                                 <option key={value.id} value={value.code}>
                                   {value.display}
                                 </option>
@@ -2430,27 +2414,6 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
-              {/* <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName >Date PrEP Given <span style={{ color:"red"}}> *</span></FormLabelName>
-                  <Input
-                    type="date"
-                    onKeyDown={(e)=>e.preventDefault()}
-                    name="datePrepGiven"
-                    id="datePrepGiven"
-                    value={objValues.datePrepGiven}
-                    onChange={handleInputChange}
-                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
-                    max={moment(new Date()).format("YYYY-MM-DD")}
-                    disabled={disabledField}
-                  />
-                  {errors.datePrepGiven !=="" ? (
-                      <span className={classes.error}>{errors.datePrepGiven}</span>
-                  ) : "" }   
-                </FormGroup>
-              </div>  */}
-
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>Other Drugs</FormLabelName>
@@ -2468,28 +2431,6 @@ const ClinicVisit = props => {
                   />
                 </FormGroup>
               </div>
-              {/* <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName >PrEP Status</FormLabelName>
-                  <Input
-                    type="select"
-                    name="prepStatus"
-                    id="prepStatus"
-                    value={objValues.prepStatus}
-                    onChange={handleInputChange}
-                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
-                  >
-                    <option value="">Select</option>
-                    {prepStatus.map((value) => (
-                            <option key={value.id} value={value.code}>
-                                {value.display}
-                            </option>
-                        ))}
-                  </Input>
-                 
-                </FormGroup>
-              </div> */}
 
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
