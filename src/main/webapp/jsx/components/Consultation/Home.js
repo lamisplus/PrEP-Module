@@ -1166,6 +1166,7 @@ const ClinicVisit = props => {
   }, [props.activeContent]);
 
   useEffect(async () => {
+    setPrepRiskReductionPlan((await getPrepRiskReductionPlan())?.data);
     setAdherenceLevel((await getAdherenceLevel())?.data);
     setPrepRiskReductionPlan(getSyndromicStiScreening()?.data);
     setPrepStatus(getPrepStatus()?.data);
