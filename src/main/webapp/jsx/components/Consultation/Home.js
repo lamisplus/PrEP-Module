@@ -216,16 +216,7 @@ const ClinicVisit = props => {
     result: '',
   });
 
-  const [otherTest, setOtherTest] = useState([
-    {
-      localId: 0,
-      otherTest: 'Yes',
-      testDate: '',
-      result: '',
-      name: '',
-      otherTestName: '',
-    },
-  ]);
+  const [otherTest, setOtherTest] = useState([]);
 
   const classes = useStyles();
   let temp = { ...errors };
@@ -414,6 +405,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
+
   const getPrepSideEffects = async () => {
     return await axios.get(
       `${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
@@ -469,6 +461,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
+
   const getWhyPoorFairAdherence = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/WHY_POOR_FAIR_ADHERENCE`, {
@@ -490,6 +483,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
+
   const getPrepUrinalysisResult = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`, {
@@ -566,6 +560,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   }
+
   const [eligibilityVisitDateSync, setEligibilityVisitDateSync] =
     useState(false);
 
@@ -590,6 +585,7 @@ const ClinicVisit = props => {
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
     }
   };
+
   useEffect(() => {
     if (!eligibilityVisitDateSync) {
       setObjValues(prevValues => ({
@@ -650,7 +646,7 @@ const ClinicVisit = props => {
   };
   const handleCheckBoxHepatitisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.checked) {
+    if (!e.target.checked) {
       setHepatitisTest({ ...hepatitisTest, ['hepatitisTest']: 'Yes' });
     } else {
       setHepatitisTest({ ...syphilisTest, ['syphilisTest']: 'No' });
@@ -680,7 +676,7 @@ const ClinicVisit = props => {
 
   const handleCheckBoxUrinalysisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.checked) {
+    if (!e.target.checked) {
       setUrinalysisTest({ ...urinalysisTest, ['urinalysisTest']: 'Yes' });
     } else {
       setUrinalysisTest({ ...otherTest, ['urinalysisTest']: 'No' });
@@ -2583,7 +2579,7 @@ const ClinicVisit = props => {
                     value="Yes"
                     onChange={handleCheckBoxUrinalysisTest}
                     checked={
-                      urinalysisTest.urinalysisTest == 'Yes' ? true : false
+                      urinalysisTest?.urinalysisTest !== 'Yes' ? true : false
                     }
                   />{' '}
                   Urinalysis Test
@@ -2591,7 +2587,7 @@ const ClinicVisit = props => {
               </Label>
               <br />
               <br />
-              {urinalysisTest.urinalysisTest === 'Yes' && (
+              {urinalysisTest?.urinalysisTest !== 'Yes' && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -2601,7 +2597,7 @@ const ClinicVisit = props => {
                         onKeyDown={e => e.preventDefault()}
                         name="testDate"
                         id="testDate"
-                        value={urinalysisTest.testDate}
+                        value={urinalysisTest?.testDate}
                         onChange={handleInputChangeUrinalysisTest}
                         style={{
                           border: '1px solid #014D88',
@@ -2625,7 +2621,7 @@ const ClinicVisit = props => {
                         type="select"
                         name="result"
                         id="result"
-                        value={urinalysisTest.result}
+                        value={urinalysisTest?.result}
                         onChange={handleInputChangeUrinalysisTest}
                         style={{
                           border: '1px solid #014D88',
@@ -2664,7 +2660,7 @@ const ClinicVisit = props => {
                     value="Yes"
                     onChange={handleCheckBoxHepatitisTest}
                     checked={
-                      hepatitisTest.hepatitisTest === 'Yes' ? true : false
+                      hepatitisTest.hepatitisTest !== 'Yes' ? true : false
                     }
                   />{' '}
                   Hepatitis Test{' '}
@@ -2672,7 +2668,7 @@ const ClinicVisit = props => {
               </Label>
               <br />
               <br />
-              {hepatitisTest.hepatitisTest === 'Yes' && (
+              {hepatitisTest.hepatitisTest !== 'Yes' && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -2753,7 +2749,7 @@ const ClinicVisit = props => {
                         onKeyDown={e => e.preventDefault()}
                         name="testDate"
                         id="testDate"
-                        value={syphilisTest.testDate}
+                        value={syphilisTest?.testDate}
                         onChange={handleInputChangeSyphilisTest}
                         style={{
                           border: '1px solid #014D88',
@@ -2772,7 +2768,7 @@ const ClinicVisit = props => {
                         type="select"
                         name="result"
                         id="result"
-                        value={syphilisTest.result}
+                        value={syphilisTest?.result}
                         onChange={handleInputChangeSyphilisTest}
                         style={{
                           border: '1px solid #014D88',
@@ -2789,7 +2785,7 @@ const ClinicVisit = props => {
                       </Input>
                     </FormGroup>
                   </div>
-                  {syphilisTest.result === 'Others' && (
+                  {syphilisTest?.result === 'Others' && (
                     <div className=" mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
@@ -2834,7 +2830,6 @@ const ClinicVisit = props => {
               </Label>
               <br />
               <br />
-              {/* {otherTest.otherTest === 'Yes' && (<> */}
               {otherTest.length > 0 &&
                 otherTest?.map(eachTest => (
                   <div className="row" key={eachTest.localId}>
@@ -2952,6 +2947,7 @@ const ClinicVisit = props => {
                           margin: 0,
                           fontSize: '1.2em',
                         }}
+                        disabled={disabledField}
                         onClick={() => handleRemoveTest(eachTest.localId)}
                       >
                         <TiTrash />
@@ -2981,7 +2977,7 @@ const ClinicVisit = props => {
                     startIcon={<AddIcon />}
                     style={{ backgroundColor: '#014d88' }}
                     onClick={handleCreateNewTest}
-                    disabled={saving}
+                    disabled={saving || disabledField}
                   >
                     <span style={{ textTransform: 'capitalize' }}>
                       Add more test results

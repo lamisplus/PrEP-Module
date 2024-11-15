@@ -59,13 +59,25 @@ const tableIcons = {
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
 };
 
+// Create styles using makeStyles
+const useStyles = makeStyles({
+  statusLabel: {
+    width: '150px', // Set a constant width for the Label component
+    display: 'inline-block', // Ensure the width is respected
+    textAlign: 'center', // Center the text within the label
+  },
+});
+
 const Patients = props => {
+  const classes = useStyles(); // Use the styles
   const [patientList, setPatientList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPPI, setShowPPI] = useState(true);
+
   useEffect(() => {
     patients();
   }, []);
+
   async function patients() {
     setLoading(true);
     axios
@@ -95,11 +107,7 @@ const Patients = props => {
         icons={tableIcons}
         title="Find Patient"
         columns={[
-          {
-            title: 'Patient Name',
-            field: 'name',
-            hidden: showPPI,
-          },
+          { title: 'Patient Name', field: 'name', hidden: showPPI },
           {
             title: 'Hospital Number',
             field: 'hospital_number',
@@ -108,12 +116,15 @@ const Patients = props => {
           { title: 'PrEP Code', field: 'clientCode', filtering: false },
           { title: 'Sex', field: 'gender', filtering: false },
           { title: 'Age', field: 'age', filtering: false },
-
-          { title: 'PrEP Status', field: 'status', filtering: false },
+          {
+            title: 'PrEP Status',
+            field: 'status',
+            filtering: false,
+          },
           { title: 'Actions', field: 'actions', filtering: false },
         ]}
         data={query =>
-          new Promise((resolve, reject) =>
+          new Promise((resolve, reject) => {
             axios
               .get(
                 `${baseUrl}prep/persons?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
@@ -128,13 +139,15 @@ const Patients = props => {
                     clientCode: row.uniqueId,
                     gender: row && row.gender ? row.gender : '',
                     age: row.age,
-
                     status: (
-                      <Label color="blue" size="mini">
+                      <Label
+                        className={classes.statusLabel}
+                        color="blue"
+                        size="mini"
+                      >
                         {row.prepStatus}
                       </Label>
                     ),
-
                     actions: (
                       <div>
                         <Link
@@ -183,8 +196,8 @@ const Patients = props => {
                   page: query.page,
                   totalCount: result.data.totalRecords,
                 });
-              })
-          )
+              });
+          })
         }
         options={{
           headerStyle: {
@@ -205,7 +218,7 @@ const Patients = props => {
         components={{
           Toolbar: props => (
             <div className="p-2">
-              <div className="form-check custom-checkbox  float-left mt-4 ml-3">
+              <div className="form-check custom-checkbox float-left mt-4 ml-3">
                 <input
                   type="checkbox"
                   className="form-check-input"
@@ -221,7 +234,8 @@ const Patients = props => {
                 />
                 <label className="form-check-label" htmlFor="basic_checkbox_1">
                   <b style={{ color: '#014d88', fontWeight: 'bold' }}>
-                    SHOW PII
+                    {' '}
+                    SHOW PII{' '}
                   </b>
                 </label>
               </div>
