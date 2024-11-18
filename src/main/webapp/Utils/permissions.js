@@ -22,6 +22,59 @@ const roles = {
   guest: ['basic'],
 };
 
+export class PermissionService {
+  constructor(userRole) {
+    this.userRole = userRole;
+    this.userPermissions = this.getUserPermissions();
+  }
+
+  getUserPermissions() {
+    return roles[this.userRole] || [];
+  }
+
+  hasPermission(form) {
+    if (this.userPermissions.includes('all')) {
+      return true;
+    }
+    return this.userPermissions.includes(form.code);
+  }
+
+  evaluateConditions() {
+    return false;
+  }
+
+  getAccessibleForms() {
+    return forms.filter(form => {
+      return this.hasPermission(form) && form.evaluateConditions(form);
+    });
+  }
+}
+
+class Eligibility extends PermissionService {
+  evaluateConditions() {
+    return false;
+  }
+}
+class Enrollment extends PermissionService {
+  evaluateConditions() {
+    return false;
+  }
+}
+class Commencement extends PermissionService {
+  evaluateConditions() {
+    return false;
+  }
+}
+class Visit extends PermissionService {
+  evaluateConditions() {
+    return false;
+  }
+}
+class Discontinuation extends PermissionService {
+  evaluateConditions() {
+    return false;
+  }
+}
 const forms = [
   {
     name: 'PrEP_Eligibility',
@@ -54,61 +107,3 @@ const forms = [
     conditions: Discontinuation.evaluateConditions,
   },
 ];
-
-class PermissionService {
-  constructor(userRole) {
-    this.userRole = userRole;
-    this.userPermissions = this.getUserPermissions();
-  }
-
-  getUserPermissions() {
-    return roles[this.userRole] || [];
-  }
-
-  hasPermission(form) {
-    if (this.userPermissions.includes('all')) {
-      return true;
-    }
-    return this.userPermissions.includes(form.code);
-  }
-
-  evaluateConditions() {
-    return false;
-  }
-
-  getAccessibleForms() {
-    return forms.filter(form => {
-      return this.hasPermission(form) && form.evaluateConditions(form);
-    });
-  }
-}
-class Eligibility extends PermissionService {
-  evaluateConditions() {
-    return false;
-  }
-}
-class Enrollment extends PermissionService {
-  evaluateConditions() {
-    return false;
-  }
-}
-class Commencement extends PermissionService {
-  evaluateConditions() {
-    return false;
-  }
-}
-class Visit extends PermissionService {
-  evaluateConditions() {
-    return false;
-  }
-}
-class Discontinuation extends PermissionService {
-  evaluateConditions() {
-    return false;
-  }
-}
-const userRole = 'user';
-const permissionService = new PermissionService(userRole);
-const accessibleForms = permissionService.getAccessibleForms();
-
-console.log(accessibleForms);
