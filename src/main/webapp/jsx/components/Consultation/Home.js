@@ -685,7 +685,7 @@ const ClinicVisit = props => {
 
   const handleCheckBoxCreatinineTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.checked) {
+    if (!e.target.checked) {
       setCreatinineTest({ ...creatinineTest, ['creatinineTest']: 'Yes' });
     } else {
       setCreatinineTest({ ...otherTest, ['creatinineTest']: 'No' });
@@ -860,12 +860,6 @@ const ClinicVisit = props => {
         : '⚠ This field is required';
     }
     temp.weight = objValues.weight ? '' : '⚠ This field is required';
-    temp.creatinineTestDate = creatinineTest.testDate
-      ? ''
-      : '⚠ This field is required';
-    temp.creatinineResult = creatinineTest.result
-      ? ''
-      : '⚠ This field is required';
     temp.regimenId = objValues.regimenId ? '' : '⚠ This field is required';
     temp.duration = objValues.duration ? '' : '⚠ This field is required';
     temp.prepDistributionSetting = objValues.prepDistributionSetting
@@ -2494,7 +2488,7 @@ const ClinicVisit = props => {
                     value="Yes"
                     onChange={handleCheckBoxCreatinineTest}
                     checked={
-                      creatinineTest.creatinineTest == 'Yes' ? true : false
+                      creatinineTest.creatinineTest !== 'Yes' ? true : false
                     }
                   />{' '}
                   Creatinine Test
@@ -2502,14 +2496,11 @@ const ClinicVisit = props => {
               </Label>
               <br />
               <br />
-              {creatinineTest.creatinineTest === 'Yes' && (
+              {creatinineTest.creatinineTest !== 'Yes' && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
-                      <FormLabelName>
-                        Creatinine Test Date{' '}
-                        <span style={{ color: 'red' }}> *</span>
-                      </FormLabelName>
+                      <FormLabelName>Creatinine Test Date </FormLabelName>
                       <Input
                         type="date"
                         onKeyDown={e => e.preventDefault()}
@@ -2536,10 +2527,7 @@ const ClinicVisit = props => {
                   </div>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
-                      <FormLabelName>
-                        Creatinine Test Result{' '}
-                        <span style={{ color: 'red' }}> *</span>
-                      </FormLabelName>
+                      <FormLabelName>Creatinine Test Result </FormLabelName>
                       <Input
                         type="text"
                         name="result"
@@ -2824,8 +2812,8 @@ const ClinicVisit = props => {
                     ref={otherTestInputRef}
                     onChange={handleCheckBoxOtherTest}
                     checked={otherTest.length > 0}
-                  />
-                  Other Test
+                  />{' '}
+                  Other Test{' '}
                 </h4>
               </Label>
               <br />

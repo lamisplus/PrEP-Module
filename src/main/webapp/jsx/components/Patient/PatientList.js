@@ -171,7 +171,10 @@ const Patients = props => {
                               size="small"
                               aria-label="select merge strategy"
                               aria-haspopup="menu"
-                              style={{ backgroundColor: 'rgb(153, 46, 98)' }}
+                              style={{
+                                backgroundColor: 'rgb(153, 46, 98)',
+                                margin: 'auto',
+                              }}
                             >
                               <MdDashboard />
                             </Button>
