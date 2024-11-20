@@ -349,7 +349,7 @@ const PrEPCommencementForm = props => {
           .then(response => {
             setSaving(false);
             patientObj.commencementCount = 1;
-            toast.success('Record save successful', {
+            toast.success('Record saved successfully! ✔', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -375,7 +375,7 @@ const PrEPCommencementForm = props => {
                 });
               }
             } else {
-              toast.error('Something went wrong, please try again...', {
+              toast.error('Something went wrong ❌ please try again...', {
                 position: toast.POSITION.BOTTOM_CENTER,
               });
             }
@@ -389,7 +389,7 @@ const PrEPCommencementForm = props => {
             setSaving(false);
             patientObj.commencementCount = 1;
             props.PatientObject();
-            toast.success('Record save successful', {
+            toast.success('Record saved successfully! ✔', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -404,7 +404,7 @@ const PrEPCommencementForm = props => {
                 error.response.data.apierror &&
                 error.response.data.apierror.message !== ''
                   ? error.response.data.apierror.message
-                  : 'Something went wrong, please try again';
+                  : 'Something went wrong ❌ please try again';
               if (error.response.data.apierror) {
                 toast.error(error.response.data.apierror.message, {
                   position: toast.POSITION.BOTTOM_CENTER,
@@ -415,7 +415,7 @@ const PrEPCommencementForm = props => {
                 });
               }
             } else {
-              toast.error('Something went wrong, please try again...', {
+              toast.error('Something went wrong ❌ please try again...', {
                 position: toast.POSITION.BOTTOM_CENTER,
               });
             }
