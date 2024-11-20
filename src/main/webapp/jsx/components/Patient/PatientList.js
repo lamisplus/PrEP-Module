@@ -30,6 +30,7 @@ import '@reach/menu-button/styles.css';
 import { Label } from 'semantic-ui-react';
 import Moment from 'moment';
 import momentLocalizer from 'react-widgets-moment';
+import { useAuth } from '../../../context/AuthProvider/AuthProvider';
 Moment.locale('en');
 momentLocalizer();
 
@@ -61,9 +62,11 @@ const Patients = props => {
   const [patientList, setPatientList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPPI, setShowPPI] = useState(true);
+  const { accessibleForms } = useAuth();
   useEffect(() => {
+    console.log('accessibleForms: ', accessibleForms);
     patients();
-  }, []);
+  }, [accessibleForms]);
   async function patients() {
     setLoading(true);
     axios
