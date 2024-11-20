@@ -19,6 +19,8 @@ import PrEPRegistrationForm from './../PrepServices/PrEPRegistrationForm';
 import Biometrics from './Biometric';
 import axios from 'axios';
 import { url as baseUrl, token } from './../../../api';
+import ProtectedComponent from '../PrepServices/ProtectedRoute';
+import { useAuth } from '../../../context/AuthProvider/AuthProvider';
 
 const styles = theme => ({
   root: {
@@ -75,7 +77,8 @@ function PatientCard(props) {
     history.location && history.location.state
       ? history.location.state.prepId
       : {};
-  //console.log(patientObj)
+
+  const { shouldUserAccessForm } = useAuth();
   useEffect(() => {
     PatientObject();
   }, []);
@@ -87,7 +90,6 @@ function PatientCard(props) {
       })
       .then(response => {
         setPatientDetail(response.data);
-        //patientObj=response.data
       })
       .catch(error => {});
   }
@@ -109,23 +111,18 @@ function PatientCard(props) {
       </div>
       <Card>
         <CardContent>
-          {/* This component is where the patient menu and route is define and manage */}
-          {/* start of patient card detail */}
           <PatientCardDetail
             patientObj={patientObjLocation}
             setActiveContent={setActiveContent}
             activeContent={activeContent}
             patientDetail={patientDetail}
           />
-          {/* End of patient card detail */}
-          {/* This is the submenu components */}
           <SubMenu
             patientObj={patientObjLocation}
             setActiveContent={setActiveContent}
             patientDetail={patientDetail}
           />
           <br />
-          {/* This is the submenu routes */}
           {activeContent.route === 'recent-history' && (
             <RecentHistory
               patientObj={patientObjLocation}
@@ -135,7 +132,9 @@ function PatientCard(props) {
             />
           )}
           {activeContent.route === 'biometrics' && (
-            <Biometrics
+            <ProtectedComponent
+              privateComponent={Biometrics}
+              isAuthorized={shouldUserAccessForm('eligibility')}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -143,7 +142,9 @@ function PatientCard(props) {
             />
           )}
           {activeContent.route === 'consultation' && (
-            <ClinicVisit
+            <ProtectedComponent
+              privateComponent={ClinicVisit}
+              isAuthorized={shouldUserAccessForm('visit')}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -151,7 +152,9 @@ function PatientCard(props) {
             />
           )}
           {activeContent.route === 'prep-commencement' && (
-            <PrEPCommencementForm
+            <ProtectedComponent
+              privateComponent={PrEPCommencementForm}
+              isAuthorized={shouldUserAccessForm('commencement')}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -160,7 +163,9 @@ function PatientCard(props) {
             />
           )}
           {activeContent.route === 'prep-interruptions' && (
-            <PrEPDiscontinuationsInterruptions
+            <ProtectedComponent
+              privateComponent={PrEPDiscontinuationsInterruptions}
+              isAuthorized={shouldUserAccessForm('discontinuation')}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -169,7 +174,9 @@ function PatientCard(props) {
             />
           )}
           {activeContent.route === 'prep-screening' && (
-            <PrEPEligibiltyScreeningForm
+            <ProtectedComponent
+              privateComponent={PrEPEligibiltyScreeningForm}
+              isAuthorized={shouldUserAccessForm('eligibility')}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -182,7 +189,9 @@ function PatientCard(props) {
             <PrEPVisit PatientObject={PatientObject} />
           )}
           {activeContent.route === 'prep-registration' && (
-            <PrEPRegistrationForm
+            <ProtectedComponent
+              privateComponent={PrEPRegistrationForm}
+              isAuthorized={shouldUserAccessForm('registration')}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}

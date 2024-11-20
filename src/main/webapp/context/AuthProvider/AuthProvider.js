@@ -42,6 +42,15 @@ export const AuthProvider = ({ children }) => {
   //     setUserPermissions(getUserPermissions(userRole));
   //   }, [userRole]);
 
+  function shouldUserAccessForm(formCode) {
+    for (let form of prepForms) {
+      if (form.code === formCode) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   const hasPermission = form => {
     for (let i = 0; i < userPermissions.length; i++) {
       if (userPermissions[i].toLowerCase().includes('all')) return true;
@@ -56,9 +65,8 @@ export const AuthProvider = ({ children }) => {
 
     setAccessibleForms(accessibleForms);
   }, [userPermissions]);
-
   return (
-    <AuthContext.Provider value={{ hasPermission, accessibleForms }}>
+    <AuthContext.Provider value={{ shouldUserAccessForm, accessibleForms }}>
       {children}
     </AuthContext.Provider>
   );

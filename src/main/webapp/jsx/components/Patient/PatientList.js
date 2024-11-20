@@ -62,11 +62,8 @@ const Patients = props => {
   const [patientList, setPatientList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPPI, setShowPPI] = useState(true);
-  const { accessibleForms } = useAuth();
-  useEffect(() => {
-    console.log('accessibleForms: ', accessibleForms);
-    patients();
-  }, [accessibleForms]);
+  const { accessibleForms, shouldUserAccessForm } = useAuth();
+
   async function patients() {
     setLoading(true);
     axios
