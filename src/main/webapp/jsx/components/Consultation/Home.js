@@ -1098,7 +1098,6 @@ const ClinicVisit = props => {
       const autoPopulate = populationType?.find(
         type => type.code === objValues.populationType
       );
-
       setSelectedPopulationType(autoPopulate ? autoPopulate.display : '');
     }
   }, [objValues.populationType]);
@@ -2166,7 +2165,6 @@ const ClinicVisit = props => {
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
                     }}
-                    // disabled
                     onChange={handlePrepTypeChange}
                     value={objValues.prepType}
                     disabled={disabledField}
@@ -3035,13 +3033,48 @@ const ClinicVisit = props => {
                   ''
                 )}
               </div>
+              <Label
+                as="a"
+                color="teal"
+                style={{ width: '106%', height: '35px' }}
+                ribbon
+              >
+                <h4 style={{ color: '#fff' }}></h4>
+              </Label>
+              <br />
+              <br />
+              <br />
+              <div className=" mb-3 col-md-8">
+                <FormLabelName>Comment</FormLabelName>
+                <Input
+                  type="textarea"
+                  name="comment"
+                  id="comment"
+                  placeholder="Enter comment..."
+                  value={objValues.comment}
+                  disabled={disabledField}
+                  onChange={handleInputChange}
+                  style={{
+                    border: '1px solid #014D88',
+                    borderRadius: '0.25rem',
+                    height: '10em',
+                  }}
+                />
+                {errors.comment !== '' ? (
+                  <span className={classes.error}>{errors.comment}</span>
+                ) : (
+                  ''
+                )}
+              </div>
             </div>
             <br />
+
             {!disabledField && (
               <>
                 {props.activeContent &&
                 props.activeContent.actionType === 'update' ? (
-                  <>
+                  <div>
+                    {' '}
                     <MatButton
                       type="submit"
                       variant="contained"
@@ -3063,9 +3096,10 @@ const ClinicVisit = props => {
                         </span>
                       )}
                     </MatButton>
-                  </>
+                  </div>
                 ) : (
-                  <>
+                  <div>
+                    {' '}
                     <MatButton
                       type="submit"
                       variant="contained"
@@ -3086,7 +3120,7 @@ const ClinicVisit = props => {
                         </span>
                       )}
                     </MatButton>
-                  </>
+                  </div>
                 )}
               </>
             )}

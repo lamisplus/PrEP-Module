@@ -2,9 +2,7 @@ package org.lamisplus.modules.prep.domain.dto;
 
 
 import lombok.*;
-import org.codehaus.jackson.JsonNode;
 
-import javax.persistence.Column;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -16,8 +14,8 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class PrepClinicRequestDto implements Serializable{
-    private LocalDate  dateInitialAdherenceCounseling;
+public class PrepClinicRequestDto implements Serializable {
+    private LocalDate dateInitialAdherenceCounseling;
 
     @NotNull(message = "weight is mandatory")
     private Double weight;
@@ -74,7 +72,7 @@ public class PrepClinicRequestDto implements Serializable{
 
     private Object otherTestsDone;
 
-    private Object syndromicStiScreening ;
+    private Object syndromicStiScreening;
 
     private String riskReductionServices;
 
@@ -109,6 +107,7 @@ public class PrepClinicRequestDto implements Serializable{
     private String historyOfDrugAllergies;
     private LocalDate hivTestResultDate;
     private Integer monthsOfRefill;
+    private String comment;
 
 }
 

@@ -2,15 +2,9 @@ package org.lamisplus.modules.prep.domain.dto;
 
 
 import lombok.*;
-import org.codehaus.jackson.JsonNode;
-import org.hibernate.annotations.Type;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.FetchType;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.ArrayList;
 
 
 @Builder(toBuilder = true)
@@ -18,11 +12,11 @@ import java.util.ArrayList;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class PrepClinicDto implements Serializable{
+public class PrepClinicDto implements Serializable {
 
     private Long id;
 
-    private LocalDate  dateInitialAdherenceCounseling;
+    private LocalDate dateInitialAdherenceCounseling;
 
     private Double weight;
 
@@ -79,7 +73,7 @@ public class PrepClinicDto implements Serializable{
 
     private Object otherTestsDone;
 
-    private Object syndromicStiScreening ;
+    private Object syndromicStiScreening;
 
     private String riskReductionServices;
 
@@ -113,6 +107,7 @@ public class PrepClinicDto implements Serializable{
     private String historyOfDrugAllergies;
     private LocalDate hivTestResultDate;
     private Integer monthsOfRefill;
+    private String comment;
 
 }
 

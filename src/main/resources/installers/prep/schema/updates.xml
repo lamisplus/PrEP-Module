@@ -254,4 +254,9 @@
     <!--    <changeSet failOnError="true" author="Gamaliel" id="14-11-2024-1-reverse">-->
     <!--        <sql>ALTER TABLE prep_interruption DROP CONSTRAINT unique_interruption_date_person_uuid;</sql>-->
     <!--    </changeSet>-->
+    <changeSet failOnError="true" author="Gamaliel" id="11-24-2024-1">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN comment VARCHAR(255);
+        </sql>
+    </changeSet>
 </databaseChangeLog>

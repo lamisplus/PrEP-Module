@@ -10,7 +10,6 @@ import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.JsonNode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
@@ -37,14 +36,14 @@ import java.util.UUID;
         @TypeDef(name = "jsonb-node", typeClass = JsonNodeBinaryType.class),
         @TypeDef(name = "json-node", typeClass = JsonNodeStringType.class),
 })
-public class PrepClinic extends Audit implements Serializable{
+public class PrepClinic extends Audit implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, unique = true)
     private Long id;
 
     @Column(name = " date_initial_adherence_counseling")
-    private LocalDate  dateInitialAdherenceCounseling;
+    private LocalDate dateInitialAdherenceCounseling;
 
     @Column(name = "weight")
     private Double weight;
@@ -184,7 +183,7 @@ public class PrepClinic extends Audit implements Serializable{
     private String prepDistributionSetting;
 
     @Column(name = "family_planning")
-     private String familyPlanning;
+    private String familyPlanning;
     @Column(name = "date_of_family_planning")
     private LocalDate dateOfFamilyPlanning;
 
@@ -228,7 +227,7 @@ public class PrepClinic extends Audit implements Serializable{
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "syndromic_sti_screening", columnDefinition = "jsonb")
-    private Object syndromicStiScreening ;
+    private Object syndromicStiScreening;
 
     @Column(name = "risk_reduction_services")
     private String riskReductionServices;
@@ -251,15 +250,16 @@ public class PrepClinic extends Audit implements Serializable{
 
     @Column(name = "health_care_worker_signature")
     private String healthCareWorkerSignature;
-
+    @Column(name = "comment")
+    private String comment;
 
     @PrePersist
-    public void setFields(){
-        if(StringUtils.isEmpty(uuid)){
+    public void setFields() {
+        if (StringUtils.isEmpty(uuid)) {
             uuid = UUID.randomUUID().toString();
         }
-        if(archived == null){
-            archived=0;
+        if (archived == null) {
+            archived = 0;
         }
     }
 }
