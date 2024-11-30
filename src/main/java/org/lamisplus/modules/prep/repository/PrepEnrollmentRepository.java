@@ -300,7 +300,18 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
-            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND CURRENT_DATE - prepc.encounter_date > 37 THEN 'Delayed Injection'\n" +
+            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' THEN\n" +
+            "           CASE \n" +
+            "            WHEN CURRENT_DATE - prepc.encounter_date > 58 THEN 'Discontinued'\n" +
+            "            WHEN CURRENT_DATE - prepc.encounter_date > 37 THEN 'Delayed Injection'\n" +
+            "            ELSE prepc.status\n" +
+            "           END\n" +
+            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' THEN\n" +
+            "           CASE \n" +
+            "            WHEN CURRENT_DATE - prepc.encounter_date > 88 THEN 'Discontinued'\n" +
+            "            WHEN CURRENT_DATE - prepc.encounter_date > 67 THEN 'Delayed Injection'\n" +
+            "            ELSE prepc.status\n" +
+            "           END" +
             "        ELSE prepc.status \n" +
             "    END) AS prepStatus\n" +
             "FROM patient_person p\n" +
