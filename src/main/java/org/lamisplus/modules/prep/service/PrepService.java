@@ -588,9 +588,8 @@ public class PrepService {
         prepClinic.setOtherPrepGiven(prepClinicRequestDto.getOtherPrepGiven());
         prepClinic.setOtherPrepType(prepClinicRequestDto.getOtherPrepType());
         prepClinic.setOtherRegimenId(prepClinicRequestDto.getOtherRegimenId());
-        return prepClinic;
         prepClinic.setComment(prepClinicRequestDto.getComment());
-
+        return prepClinic;
     }
 
     private PrepClinicDto clinicToClinicDto(PrepClinic clinic) {

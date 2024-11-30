@@ -425,16 +425,21 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-
+  function sortByVisitDateDescending(data) {
+    return data.sort((a, b) => {
+      const dateA = new Date(a.visitDate);
+      const dateB = new Date(b.visitDate);
+      return dateB - dateA;
+    });
+  }
   const getLatestFromEligibility = async () => {
     axios
       .get(`${baseUrl}prep-eligibility/person/${objValues?.personId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(async response => {
-        const latestEligibility = response?.data?.sort((a, b) =>
-          moment(a?.visitDate).isBefore(moment(b?.visitDate))
-        )[response.data.length - 1];
+        const latestEligibility = sortByVisitDateDescending(response?.data)[0];
+        console.log('latestEligibility: ', latestEligibility);
         setLatestFromEligibility(latestEligibility);
       })
       .catch(error => {});
@@ -1110,7 +1115,7 @@ const ClinicVisit = props => {
 
       setObjValues(prevValues => ({
         ...prevValues,
-        populationType: autoPopulate ? autoPopulate.code : '',
+        populationType: latestFromEligibility?.populationType || '',
         visitType: latestFromEligibility?.visitType || '',
         reasonForSwitch: latestFromEligibility?.reasonForSwitch || '',
         pregnant: latestFromEligibility?.pregnancyStatus || '',
@@ -2045,6 +2050,11 @@ const ClinicVisit = props => {
                         {value.display}
                       </option>
                     ))}
+                    {!populationType?.find(
+                      pType => pType.display === 'GenPop'
+                    ) && (
+                      <option value="POPULATION_TYPE_GEN_POP">GenPop</option>
+                    )}
                   </Input>
                   {errors.populationType !== '' ? (
                     <span className={classes.error}>
