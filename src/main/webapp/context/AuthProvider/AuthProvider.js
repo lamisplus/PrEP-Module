@@ -1,72 +1,51 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { token, url as baseUrl } from '../../api';
-import axios from 'axios';
-import Cookies from 'js-cookie';
-import { prepForms } from '../../Utils/forms';
+import { usePermissions } from '../../hooks/usePermissions';
+import {
+  useCommencementConditions,
+  useDiscontinuationConditions,
+  useEligibilityConditions,
+  useEnrollmentConditions,
+  useVisitConditions,
+} from '../../hooks/useFormConditions';
 
 const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
-  const [userRole, setUserRole] = useState('guest');
-  const [userPermissions, setUserPermissions] = useState([]);
-  const [accessibleForms, setAccessibleForms] = useState([]);
-  const [forms, setForms] = useState([]);
+  const { hasPermission, hasAnyPermission, loading } = usePermissions();
+  const [userPermissions, setUserPermissions] = useState(null);
+  const isEnrollmentAccessible = useEnrollmentConditions();
+  const isCommencementAccessible = useCommencementConditions();
+  const isVisitAccessible = useVisitConditions();
+  const isDiscontinuationAccessible = useDiscontinuationConditions();
+  const isEligibilityAccessible = useEligibilityConditions();
 
-  useEffect(() => {
-    const fetchAccount = async () => {
-      try {
-        const response = await axios.get(`${baseUrl}account`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        Cookies.set('facilityName', response.data.currentOrganisationUnitName);
-        setUserPermissions(response?.data?.permissions);
-      } catch (e) {
-        console.error(e);
-      }
+  const getFormPermissions = () => {
+    const formPermissions = {
+      eligibility:
+        hasAnyPermission('PrEP eligibility forms', 'PrEP Care Card') &&
+        isEligibilityAccessible,
+      enrollment: hasAnyPermission('PrEP Care Card') && isEnrollmentAccessible,
+      commencement: hasPermission('PrEP Care Card') && isCommencementAccessible,
+      visit: hasPermission('PrEP Care Card') && isVisitAccessible,
+      discontinuation:
+        hasPermission('PrEP Care Card') && isDiscontinuationAccessible,
     };
-
-    fetchAccount();
-    setForms(prepForms);
-  }, []);
-
-  //   useEffect(() => {
-  //     const roles = {
-  //       admin: ['all'],
-  //       user: ['basic', 'pre-test-counsel'],
-  //       guest: ['basic'],
-  //     };
-
-  //     const getUserPermissions = role => {
-  //       return roles[role] || [];
-  //     };
-
-  //     setUserPermissions(getUserPermissions(userRole));
-  //   }, [userRole]);
-
-  function shouldUserAccessForm(formCode) {
-    for (let form of prepForms) {
-      if (form.code === formCode) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  const hasPermission = form => {
-    for (let i = 0; i < userPermissions.length; i++) {
-      if (userPermissions[i].toLowerCase().includes('all')) return true;
-    }
-    return userPermissions.includes(form.code);
+    return formPermissions;
   };
 
   useEffect(() => {
-    const accessibleForms = forms.filter(
-      form => hasPermission(form) && !form.evaluateConditions()
-    );
+    setUserPermissions(getFormPermissions());
+  }, [
+    hasPermission,
+    hasAnyPermission,
+    isEnrollmentAccessible,
+    isCommencementAccessible,
+    isVisitAccessible,
+    isDiscontinuationAccessible,
+    isEligibilityAccessible,
+  ]);
 
-    setAccessibleForms(accessibleForms);
-  }, [userPermissions]);
   return (
-    <AuthContext.Provider value={{ shouldUserAccessForm, accessibleForms }}>
+    <AuthContext.Provider value={{ userPermissions }}>
       {children}
     </AuthContext.Provider>
   );

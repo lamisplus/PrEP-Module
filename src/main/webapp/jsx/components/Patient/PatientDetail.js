@@ -19,7 +19,7 @@ import PrEPRegistrationForm from './../PrepServices/PrEPRegistrationForm';
 import Biometrics from './Biometric';
 import axios from 'axios';
 import { url as baseUrl, token } from './../../../api';
-import ProtectedComponent from '../PrepServices/ProtectedRoute';
+import ProtectedComponent from '../PrepServices/PrivateComponent';
 import { useAuth } from '../../../context/AuthProvider/AuthProvider';
 
 const styles = theme => ({
@@ -78,7 +78,7 @@ function PatientCard(props) {
       ? history.location.state.prepId
       : {};
 
-  const { shouldUserAccessForm } = useAuth();
+  const { userPermissions } = useAuth();
   useEffect(() => {
     PatientObject();
   }, []);
@@ -134,7 +134,7 @@ function PatientCard(props) {
           {activeContent.route === 'biometrics' && (
             <ProtectedComponent
               privateComponent={Biometrics}
-              isAuthorized={shouldUserAccessForm('eligibility')}
+              isAuthorized={userPermissions.biometrics}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -144,7 +144,7 @@ function PatientCard(props) {
           {activeContent.route === 'consultation' && (
             <ProtectedComponent
               privateComponent={ClinicVisit}
-              isAuthorized={shouldUserAccessForm('visit')}
+              isAuthorized={userPermissions.visit}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -154,7 +154,7 @@ function PatientCard(props) {
           {activeContent.route === 'prep-commencement' && (
             <ProtectedComponent
               privateComponent={PrEPCommencementForm}
-              isAuthorized={shouldUserAccessForm('commencement')}
+              isAuthorized={userPermissions.commencement}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -165,7 +165,7 @@ function PatientCard(props) {
           {activeContent.route === 'prep-interruptions' && (
             <ProtectedComponent
               privateComponent={PrEPDiscontinuationsInterruptions}
-              isAuthorized={shouldUserAccessForm('discontinuation')}
+              isAuthorized={userPermissions.discontinuation}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -176,7 +176,7 @@ function PatientCard(props) {
           {activeContent.route === 'prep-screening' && (
             <ProtectedComponent
               privateComponent={PrEPEligibiltyScreeningForm}
-              isAuthorized={shouldUserAccessForm('eligibility')}
+              isAuthorized={userPermissions?.eligibility}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -191,7 +191,7 @@ function PatientCard(props) {
           {activeContent.route === 'prep-registration' && (
             <ProtectedComponent
               privateComponent={PrEPRegistrationForm}
-              isAuthorized={shouldUserAccessForm('registration')}
+              isAuthorized={userPermissions.registration}
               patientObj={patientObjLocation}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
