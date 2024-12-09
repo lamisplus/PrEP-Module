@@ -128,7 +128,6 @@ const ClinicVisit = props => {
   const [prepRiskReductionPlan, setPrepRiskReductionPlan] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
-
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: '',
     diastolic: '',
@@ -296,26 +295,24 @@ const ClinicVisit = props => {
           { headers: { Authorization: `Bearer ${token}` } }
         )
         .then(response => {
-          if (response?.data || !response?.data) {
-            let isEligibleForCABLA = response?.data;
-            if (
-              isEligibleForCABLA ||
-              objValues?.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH'
-            ) {
-              setPrepType(prepType);
-              setprepRegimen(regimenList);
-            } else {
-              let reg = regimenList?.filter((each, index) => {
-                return each.code !== 'CAB-LA(600mg/3mL)';
-              });
-              let pTypes = prepType?.filter((each, index) => {
-                return each.code !== 'PREP_TYPE_INJECTIBLES';
-              });
-              setPrepType(pTypes);
-              setprepRegimen(reg);
-            }
-            return response?.data;
+          let isEligibleForCABLA = response?.data;
+          if (
+            isEligibleForCABLA ||
+            objValues?.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH'
+          ) {
+            setPrepType(prepType);
+            setprepRegimen(regimenList);
+          } else {
+            let reg = regimenList?.filter(
+              each => each.code !== 'CAB-LA(600mg/3mL)'
+            );
+            let pTypes = prepType?.filter(
+              each => each.code !== 'PREP_TYPE_INJECTIBLES'
+            );
+            setPrepType(pTypes);
+            setprepRegimen(reg);
           }
+          return response?.data;
         })
         .catch(error => {});
     }
@@ -439,7 +436,6 @@ const ClinicVisit = props => {
       })
       .then(async response => {
         const latestEligibility = sortByVisitDateDescending(response?.data)[0];
-        console.log('latestEligibility: ', latestEligibility);
         setLatestFromEligibility(latestEligibility);
       })
       .catch(error => {});
@@ -570,6 +566,11 @@ const ClinicVisit = props => {
     useState(false);
 
   const handleInputChange = e => {
+    if (!eligibilityVisitDateSync && e.target.name !== 'encounterDate') {
+      return toast.error(
+        `⚠ To continue, enter a valid visit date by providing the patient's latest screening date!`
+      );
+    }
     setErrors({ ...errors, [e.target.name]: '' });
     if (e.target.name === 'monthsOfRefill') {
       const durationInDays = Number(e.target.value);
@@ -644,17 +645,17 @@ const ClinicVisit = props => {
   const handleCheckBoxSyphilisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     if (e.target.checked) {
-      setSyphilisTest({ ...syphilisTest, ['syphilisTest']: 'Yes' });
+      setSyphilisTest({ syphilisTest: 'Yes', testDate: '', result: '' });
     } else {
-      setSyphilisTest({ ...syphilisTest, ['syphilisTest']: 'No' });
+      setSyphilisTest({ syphilisTest: 'Yes', testDate: '', result: '' });
     }
   };
   const handleCheckBoxHepatitisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     if (!e.target.checked) {
-      setHepatitisTest({ ...hepatitisTest, ['hepatitisTest']: 'Yes' });
+      setHepatitisTest({ hepatitisTest: 'Yes', testDate: '', result: '' });
     } else {
-      setHepatitisTest({ ...syphilisTest, ['syphilisTest']: 'No' });
+      setHepatitisTest({ hepatitisTest: 'No', testDate: '', result: '' });
     }
   };
   const handleCheckBoxOtherTest = e => {
@@ -682,18 +683,18 @@ const ClinicVisit = props => {
   const handleCheckBoxUrinalysisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     if (!e.target.checked) {
-      setUrinalysisTest({ ...urinalysisTest, ['urinalysisTest']: 'Yes' });
+      setUrinalysisTest({ urinalysisTest: 'Yes', testDate: '', result: '' });
     } else {
-      setUrinalysisTest({ ...otherTest, ['urinalysisTest']: 'No' });
+      setUrinalysisTest({ urinalysisTest: 'Yes', testDate: '', result: '' });
     }
   };
 
   const handleCheckBoxCreatinineTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     if (!e.target.checked) {
-      setCreatinineTest({ ...creatinineTest, ['creatinineTest']: 'Yes' });
+      setCreatinineTest({ creatinineTest: 'Yes', testDate: '', result: '' });
     } else {
-      setCreatinineTest({ ...otherTest, ['creatinineTest']: 'No' });
+      setCreatinineTest({ creatinineTest: 'No', testDate: '', result: '' });
     }
   };
 
@@ -1062,9 +1063,7 @@ const ClinicVisit = props => {
   };
 
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
-    codeSet?.filter(regimen => {
-      return regimen.id !== lastRegimenId;
-    });
+    codeSet?.filter(regimen => regimen.id !== lastRegimenId);
 
   const prepRegimenUpdateView = () => {
     axios
@@ -1176,7 +1175,8 @@ const ClinicVisit = props => {
     setSyphilisTest(getSyphilisResult()?.data);
     setpregnant(getPregnancyStatus()?.data);
     setPrepEntryPoints(getPrepEntryPoint()?.data);
-    setPrepType(getPrepType()?.data);
+    // setPrepType(getPrepType()?.data);
+    getPrepType();
     setPopulationType(getPopulationType().data);
     setVisitType(getVisitType()?.data);
     setFamilyPlanningMethod(getFamilyPlanningMethod()?.data);
@@ -2242,7 +2242,7 @@ const ClinicVisit = props => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    {`Duration of refill (Day[s])`}{' '}
+                    {`Duration of refill (days)`}{' '}
                     <span style={{ color: 'red' }}> *</span>
                   </FormLabelName>
                   <Input
@@ -2495,16 +2495,14 @@ const ClinicVisit = props => {
                     name="creatinineTest"
                     value="Yes"
                     onChange={handleCheckBoxCreatinineTest}
-                    checked={
-                      creatinineTest.creatinineTest !== 'Yes' ? true : false
-                    }
+                    checked={creatinineTest.creatinineTest === 'Yes'}
                   />{' '}
                   Creatinine Test
                 </h4>
               </Label>
               <br />
               <br />
-              {creatinineTest.creatinineTest !== 'Yes' && (
+              {creatinineTest.creatinineTest === 'Yes' && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -2574,16 +2572,14 @@ const ClinicVisit = props => {
                     name="urinalysisTest"
                     value="Yes"
                     onChange={handleCheckBoxUrinalysisTest}
-                    checked={
-                      urinalysisTest?.urinalysisTest !== 'Yes' ? true : false
-                    }
+                    checked={urinalysisTest?.urinalysisTest === 'Yes'}
                   />{' '}
                   Urinalysis Test
                 </h4>
               </Label>
               <br />
               <br />
-              {urinalysisTest?.urinalysisTest !== 'Yes' && (
+              {urinalysisTest?.urinalysisTest === 'Yes' && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -2655,16 +2651,14 @@ const ClinicVisit = props => {
                     name="hepatitisTest"
                     value="Yes"
                     onChange={handleCheckBoxHepatitisTest}
-                    checked={
-                      hepatitisTest.hepatitisTest !== 'Yes' ? true : false
-                    }
+                    checked={hepatitisTest.hepatitisTest === 'Yes'}
                   />{' '}
                   Hepatitis Test{' '}
                 </h4>
               </Label>
               <br />
               <br />
-              {hepatitisTest.hepatitisTest !== 'Yes' && (
+              {hepatitisTest.hepatitisTest === 'Yes' && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -2726,9 +2720,7 @@ const ClinicVisit = props => {
                     name="syphilisTest"
                     value="Yes"
                     onChange={handleCheckBoxSyphilisTest}
-                    checked={
-                      syphilisTest?.syphilisTest === 'Yes' ? true : false
-                    }
+                    checked={syphilisTest?.syphilisTest === 'Yes'}
                   />{' '}
                   Syphilis Test{' '}
                 </h4>

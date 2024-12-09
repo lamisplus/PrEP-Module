@@ -917,7 +917,10 @@ const BasicInfo = props => {
                   >
                     <option value={''}>Select</option>
                     {counselingType.map(value => (
-                      <option value={value.id}> {value.display} </option>
+                      <option key={value.id} value={value.id}>
+                        {' '}
+                        {value.display}{' '}
+                      </option>
                     ))}
                   </select>
                   {errors.counselingType !== '' ? (
