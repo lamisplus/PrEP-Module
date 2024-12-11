@@ -1065,7 +1065,7 @@ const ClinicVisit = props => {
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
     codeSet?.filter(regimen => regimen.id !== lastRegimenId);
 
-  const prepRegimenUpdateView = () => {
+  const prepRegimenUpdateView = () =>
     axios
       .get(`${baseUrl}prep-regimen`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -1074,9 +1074,8 @@ const ClinicVisit = props => {
         setprepRegimen(response.data);
       })
       .catch(error => {});
-  };
 
-  const getLiverFunctionTestResult = () => {
+  const getLiverFunctionTestResult = () =>
     axios
       .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -1085,7 +1084,7 @@ const ClinicVisit = props => {
         setLiverFunctionTestResult(response.data);
       })
       .catch(error => {});
-  };
+
   useEffect(() => {
     if (
       props.activeContent.actionType === '' ||
@@ -1094,6 +1093,7 @@ const ClinicVisit = props => {
       emptyObjValues();
     }
   }, [props.activeContent.actionType]);
+
   useEffect(() => {
     if (
       objValues.populationType !== null &&
@@ -1111,11 +1111,12 @@ const ClinicVisit = props => {
       const autoPopulate = populationType?.find(
         type => type.code === latestFromEligibility?.populationType
       );
-
       setObjValues(prevValues => ({
         ...prevValues,
         populationType: latestFromEligibility?.populationType || '',
         visitType: latestFromEligibility?.visitType || '',
+        monthsOfRefill:
+          visitTypeDurationMapping[`${latestFromEligibility?.visitType}`] || '',
         reasonForSwitch: latestFromEligibility?.reasonForSwitch || '',
         pregnant: latestFromEligibility?.pregnancyStatus || '',
       }));
@@ -1199,6 +1200,7 @@ const ClinicVisit = props => {
     if (['update', 'view'].includes(props.activeContent.actionType))
       prepRegimenUpdateView();
   }, [props.activeContent.actionType]);
+
   const handleLftInputChange = event => {
     const { name, value } = event.target;
     setObjValues(prevValues => ({
@@ -1266,6 +1268,40 @@ const ClinicVisit = props => {
     }
   }, [objValues.otherPrepGiven]);
 
+  const visitTypeDurationMapping = {
+    PREP_VISIT_TYPE_DISCONTINUATION: null,
+    'PREP_VISIT_TYPE_DISCONTINUATION_FOLLOW-UP': null,
+    PREP_VISIT_TYPE_INITIATION: 30,
+    PREP_VISIT_TYPE_METHOD_SWITCH: null,
+    PREP_VISIT_TYPE_NO_PREP_PROVIDED: null,
+    'PREP_VISIT_TYPE_REFILL_RE-INJECTION': 60,
+    PREP_VISIT_TYPE_RESTART: 30,
+    PREP_VISIT_TYPE_SECOND_INITIATION: 60,
+    PREP_VISIT_TYPE_TRANSFER_IN: null,
+  };
+  function addDaysToDate(dateString, daysToAdd) {
+    const date = new Date(dateString);
+    if (
+      isNaN(date.getTime()) ||
+      typeof daysToAdd !== 'number' ||
+      isNaN(daysToAdd)
+    ) {
+      return '';
+    }
+    date.setDate(date.getDate() + daysToAdd);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  useEffect(() => {
+    let nextAppointment = addDaysToDate(
+      objValues.encounterDate,
+      objValues.duration
+    );
+    setObjValues(prev => ({ ...prev, nextAppointment }));
+  }, [objValues.encounterDate, objValues.duration]);
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
@@ -2256,6 +2292,7 @@ const ClinicVisit = props => {
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
                     }}
+                    placeholder="Next appointment is based on what you enter here..."
                     disabled={disabledField}
                   />
                   {errors.monthsOfRefill !== '' ? (

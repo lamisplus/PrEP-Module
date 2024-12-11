@@ -28,14 +28,19 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
     List<PrepClinic> findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(String personUuid, Long facilityId, int archived, Boolean isCommenced);
 
     Optional<PrepClinic> findByEncounterDateAndPersonUuid(LocalDate encounterDate, String uuid);
+
     Optional<PrepClinic> findByEncounterDateAndPersonUuidAndIsCommencement(LocalDate encounterDate, String uuid, Boolean bool);
+
     Optional<PrepClinic> findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(LocalDate encounterDate, String uuid, Boolean bool, Integer archived);
+
     //For central sync
     List<PrepClinic> findAllByFacilityId(Long facilityId);
+
     @Query(value = "SELECT * FROM prep_clinic WHERE date_modified > ?1 AND facility_id=?2 ",
             nativeQuery = true
     )
     List<PrepClinic> getAllDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
+
     Optional<PrepClinic> findByUuid(String uuid);
 
     @Query(value = "SELECT enableCab FROM (\n" +
@@ -48,12 +53,12 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
             "AND regimen_id = 2\n" +
             ") sub\n" +
             "WHERE id = ?1 AND rowNums = 1", nativeQuery = true)
-    Boolean checkEnableCabaL (Long id, LocalDate currentVisitDate);
+    Boolean checkEnableCabaL(Long id, LocalDate currentVisitDate);
 
     @Query(value = "select p.id FROM prep_clinic pc JOIN patient_person p ON p.uuid = pc.person_uuid \n" +
             "where is_commencement = false\n" +
             "AND p.id = ?1 LIMIT 1", nativeQuery = true)
-    Optional<Long> checkHasClinicalVisit (Long id); //checks if has visit
+    Optional<Long> checkHasClinicalVisit(Long id); //checks if has visit
 
 
     @Query(value = "WITH RankedVisits AS (\n" +
@@ -72,7 +77,10 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
             "WHERE \n" +
             "id = ?1 AND \n" +
             "rowNum = 1", nativeQuery = true)
-    List<PrepPreviousVisitHtsRecord> getPreviousHtsRecord (Long id);
+    List<PrepPreviousVisitHtsRecord> getPreviousHtsRecord(Long id);
+
+    @Query(value = "SELECT CURRENT_DATE", nativeQuery = true)
+    Optional<java.sql.Date> getCurrentDate();
 
 
 }
