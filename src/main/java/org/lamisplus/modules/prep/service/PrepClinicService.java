@@ -219,6 +219,7 @@ public class PrepClinicService {
         prepClinic.setOtherPrepType(prepClinicDto.getOtherPrepType());
         prepClinic.setOtherRegimenId(prepClinicDto.getOtherRegimenId());
         prepClinic.setComment(prepClinicDto.getComment());
+        prepClinic.setPreviousPrepStatus(prepClinicDto.getPreviousPrepStatus());
         return prepClinic;
     }
 
@@ -285,6 +286,7 @@ public class PrepClinicService {
         prepClinic.setOtherPrepType(prepClinicRequestDto.getOtherPrepType());
         prepClinic.setOtherRegimenId(prepClinicRequestDto.getOtherRegimenId());
         prepClinic.setComment(prepClinicRequestDto.getComment());
+        prepClinic.setPreviousPrepStatus(prepClinicRequestDto.getPreviousPrepStatus());
         return prepClinic;
     }
 
@@ -358,6 +360,7 @@ public class PrepClinicService {
         prepClinicDto.setOtherPrepType(clinic.getOtherPrepType());
         prepClinicDto.setOtherRegimenId(clinic.getOtherRegimenId());
         prepClinicDto.setComment(clinic.getComment());
+        prepClinicDto.setPreviousPrepStatus(clinic.getPreviousPrepStatus());
         return prepClinicDto;
     }
 

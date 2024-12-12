@@ -252,6 +252,8 @@ public class PrepClinic extends Audit implements Serializable {
     private String healthCareWorkerSignature;
     @Column(name = "comment")
     private String comment;
+    @Column(name = "previous_prep_status")
+    private String previousPrepStatus;
 
     @PrePersist
     public void setFields() {

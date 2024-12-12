@@ -108,6 +108,6 @@ public class PrepClinicRequestDto implements Serializable {
     private LocalDate hivTestResultDate;
     private Integer monthsOfRefill;
     private String comment;
-
+    private String previousPrepStatus;
 }
 

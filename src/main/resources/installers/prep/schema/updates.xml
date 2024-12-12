@@ -259,4 +259,9 @@
             ALTER TABLE prep_clinic ADD COLUMN comment VARCHAR(255);
         </sql>
     </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="11-12-2024-1">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN previous_prep_status VARCHAR(255);
+        </sql>
+    </changeSet>
 </databaseChangeLog>
