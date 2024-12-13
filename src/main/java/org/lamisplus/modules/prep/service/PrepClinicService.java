@@ -150,6 +150,7 @@ public class PrepClinicService {
         prepClinic.setDateOfFamilyPlanning(prepClinicDto.getDateOfFamilyPlanning());
         prepClinic.setPregnant(prepClinicDto.getPregnant());
         prepClinic.setPrepDistributionSetting(prepClinicDto.getPrepDistributionSetting());
+        prepClinic.setPreviousPrepStatus(prepClinicDto.getPreviousPrepStatus());
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         return clinicToClinicDto(prepClinicRepository.save(prepClinic), null);
     }
