@@ -20,6 +20,7 @@ import org.lamisplus.modules.prep.repository.PrepEligibilityRepository;
 import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
 import org.lamisplus.modules.prep.repository.PrepInterruptionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -393,5 +394,13 @@ public class PrepClinicService {
 
     public Date getCurrentDate() {
         return prepClinicRepository.getCurrentDate().orElse(null);
+    }
+
+    @Transactional
+    public void updateLastEncounterPrevStatusByPersonUuid(String personUuid, String previousStatus) {
+        int rowsUpdated = prepClinicRepository.updateLastEncounterPrevStatusByPersonUuid(personUuid, previousStatus);
+        if (rowsUpdated == 0) {
+            throw new EntityNotFoundException(PrepClinic.class, "personUuid", personUuid);
+        }
     }
 }

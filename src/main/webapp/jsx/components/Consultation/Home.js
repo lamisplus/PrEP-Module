@@ -177,7 +177,6 @@ const ClinicVisit = props => {
     weight: '',
     why: '',
     otherDrugs: '',
-    duration: '',
     prepGiven: '',
     hivTestResult: '',
     hivTestResultDate: '',
@@ -356,6 +355,7 @@ const ClinicVisit = props => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
+        console.log('pat obj: ', props.patientObj);
         setPatientDto(response.data);
       })
       .catch(error => {});
@@ -566,7 +566,11 @@ const ClinicVisit = props => {
     useState(false);
 
   const handleInputChange = e => {
-    if (!eligibilityVisitDateSync && e.target.name !== 'encounterDate') {
+    if (
+      !eligibilityVisitDateSync &&
+      e.target.name !== 'encounterDate' &&
+      !['update', undefined].includes(props.activeContent.actionType)
+    ) {
       return toast.error(
         `⚠ To continue, enter a valid visit date by providing the patient's latest screening date!`
       );
@@ -836,7 +840,9 @@ const ClinicVisit = props => {
     setHepatitisTest({});
     setOtherTest([]);
   };
-
+  const isFemale = () => {
+    return props.patientObj.gender.toLowerCase() === 'female';
+  };
   const validate = () => {
     temp.lastHts = hivTestValue
       ? ''
@@ -867,7 +873,6 @@ const ClinicVisit = props => {
     }
     temp.weight = objValues.weight ? '' : '⚠ This field is required';
     temp.regimenId = objValues.regimenId ? '' : '⚠ This field is required';
-    temp.duration = objValues.duration ? '' : '⚠ This field is required';
     temp.prepDistributionSetting = objValues.prepDistributionSetting
       ? ''
       : '⚠ This field is required';
@@ -891,102 +896,10 @@ const ClinicVisit = props => {
   };
   const handleSubmit = e => {
     e.preventDefault();
-    if (validate()) {
-      setSaving(true);
-      objValues.hivTestResultDate = hivTestResultDate;
-      objValues.hivTestResult = hivTestValue;
-      objValues.syphilis = syphilisTest;
-      objValues.hepatitis = hepatitisTest;
-      objValues.urinalysis = urinalysisTest;
-      objValues.creatinine = creatinineTest;
-      objValues.otherTestsDone = otherTest;
-      objValues.prepEnrollmentUuid = patientDto.uuid;
-      objValues.prepNotedSideEffects = notedSideEffects;
-      objValues.notedSideEffects = '';
-      if (props.activeContent && props.activeContent.actionType === 'update') {
-        axios
-          .put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then(response => {
-            setSaving(false);
-            toast.success('Clinic visit updated successfully! ✔', {
-              position: toast.POSITION.BOTTOM_CENTER,
-            });
-            props.setActiveContent({
-              ...props.activeContent,
-              route: 'consultation',
-              activeTab: 'history',
-              actionType: 'view',
-            });
-          })
-          .catch(error => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                error.response.data.apierror &&
-                error.response.data.apierror.message !== ''
-                  ? error.response.data.apierror.message
-                  : '❌ Something went wrong. Please try again';
-              if (error.response.data.apierror) {
-                toast.error(error.response.data.apierror.message, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              } else {
-                toast.error(errorMessage, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              }
-            } else {
-              toast.error('Something went wrong ❌ please try again...', {
-                position: toast.POSITION.BOTTOM_CENTER,
-              });
-            }
-          });
-      } else {
-        axios
-          .post(`${baseUrl}prep/clinic-visit`, objValues, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then(response => {
-            setSaving(false);
-            emptyObjValues();
-            toast.success('Clinic Visit saved successfully! ✔', {
-              position: toast.POSITION.BOTTOM_CENTER,
-            });
-            props.setActiveContent({
-              ...props.activeContent,
-              route: 'consultation',
-              activeTab: 'history',
-              actionType: 'view',
-            });
-          })
-          .catch(error => {
-            setSaving(false);
-
-            if (error.response && error.response.data) {
-              let errorMessage =
-                error.response.data.apierror &&
-                error.response.data.apierror.message !== ''
-                  ? error.response.data.apierror.message
-                  : 'Something went wrong ❌ please try again';
-              if (error.response.data.apierror) {
-                toast.error(error.response.data.apierror.message, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              } else {
-                toast.error(errorMessage, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              }
-            } else {
-              toast.error('Something went wrong ❌ please try again...', {
-                position: toast.POSITION.BOTTOM_CENTER,
-              });
-            }
-          });
-      }
-    }
+    updatePreviousPrepStatusAndSubmit(
+      props.patientObj?.personUuid,
+      props.patientObj?.prepStatus
+    );
   };
 
   const handleCreateNewTest = () => {
@@ -1001,10 +914,6 @@ const ClinicVisit = props => {
         otherTestName: '',
       },
     ]);
-  };
-
-  const isFemale = () => {
-    return props.patientObj.gender.toLowerCase() === 'female';
   };
 
   const handlePrepTypeChange = e => {
@@ -1298,10 +1207,120 @@ const ClinicVisit = props => {
   useEffect(() => {
     let nextAppointment = addDaysToDate(
       objValues.encounterDate,
-      objValues.duration
+      objValues.monthsOfRefill
     );
     setObjValues(prev => ({ ...prev, nextAppointment }));
-  }, [objValues.encounterDate, objValues.duration]);
+  }, [objValues.encounterDate, objValues.monthsOfRefill]);
+  console.log('error:', temp);
+  useEffect(() => console.log('objValues: ', objValues));
+  async function updatePreviousPrepStatusAndSubmit(personUuid, previousStatus) {
+    try {
+      const response = await axios.put(
+        `${baseUrl}prep-clinic/updatePreviousPrepStatus`,
+        null,
+        {
+          params: {
+            personUuid,
+            previousStatus,
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log('Update response:', response);
+      console.log('error:', temp);
+
+      if (validate()) {
+        console.log('Validation passed 111');
+        setSaving(true);
+        objValues.hivTestResultDate = hivTestResultDate;
+        objValues.hivTestResult = hivTestValue;
+        objValues.syphilis = syphilisTest;
+        objValues.hepatitis = hepatitisTest;
+        objValues.urinalysis = urinalysisTest;
+        objValues.creatinine = creatinineTest;
+        objValues.otherTestsDone = otherTest;
+        objValues.prepEnrollmentUuid = patientDto.uuid;
+        objValues.prepNotedSideEffects = notedSideEffects;
+        objValues.notedSideEffects = '';
+
+        if (
+          props.activeContent &&
+          props.activeContent.actionType === 'update'
+        ) {
+          try {
+            const updateResponse = await axios.put(
+              `${baseUrl}prep-clinic/${props.activeContent.id}`,
+              objValues,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            setSaving(false);
+            toast.success('Clinic visit updated successfully! ✔', {
+              position: toast.POSITION.BOTTOM_CENTER,
+            });
+            props.setActiveContent({
+              ...props.activeContent,
+              route: 'consultation',
+              activeTab: 'history',
+              actionType: 'view',
+            });
+          } catch (error) {
+            handleError(error);
+          }
+        } else {
+          try {
+            const postResponse = await axios.post(
+              `${baseUrl}prep/clinic-visit`,
+              objValues,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            setSaving(false);
+            emptyObjValues();
+            toast.success('Clinic Visit saved successfully! ✔', {
+              position: toast.POSITION.BOTTOM_CENTER,
+            });
+            props.setActiveContent({
+              ...props.activeContent,
+              route: 'consultation',
+              activeTab: 'history',
+              actionType: 'view',
+            });
+          } catch (error) {
+            handleError(error);
+          }
+        }
+      } else {
+        console.log('Validation failed 222');
+      }
+    } catch (error) {
+      console.error('Error updating previous prep status:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+      }
+    }
+  }
+
+  function handleError(error) {
+    setSaving(false);
+    if (error.response && error.response.data) {
+      let errorMessage =
+        error.response.data.apierror &&
+        error.response.data.apierror.message !== ''
+          ? error.response.data.apierror.message
+          : '❌ Something went wrong. Please try again';
+      toast.error(errorMessage, {
+        position: toast.POSITION.BOTTOM_CENTER,
+      });
+    } else {
+      toast.error('Something went wrong ❌ please try again...', {
+        position: toast.POSITION.BOTTOM_CENTER,
+      });
+    }
+  }
+
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">

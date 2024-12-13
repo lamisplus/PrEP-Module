@@ -5,6 +5,7 @@ import org.lamisplus.modules.prep.domain.dto.PrepPreviousVisitHtsRecord;
 import org.lamisplus.modules.prep.domain.entity.PrepClinic;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
@@ -82,5 +83,16 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
     @Query(value = "SELECT CURRENT_DATE", nativeQuery = true)
     Optional<java.sql.Date> getCurrentDate();
 
-
+    @Modifying
+    @Query(value = "UPDATE prep_clinic pc " +
+            "SET previous_prep_status = ?2 " +
+            "WHERE pc.person_uuid = ?1 " +
+            "AND pc.is_commencement = false " +
+            "AND pc.encounter_date = (" +
+            " SELECT MAX(pc2.encounter_date) " +
+            " FROM prep_clinic pc2 " +
+            " WHERE pc2.person_uuid = ?1 " +
+            " AND pc2.is_commencement = false " +
+            ")", nativeQuery = true)
+    int updateLastEncounterPrevStatusByPersonUuid(String personUuid, String previousStatus);
 }
