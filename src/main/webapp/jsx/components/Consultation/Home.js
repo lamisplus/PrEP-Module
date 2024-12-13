@@ -566,15 +566,6 @@ const ClinicVisit = props => {
     useState(false);
 
   const handleInputChange = e => {
-    if (
-      !eligibilityVisitDateSync &&
-      e.target.name !== 'encounterDate' &&
-      !['update', undefined].includes(props.activeContent.actionType)
-    ) {
-      return toast.error(
-        `⚠ To continue, enter a valid visit date by providing the patient's latest screening date!`
-      );
-    }
     setErrors({ ...errors, [e.target.name]: '' });
     if (e.target.name === 'monthsOfRefill') {
       const durationInDays = Number(e.target.value);
@@ -2311,7 +2302,6 @@ const ClinicVisit = props => {
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
                     }}
-                    placeholder="Next appointment is based on what you enter here..."
                     disabled={disabledField}
                   />
                   {errors.monthsOfRefill !== '' ? (

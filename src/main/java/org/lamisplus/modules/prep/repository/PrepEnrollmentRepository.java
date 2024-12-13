@@ -83,126 +83,127 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
     List<PrepClient> findAllPersonPrep(Integer archived, Long facilityId);
 
     @Query(value = " SELECT DISTINCT ON (p.hospital_number) \n" +
-            "    p.hospital_number AS hospitalNumber,\n" +
-            "    el_max.HIVResultAtVisit,\n" +
-            "    p.date_of_registration AS dateOfRegistration,\n" +
-            "    prepc.commencementCount,\n" +
-            "    el.eligibility_count AS eligibilityCount,\n" +
-            "    pet.created_by AS createdBy,\n" +
-            "    pet.unique_id AS uniqueId,\n" +
-            "    p.id AS personId,\n" +
-            "    p.uuid AS personUuid,  -- Include the personUuid\n" +
-            "    p.first_name AS firstName,\n" +
-            "    p.surname AS surname,\n" +
-            "    p.other_name AS otherName,\n" +
-            "    pet.date_created,\n" +
-            "    CAST(EXTRACT(YEAR FROM AGE(NOW(), date_of_birth)) AS INTEGER) AS age,\n" +
-            "    INITCAP(p.sex) AS gender,\n" +
-            "    p.date_of_birth AS dateOfBirth,\n" +
-            "    he.date_confirmed_hiv AS dateConfirmedHiv,\n" +
-            "    CAST(COUNT(pet.person_uuid) AS INTEGER) AS prepCount,\n" +
-            "    (CASE \n" +
-            "        WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive'\n" +
-            "        WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
-            "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
-            "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
-            "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
-            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN \n" +
-            "            CASE \n" +
-            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 59 THEN 'Discontinued'\n" +
-            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 23 THEN 'Delayed Injection'\n" +
-            "                ELSE 'Active'\n" +
-            "            END\n" +
-            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN \n" +
-            "            CASE \n" +
-            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 89 THEN 'Discontinued'\n" +
-            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 53 THEN 'Delayed Injection'\n" +
-            "                ELSE 'Active'\n" +
-            "            END\n" +
-            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN \n" +
-            "            CASE \n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
-            "                ELSE 'Active'\n" +
-            "            END\n" +
-            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN \n" +
-            "            CASE \n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
-            "                ELSE 'Active'\n" +
-            "            END\n" +
-            "        WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN \n" +
-            "            CASE \n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
-            "                ELSE 'Active'\n" +
-            "            END\n" +
-            "        ELSE prepc.status\n" +
-            "    END) AS prepStatus\n" +
+            " p.hospital_number AS hospitalNumber,\n" +
+            " el_max.HIVResultAtVisit,\n" +
+            " p.date_of_registration AS dateOfRegistration,\n" +
+            " prepc.commencementCount,\n" +
+            " el.eligibility_count AS eligibilityCount,\n" +
+            " pet.created_by AS createdBy,\n" +
+            " pet.unique_id AS uniqueId,\n" +
+            " p.id AS personId,\n" +
+            " p.uuid AS personUuid, -- Include the personUuid\n" +
+            " p.first_name AS firstName,\n" +
+            " p.surname AS surname,\n" +
+            " p.other_name AS otherName,\n" +
+            " pet.date_created,\n" +
+            " CAST(EXTRACT(YEAR FROM AGE(NOW(), date_of_birth)) AS INTEGER) AS age,\n" +
+            " INITCAP(p.sex) AS gender,\n" +
+            " p.date_of_birth AS dateOfBirth,\n" +
+            " he.date_confirmed_hiv AS dateConfirmedHiv,\n" +
+            " CAST(COUNT(pet.person_uuid) AS INTEGER) AS prepCount,\n" +
+            " (CASE \n" +
+            " WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive'\n" +
+            " WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
+            " WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
+            " WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
+            " WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
+            " WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
+            " WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
+            " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN \n" +
+            " CASE \n" +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 59 THEN 'Discontinued'\n" +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 23 THEN 'Delayed Injection'\n" +
+            " ELSE 'Active'\n" +
+            " END\n" +
+            " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN \n" +
+            " CASE \n" +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 89 THEN 'Discontinued'\n" +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 53 THEN 'Delayed Injection'\n" +
+            " ELSE 'Active'\n" +
+            " END\n" +
+            " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN \n" +
+            " CASE \n" +
+            " WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            " ELSE 'Active'\n" +
+            " END\n" +
+            " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN \n" +
+            " CASE \n" +
+            " WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            " ELSE 'Active'\n" +
+            " END\n" +
+            " WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN \n" +
+            " CASE \n" +
+            " WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
+            " ELSE 'Active'\n" +
+            " END\n" +
+            " ELSE prepc.status\n" +
+            " END) AS prepStatus\n" +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
-            "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
-            "    FROM prep_eligibility el\n" +
-            "    WHERE el.archived = ?1\n" +
-            "    GROUP BY el.person_uuid\n" +
+            " SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
+            " FROM prep_eligibility el\n" +
+            " WHERE el.archived = ?1\n" +
+            " GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
             "LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
             "LEFT JOIN (\n" +
-            "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
-            "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
-            "           pc.visit_type AS visit_type, pc.prep_type AS prep_type,\n" +
-            "           (CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END) AS status\n" +
-            "    FROM prep_clinic pc\n" +
-            "    INNER JOIN (\n" +
-            "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
-            "        FROM prep_clinic pc\n" +
-            "        GROUP BY pc.person_uuid\n" +
-            "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
-            "    WHERE pc.archived = ?1\n" +
-            "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, status\n" +
+            " SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
+            " MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            " pc.visit_type AS visit_type, pc.prep_type AS prep_type, pc.previous_prep_status AS previous_prep_status,\n" +
+            " (CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END) AS status\n" +
+            " FROM prep_clinic pc\n" +
+            " INNER JOIN (\n" +
+            " SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
+            " FROM prep_clinic pc\n" +
+            " GROUP BY pc.person_uuid\n" +
+            " ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
+            " WHERE pc.archived = ?1\n" +
+            " GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
-            "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
-            "    FROM prep_interruption pi\n" +
-            "    INNER JOIN (\n" +
-            "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
-            "        FROM prep_interruption pi\n" +
-            "        WHERE pi.archived = ?1\n" +
-            "        GROUP BY pi.person_uuid\n" +
-            "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
-            "    WHERE pi.archived = ?1\n" +
-            "    GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
+            " SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
+            " FROM prep_interruption pi\n" +
+            " INNER JOIN (\n" +
+            " SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
+            " FROM prep_interruption pi\n" +
+            " WHERE pi.archived = ?1\n" +
+            " GROUP BY pi.person_uuid\n" +
+            " ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
+            " WHERE pi.archived = ?1\n" +
+            " GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             ") prepi ON prepi.person_uuid = p.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
             "LEFT JOIN (\n" +
-            "    SELECT pel.max_date, el.person_uuid,\n" +
-            "           el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit\n" +
-            "    FROM prep_eligibility el\n" +
-            "    INNER JOIN (\n" +
-            "        SELECT DISTINCT MAX(el.visit_date) AS max_date, el.person_uuid\n" +
-            "        FROM prep_eligibility el\n" +
-            "        WHERE el.archived = ?1\n" +
-            "        GROUP BY el.person_uuid\n" +
-            "    ) pel ON pel.max_date = el.visit_date AND el.person_uuid = pel.person_uuid\n" +
+            " SELECT pel.max_date, el.person_uuid,\n" +
+            " el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit\n" +
+            " FROM prep_eligibility el\n" +
+            " INNER JOIN (\n" +
+            " SELECT DISTINCT MAX(el.visit_date) AS max_date, el.person_uuid\n" +
+            " FROM prep_eligibility el\n" +
+            " WHERE el.archived = ?1\n" +
+            " GROUP BY el.person_uuid\n" +
+            " ) pel ON pel.max_date = el.visit_date AND el.person_uuid = pel.person_uuid\n" +
             ") el_max ON el_max.person_uuid = p.uuid\n" +
             "WHERE p.archived = ?1\n" +
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (el_max.HIVResultAtVisit NOT ILIKE '%Positive%' OR el_max.HIVResultAtVisit IS NULL)\n" +
             "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            " OR p.full_name ILIKE ?3\n" +
+            " OR p.surname ILIKE ?3\n" +
+            " OR p.other_name ILIKE ?3\n" +
+            " OR p.hospital_number ILIKE ?3\n" +
+            " OR pet.unique_id ILIKE ?3)\n" +
             "GROUP BY \n" +
-            "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
-            "    el_max.HIVResultAtVisit, p.date_of_registration,\n" +
-            "    prepc.commencementCount, el.eligibility_count, pet.created_by,\n" +
-            "    pet.unique_id, p.id, p.first_name, p.surname,\n" +
-            "    pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
-            "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
-            "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
-            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.duration\n" +
+            " prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
+            " el_max.HIVResultAtVisit, p.date_of_registration,\n" +
+            " prepc.commencementCount, el.eligibility_count, pet.created_by,\n" +
+            " pet.unique_id, p.id, p.first_name, p.surname,\n" +
+            " pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
+            " p.other_name, p.hospital_number, p.date_of_birth,\n" +
+            " prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
+            " pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
 
@@ -376,6 +377,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
             " WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' " +
             " WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped' " +
+            " WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart' " +
             " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN " +
             " CASE " +
             " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 59 THEN 'Discontinued' " +
@@ -417,7 +419,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "LEFT JOIN ( " +
             " SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount, " +
             " MAX(pc.encounter_date) AS encounter_date, pc.duration, " +
-            " pc.visit_type AS visit_type, pc.prep_type AS prep_type, " +
+            " pc.visit_type AS visit_type, pc.prep_type AS prep_type,pc.previous_prep_status AS previous_prep_status, " +
             " (CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END) AS status " +
             " FROM prep_clinic pc " +
             " INNER JOIN ( " +
@@ -426,7 +428,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " GROUP BY pc.person_uuid " +
             " ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid " +
             " WHERE pc.archived = ?1 " +
-            " GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, status " +
+            " GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type,pc.previous_prep_status, status " +
             ") prepc ON prepc.person_uuid = p.uuid " +
             "LEFT JOIN ( " +
             " SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type " +
@@ -464,7 +466,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " pet.person_uuid, prepc.person_uuid, pet.date_created, " +
             " p.other_name, p.hospital_number, p.date_of_birth, " +
             " prepc.status, he.person_uuid, he.date_confirmed_hiv, " +
-            " pet.id, prepc.visit_type, prepc.prep_type, prepc.duration " +
+            " pet.id, prepc.visit_type, prepc.prep_type,prepc.previous_prep_status, prepc.duration " +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
 
