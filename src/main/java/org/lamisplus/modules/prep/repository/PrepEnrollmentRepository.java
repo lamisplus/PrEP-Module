@@ -112,13 +112,13 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN \n" +
             " CASE \n" +
             " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 59 THEN 'Discontinued'\n" +
-            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 23 THEN 'Delayed Injection'\n" +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 37 THEN 'Delayed Injection'\n" +
             " ELSE 'Active'\n" +
             " END\n" +
             " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN \n" +
             " CASE \n" +
             " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 89 THEN 'Discontinued'\n" +
-            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 53 THEN 'Delayed Injection'\n" +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 67 THEN 'Delayed Injection'\n" +
             " ELSE 'Active'\n" +
             " END\n" +
             " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN \n" +
@@ -360,7 +360,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "pet.created_by AS createdBy, " +
             "pet.unique_id AS uniqueId, " +
             "p.id AS personId, " +
-            "p.uuid AS personUuid, " +  // Include the personUuid
+            "p.uuid AS personUuid, " +
             "p.first_name AS firstName, " +
             "p.surname AS surname, " +
             "p.other_name AS otherName, " +
@@ -381,13 +381,13 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN " +
             " CASE " +
             " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 59 THEN 'Discontinued' " +
-            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 23 THEN 'Delayed Injection' " +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 37 THEN 'Delayed Injection' " +
             " ELSE 'Active' " +
             " END " +
             " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN " +
             " CASE " +
             " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 89 THEN 'Discontinued' " +
-            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 53 THEN 'Delayed Injection' " +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 67 THEN 'Delayed Injection' " +
             " ELSE 'Active' " +
             " END " +
             " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN " +
