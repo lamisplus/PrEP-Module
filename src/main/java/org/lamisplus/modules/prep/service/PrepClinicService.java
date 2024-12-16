@@ -396,11 +396,17 @@ public class PrepClinicService {
         return prepClinicRepository.getCurrentDate().orElse(null);
     }
 
-    @Transactional
     public void updateLastEncounterPrevStatusByPersonUuid(String personUuid, String previousStatus) {
         int rowsUpdated = prepClinicRepository.updateLastEncounterPrevStatusByPersonUuid(personUuid, previousStatus);
         if (rowsUpdated == 0) {
-            throw new EntityNotFoundException(PrepClinic.class, "personUuid", personUuid);
+        }
+    }
+
+    @Transactional
+    public void updatePreviousStatusIfExists(String personUuid, String previousStatus) {
+        int eligibleRecordCount = prepClinicRepository.countEligibleRecordsForUpdate(personUuid);
+        if (eligibleRecordCount > 0) {
+            updateLastEncounterPrevStatusByPersonUuid(personUuid, previousStatus);
         }
     }
 }

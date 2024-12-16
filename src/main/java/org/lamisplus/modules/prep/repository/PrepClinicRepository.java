@@ -83,6 +83,20 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
     @Query(value = "SELECT CURRENT_DATE", nativeQuery = true)
     Optional<java.sql.Date> getCurrentDate();
 
+    @Query(value = "SELECT COUNT(*) FROM prep_clinic pc WHERE pc.person_uuid = ?1 AND pc.is_commencement = true", nativeQuery = true)
+    int countCommencementRecords(String personUuid);
+
+    @Query(value = "SELECT COUNT(*) FROM prep_clinic pc " +
+            "WHERE pc.person_uuid = ?1 " +
+            "AND pc.is_commencement = false " +
+            "AND pc.encounter_date = (" +
+            "  SELECT MAX(pc2.encounter_date) " +
+            "  FROM prep_clinic pc2 " +
+            "  WHERE pc2.person_uuid = ?1 " +
+            "  AND pc2.is_commencement = false " +
+            ")", nativeQuery = true)
+    int countEligibleRecordsForUpdate(String personUuid);
+
     @Modifying
     @Query(value = "UPDATE prep_clinic pc " +
             "SET previous_prep_status = ?2 " +

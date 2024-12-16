@@ -355,7 +355,6 @@ const ClinicVisit = props => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
-        console.log('pat obj: ', props.patientObj);
         setPatientDto(response.data);
       })
       .catch(error => {});
@@ -1202,8 +1201,7 @@ const ClinicVisit = props => {
     );
     setObjValues(prev => ({ ...prev, nextAppointment }));
   }, [objValues.encounterDate, objValues.monthsOfRefill]);
-  console.log('error:', temp);
-  useEffect(() => console.log('objValues: ', objValues));
+
   async function updatePreviousPrepStatusAndSubmit(personUuid, previousStatus) {
     try {
       const response = await axios.put(
@@ -1217,12 +1215,10 @@ const ClinicVisit = props => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log('Update response:', response);
-      console.log('error:', temp);
 
       if (validate()) {
-        console.log('Validation passed 111');
         setSaving(true);
+        objValues.duration = objValues.monthsOfRefill;
         objValues.hivTestResultDate = hivTestResultDate;
         objValues.hivTestResult = hivTestValue;
         objValues.syphilis = syphilisTest;
@@ -1284,13 +1280,9 @@ const ClinicVisit = props => {
           }
         }
       } else {
-        console.log('Validation failed 222');
       }
     } catch (error) {
       console.error('Error updating previous prep status:', error);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-      }
     }
   }
 
