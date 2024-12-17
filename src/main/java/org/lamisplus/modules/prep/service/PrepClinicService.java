@@ -396,10 +396,9 @@ public class PrepClinicService {
         return prepClinicRepository.getCurrentDate().orElse(null);
     }
 
+    @Transactional
     public void updateLastEncounterPrevStatusByPersonUuid(String personUuid, String previousStatus) {
-        int rowsUpdated = prepClinicRepository.updateLastEncounterPrevStatusByPersonUuid(personUuid, previousStatus);
-        if (rowsUpdated == 0) {
-        }
+        prepClinicRepository.updateLastEncounterPrevStatusByPersonUuid(personUuid, previousStatus);
     }
 
     @Transactional

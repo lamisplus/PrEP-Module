@@ -71,6 +71,6 @@ public class PrepClinicController {
     @PutMapping(PREP_CLINIC_URL_VERSION_ONE + "/updatePreviousPrepStatus")
     @ApiOperation("Updates previous prepStatus")
     public void updatePreviousPrepStatus(@RequestParam(required = true) String personUuid, @RequestParam(required = true) String previousStatus) {
-        prepClinicService.updateLastEncounterPrevStatusByPersonUuid(personUuid, previousStatus);
+        prepClinicService.updatePreviousStatusIfExists(personUuid, previousStatus);
     }
 }
