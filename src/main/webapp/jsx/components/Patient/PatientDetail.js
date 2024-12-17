@@ -21,6 +21,7 @@ import axios from 'axios';
 import { url as baseUrl, token } from './../../../api';
 import ProtectedComponent from '../PrepServices/PrivateComponent';
 import { useAuth } from '../../../context/AuthProvider/AuthProvider';
+import PatientVisits from './PatientVisits';
 
 const styles = theme => ({
   root: {
@@ -185,8 +186,17 @@ function PatientCard(props) {
               PatientObject={PatientObject}
             />
           )}
-          {activeContent.route === 'prep-visit' && (
-            <PrEPVisit PatientObject={PatientObject} />
+          {activeContent.route === 'patient-visits' && (
+            <ProtectedComponent
+              privateComponent={PatientVisits}
+              isAuthorized={userPermissions?.patientVisits}
+              patientObj={patientObjLocation}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+              prepId={prepId}
+              patientDetail={patientDetail}
+              PatientObject={PatientObject}
+            />
           )}
           {activeContent.route === 'prep-registration' && (
             <ProtectedComponent

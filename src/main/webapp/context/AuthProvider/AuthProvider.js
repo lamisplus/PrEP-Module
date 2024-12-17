@@ -5,6 +5,8 @@ import {
   useDiscontinuationConditions,
   useEligibilityConditions,
   useEnrollmentConditions,
+  usePatientVisitsConditions,
+  useRegistrationConditions,
   useVisitConditions,
 } from '../../hooks/useFormConditions';
 
@@ -12,14 +14,18 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const { hasPermission, hasAnyPermission, loading } = usePermissions();
   const [userPermissions, setUserPermissions] = useState(null);
+  const isRegistrationAccessible = useRegistrationConditions();
   const isEnrollmentAccessible = useEnrollmentConditions();
   const isCommencementAccessible = useCommencementConditions();
   const isVisitAccessible = useVisitConditions();
   const isDiscontinuationAccessible = useDiscontinuationConditions();
   const isEligibilityAccessible = useEligibilityConditions();
+  const isPatientVisitsAccessible = usePatientVisitsConditions();
 
   const getFormPermissions = () => {
     const formPermissions = {
+      registration:
+        hasAnyPermission('PrEP Care Card') && isRegistrationAccessible,
       eligibility:
         hasAnyPermission('PrEP eligibility forms', 'PrEP Care Card') &&
         isEligibilityAccessible,
@@ -28,6 +34,8 @@ export const AuthProvider = ({ children }) => {
       visit: hasPermission('PrEP Care Card') && isVisitAccessible,
       discontinuation:
         hasPermission('PrEP Care Card') && isDiscontinuationAccessible,
+      patientVisits:
+        hasPermission('PrEP Care Card') && isPatientVisitsAccessible,
     };
     return formPermissions;
   };
@@ -37,11 +45,13 @@ export const AuthProvider = ({ children }) => {
   }, [
     hasPermission,
     hasAnyPermission,
+    isRegistrationAccessible,
     isEnrollmentAccessible,
     isCommencementAccessible,
     isVisitAccessible,
     isDiscontinuationAccessible,
     isEligibilityAccessible,
+    isPatientVisitsAccessible,
   ]);
 
   return (
