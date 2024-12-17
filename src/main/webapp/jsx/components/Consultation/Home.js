@@ -193,23 +193,23 @@ const ClinicVisit = props => {
     liverFunctionTestResults: [],
   });
   const [urinalysisTest, setUrinalysisTest] = useState({
-    urinalysisTest: 'Yes',
+    urinalysisTest: 'No',
     testDate: '',
     result: '',
   });
   const [creatinineTest, setCreatinineTest] = useState({
-    creatinineTest: 'Yes',
+    creatinineTest: 'No',
     testDate: '',
     result: '',
   });
   const [syphilisTest, setSyphilisTest] = useState({
-    syphilisTest: 'Yes',
+    syphilisTest: 'No',
     testDate: '',
     result: '',
     others: '',
   });
   const [hepatitisTest, setHepatitisTest] = useState({
-    hepatitisTest: 'Yes',
+    hepatitisTest: 'No',
     testDate: '',
     result: '',
   });
@@ -635,26 +635,52 @@ const ClinicVisit = props => {
     }
     setSyphilisTest({ ...syphilisTest, [e.target.name]: e.target.value });
   };
+  const handleCheckBoxUrinalysisTest = e => {
+    setErrors({ ...errors, [e.target.name]: '' });
+    if (urinalysisTest?.urinalysisTest === 'Yes') {
+      setUrinalysisTest({ urinalysisTest: 'No', testDate: '', result: '' });
+    } else {
+      setUrinalysisTest({ ...urinalysisTest, urinalysisTest: 'Yes' });
+    }
+  };
+
+  const handleCheckBoxCreatinineTest = e => {
+    setErrors({ ...errors, [e.target.name]: '' });
+    if (creatinineTest?.creatinineTest === 'Yes') {
+      setCreatinineTest({ creatinineTest: 'No', testDate: '', result: '' });
+    } else {
+      setCreatinineTest({ ...creatinineTest, creatinineTest: 'Yes' });
+    }
+  };
 
   const handleCheckBoxSyphilisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.checked) {
-      setSyphilisTest({ syphilisTest: 'Yes', testDate: '', result: '' });
+    if (syphilisTest?.syphilisTest === 'Yes') {
+      setSyphilisTest({
+        syphilisTest: 'No',
+        testDate: '',
+        result: '',
+        others: '',
+      });
     } else {
-      setSyphilisTest({ syphilisTest: 'Yes', testDate: '', result: '' });
+      setSyphilisTest({ ...syphilisTest, syphilisTest: 'Yes' });
     }
   };
+
   const handleCheckBoxHepatitisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
-    if (!e.target.checked) {
-      setHepatitisTest({ hepatitisTest: 'Yes', testDate: '', result: '' });
-    } else {
+    if (hepatitisTest?.hepatitisTest === 'Yes') {
       setHepatitisTest({ hepatitisTest: 'No', testDate: '', result: '' });
+    } else {
+      setHepatitisTest({ ...hepatitisTest, hepatitisTest: 'Yes' });
     }
   };
+
   const handleCheckBoxOtherTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.checked) {
+    if (otherTest.length > 0) {
+      setOtherTest([]);
+    } else {
       setOtherTest([
         ...otherTest,
         ...objValues.otherTestsDone,
@@ -667,30 +693,10 @@ const ClinicVisit = props => {
           otherTestName: '',
         },
       ]);
-    } else {
-      setOtherTest([]);
     }
   };
 
   const otherTestInputRef = useRef();
-
-  const handleCheckBoxUrinalysisTest = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
-    if (!e.target.checked) {
-      setUrinalysisTest({ urinalysisTest: 'Yes', testDate: '', result: '' });
-    } else {
-      setUrinalysisTest({ urinalysisTest: 'Yes', testDate: '', result: '' });
-    }
-  };
-
-  const handleCheckBoxCreatinineTest = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
-    if (!e.target.checked) {
-      setCreatinineTest({ creatinineTest: 'Yes', testDate: '', result: '' });
-    } else {
-      setCreatinineTest({ creatinineTest: 'No', testDate: '', result: '' });
-    }
-  };
 
   const handleInputValueCheckHeight = e => {
     if (
