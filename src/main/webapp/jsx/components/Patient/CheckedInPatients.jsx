@@ -58,6 +58,24 @@ const tableIcons = {
 const CheckedInPatients = props => {
   const { hasPermission } = usePermissions();
   const { fetchPatients } = useCheckedInPatientData(baseUrl, token);
+  const getData = async query => {
+    try {
+      const data = await fetchPatients(query);
+      const reversedData = [...(data || [])].reverse();
+
+      return {
+        data: reversedData,
+        page: query?.page || 0,
+        totalCount: reversedData.length || 0,
+      };
+    } catch (error) {
+      return {
+        data: [],
+        page: 0,
+        totalCount: 0,
+      };
+    }
+  };
 
   const permissions = useMemo(
     () => ({
@@ -96,7 +114,7 @@ const CheckedInPatients = props => {
         title: 'PrEP Code',
         field: 'uniqueId',
         filtering: false,
-        render: rowData => rowData.uniqueId || 'N/A', // Handle null values
+        render: rowData => rowData.uniqueId,
       },
       {
         title: 'Sex',
@@ -114,7 +132,7 @@ const CheckedInPatients = props => {
         filtering: false,
         render: rowData => (
           <Label color="blue" size="mini">
-            {rowData.currentStatus || 'Not Available'} // Handle null values
+            {rowData.currentStatus || 'Default'}
           </Label>
         ),
       },
