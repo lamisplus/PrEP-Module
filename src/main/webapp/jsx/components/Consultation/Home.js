@@ -248,6 +248,7 @@ const ClinicVisit = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
+        setFullPrepTypeList(response.data);
         setPrepType(response.data);
       })
       .catch(error => {});
@@ -285,7 +286,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-
+  const [fullPrepTypeList, setFullPrepTypeList] = useState([]);
   const checkEligibleForCabLa = async (currentDate, regimenList) => {
     if (currentDate) {
       await axios
@@ -295,19 +296,19 @@ const ClinicVisit = props => {
         )
         .then(response => {
           let isEligibleForCABLA = response?.data;
+          let reg = regimenList?.filter(
+            each => each.code !== 'CAB-LA(600mg/3mL)'
+          );
+          let pTypes = [...prepType]?.filter(
+            each => each.code !== 'PREP_TYPE_INJECTIBLES'
+          );
           if (
             isEligibleForCABLA ||
             objValues?.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH'
           ) {
-            setPrepType(prepType);
+            setPrepType(fullPrepTypeList);
             setprepRegimen(regimenList);
           } else {
-            let reg = regimenList?.filter(
-              each => each.code !== 'CAB-LA(600mg/3mL)'
-            );
-            let pTypes = prepType?.filter(
-              each => each.code !== 'PREP_TYPE_INJECTIBLES'
-            );
             setPrepType(pTypes);
             setprepRegimen(reg);
           }
@@ -578,6 +579,7 @@ const ClinicVisit = props => {
         areDatesInSync(e.target.value, latestFromEligibility?.visitDate)
       );
       PrepRegimen(e.target.value);
+
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
     } else if (e.target.name === 'otherPrepGiven') {
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
@@ -1081,7 +1083,6 @@ const ClinicVisit = props => {
     setSyphilisTest(getSyphilisResult()?.data);
     setpregnant(getPregnancyStatus()?.data);
     setPrepEntryPoints(getPrepEntryPoint()?.data);
-    // setPrepType(getPrepType()?.data);
     getPrepType();
     setPopulationType(getPopulationType().data);
     setVisitType(getVisitType()?.data);
@@ -1209,87 +1210,68 @@ const ClinicVisit = props => {
   }, [objValues.encounterDate, objValues.monthsOfRefill]);
 
   async function updatePreviousPrepStatusAndSubmit(personUuid, previousStatus) {
-    try {
-      const response = await axios.put(
-        `${baseUrl}prep-clinic/updatePreviousPrepStatus`,
-        null,
-        {
-          params: {
-            personUuid,
-            previousStatus,
-          },
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+    if (validate()) {
+      setSaving(true);
+      objValues.duration = objValues.monthsOfRefill;
+      objValues.hivTestResultDate = hivTestResultDate;
+      objValues.hivTestResult = hivTestValue;
+      objValues.syphilis = syphilisTest;
+      objValues.hepatitis = hepatitisTest;
+      objValues.urinalysis = urinalysisTest;
+      objValues.creatinine = creatinineTest;
+      objValues.otherTestsDone = otherTest;
+      objValues.prepEnrollmentUuid = patientDto.uuid;
+      objValues.prepNotedSideEffects = notedSideEffects;
+      objValues.notedSideEffects = '';
+      objValues.previousPrepStatus = props.patientObj?.prepStatus;
 
-      if (validate()) {
-        setSaving(true);
-        objValues.duration = objValues.monthsOfRefill;
-        objValues.hivTestResultDate = hivTestResultDate;
-        objValues.hivTestResult = hivTestValue;
-        objValues.syphilis = syphilisTest;
-        objValues.hepatitis = hepatitisTest;
-        objValues.urinalysis = urinalysisTest;
-        objValues.creatinine = creatinineTest;
-        objValues.otherTestsDone = otherTest;
-        objValues.prepEnrollmentUuid = patientDto.uuid;
-        objValues.prepNotedSideEffects = notedSideEffects;
-        objValues.notedSideEffects = '';
-        objValues.previousStatus = previousStatus;
-
-        if (
-          props.activeContent &&
-          props.activeContent.actionType === 'update'
-        ) {
-          try {
-            const updateResponse = await axios.put(
-              `${baseUrl}prep-clinic/${props.activeContent.id}`,
-              objValues,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
-            setSaving(false);
-            toast.success('Clinic visit updated successfully! ✔', {
-              position: toast.POSITION.BOTTOM_CENTER,
-            });
-            props.setActiveContent({
-              ...props.activeContent,
-              route: 'consultation',
-              activeTab: 'history',
-              actionType: 'view',
-            });
-          } catch (error) {
-            handleError(error);
-          }
-        } else {
-          try {
-            const postResponse = await axios.post(
-              `${baseUrl}prep/clinic-visit`,
-              objValues,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
-            setSaving(false);
-            emptyObjValues();
-            toast.success('Clinic Visit saved successfully! ✔', {
-              position: toast.POSITION.BOTTOM_CENTER,
-            });
-            props.setActiveContent({
-              ...props.activeContent,
-              route: 'consultation',
-              activeTab: 'history',
-              actionType: 'view',
-            });
-          } catch (error) {
-            handleError(error);
-          }
+      if (props.activeContent && props.activeContent.actionType === 'update') {
+        try {
+          const updateResponse = await axios.put(
+            `${baseUrl}prep-clinic/${props.activeContent.id}`,
+            objValues,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          setSaving(false);
+          toast.success('Clinic visit updated successfully! ✔', {
+            position: toast.POSITION.BOTTOM_CENTER,
+          });
+          props.setActiveContent({
+            ...props.activeContent,
+            route: 'consultation',
+            activeTab: 'history',
+            actionType: 'view',
+          });
+        } catch (error) {
+          handleError(error);
         }
       } else {
+        try {
+          const postResponse = await axios.post(
+            `${baseUrl}prep/clinic-visit`,
+            objValues,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          setSaving(false);
+          emptyObjValues();
+          toast.success('Clinic Visit saved successfully! ✔', {
+            position: toast.POSITION.BOTTOM_CENTER,
+          });
+          props.setActiveContent({
+            ...props.activeContent,
+            route: 'consultation',
+            activeTab: 'history',
+            actionType: 'view',
+          });
+        } catch (error) {
+          handleError(error);
+        }
       }
-    } catch (error) {
-      console.error('Error updating previous prep status:', error);
+    } else {
     }
   }
 
@@ -1354,7 +1336,7 @@ const ClinicVisit = props => {
                         ? patientDto.dateEnrolled
                         : ''
                     }
-                    max={moment(new Date()).format('YYYY-MM-DD')}
+                    // max={moment(new Date()).format('YYYY-MM-DD')}
                     disabled={disabledField}
                   />
                   {errors.encounterDate !== '' ? (

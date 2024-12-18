@@ -108,6 +108,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             " WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             " WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
+            " WHEN prepi.interruption_type = 'PREP_STATUS_SEROCONVERTED' THEN 'Seroconverted' " +
             " WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
             " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN \n" +
             " CASE \n" +
@@ -377,6 +378,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
             " WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' " +
             " WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped' " +
+            " WHEN prepi.interruption_type = 'PREP_STATUS_SEROCONVERTED' THEN 'Seroconverted' " +
             " WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart' " +
             " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN " +
             " CASE " +
