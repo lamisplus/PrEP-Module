@@ -18,6 +18,7 @@ import org.lamisplus.modules.prep.repository.PrepEligibilityRepository;
 import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
 import org.lamisplus.modules.prep.repository.PrepInterruptionRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -315,14 +316,20 @@ public class PrepService {
     public Page<PrepClient> findAllPrepPersonPage(String searchValue, int pageNo, int pageSize) {
         Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<PrepClient> resultPage;
+
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            searchValue = searchValue.replaceAll("\\s", "");
+            searchValue = searchValue.replaceAll("\\\\s", "");
             String queryParam = "%" + searchValue + "%";
-            return prepEnrollmentRepository
-                    .findAllPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
+            resultPage = prepEnrollmentRepository.findAllPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
+        } else {
+            resultPage = prepEnrollmentRepository.findAllPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
         }
-        return prepEnrollmentRepository
-                .findAllPersonPrepAndStatus(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(), pageable);
+        List<PrepClient> filteredList = resultPage.getContent().stream()
+                .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(filteredList, pageable, filteredList.size());
     }
 
     public Page<PrepClient> findOnlyPrepPersonPage(String searchValue, int pageNo, int pageSize) {

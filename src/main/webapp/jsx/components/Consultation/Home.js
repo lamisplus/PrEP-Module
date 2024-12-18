@@ -1229,6 +1229,7 @@ const ClinicVisit = props => {
         objValues.prepEnrollmentUuid = patientDto.uuid;
         objValues.prepNotedSideEffects = notedSideEffects;
         objValues.notedSideEffects = '';
+        objValues.previousStatus = previousStatus;
 
         if (
           props.activeContent &&

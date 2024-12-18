@@ -44,9 +44,20 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
 
     Optional<PrepClinic> findByUuid(String uuid);
 
+    //    @Query(value = "SELECT enableCab FROM (\n" +
+//            "SELECT person_uuid, p.id,regimen_id,next_appointment, \n" +
+//            "CASE WHEN ((next_appointment <=  ?2) AND pc.regimen_id = 2) THEN true else false END AS enableCab, ROW_NUMBER() OVER (PARTITION BY person_uuid ORDER BY next_appointment DESC) AS rowNums\n" +
+//            "FROM prep_clinic pc\n" +
+//            "JOIN patient_person p ON p.uuid = pc.person_uuid \n" +
+//            "WHERE pc.archived = 0 AND p.archived = 0\n" +
+//            "AND is_commencement= false\n" +
+//            "AND regimen_id = 2\n" +
+//            ") sub\n" +
+//            "WHERE id = ?1 AND rowNums = 1", nativeQuery = true)
+//    Boolean checkEnableCabaL(Long id, LocalDate currentVisitDate);
     @Query(value = "SELECT enableCab FROM (\n" +
-            "SELECT person_uuid, p.id,regimen_id,next_appointment, \n" +
-            "CASE WHEN ((next_appointment <=  ?2) AND pc.regimen_id = 2) THEN true else false END AS enableCab, ROW_NUMBER() OVER (PARTITION BY person_uuid ORDER BY next_appointment DESC) AS rowNums\n" +
+            "SELECT person_uuid, p.id,regimen_id,next_appointment,encounter_date \n" +
+            "CASE WHEN ((?2 - encounter_date) >= 23 AND pc.regimen_id = 2) THEN true else false END AS enableCab, ROW_NUMBER() OVER (PARTITION BY person_uuid ORDER BY next_appointment DESC) AS rowNums\n" +
             "FROM prep_clinic pc\n" +
             "JOIN patient_person p ON p.uuid = pc.person_uuid \n" +
             "WHERE pc.archived = 0 AND p.archived = 0\n" +
