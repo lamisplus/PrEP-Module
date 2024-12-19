@@ -14,6 +14,7 @@ import momentLocalizer from 'react-widgets-moment';
 import moment from 'moment';
 import Typography from '@material-ui/core/Typography';
 import { AccordionSummary } from '@material-ui/core';
+import { useHistory, useLocation } from 'react-router-dom/cjs/react-router-dom';
 Moment.locale('en');
 momentLocalizer();
 
@@ -54,7 +55,8 @@ const styles = theme => ({
 
 function PatientCard(props) {
   const { classes } = props;
-  const patientObj = props?.patientObj;
+  const history = useLocation();
+  const patientObj = history?.state?.patientObj || props?.patientObj;
 
   const calculate_age = dob => {
     var today = new Date();
@@ -111,7 +113,10 @@ function PatientCard(props) {
                       <b
                         style={{ fontSize: '25px', color: 'rgb(153, 46, 98)' }}
                       >
-                        {patientObj?.firstName + ' ' + patientObj?.surname}
+                        {patientObj?.fullname ||
+                          `${
+                            patientObj?.firstName + ' ' + patientObj?.surname
+                          }`}
                       </b>
                       <Link to={'/'}>
                         <ButtonMui
@@ -164,15 +169,8 @@ function PatientCard(props) {
                       <span>
                         {' '}
                         Gender :{' '}
-                        <b style={{ color: '#0B72AA' }}>{patientObj?.gender}</b>
-                      </span>
-                    </Col>
-                    <Col md={4}>
-                      <span>
-                        {' '}
-                        Sex at Birth :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.sexAtBirth || patientObj?.gender}
+                          {patientObj?.sex || patientObj?.gender}
                         </b>
                       </span>
                     </Col>
@@ -181,7 +179,7 @@ function PatientCard(props) {
                         {' '}
                         Phone Number :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.phoneNumber}
+                          {patientObj?.phone || patientObj?.phoneNumber}
                         </b>
                       </span>
                     </Col>
@@ -201,6 +199,7 @@ function PatientCard(props) {
                             <Label color={'teal'} size={'mini'}>
                               STATUS :{' '}
                               {props.activeContent?.obj?.newStatus?.display ||
+                                patientObj?.status ||
                                 patientObj?.prepStatus}
                             </Label>
                           </Typography>

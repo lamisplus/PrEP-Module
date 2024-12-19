@@ -32,6 +32,7 @@ import {
 
 import '../../index.css';
 import { getPopulationType } from '../../../apiCalls/eligibility';
+import { useLocation } from 'react-router-dom/cjs/react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   card: {
@@ -159,6 +160,8 @@ const BasicInfo = props => {
   const [pregnancyStatus, setPregnancyStatus] = useState([]);
   const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
+  const history = useLocation;
+  const patientObj = history?.state?.patientObj || props?.patientObj;
 
   let temp = { ...errors };
 
@@ -465,6 +468,10 @@ const BasicInfo = props => {
           .then(response => {
             setSaving(false);
             props.patientObj.eligibilityCount = 1;
+            patientObj.eligibilityCount = 1;
+            props.patientObj.hivresultAtVisit =
+              drugHistory.hivTestResultAtvisit;
+            props.PatientObject();
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
             props.PatientObject();
@@ -550,7 +557,10 @@ const BasicInfo = props => {
   };
 
   const isFemale = () => {
-    return props.patientObj.gender.toLowerCase() === 'female';
+    return (
+      (props.patientObj.gender?.toLowerCase() ||
+        patientObj.sex?.toLowerCase()) === 'female'
+    );
   };
 
   const is30AndAbove = () => {

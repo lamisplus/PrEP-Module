@@ -137,7 +137,6 @@ const PatientVisits = props => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success('Check-out successful');
       setCheckinStatus(false);
       setIsCheckoutModalOpen(false);
       fetchPatientVisits();
@@ -171,10 +170,9 @@ const PatientVisits = props => {
   return (
     <div>
       <div className="d-flex justify-content-end mb-3">
-        <ProtectedComponent />
         {checkinStatus && (
           <ProtectedComponent
-            privateComponent={
+            privateComponent={() => (
               <ButtonMui
                 variant="contained"
                 style={{
@@ -186,7 +184,7 @@ const PatientVisits = props => {
               >
                 Check Out
               </ButtonMui>
-            }
+            )}
             isAuthorized={true}
           />
         )}

@@ -25,7 +25,7 @@ const CustomTable = ({ title, columns, data, icons, showPPI, onPPIChange }) => {
       <div className="form-check custom-checkbox float-left mt-4 ml-3">
         <input
           type="checkbox"
-          className="form-check-input"
+          className="form-check-input m-1 mt-2"
           name="showPPI"
           id="showPPI"
           value="showPPI"

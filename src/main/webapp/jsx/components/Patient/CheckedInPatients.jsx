@@ -103,7 +103,7 @@ const CheckedInPatients = props => {
         title: 'Patient Name',
         field: 'name',
         hidden: showPPI,
-        render: rowData => `${rowData.firstName} ${rowData.surname}`.trim(),
+        render: rowData => rowData.fullname.trim(),
       },
       {
         title: 'Hospital Number',
@@ -111,14 +111,13 @@ const CheckedInPatients = props => {
         filtering: false,
       },
       {
-        title: 'PrEP Code',
-        field: 'uniqueId',
-        filtering: false,
-        render: rowData => rowData.uniqueId,
-      },
-      {
         title: 'Sex',
         field: 'sex',
+        filtering: false,
+      },
+      {
+        title: 'Date of Birth',
+        field: 'dateOfBirth',
         filtering: false,
       },
       {
@@ -128,11 +127,11 @@ const CheckedInPatients = props => {
       },
       {
         title: 'PrEP Status',
-        field: 'currentStatus',
+        field: 'status',
         filtering: false,
         render: rowData => (
           <Label color="blue" size="mini">
-            {rowData.currentStatus || 'Default'}
+            {rowData.status || 'Default'}
           </Label>
         ),
       },

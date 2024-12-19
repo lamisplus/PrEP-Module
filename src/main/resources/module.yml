@@ -17,7 +17,7 @@ webModules:
     position: 99
     ##fa-solid fa-file
 permissions:
-  - name: adult_initial_clinical_evaluation
+  - name: prep_eligibility_form
     description: PrEP eligibility form
     moduleName: PrepModule
   - name: prep_care_card

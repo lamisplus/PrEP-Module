@@ -206,7 +206,7 @@ const Patients = props => {
               <div className="form-check custom-checkbox  float-left mt-4 ml-3">
                 <input
                   type="checkbox"
-                  className="form-check-input"
+                  className="form-check-input m-2"
                   name="showPP!"
                   id="showPP"
                   value="showPP"
