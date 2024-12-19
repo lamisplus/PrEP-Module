@@ -16,13 +16,13 @@ webModules:
     path: prep
     position: 99
     ##fa-solid fa-file
-permissions:
-  - name: prep_eligibility_form
-    description: PrEP eligibility form
-    moduleName: PrepModule
-  - name: prep_care_card
-    description: PrEP Care Card
-    moduleName: PrepModule
-  - name: prep_register
-    description: PrEP Register
-    moduleName: PrepModule
+#permissions:
+#  - name: prep_eligibility_form
+#    description: PrEP eligibility form
+#    moduleName: PrepModule
+#  - name: prep_care_card
+#    description: PrEP Care Card
+#    moduleName: PrepModule
+#  - name: prep_register
+#    description: PrEP Register
+#    moduleName: PrepModule
