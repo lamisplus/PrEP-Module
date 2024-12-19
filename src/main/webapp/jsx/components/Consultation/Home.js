@@ -579,12 +579,24 @@ const ClinicVisit = props => {
         areDatesInSync(e.target.value, latestFromEligibility?.visitDate)
       );
       PrepRegimen(e.target.value);
-
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
+      checkDateMismatch(e.target.value, latestFromEligibility?.visitDate);
     } else if (e.target.name === 'otherPrepGiven') {
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
     } else {
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
+    }
+  };
+
+  const checkDateMismatch = (visitDate, eligibilityDate) => {
+    if (visitDate !== eligibilityDate) {
+      toast.error(
+        '⚠ Please enter a date that matches the latest eligibility date!'
+      );
+    } else {
+      toast.success(
+        'The visit date matches the latest eligibility date. Great job! 👍'
+      );
     }
   };
 
@@ -855,7 +867,9 @@ const ClinicVisit = props => {
     temp.encounterDate = objValues.encounterDate
       ? ''
       : '⚠ This field is required';
-
+    // temp.encounterDate = eligibilityVisitDateSync
+    //   ? ''
+    //   : '⚠ Invalid screening date selected.';
     if (isFemale()) {
       temp.pregnant = objValues.pregnant ? '' : '⚠ This field is required';
     }
@@ -1336,7 +1350,7 @@ const ClinicVisit = props => {
                         ? patientDto.dateEnrolled
                         : ''
                     }
-                    // max={moment(new Date()).format('YYYY-MM-DD')}
+                    max={moment(new Date()).format('YYYY-MM-DD')}
                     disabled={disabledField}
                   />
                   {errors.encounterDate !== '' ? (
