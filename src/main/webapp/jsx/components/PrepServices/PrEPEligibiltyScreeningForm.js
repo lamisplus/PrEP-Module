@@ -629,7 +629,9 @@ const BasicInfo = props => {
   const getRecentActivities = () => {
     axios
       .get(
-        `${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
+        `${baseUrl}prep/activities/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }?full=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -882,8 +884,8 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              {props.patientObj.gender === 'Male' ||
-                (props.patientObj.gender === 'male' && (
+              {props?.patientObj?.gender === 'Male' ||
+                (props?.patientObj?.gender === 'male' && (
                   <div className="form-group col-md-4 p-2">
                     <FormGroup className="p-2">
                       <Label>Number of wives </Label>
@@ -2122,7 +2124,7 @@ const BasicInfo = props => {
                 Syndromic STI Screening
               </div>
               {props.patientDetail &&
-                props.patientDetail.personResponseDto.sex === 'Female' && (
+                props.patientDetail.personResponseDto?.sex === 'Female' && (
                   <>
                     <div className="form-group  col-md-4 p-3">
                       <FormGroup>
@@ -2189,8 +2191,8 @@ const BasicInfo = props => {
                     </div>
                   </>
                 )}
-              {props.patientObj.personResponseDto &&
-                props.patientDetail.personResponseDto.sex === 'Male' && (
+              {props.patientObj?.personResponseDto &&
+                props.patientDetail?.personResponseDto.sex === 'Male' && (
                   <>
                     <div className="form-group  col-md-4 p-3">
                       <FormGroup>

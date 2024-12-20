@@ -19,7 +19,9 @@ const ClinicVisitPage = props => {
     setLoading(true);
     axios
       .get(
-        `${baseUrl}prep-clinic/person/${props.patientObj.personId}?isCommenced=false&last=false`,
+        `${baseUrl}prep-clinic/person/${
+          props.patientObj.personId || props.patientObj.id
+        }?isCommenced=false&last=false`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -38,7 +40,9 @@ const ClinicVisitPage = props => {
     setLoading(true);
     axios
       .get(
-        `${baseUrl}prep/activities/patients/${props.patientObj.personId}?isCommenced=false&last=false`,
+        `${baseUrl}prep/activities/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }?isCommenced=false&last=false`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {

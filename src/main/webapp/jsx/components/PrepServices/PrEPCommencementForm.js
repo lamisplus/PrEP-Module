@@ -226,9 +226,14 @@ const PrEPCommencementForm = props => {
 
   const getPatientCommencement = id => {
     axios
-      .get(`${baseUrl}prep/commencement/person/${props.patientObj.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(
+        `${baseUrl}prep/commencement/person/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .then(response => {
         setObjValues(response.data.find(x => x.id === id));
       })
@@ -253,7 +258,9 @@ const PrEPCommencementForm = props => {
   const getPatientDTOObj = () => {
     axios
       .get(
-        `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+        `${baseUrl}prep/enrollment/open/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -682,32 +689,33 @@ const PrEPCommencementForm = props => {
                 </FormGroup>
               )}
             </div>
-            {props.patientObj.gender.toLowerCase() === 'female' && (
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>Pregnancy Status</Label>
-                  <Input
-                    type="select"
-                    name="pregnant"
-                    id="pregnant"
-                    onChange={handleInputChange}
-                    value={objValues.pregnant}
-                    disabled={disabledField}
-                    style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
-                    }}
-                  >
-                    <option value=""></option>
-                    {pregnant.map(value => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-              </div>
-            )}
+            {props.patientObj.gender.toLowerCase() === 'female' ||
+              (props.patientObj.sex.toLowerCase() === 'female' && (
+                <div className="form-group mb-3 col-md-6">
+                  <FormGroup>
+                    <Label>Pregnancy Status</Label>
+                    <Input
+                      type="select"
+                      name="pregnant"
+                      id="pregnant"
+                      onChange={handleInputChange}
+                      value={objValues.pregnant}
+                      disabled={disabledField}
+                      style={{
+                        border: '1px solid #014D88',
+                        borderRadius: '0.25rem',
+                      }}
+                    >
+                      <option value=""></option>
+                      {pregnant.map(value => (
+                        <option key={value.id} value={value.code}>
+                          {value.display}
+                        </option>
+                      ))}
+                    </Input>
+                  </FormGroup>
+                </div>
+              ))}
             {objValues.pregnant === 'PREGANACY_STATUS_BREASTFEEDING' && (
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>

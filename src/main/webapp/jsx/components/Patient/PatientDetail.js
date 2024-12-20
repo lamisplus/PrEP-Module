@@ -22,6 +22,7 @@ import { url as baseUrl, token } from './../../../api';
 import ProtectedComponent from '../PrepServices/PrivateComponent';
 import { useAuth } from '../../../context/AuthProvider/AuthProvider';
 import PatientVisits from './PatientVisits';
+import { useLocation } from 'react-router-dom/cjs/react-router-dom';
 
 const styles = theme => ({
   root: {
@@ -60,6 +61,7 @@ const styles = theme => ({
 
 function PatientCard(props) {
   let history = useHistory();
+  let location = useLocation();
   const [patientDetail, setPatientDetail] = useState('');
   const [activeContent, setActiveContent] = useState({
     route: 'recent-history',
@@ -86,9 +88,14 @@ function PatientCard(props) {
 
   async function PatientObject() {
     axios
-      .get(`${baseUrl}prep/persons/${patientObjLocation.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(
+        `${baseUrl}prep/persons/${
+          patientObjLocation.personId || location?.state?.patientObj.id
+        }`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .then(response => {
         setPatientDetail(response.data);
       })
@@ -113,20 +120,20 @@ function PatientCard(props) {
       <Card>
         <CardContent>
           <PatientCardDetail
-            patientObj={patientObjLocation}
+            patientObj={patientObjLocation || location?.state?.patientObj}
             setActiveContent={setActiveContent}
             activeContent={activeContent}
             patientDetail={patientDetail}
           />
           <SubMenu
-            patientObj={patientObjLocation}
+            patientObj={patientObjLocation || location?.state?.patientObj}
             setActiveContent={setActiveContent}
             patientDetail={patientDetail}
           />
           <br />
           {activeContent.route === 'recent-history' && (
             <RecentHistory
-              patientObj={patientObjLocation}
+              patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
@@ -136,7 +143,7 @@ function PatientCard(props) {
             <ProtectedComponent
               privateComponent={Biometrics}
               isAuthorized={userPermissions.biometrics}
-              patientObj={patientObjLocation}
+              patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
@@ -146,7 +153,7 @@ function PatientCard(props) {
             <ProtectedComponent
               privateComponent={ClinicVisit}
               isAuthorized={userPermissions.visit}
-              patientObj={patientObjLocation}
+              patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
@@ -156,7 +163,7 @@ function PatientCard(props) {
             <ProtectedComponent
               privateComponent={PrEPCommencementForm}
               isAuthorized={userPermissions.commencement}
-              patientObj={patientObjLocation}
+              patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
@@ -167,7 +174,7 @@ function PatientCard(props) {
             <ProtectedComponent
               privateComponent={PrEPDiscontinuationsInterruptions}
               isAuthorized={userPermissions.discontinuation}
-              patientObj={patientObjLocation}
+              patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
@@ -178,7 +185,7 @@ function PatientCard(props) {
             <ProtectedComponent
               privateComponent={PrEPEligibiltyScreeningForm}
               isAuthorized={userPermissions?.eligibility}
-              patientObj={patientObjLocation}
+              patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
@@ -190,7 +197,7 @@ function PatientCard(props) {
             <ProtectedComponent
               privateComponent={PatientVisits}
               isAuthorized={userPermissions?.patientVisits}
-              patientObj={patientObjLocation}
+              patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
@@ -202,7 +209,7 @@ function PatientCard(props) {
             <ProtectedComponent
               privateComponent={PrEPRegistrationForm}
               isAuthorized={userPermissions.registration}
-              patientObj={patientObjLocation}
+              patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
@@ -211,7 +218,7 @@ function PatientCard(props) {
           )}
           {activeContent.route === 'patient-history' && (
             <PatientHistory
-              patientObj={patientObjLocation}
+              patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
             />

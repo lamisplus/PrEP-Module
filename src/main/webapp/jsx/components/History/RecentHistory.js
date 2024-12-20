@@ -33,7 +33,9 @@ const RecentHistory = props => {
   const RecentActivities = () => {
     axios
       .get(
-        `${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
+        `${baseUrl}prep/activities/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }?full=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -46,7 +48,9 @@ const RecentHistory = props => {
   const Summary = () => {
     axios
       .get(
-        `${baseUrl}prep-clinic/person/${props.patientObj.personId}?full=true`,
+        `${baseUrl}prep-clinic/person/${
+          props.patientObj.personId || props.patientObj.id
+        }?full=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {

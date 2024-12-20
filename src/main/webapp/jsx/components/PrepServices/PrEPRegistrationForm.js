@@ -126,9 +126,14 @@ const PrEPRegistrationForm = props => {
   }, []);
   const getTargetGroupvalue = () => {
     axios
-      .get(`${baseUrl}hts/persons/${props.patientObj.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(
+        `${baseUrl}hts/persons/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .then(response => {
         setTargetGroupValue(response.data?.htsClientDtoList[0]?.targetGroup);
       })
@@ -175,7 +180,9 @@ const PrEPRegistrationForm = props => {
   const GetPatientDTOObj = () => {
     axios
       .get(
-        `${baseUrl}prep/eligibility/open/patients/${props.patientObj.personId}`,
+        `${baseUrl}prep/eligibility/open/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -188,9 +195,14 @@ const PrEPRegistrationForm = props => {
   };
   const GetPatientPrepEnrollment = id => {
     axios
-      .get(`${baseUrl}prep/enrollment/person/${props.patientObj.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(
+        `${baseUrl}prep/enrollment/person/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .then(response => {
         setObjValues(response.data.find(x => x.id === id));
       })
@@ -220,7 +232,7 @@ const PrEPRegistrationForm = props => {
   const handleSubmit = e => {
     e.preventDefault();
     if (validate()) {
-      objValues.personId = props.patientObj.personId;
+      objValues.personId = props.patientObj.personId || props.patientObj.id;
       objValues.prepEligibilityUuid = patientDto.uuid;
       objValues.targetGroup = targetGroupValue;
       setSaving(true);

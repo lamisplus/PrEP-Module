@@ -8,7 +8,7 @@ const ProtectedComponent = ({
 }) => {
   useEffect(() => {
     if (!isAuthorized) {
-      toast.warn('⚠ Authorization Failed');
+      console.error('authorisation failed!');
     }
   }, [isAuthorized]);
 
