@@ -808,10 +808,7 @@ const PrEPCommencementForm = props => {
             </div>
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
-                <Label>
-                  Liver Function Tests Result{' '}
-                  <span style={{ color: 'red' }}>*</span>
-                </Label>
+                <Label>Liver Function Tests Result </Label>
                 <LiverFunctionTest
                   objValues={objValues}
                   handleInputChange={handleLftInputChange}
@@ -828,10 +825,7 @@ const PrEPCommencementForm = props => {
             </div>
             <div className="form-group mb-3 col-md-8">
               <FormGroup>
-                <Label>
-                  Date of Liver Function Tests Result{' '}
-                  <span style={{ color: 'red' }}>*</span>
-                </Label>
+                <Label>Date of Liver Function Tests Result </Label>
                 <Input
                   className="form-control"
                   type="date"

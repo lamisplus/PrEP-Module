@@ -424,9 +424,11 @@ const BasicInfo = props => {
       objValues.liverFunctionTestResults.length === 0
         ? '⚠ LFT is required'
         : '';
-    temp.dateLiverFunctionTestResults = objValues.dateLiverFunctionTestResults
-      ? ''
-      : '⚠ This field is required.';
+    temp.dateLiverFunctionTestResults =
+      objValues.lftConducted === 'true' &&
+      !objValues.dateLiverFunctionTestResults
+        ? '⚠ This field is required.'
+        : '';
     temp.sexPartner = objValues.sexPartner ? '' : '⚠ This field is required.';
     temp.hivTestResultAtvisit = drugHistory.hivTestResultAtvisit
       ? ''

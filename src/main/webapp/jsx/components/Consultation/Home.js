@@ -304,7 +304,8 @@ const ClinicVisit = props => {
           );
           if (
             isEligibleForCABLA ||
-            objValues?.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH'
+            objValues?.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH' ||
+            ['update'].includes(props.activeContent.actionType)
           ) {
             setPrepType(fullPrepTypeList);
             setprepRegimen(regimenList);
@@ -867,9 +868,6 @@ const ClinicVisit = props => {
     temp.encounterDate = objValues.encounterDate
       ? ''
       : '⚠ This field is required';
-    // temp.encounterDate = eligibilityVisitDateSync
-    //   ? ''
-    //   : '⚠ Invalid screening date selected.';
     if (isFemale()) {
       temp.pregnant = objValues.pregnant ? '' : '⚠ This field is required';
     }
@@ -1864,7 +1862,6 @@ const ClinicVisit = props => {
                   <FormGroup>
                     <FormLabelName for="liverFunctionTestResults">
                       Liver Function Tests Result
-                      <span style={{ color: 'red' }}> *</span>
                     </FormLabelName>
                     <LiverFunctionTest
                       objValues={objValues}
@@ -1886,7 +1883,6 @@ const ClinicVisit = props => {
                   <FormGroup>
                     <FormLabelName for="dateLiverFunctionTestResults">
                       Date of Liver Function Tests Result{' '}
-                      <span style={{ color: 'red' }}> *</span>
                     </FormLabelName>
                     <Input
                       className="form-control"
