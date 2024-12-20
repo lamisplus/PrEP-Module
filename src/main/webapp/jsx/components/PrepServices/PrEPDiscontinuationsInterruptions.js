@@ -389,7 +389,7 @@ const PrEPEligibiltyScreeningForm = props => {
   async function updatePreviousPrepStatus(personUuid, previousStatus) {
     try {
       const response = await axios.put(
-        `${baseUrl}prep-clinic/updatePreviousPrepStatus?personUuid=${personUuid}&previousStatus=${previousStatus}`,
+        `${baseUrl}prep-clinic/updatePreviousPrepStatus`,
         null,
         {
           params: {
