@@ -318,10 +318,49 @@ const PrEPEligibiltyScreeningForm = props => {
     }
     if (validate()) {
       setSaving(true);
-      updatePreviousPrepStatus(
-        patientObj?.personUuid,
-        objValues?.interruptionType
-      );
+      if (props.activeContent && props.activeContent.actionType === 'update') {
+        axios
+          .put(
+            `${baseUrl}prep-interruption/${props.activeContent.id}`,
+            objValues,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          )
+          .then(response => {
+            setSaving(false);
+            toast.success('👍 Record saved successfully! ✔');
+            props.PatientObject();
+            props.setActiveContent({
+              ...props.activeContent,
+              route: 'recent-history',
+            });
+          })
+          .catch(error => {
+            setSaving(false);
+            handleError(error);
+          });
+      } else {
+        axios
+          .post(`${baseUrl}prep/interruption`, objValues, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then(response => {
+            const newStatus = getNewPrepStatus(response.data, prepStatus);
+            setSaving(false);
+            toast.success('👍 Record saved successfully! ✔');
+            props.PatientObject();
+            props.setActiveContent({
+              ...props.activeContent,
+              route: 'recent-history',
+              obj: { newStatus },
+            });
+          })
+          .catch(error => {
+            setSaving(false);
+            handleError(error);
+          });
+      }
     }
   };
 
@@ -386,70 +425,7 @@ const PrEPEligibiltyScreeningForm = props => {
   useEffect(() => {
     GetPatientInterruption(props.activeContent.id);
   }, [props.activeContent.id]);
-  async function updatePreviousPrepStatus(personUuid, previousStatus) {
-    try {
-      const response = await axios.put(
-        `${baseUrl}prep-clinic/updatePreviousPrepStatus`,
-        null,
-        {
-          params: {
-            personUuid,
-            previousStatus,
-          },
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (props.activeContent && props.activeContent.actionType === 'update') {
-        axios
-          .put(
-            `${baseUrl}prep-interruption/${props.activeContent.id}`,
-            objValues,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          )
-          .then(response => {
-            setSaving(false);
-            toast.success('👍 Record saved successfully! ✔');
-            props.PatientObject();
-            props.setActiveContent({
-              ...props.activeContent,
-              route: 'recent-history',
-            });
-          })
-          .catch(error => {
-            setSaving(false);
-            handleError(error);
-          });
-      } else {
-        axios
-          .post(`${baseUrl}prep/interruption`, objValues, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then(response => {
-            const newStatus = getNewPrepStatus(response.data, prepStatus);
-            setSaving(false);
-            toast.success('👍 Record saved successfully! ✔');
-            props.PatientObject();
-            props.setActiveContent({
-              ...props.activeContent,
-              route: 'recent-history',
-              obj: { newStatus },
-            });
-          })
-          .catch(error => {
-            setSaving(false);
-            handleError(error);
-          });
-      }
-      return response.data;
-    } catch (error) {
-      console.error('Error updating previous PrEP status:', error);
-      throw error;
-    }
-  }
 
-  console.log('patientObj: ', patientObj, objValues);
   return (
     <div>
       <Card className={classes.root}>
