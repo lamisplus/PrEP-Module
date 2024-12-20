@@ -389,13 +389,14 @@ const PrEPEligibiltyScreeningForm = props => {
   async function updatePreviousPrepStatus(personUuid, previousStatus) {
     try {
       const response = await axios.put(
-        `${baseUrl}/updatePreviousPrepStatus`,
-        null, // No body is needed for this request
+        `${baseUrl}prep-clinic/updatePreviousPrepStatus?personUuid=${personUuid}&previousStatus=${previousStatus}`,
+        null,
         {
           params: {
             personUuid,
             previousStatus,
           },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       if (props.activeContent && props.activeContent.actionType === 'update') {
