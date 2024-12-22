@@ -103,6 +103,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "    CAST(COUNT(pet.person_uuid) AS INTEGER) AS prepCount,\n" +
             "    (CASE \n" +
             "        WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive'\n" +
+            "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'" +
             "        WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
             "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
@@ -374,12 +375,12 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "CAST(COUNT(pet.person_uuid) AS INTEGER) AS prepCount, " +
             "(CASE " +
             " WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
+            " WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'" +
             " WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display " +
             " WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
             " WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
             " WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' " +
-            " WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'" +
-            " WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped' " +
+            " WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'" +
             " WHEN prepi.interruption_type = 'PREP_STATUS_SEROCONVERTED' THEN 'Seroconverted' " +
             " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN " +
             " CASE " +
