@@ -20,7 +20,6 @@ class EventLineApex extends Component {
 					show: false,
 				},
 				sparkline: {
-					//enabled: true
 				},
 				offsetX:0,
 			},

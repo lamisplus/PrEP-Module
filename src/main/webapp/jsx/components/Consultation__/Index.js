@@ -16,7 +16,23 @@ const ClinicVisitPage = (props) => {
       setKey(props.activeContent.activeTab)
     }, [props.activeContent]);
 
+    ///GET LIST OF Patients
+    const getPatientHistory = () => {
+      setLoading(true)
+      axios
+          .get(`${baseUrl}prep-clinic/person/${props.patientObj.personId}?isCommenced=false&last=false`,
+              { headers: { "Authorization": `Bearer ${token}` } }
+          )
+          .then((response) => {
+              setLoading(false)
+              setRecentActivities(response.data)
+          })
 
+          .catch((error) => {
+              //console.log(error);
+          });
+
+  }
   return (
     <Fragment>  
       <Row>       
@@ -32,11 +48,11 @@ const ClinicVisitPage = (props) => {
                     className="mb-3"
                 >
 
-                  <Tab eventKey="home" title="CLINIC VISIT ">                   
+                  <Tab eventKey="home" title="CLINIC VISIT">                   
                     <ConsultationPage patientObj={patientObj} setActiveContent={props.setActiveContent} activeContent={props.activeContent}/>
                   </Tab>  
-                  <Tab eventKey="history" title=" HISTORY">                   
-                    <ClinicHistoryPage patientObj={patientObj} activeContent={props.activeContent} setActiveContent={props.setActiveContent} />
+                  <Tab eventKey="history" title="HISTORY">                   
+                    <ClinicHistoryPage getPatientHistory={getPatientHistory} patientObj={patientObj} activeContent={props.activeContent} setActiveContent={props.setActiveContent} />
                   </Tab>                   
                 </Tabs>
               </div>

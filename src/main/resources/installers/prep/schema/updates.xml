@@ -1,145 +1,267 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
     <changeSet failOnError="true" author="Emeka" id="prep-updates-1">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
-                SELECT COUNT(*)
-                FROM pg_attribute
-                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'prep_interruption')
-                  AND attname = 'reason_stopped';
+                SELECT COUNT(*) FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname =
+                'prep_interruption') AND attname = 'reason_stopped';
             </sqlCheck>
         </preConditions>
         <sql>
-            ALTER TABLE IF EXISTS prep_interruption
-                ADD COLUMN reason_stopped character varying;
+            ALTER TABLE IF EXISTS prep_interruption ADD COLUMN reason_stopped character varying;
         </sql>
     </changeSet>
+
     <changeSet failOnError="true" author="Emeka" id="prep-updates-2">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
-                SELECT COUNT(*)
-                FROM pg_attribute
-                WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = 'prep_interruption')
-                  AND attname = 'reason_stopped_others';
+                SELECT COUNT(*) FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname =
+                'prep_interruption') AND attname = 'reason_stopped_others';
             </sqlCheck>
         </preConditions>
         <sql>
-            ALTER TABLE IF EXISTS prep_interruption
-                ADD COLUMN reason_stopped_others character varying;
+            ALTER TABLE IF EXISTS prep_interruption ADD COLUMN reason_stopped_others character varying;
         </sql>
     </changeSet>
+
     <changeSet failOnError="true" author="Peter Abiodun" id="prep-regimen-update">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="1">
-                SELECT COUNT(*)
-                FROM prep_regimen
-                WHERE regimen = 'TDF(300mg)+3TC(150mg)';
+                SELECT COUNT(*) FROM prep_regimen WHERE regimen = 'TDF(300mg)+3TC(150mg)';
             </sqlCheck>
         </preConditions>
         <sql>
-            UPDATE prep_regimen
-                SET regimen = 'TDF(300mg)+3TC(300mg)',
-                code = 'TDF(300mg)+3TC(300mg)'
-            WHERE regimen = 'TDF(300mg)+3TC(150mg)';
-            ALTER TABLE prep_regimen
-                ADD COLUMN prep_type character varying;
-            ALTER TABLE prep_clinic
-                ADD COLUMN prep_distribution_setting character varying;
-
-            INSERT INTO prep_regimen(regimen, composition, description, archived, code, prep_type)
-            VALUES ('IM CAB-LA(600mg/3mL)', 'IM Cabotegravir', 'Pre-Exposure Prophylaxis Injectable (PrEP Injectable)', 1, 'CAB-LA(600mg/3mL)', 'PREP_TYPE_INJECTIBLES');
+            UPDATE prep_regimen SET regimen = 'TDF(300mg)+3TC(300mg)', code = 'TDF(300mg)+3TC(300mg)' WHERE regimen =
+            'TDF(300mg)+3TC(150mg)';
+            ALTER TABLE prep_regimen ADD COLUMN prep_type character varying;
+            ALTER TABLE prep_clinic ADD COLUMN prep_distribution_setting character varying;
+            INSERT INTO prep_regimen(regimen, composition, description, archived, code, prep_type) VALUES ('IM
+            CAB-LA(600mg/3mL)', 'IM Cabotegravir', 'Pre-Exposure Prophylaxis Injectable (PrEP Injectable)', 1,
+            'CAB-LA(600mg/3mL)', 'PREP_TYPE_INJECTIBLES');
             UPDATE prep_regimen SET prep_type = 'PREP_TYPE_ORAL' WHERE regimen = 'TDF(300mg)+3TC(300mg)';
-
         </sql>
     </changeSet>
+
     <changeSet failOnError="true" author="Taiwo Gboyegun" id="family-planning-update">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="prep_clinic" columnName="family_planning" />
+                <columnExists tableName="prep_clinic" columnName="family_planning"/>
             </not>
         </preConditions>
         <sql>
-            ALTER TABLE prep_clinic
-                ADD family_planning VARCHAR(255);
+            ALTER TABLE prep_clinic ADD family_planning VARCHAR(255);
         </sql>
     </changeSet>
+
     <changeSet failOnError="true" author="Peter Abiodun" id="update-other-tests-fix-distr-sett-FP">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="prep_clinic" columnName="date_of_family_planning" />
+                <columnExists tableName="prep_clinic" columnName="date_of_family_planning"/>
             </not>
-            <columnExists tableName="prep_clinic" columnName="prep_distribution_setting" />
-            <columnExists tableName="prep_clinic" columnName="other_tests_done" />
+            <columnExists tableName="prep_clinic" columnName="prep_distribution_setting"/>
+            <columnExists tableName="prep_clinic" columnName="other_tests_done"/>
         </preConditions>
         <sql>
-            ALTER TABLE prep_clinic
-                ADD date_of_family_planning date;
+            ALTER TABLE prep_clinic ADD date_of_family_planning date;
             UPDATE prep_clinic SET prep_distribution_setting = NULL where prep_distribution_setting = '1';
             UPDATE prep_clinic SET pregnant = NULL where pregnant = '1';
-
-            UPDATE prep_clinic
-            SET other_tests_done = jsonb_set(other_tests_done, '{name}', (SELECT to_jsonb(code) FROM base_application_codeset WHERE codeset_group = 'PREP_OTHER_TEST' and display = other_tests_done->> 'name' LIMIT 1), true)
-            WHERE other_tests_done is not null and other_tests_done ->> 'name' != '';
-
-            UPDATE prep_clinic SET other_tests_done = jsonb_build_array(other_tests_done)
-            WHERE other_tests_done IS NOT NULL;
+            UPDATE prep_clinic SET other_tests_done = jsonb_set(other_tests_done, '{name}', (SELECT to_jsonb(code) FROM
+            base_application_codeset WHERE codeset_group = 'PREP_OTHER_TEST' and display = other_tests_done->> 'name'
+            LIMIT 1), true) WHERE other_tests_done is not null and other_tests_done ->> 'name' != '';
+            UPDATE prep_clinic SET other_tests_done = jsonb_build_array(other_tests_done) WHERE other_tests_done IS NOT
+            NULL;
         </sql>
     </changeSet>
+
     <changeSet failOnError="true" author="Peter Abiodun" id="update-prep-eligibility-cabla">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="prep_eligibility" columnName="assessment_for_pep_indication" />
+                <columnExists tableName="prep_eligibility" columnName="assessment_for_pep_indication"/>
             </not>
         </preConditions>
         <sql>
-            ALTER TABLE prep_eligibility
-                ADD COLUMN IF NOT EXISTS assessment_for_pep_indication JSONB,
-                ADD COLUMN IF NOT EXISTS assessment_for_acute_hiv_infection JSONB,
-                ADD COLUMN IF NOT EXISTS assessment_for_prep_eligibility JSONB,
-                ADD COLUMN IF NOT EXISTS services_received_by_client JSONB,
-                ADD COLUMN IF NOT EXISTS population_type VARCHAR(255),
-                ADD COLUMN IF NOT EXISTS visit_type VARCHAR(255),
-                ADD COLUMN IF NOT EXISTS pregnancy_status VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS assessment_for_pep_indication JSONB,
+            ADD COLUMN IF NOT EXISTS assessment_for_acute_hiv_infection JSONB,
+            ADD COLUMN IF NOT EXISTS assessment_for_prep_eligibility JSONB,
+            ADD COLUMN IF NOT EXISTS services_received_by_client JSONB,
+            ADD COLUMN IF NOT EXISTS population_type VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS visit_type VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS pregnancy_status VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Peter Abiodun" id="update-prep-clinic-population-type">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="prep_clinic" columnName="date_of_liver_function_test_results" />
+                <columnExists tableName="prep_clinic" columnName="date_of_liver_function_test_results"/>
             </not>
         </preConditions>
         <sql>
-            ALTER TABLE prep_clinic
-                ADD COLUMN IF NOT EXISTS date_of_liver_function_test_results DATE,
-                ADD COLUMN IF NOT EXISTS prep_type VARCHAR(255),
-                ADD COLUMN IF NOT EXISTS population_type VARCHAR(255),
-                ADD COLUMN IF NOT EXISTS liver_function_test_result VARCHAR(255),
-                ADD COLUMN IF NOT EXISTS history_of_drug_to_drug_interaction VARCHAR(255);
-        </sql>
-    </changeSet>
-    <changeSet id="adding-hiv-test-result-date-col" author="HafizDanmanu">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="prep_clinic" columnName="hiv_test_result_date" />
-            </not>
-
-        </preConditions>
-        <sql>
-            ALTER TABLE prep_clinic
-                ADD hiv_test_result_date date,
-                ADD months_of_refill integer;
-        </sql>
-    </changeSet>
-    <changeSet id="add-history-of-drug-allergies-column" author="Peter Abiodun">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="prep_clinic" columnName="history_of_drug_allergies" />
-            </not>
-        </preConditions>
-        <sql>
-            ALTER TABLE prep_clinic
-                ADD COLUMN history_of_drug_allergies VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS date_of_liver_function_test_results DATE,
+            ADD COLUMN IF NOT EXISTS prep_type VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS population_type VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS liver_function_test_result VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS history_of_drug_to_drug_interaction VARCHAR(255);
         </sql>
     </changeSet>
 
+    <changeSet failOnError="true" id="adding-hiv-test-result-date-col" author="HafizDanmanu">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_clinic" columnName="hiv_test_result_date"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic ADD hiv_test_result_date date, ADD months_of_refill integer;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true" id="add-history-of-drug-allergies-column" author="Peter Abiodun">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_clinic" columnName="history_of_drug_allergies"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN history_of_drug_allergies VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true" author="Gamaliel" id="add_health_care_worker_signature">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN health_care_worker_signature VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true" author="Gamaliel" id="31-08-2024-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_clinic" columnName="risk_reduction_services"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN risk_reduction_services VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true" author="Gamaliel" id="31-08-2024-2">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN visit_type VARCHAR(255);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-3">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN reason_for_switch VARCHAR(255);
+        </sql>
+    </changeSet>
+    <!--    <changeSet failOnError="true" author="Gamaliel" id="14-11-2024-1">-->
+    <!--        <sql>-->
+    <!--            ALTER TABLE prep_interruption-->
+    <!--            ADD CONSTRAINT unique_interruption_date_person_uuid UNIQUE (interruption_date, person_uuid);-->
+    <!--        </sql>-->
+    <!--    </changeSet>-->
+    <changeSet failOnError="true" author="Gamaliel" id="06-11-2024-1">
+        <sql>
+            ALTER TABLE prep_eligibility ADD COLUMN reason_for_switch VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-4">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN other_prep_given VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-5">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN was_prep_administered VARCHAR(255);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-6">
+        <sql>
+            ALTER TABLE prep_eligibility ADD COLUMN date_of_liver_function_test_results DATE;
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-7">
+        <sql>
+            ALTER TABLE prep_eligibility ADD COLUMN liver_function_test_results JSONB;
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-80">
+        <sql>
+            ALTER TABLE prep_eligibility ADD COLUMN lft_conducted VARCHAR(255);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-9">
+        <sql>
+            ALTER TABLE prep_interruption ADD COLUMN reason_for_prep_discontinuation VARCHAR(255);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="25-10-2024-10">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN other_prep_type VARCHAR(255);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="25-10-2024-11">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN other_regimen_id VARCHAR(255);
+        </sql>
+    </changeSet>
+    <!--    <changeSet author="Gamaliel" id="26-10-2024-12">-->
+    <!--        <sql>-->
+    <!--            ALTER TABLE prep_clinic-->
+    <!--            RENAME COLUMN liver_function_test_result TO liver_function_test_results;-->
+
+    <!--            ALTER TABLE prep_clinic-->
+    <!--            ALTER COLUMN liver_function_test_results-->
+    <!--            SET DATA TYPE JSONB USING liver_function_test_results::JSONB;-->
+    <!--        </sql>-->
+    <!--    </changeSet>-->
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-71">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN liver_function_test_results JSONB;
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-711">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN creatinine JSONB;
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-712">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN creatinine_result JSONB;
+        </sql>
+    </changeSet>
+    <changeSet author="Gamaliel" id="24-10-2024-713" failOnError="true">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN creatinine_result_varchar VARCHAR(255);
+
+            UPDATE prep_clinic SET creatinine_result_varchar = creatinine_result::text;
+
+            ALTER TABLE prep_clinic DROP COLUMN creatinine_result;
+
+            ALTER TABLE prep_clinic RENAME COLUMN creatinine_result_varchar TO creatinine_result;
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="28-10-2024-01">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN prep_noted_side_effects JSONB;
+        </sql>
+    </changeSet>
+    <!--    <changeSet failOnError="true" author="Gamaliel" id="14-11-2024-1-reverse">-->
+    <!--        <sql>ALTER TABLE prep_interruption DROP CONSTRAINT unique_interruption_date_person_uuid;</sql>-->
+    <!--    </changeSet>-->
+    <changeSet failOnError="true" author="Gamaliel" id="11-24-2024-1">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN comment VARCHAR(255);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="11-12-2024-1">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN previous_prep_status VARCHAR(255);
+        </sql>
+    </changeSet>
 </databaseChangeLog>

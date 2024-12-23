@@ -9,7 +9,6 @@ class BestSellingChart3 extends React.Component {
 			{
 				name: 'Net Profit',
 				data: [ 400, 200, 300,100, 300, 100,200, 100, 300, 200,],
-				//radius: 12,	
 			}, 				
 		],
 		options: {

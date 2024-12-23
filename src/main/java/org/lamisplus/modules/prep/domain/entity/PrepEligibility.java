@@ -32,7 +32,7 @@ import java.util.UUID;
         @TypeDef(name = "jsonb-node", typeClass = JsonNodeBinaryType.class),
         @TypeDef(name = "json-node", typeClass = JsonNodeStringType.class),
 })
-public class PrepEligibility  extends Audit implements Serializable {
+public class PrepEligibility extends Audit implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -50,47 +50,47 @@ public class PrepEligibility  extends Audit implements Serializable {
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "hiv_risk", columnDefinition = "jsonb")
-    private  Object hivRisk;
+    private Object hivRisk;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "sti_screening", columnDefinition = "jsonb")
-    private  Object stiScreening;
+    private Object stiScreening;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "drug_use_history", columnDefinition = "jsonb")
-    private  Object drugUseHistory;
+    private Object drugUseHistory;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "personal_hiv_risk_assessment", columnDefinition = "jsonb")
-    private  Object personalHivRiskAssessment;
+    private Object personalHivRiskAssessment;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "sex_partner_risk", columnDefinition = "jsonb")
-    private  Object sexPartnerRisk;
+    private Object sexPartnerRisk;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "assessment_for_pep_indication", columnDefinition = "jsonb")
-    private  Object assessmentForPepIndication;
+    private Object assessmentForPepIndication;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "assessment_for_acute_hiv_infection", columnDefinition = "jsonb")
-    private  Object assessmentForAcuteHivInfection;
+    private Object assessmentForAcuteHivInfection;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "assessment_for_prep_eligibility", columnDefinition = "jsonb")
-    private  Object assessmentForPrepEligibility;
+    private Object assessmentForPrepEligibility;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "services_received_by_client", columnDefinition = "jsonb")
-    private  Object servicesReceivedByClient;
+    private Object servicesReceivedByClient;
 
     @Column(name = "person_uuid")
     private String personUuid;
@@ -123,27 +123,35 @@ public class PrepEligibility  extends Audit implements Serializable {
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "extra", columnDefinition = "jsonb")
-    private  Object extra;
+    private Object extra;
 
     @Column(name = "facility_id")
     private Long facilityId;
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     private String uuid;
-
     @Column(name = "archived")
     private Integer archived;
-
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private Person person;
+    @Column(name = "lft_conducted")
+    private String lftConducted;
+    @Column(name = "reason_for_switch")
+    private String reasonForSwitch;
+    @Column(name = "date_of_liver_function_test_results")
+    private LocalDate dateLiverFunctionTestResults;
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "liver_function_test_results", columnDefinition = "jsonb", nullable = true)
+    private Object liverFunctionTestResults;
 
     @PrePersist
-    public void setFields(){
-        if(StringUtils.isEmpty(uuid)){
+    public void setFields() {
+        if (StringUtils.isEmpty(uuid)) {
             uuid = UUID.randomUUID().toString();
         }
-        if(archived == null){
+        if (archived == null) {
             archived = 0;
         }
     }

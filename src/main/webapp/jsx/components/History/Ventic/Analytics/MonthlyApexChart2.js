@@ -10,7 +10,6 @@ class MonthlyApexChart2 extends React.Component {
 			{
 				name: 'Net Profit',
 				data: [500, 600, 500, 600, 500, 600, 500, 600,500, 600,500,300],
-				//radius: 12,	
 			}, 				
 		],
 		options: {

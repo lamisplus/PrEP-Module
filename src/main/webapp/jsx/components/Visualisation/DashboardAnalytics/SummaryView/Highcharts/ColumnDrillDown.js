@@ -1,6 +1,5 @@
 export const columnDrillDown = {
 
-  // Create the chart
   chart: {
       type: 'column'
   },

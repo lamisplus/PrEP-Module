@@ -123,6 +123,7 @@ public class PrepInterruptionService {
 
         prepInterruption.setReasonStopped(interruptionRequestDto.getReasonStopped());
         prepInterruption.setReasonStoppedOthers(interruptionRequestDto.getReasonStoppedOthers());
+        prepInterruption.setReasonForPrepDiscontinuation(interruptionRequestDto.getReasonForPrepDiscontinuation());
 
         return prepInterruption;
     }

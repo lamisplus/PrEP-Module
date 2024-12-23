@@ -53,8 +53,7 @@ const options = {
   },
   plugins: {
     streaming: {
-      // per-chart option
-      frameRate: 0, // chart is drawn 30 times every second
+      frameRate: 0,
     },
   },
 };

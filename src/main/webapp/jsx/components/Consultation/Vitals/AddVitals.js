@@ -10,7 +10,7 @@ import { url as baseUrl, token } from "./../../../../api";
 import { useHistory } from "react-router-dom";
 import {  Modal, Button } from "react-bootstrap";
 
-import 'react-summernote/dist/react-summernote.css'; // import styles
+import 'react-summernote/dist/react-summernote.css';
 import { Spinner } from "reactstrap";
 
 const useStyles = makeStyles(theme => ({
@@ -61,7 +61,6 @@ const AddVitals = (props) => {
     console.log(patientObj)
     let history = useHistory();
     const classes = useStyles()
-    //const [values, setValues] = useState([]);
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
 
@@ -84,18 +83,14 @@ const AddVitals = (props) => {
             setVitalSignDto ({...vital,  [e.target.name]: e.target.value});
         }
 
-        //FORM VALIDATION
         const validate = () => {
             let temp = { ...errors }
-            //temp.name = details.name ? "" : "This field is required"
-            //temp.description = details.description ? "" : "This field is required"
             setErrors({
                 ...temp
                 })    
             return Object.values(temp).every(x => x == "")
         }
           
-        /**** Submit Button Processing  */
         const handleSubmit = (e) => {        
             e.preventDefault();        
             

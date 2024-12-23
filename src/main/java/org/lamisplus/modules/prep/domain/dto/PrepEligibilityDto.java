@@ -1,6 +1,7 @@
 package org.lamisplus.modules.prep.domain.dto;
 
 import lombok.*;
+import org.codehaus.jackson.JsonNode;
 import org.hibernate.annotations.Type;
 import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
 
@@ -43,6 +44,10 @@ public class PrepEligibilityDto implements Serializable {
     private  Object servicesReceivedByClient;
     private String populationType;
     private String visitType;
+    private String lftConducted;
+    private String reasonForSwitch;
+    private LocalDate dateLiverFunctionTestResults;
+    private Object liverFunctionTestResults;
     private String pregnancyStatus;
 
     //private PersonResponseDto personResponseDto;
