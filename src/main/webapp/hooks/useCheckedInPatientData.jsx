@@ -1,7 +1,13 @@
 import { useCallback } from 'react';
 import axios from 'axios';
 
-export const useCheckedInPatientData = (baseUrl, token) => {
+export const useCheckedInPatientData = (
+  baseUrl,
+  token,
+  searchValue = '*',
+  pageNo = 0,
+  pageSize = 20
+) => {
   const fetchPatients = useCallback(
     async query => {
       try {
@@ -9,7 +15,7 @@ export const useCheckedInPatientData = (baseUrl, token) => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const data = response.data;
+        const { data } = response;
         const prepCode = data?.find(
           item => item.moduleServiceName.toUpperCase() === 'PREP'
         )?.moduleServiceCode;
@@ -21,8 +27,22 @@ export const useCheckedInPatientData = (baseUrl, token) => {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-
-          return patientResponse.data;
+          const checkedInPrepPatients = await axios.get(
+            `${baseUrl}poc/persons`,
+            {
+              params: {
+                searchValue: searchValue,
+                pageSize: pageSize,
+                pageNo: pageNo,
+              },
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+                jsonData: patientResponse.data,
+              },
+            }
+          );
+          return checkedInPrepPatients?.data;
         }
       } catch (error) {
         console.error('Failed to fetch patients:', error);
