@@ -451,7 +451,7 @@ const BasicInfo = props => {
       objValues.personalHivRiskAssessment = riskAssessment;
       objValues.sexPartnerRisk = riskAssessmentPartner;
       objValues.stiScreening = stiScreening;
-      objValues.personId = props?.patientObj?.personId;
+      objValues.personId = props?.patientObj?.personId || props?.patientObj?.id;
       objValues.uniqueId = props?.patientObj?.uniqueId;
       objValues.assessmentForAcuteHivInfection = assessmentForAcuteHivInfection;
       objValues.assessmentForPepIndication = assessmentForPepIndication;
@@ -507,6 +507,8 @@ const BasicInfo = props => {
             }
           });
       } else {
+        console.log('payload: ', objValues);
+        console.log('pobj: ', props?.patientObj);
         axios
           .post(`${baseUrl}prep/eligibility`, objValues, {
             headers: { Authorization: `Bearer ${token}` },

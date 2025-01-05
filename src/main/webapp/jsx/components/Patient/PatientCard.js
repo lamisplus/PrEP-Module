@@ -15,6 +15,7 @@ import moment from 'moment';
 import Typography from '@material-ui/core/Typography';
 import { AccordionSummary } from '@material-ui/core';
 import { useHistory, useLocation } from 'react-router-dom/cjs/react-router-dom';
+import PatientDetail from './PatientDetail';
 Moment.locale('en');
 momentLocalizer();
 
@@ -99,7 +100,27 @@ function PatientCard(props) {
       address && address?.city && address?.city !== null ? address?.city : '';
     return address ? houseAddress + ' ' + landMark : '';
   };
+  function formatAddressStrict(addressObj) {
+    console.log('addr obj: ', addressObj);
+    if (
+      !addressObj?.address ||
+      !Array.isArray(addressObj.address) ||
+      !addressObj.address.length
+    ) {
+      return;
+    }
 
+    const firstAddress = addressObj.address[0];
+    if (!firstAddress || !Array.isArray(firstAddress.line)) {
+      alert(1);
+      return;
+    }
+
+    const line = firstAddress.line[0];
+    const city = firstAddress.city?.trim() || '';
+    console.log(`addr: ${line}, ${city}`);
+    return `${line}, ${city}`;
+  }
   return (
     <div className={classes.root}>
       <Accordion>
@@ -141,7 +162,9 @@ function PatientCard(props) {
                         {' '}
                         Patient ID :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.hospitalNumber}
+                          {patientObj?.hospitalNumber ||
+                            props?.patientDetail?.personResponseDto?.identifier
+                              ?.identifier[0].value}
                         </b>
                       </span>
                     </Col>
@@ -150,7 +173,9 @@ function PatientCard(props) {
                       <span>
                         Date Of Birth :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.dateOfBirth}
+                          {patientObj?.dateOfBirth ||
+                            props?.patientDetail?.personResponseDto
+                              ?.dateOfBirth}
                         </b>
                       </span>
                     </Col>
@@ -160,7 +185,11 @@ function PatientCard(props) {
                         Age :{' '}
                         <b style={{ color: '#0B72AA' }}>
                           {calculate_age(
-                            moment(patientObj?.dateOfBirth).format('DD-MM-YYYY')
+                            moment(
+                              patientObj?.dateOfBirth ||
+                                props?.patientDetail?.personResponseDto
+                                  ?.dateOfBirth
+                            ).format('DD-MM-YYYY')
                           )}
                         </b>
                       </span>
@@ -170,7 +199,9 @@ function PatientCard(props) {
                         {' '}
                         Gender :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.sex || patientObj?.gender}
+                          {patientObj?.sex ||
+                            patientObj?.gender ||
+                            props?.patientDetail?.personResponseDto?.sex}
                         </b>
                       </span>
                     </Col>
@@ -179,7 +210,10 @@ function PatientCard(props) {
                         {' '}
                         Phone Number :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.phone || patientObj?.phoneNumber}
+                          {patientObj?.phone ||
+                            patientObj?.phoneNumber ||
+                            props?.patientDetail?.personResponseDto
+                              ?.contactPoint?.contactPoint[0].value}
                         </b>
                       </span>
                     </Col>
@@ -188,7 +222,10 @@ function PatientCard(props) {
                         {' '}
                         Address :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.address}{' '}
+                          {patientObj?.address ||
+                            formatAddressStrict(
+                              props.patientDetail?.personResponseDto?.address
+                            )}{' '}
                         </b>
                       </span>
                     </Col>
@@ -200,7 +237,8 @@ function PatientCard(props) {
                               STATUS :{' '}
                               {props.activeContent?.obj?.newStatus?.display ||
                                 patientObj?.status ||
-                                patientObj?.prepStatus}
+                                patientObj?.prepStatus ||
+                                props?.patientDetail?.prepStatus}
                             </Label>
                           </Typography>
                         </div>

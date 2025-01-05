@@ -378,6 +378,8 @@ public class PrepService {
         prepDtos.setPrepEnrollmentCount(prepCount);
         prepDtos.setPrepDtoList(prepDtoList);
         Integer commencementCount = prepClinicRepository.countAllByPersonUuid(person.getUuid());
+        Integer prepEnrollmentCountByPersonUuid = prepEnrollmentRepository.getPrepCountByPersonUuid(person.getUuid());
+        prepDtos.setPrepCount(prepEnrollmentCountByPersonUuid);
         prepDtos.setCommenced((commencementCount > 0) ? true : false);
         prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
         prepDtos.setHivPositive(isPositive);

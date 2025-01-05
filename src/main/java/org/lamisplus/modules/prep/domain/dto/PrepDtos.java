@@ -2,7 +2,6 @@ package org.lamisplus.modules.prep.domain.dto;
 
 import lombok.Data;
 import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
-import org.lamisplus.modules.prep.domain.entity.PrepEnrollment;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,6 +12,7 @@ public class PrepDtos {
     private Integer prepEnrollmentCount;
     private Integer prepEligibilityCount;
     private Integer prepCommencementCount;
+    private Integer prepCount;
     private String prepStatus;
     private LocalDate dateConfirmedHiv;
     private String createdBy;

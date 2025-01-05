@@ -27,22 +27,7 @@ export const useCheckedInPatientData = (
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-          const checkedInPrepPatients = await axios.get(
-            `${baseUrl}poc/persons`,
-            {
-              params: {
-                searchValue: searchValue,
-                pageSize: pageSize,
-                pageNo: pageNo,
-              },
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-                jsonData: patientResponse.data,
-              },
-            }
-          );
-          return checkedInPrepPatients?.data;
+          return patientResponse?.data;
         }
       } catch (error) {
         console.error('Failed to fetch patients:', error);

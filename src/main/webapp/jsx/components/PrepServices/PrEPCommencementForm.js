@@ -348,6 +348,7 @@ const PrEPCommencementForm = props => {
     if (validate()) {
       setSaving(true);
       objValues.prepEnrollmentUuid = patientDto.uuid;
+      objValues.personId = props?.patientObj?.personId || props?.patientObj?.id;
       if (props.activeContent && props.activeContent.actionType === 'update') {
         axios
           .put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues, {
@@ -458,7 +459,9 @@ const PrEPCommencementForm = props => {
   const getLatestFromEligibility = async () => {
     try {
       const response = await axios.get(
-        `${baseUrl}prep-eligibility/person/${objValues?.personId}`,
+        `${baseUrl}prep-eligibility/person/${
+          objValues?.personId || patientObj?.id
+        }`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -689,8 +692,8 @@ const PrEPCommencementForm = props => {
                 </FormGroup>
               )}
             </div>
-            {props.patientObj.gender.toLowerCase() === 'female' ||
-              (props.patientObj.sex.toLowerCase() === 'female' && (
+            {props.patientObj?.gender?.toLowerCase() === 'female' ||
+              (props.patientObj?.sex?.toLowerCase() === 'female' && (
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
                     <Label>Pregnancy Status</Label>

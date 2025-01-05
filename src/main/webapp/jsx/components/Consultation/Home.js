@@ -1006,7 +1006,10 @@ const ClinicVisit = props => {
   };
 
   const isFemale = () => {
-    return props.patientObj.gender.toLowerCase() === 'female';
+    return (
+      props.patientObj?.gender?.toLowerCase() === 'female' ||
+      props.patientObj?.sex?.toLowerCase() === 'female'
+    );
   };
 
   const handlePrepTypeChange = e => {

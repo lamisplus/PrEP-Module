@@ -131,7 +131,7 @@ const CheckedInPatients = props => {
         filtering: false,
         render: rowData => (
           <Label color="blue" size="mini">
-            {rowData.status || 'Default'}
+            {rowData.isOnPrep ? 'Enrolled' : 'Not Enrolled'}
           </Label>
         ),
       },

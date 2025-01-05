@@ -551,6 +551,9 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
 
     Optional<PrepEnrollment> findByDateEnrolledAndPersonUuid(LocalDate dateEnrolled, String personUuid);
 
+    @Query("SELECT COUNT(p) FROM PrepEnrollment p WHERE p.personUuid = ?1")
+    Integer getPrepCountByPersonUuid(String personUuid);
+
     //For central sync
     List<PrepEnrollment> findAllByFacilityId(Long facilityId);
 
