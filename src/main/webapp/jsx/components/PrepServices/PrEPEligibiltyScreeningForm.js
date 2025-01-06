@@ -418,29 +418,36 @@ const BasicInfo = props => {
   };
 
   const validate = () => {
-    temp.visitDate = objValues.visitDate ? '' : 'This field is required.';
-    temp.lftConducted = objValues.lftConducted ? '' : 'This field is required';
+    temp.visitDate = objValues.visitDate ? '' : '⚠ This field is required.';
+    temp.lftConducted = objValues.lftConducted
+      ? ''
+      : '⚠ This field is required';
     temp.liverFunctionTestResults =
       objValues.lftConducted === 'true' &&
       objValues.liverFunctionTestResults.length === 0
-        ? 'LFT is required'
+        ? '⚠ LFT is required'
         : '';
-    temp.sexPartner = objValues.sexPartner ? '' : 'This field is required.';
+    temp.dateLiverFunctionTestResults =
+      objValues.lftConducted === 'true' &&
+      !objValues.dateLiverFunctionTestResults
+        ? '⚠ This field is required.'
+        : '';
+    temp.sexPartner = objValues.sexPartner ? '' : '⚠ This field is required.';
     temp.hivTestResultAtvisit = drugHistory.hivTestResultAtvisit
       ? ''
-      : 'This field is required.';
+      : '⚠ This field is required.';
     if (objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH') {
       temp.reasonForSwitch = objValues.reasonForSwitch
         ? ''
-        : 'This field is required';
+        : '⚠ This field is required';
     } else {
       temp.reasonForSwitch = '';
     }
-
     setErrors({ ...temp });
 
     return Object.values(temp).every(x => x === '');
   };
+  useEffect(() => console.log('temp: ', temp));
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -931,7 +938,10 @@ const BasicInfo = props => {
                   >
                     <option value={''}>Select</option>
                     {counselingType.map(value => (
-                      <option value={value.id}> {value.display} </option>
+                      <option key={value.id} value={value.id}>
+                        {' '}
+                        {value.display}{' '}
+                      </option>
                     ))}
                   </select>
                   {errors.counselingType !== '' ? (

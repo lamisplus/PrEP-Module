@@ -20,6 +20,7 @@ import org.lamisplus.modules.prep.repository.PrepEligibilityRepository;
 import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
 import org.lamisplus.modules.prep.repository.PrepInterruptionRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -161,6 +162,9 @@ public class PrepService {
         prepClinic.setIsCommencement(false);
         prepClinic.setVisitType(clinicRequestDto.getVisitType());
         prepClinic.setHealthCareWorkerSignature(clinicRequestDto.getHealthCareWorkerSignature());
+        prepClinic.setComment(clinicRequestDto.getComment());
+        prepClinic.setPreviousPrepStatus(clinicRequestDto.getPreviousPrepStatus());
+        System.out.println("prepClinic: " + prepClinic);
         prepClinic = prepClinicRepository.save(prepClinic);
         prepClinic.setPregnant(clinicRequestDto.getPregnant());
         prepClinic.setPerson(person);
@@ -172,25 +176,26 @@ public class PrepService {
     public PrepInterruptionDto saveInterruption(PrepInterruptionRequestDto interruptionRequestDto) {
         Person person = this.getPerson(interruptionRequestDto.getPersonId());
         PrepInterruption prepInterruption = interruptionRequestDtoInterruption(interruptionRequestDto, person.getUuid());
-
-
         prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
 
-        //Check if client Interruption on same date exist and throw an error
         prepInterruptionRepository
-                .findByInterruptionDateAndPersonUuid(interruptionRequestDto.getInterruptionDate(),
-                        person.getUuid()).ifPresent(prepInterruption1 -> {
-                    throw new RecordExistException(PrepInterruption.class, "Encounter date",
-                            String.valueOf(interruptionRequestDto.getInterruptionDate()));
+                .findFirstByInterruptionDateAndPersonUuidAndArchived(interruptionRequestDto.getInterruptionDate(), person.getUuid(), 0)
+                .ifPresent(existingInterruption -> {
+                    if (existingInterruption.getArchived() == 0) {
+                        throw new RecordExistException(PrepInterruption.class, "Encounter date", String.valueOf(interruptionRequestDto.getInterruptionDate()));
+                    }
                 });
 
-        prepInterruption = prepInterruptionRepository.save(prepInterruption);
+        try {
+            prepInterruption = prepInterruptionRepository.save(prepInterruption);
+        } catch (Exception e) {
+            throw new RuntimeException("Input or Server error. Please Try again.");
+        }
+
         prepInterruption.setPerson(person);
         PrepInterruptionDto prepInterruptionDto = this.interruptionToInterruptionDto(prepInterruption);
         return prepInterruptionDto;
     }
-
-
     private PrepDtos prepToPrepDtos(List<PrepEnrollment> clients) {
         final Long[] pId = {null};
         final String[] uniqueId = {null};
@@ -314,14 +319,20 @@ public class PrepService {
     public Page<PrepClient> findAllPrepPersonPage(String searchValue, int pageNo, int pageSize) {
         Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<PrepClient> resultPage;
+
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            searchValue = searchValue.replaceAll("\\s", "");
+            searchValue = searchValue.replaceAll("\\\\s", "");
             String queryParam = "%" + searchValue + "%";
-            return prepEnrollmentRepository
-                    .findAllPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
+            resultPage = prepEnrollmentRepository.findAllPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
+        } else {
+            resultPage = prepEnrollmentRepository.findAllPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
         }
-        return prepEnrollmentRepository
-                .findAllPersonPrepAndStatus(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(), pageable);
+        List<PrepClient> filteredList = resultPage.getContent().stream()
+                .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(filteredList, pageable, filteredList.size());
     }
 
     public Page<PrepClient> findOnlyPrepPersonPage(String searchValue, int pageNo, int pageSize) {
@@ -590,6 +601,8 @@ public class PrepService {
         prepClinic.setOtherPrepGiven(prepClinicRequestDto.getOtherPrepGiven());
         prepClinic.setOtherPrepType(prepClinicRequestDto.getOtherPrepType());
         prepClinic.setOtherRegimenId(prepClinicRequestDto.getOtherRegimenId());
+        prepClinic.setComment(prepClinicRequestDto.getComment());
+        prepClinic.setPreviousPrepStatus(prepClinicRequestDto.getPreviousPrepStatus());
         return prepClinic;
     }
 
@@ -659,6 +672,9 @@ public class PrepService {
         prepClinicDto.setOtherPrepGiven(clinic.getOtherPrepGiven());
         prepClinicDto.setOtherPrepType(clinic.getOtherPrepType());
         prepClinicDto.setOtherRegimenId(clinic.getOtherRegimenId());
+        prepClinicDto.setComment(clinic.getComment());
+        prepClinicDto.setPreviousPrepStatus(clinic.getPreviousPrepStatus());
+
         return prepClinicDto;
     }
 

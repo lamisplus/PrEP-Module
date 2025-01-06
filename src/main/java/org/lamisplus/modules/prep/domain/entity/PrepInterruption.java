@@ -7,17 +7,16 @@ import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import com.vladmihalcea.hibernate.type.json.JsonNodeBinaryType;
 import com.vladmihalcea.hibernate.type.json.JsonNodeStringType;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 import org.lamisplus.modules.base.domain.entities.Audit;
 import org.lamisplus.modules.patient.domain.entity.Person;
-import org.lamisplus.modules.patient.domain.entity.Visit;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -42,8 +41,7 @@ public class PrepInterruption extends Audit implements Serializable {
 
     @Column(name = "interruption_type")
     private String interruptionType;
-
-    @Column(name = "interruption_date")
+    @Column(name = "interruption_date", nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate interruptionDate;
 
@@ -82,7 +80,7 @@ public class PrepInterruption extends Audit implements Serializable {
     private Visit visit;*/
 
     @Column(name = "archived")
-    private Integer archived=0;
+    private Integer archived = 0;
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     private String uuid;
@@ -111,13 +109,14 @@ public class PrepInterruption extends Audit implements Serializable {
     private String reasonStoppedOthers;
     @Column(name = "reason_for_prep_discontinuation")
     private String reasonForPrepDiscontinuation;
+
     @PrePersist
-    public void setFields(){
-        if(StringUtils.isEmpty(uuid)){
+    public void setFields() {
+        if (StringUtils.isEmpty(uuid)) {
             uuid = UUID.randomUUID().toString();
         }
-        if(archived == null){
-            archived=0;
+        if (archived == null) {
+            archived = 0;
         }
     }
 }

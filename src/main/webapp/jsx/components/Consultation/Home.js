@@ -128,7 +128,6 @@ const ClinicVisit = props => {
   const [prepRiskReductionPlan, setPrepRiskReductionPlan] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
-
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: '',
     diastolic: '',
@@ -178,7 +177,6 @@ const ClinicVisit = props => {
     weight: '',
     why: '',
     otherDrugs: '',
-    duration: '',
     prepGiven: '',
     hivTestResult: '',
     hivTestResultDate: '',
@@ -195,37 +193,28 @@ const ClinicVisit = props => {
     liverFunctionTestResults: [],
   });
   const [urinalysisTest, setUrinalysisTest] = useState({
-    urinalysisTest: 'Yes',
+    urinalysisTest: 'No',
     testDate: '',
     result: '',
   });
   const [creatinineTest, setCreatinineTest] = useState({
-    creatinineTest: 'Yes',
+    creatinineTest: 'No',
     testDate: '',
     result: '',
   });
   const [syphilisTest, setSyphilisTest] = useState({
-    syphilisTest: 'Yes',
+    syphilisTest: 'No',
     testDate: '',
     result: '',
     others: '',
   });
   const [hepatitisTest, setHepatitisTest] = useState({
-    hepatitisTest: 'Yes',
+    hepatitisTest: 'No',
     testDate: '',
     result: '',
   });
 
-  const [otherTest, setOtherTest] = useState([
-    {
-      localId: 0,
-      otherTest: 'Yes',
-      testDate: '',
-      result: '',
-      name: '',
-      otherTestName: '',
-    },
-  ]);
+  const [otherTest, setOtherTest] = useState([]);
 
   const classes = useStyles();
   let temp = { ...errors };
@@ -259,6 +248,7 @@ const ClinicVisit = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
+        setFullPrepTypeList(response.data);
         setPrepType(response.data);
       })
       .catch(error => {});
@@ -296,7 +286,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-
+  const [fullPrepTypeList, setFullPrepTypeList] = useState([]);
   const checkEligibleForCabLa = async (currentDate, regimenList) => {
     if (currentDate) {
       await axios
@@ -305,26 +295,25 @@ const ClinicVisit = props => {
           { headers: { Authorization: `Bearer ${token}` } }
         )
         .then(response => {
-          if (response?.data || !response?.data) {
-            let isEligibleForCABLA = response?.data;
-            if (
-              isEligibleForCABLA ||
-              objValues?.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH'
-            ) {
-              setPrepType(prepType);
-              setprepRegimen(regimenList);
-            } else {
-              let reg = regimenList.filter((each, index) => {
-                return each.code !== 'CAB-LA(600mg/3mL)';
-              });
-              let pTypes = prepType.filter((each, index) => {
-                return each.code !== 'PREP_TYPE_INJECTIBLES';
-              });
-              setPrepType(pTypes);
-              setprepRegimen(reg);
-            }
-            return response?.data;
+          let isEligibleForCABLA = response?.data;
+          let reg = regimenList?.filter(
+            each => each.code !== 'CAB-LA(600mg/3mL)'
+          );
+          let pTypes = [...prepType]?.filter(
+            each => each.code !== 'PREP_TYPE_INJECTIBLES'
+          );
+          if (
+            isEligibleForCABLA ||
+            objValues?.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH' ||
+            ['update'].includes(props.activeContent.actionType)
+          ) {
+            setPrepType(fullPrepTypeList);
+            setprepRegimen(regimenList);
+          } else {
+            setPrepType(pTypes);
+            setprepRegimen(reg);
           }
+          return response?.data;
         })
         .catch(error => {});
     }
@@ -351,10 +340,10 @@ const ClinicVisit = props => {
       .then(response => {
         if (response.data?.length === 0) {
           toast.error(
-            'No HTS record found ⚠ Atleast, 1 test result is required to proceed.'
+            '⚠ No HTS record found. Atleast, 1 test result is required to proceed'
           );
         } else if (response.data?.length > 0) {
-          toast.success('HTS record found 👍 You may proceed.');
+          toast.success('👍 HTS record found. You may proceed ✔');
         }
         setHivTestValue(response?.data?.[0]?.hivTestResult);
         setHivTestResultDate(response?.data?.[0]?.visitDate);
@@ -414,6 +403,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
+
   const getPrepSideEffects = async () => {
     return await axios.get(
       `${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
@@ -433,16 +423,20 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-
+  function sortByVisitDateDescending(data) {
+    return data.sort((a, b) => {
+      const dateA = new Date(a.visitDate);
+      const dateB = new Date(b.visitDate);
+      return dateB - dateA;
+    });
+  }
   const getLatestFromEligibility = async () => {
     axios
       .get(`${baseUrl}prep-eligibility/person/${objValues?.personId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(async response => {
-        const latestEligibility = response?.data?.sort((a, b) =>
-          moment(a?.visitDate).isBefore(moment(b?.visitDate))
-        )[response.data.length - 1];
+        const latestEligibility = sortByVisitDateDescending(response?.data)[0];
         setLatestFromEligibility(latestEligibility);
       })
       .catch(error => {});
@@ -469,6 +463,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
+
   const getWhyPoorFairAdherence = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/WHY_POOR_FAIR_ADHERENCE`, {
@@ -490,6 +485,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
+
   const getPrepUrinalysisResult = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`, {
@@ -566,6 +562,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   }
+
   const [eligibilityVisitDateSync, setEligibilityVisitDateSync] =
     useState(false);
 
@@ -584,12 +581,26 @@ const ClinicVisit = props => {
       );
       PrepRegimen(e.target.value);
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
+      checkDateMismatch(e.target.value, latestFromEligibility?.visitDate);
     } else if (e.target.name === 'otherPrepGiven') {
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
     } else {
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
     }
   };
+
+  const checkDateMismatch = (visitDate, eligibilityDate) => {
+    if (visitDate !== eligibilityDate) {
+      toast.error(
+        '⚠ Please enter a date that matches the latest eligibility date!'
+      );
+    } else {
+      toast.success(
+        'The visit date matches the latest eligibility date. Great job! 👍'
+      );
+    }
+  };
+
   useEffect(() => {
     if (!eligibilityVisitDateSync) {
       setObjValues(prevValues => ({
@@ -609,7 +620,11 @@ const ClinicVisit = props => {
     setUrinalysisTest({ ...urinalysisTest, [e.target.name]: e.target.value });
   };
   const handleInputChangeCreatinineTest = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
+    setErrors({
+      ...errors,
+      creatinineResult: '',
+      creatinineTestDate: '',
+    });
     setCreatinineTest({ ...creatinineTest, [e.target.name]: e.target.value });
   };
   const handleInputChangeOtherTest = (e, localId) => {
@@ -619,7 +634,7 @@ const ClinicVisit = props => {
     setOtherTest(temp);
   };
   const handleRemoveTest = localId => {
-    setOtherTest(prev => prev.filter(test => test.localId !== localId));
+    setOtherTest(prev => prev?.filter(test => test.localId !== localId));
   };
   const handleInputChangeHepatitisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
@@ -635,26 +650,52 @@ const ClinicVisit = props => {
     }
     setSyphilisTest({ ...syphilisTest, [e.target.name]: e.target.value });
   };
+  const handleCheckBoxUrinalysisTest = e => {
+    setErrors({ ...errors, [e.target.name]: '' });
+    if (urinalysisTest?.urinalysisTest === 'Yes') {
+      setUrinalysisTest({ urinalysisTest: 'No', testDate: '', result: '' });
+    } else {
+      setUrinalysisTest({ ...urinalysisTest, urinalysisTest: 'Yes' });
+    }
+  };
+
+  const handleCheckBoxCreatinineTest = e => {
+    setErrors({ ...errors, [e.target.name]: '' });
+    if (creatinineTest?.creatinineTest === 'Yes') {
+      setCreatinineTest({ creatinineTest: 'No', testDate: '', result: '' });
+    } else {
+      setCreatinineTest({ ...creatinineTest, creatinineTest: 'Yes' });
+    }
+  };
 
   const handleCheckBoxSyphilisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.checked) {
-      setSyphilisTest({ ...syphilisTest, ['syphilisTest']: 'Yes' });
+    if (syphilisTest?.syphilisTest === 'Yes') {
+      setSyphilisTest({
+        syphilisTest: 'No',
+        testDate: '',
+        result: '',
+        others: '',
+      });
     } else {
-      setSyphilisTest({ ...syphilisTest, ['syphilisTest']: 'No' });
+      setSyphilisTest({ ...syphilisTest, syphilisTest: 'Yes' });
     }
   };
+
   const handleCheckBoxHepatitisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.checked) {
-      setHepatitisTest({ ...hepatitisTest, ['hepatitisTest']: 'Yes' });
+    if (hepatitisTest?.hepatitisTest === 'Yes') {
+      setHepatitisTest({ hepatitisTest: 'No', testDate: '', result: '' });
     } else {
-      setHepatitisTest({ ...syphilisTest, ['syphilisTest']: 'No' });
+      setHepatitisTest({ ...hepatitisTest, hepatitisTest: 'Yes' });
     }
   };
+
   const handleCheckBoxOtherTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.checked) {
+    if (otherTest.length > 0) {
+      setOtherTest([]);
+    } else {
       setOtherTest([
         ...otherTest,
         ...objValues.otherTestsDone,
@@ -667,30 +708,10 @@ const ClinicVisit = props => {
           otherTestName: '',
         },
       ]);
-    } else {
-      setOtherTest([]);
     }
   };
 
   const otherTestInputRef = useRef();
-
-  const handleCheckBoxUrinalysisTest = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.checked) {
-      setUrinalysisTest({ ...urinalysisTest, ['urinalysisTest']: 'Yes' });
-    } else {
-      setUrinalysisTest({ ...otherTest, ['urinalysisTest']: 'No' });
-    }
-  };
-
-  const handleCheckBoxCreatinineTest = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.checked) {
-      setCreatinineTest({ ...creatinineTest, ['creatinineTest']: 'Yes' });
-    } else {
-      setCreatinineTest({ ...otherTest, ['creatinineTest']: 'No' });
-    }
-  };
 
   const handleInputValueCheckHeight = e => {
     if (
@@ -698,7 +719,7 @@ const ClinicVisit = props => {
       (e.target.value < 48.26 || e.target.value > 216.408)
     ) {
       const message =
-        'Height cannot be greater than 216.408 and less than 48.26 ⚠';
+        '⚠ Height cannot be greater than 216.408 and less than 48.26';
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: '' });
@@ -710,7 +731,7 @@ const ClinicVisit = props => {
       (e.target.value < 3 || e.target.value > 150)
     ) {
       const message =
-        'Body weight must not be greater than 150 and less than 3 ⚠';
+        '⚠ Body weight must not be greater than 150 and less than 3';
       setVitalClinicalSupport({ ...vitalClinicalSupport, weight: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, weight: '' });
@@ -722,7 +743,7 @@ const ClinicVisit = props => {
       (e.target.value < 90 || e.target.value > 240)
     ) {
       const message =
-        'Blood Pressure systolic must not be greater than 240 and less than 90 ⚠';
+        '⚠ Blood Pressure systolic must not be greater than 240 and less than 90';
       setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: '' });
@@ -734,7 +755,7 @@ const ClinicVisit = props => {
       (e.target.value < 60 || e.target.value > 140)
     ) {
       const message =
-        'Blood Pressure diastolic must not be greater than 140 and less than 60 ⚠';
+        '⚠ Blood Pressure diastolic must not be greater than 140 and less than 60';
       setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: '' });
@@ -745,7 +766,7 @@ const ClinicVisit = props => {
       e.target.name === 'pulse' &&
       (e.target.value < 40 || e.target.value > 120)
     ) {
-      const message = 'Pulse must not be greater than 120 and less than 40 ⚠';
+      const message = '⚠ Pulse must not be greater than 120 and less than 40';
       setVitalClinicalSupport({ ...vitalClinicalSupport, pulse: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, pulse: '' });
@@ -757,7 +778,7 @@ const ClinicVisit = props => {
       (e.target.value < 10 || e.target.value > 70)
     ) {
       const message =
-        'Respiratory Rate must not be greater than 70 and less than 10 ⚠';
+        '⚠ Respiratory Rate must not be greater than 70 and less than 10';
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
         respiratoryRate: message,
@@ -772,7 +793,7 @@ const ClinicVisit = props => {
       (e.target.value < 35 || e.target.value > 47)
     ) {
       const message =
-        'Temperature must not be greater than 47 and less than 35 ⚠';
+        '⚠ Temperature must not be greater than 47 and less than 35';
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
         temperature: message,
@@ -830,58 +851,47 @@ const ClinicVisit = props => {
     setHepatitisTest({});
     setOtherTest([]);
   };
-
   const validate = () => {
     temp.lastHts = hivTestValue
       ? ''
-      : 'Atleast, 1 HIV test result is required ⚠';
+      : '⚠ Atleast, 1 HIV test result is required';
     temp.monthsOfRefill = objValues.monthsOfRefill
       ? ''
-      : 'This field is required ⚠';
+      : '⚠ This field is required';
     temp.wasPrepAdministered = objValues.wasPrepAdministered
       ? ''
-      : 'This field is required ⚠';
+      : '⚠ This field is required';
     hasPrepEligibility(temp.encounterDate, props.encounters);
     temp.encounterDate = objValues.encounterDate
       ? ''
-      : 'This field is required ⚠';
-
+      : '⚠ This field is required';
     if (isFemale()) {
-      temp.pregnant = objValues.pregnant ? '' : 'This field is required ⚠';
+      temp.pregnant = objValues.pregnant ? '' : '⚠ This field is required';
     }
     temp.nextAppointment = objValues.nextAppointment
       ? ''
-      : 'This field is required ⚠';
+      : '⚠ This field is required';
 
-    temp.height = objValues.height ? '' : 'This field is required ⚠';
+    temp.height = objValues.height ? '' : '⚠ This field is required';
     if (objValues.prepType === 'PREP_TYPE_INJECTIBLES') {
       temp.otherPrepGiven = objValues.otherPrepGiven
         ? ''
-        : 'This field is required ⚠';
+        : '⚠ This field is required';
     }
-    temp.weight = objValues.weight ? '' : 'This field is required ⚠';
-    temp.creatinineTest = creatinineTest.creatinineTest
-      ? ''
-      : 'This field is required ⚠';
-    temp.creatinineTestDate = creatinineTest.testDate
-      ? ''
-      : 'This field is required ⚠';
-    temp.creatinineResult = creatinineTest.result
-      ? ''
-      : 'This field is required ⚠';
-    temp.regimenId = objValues.regimenId ? '' : 'This field is required ⚠';
-    temp.duration = objValues.duration ? '' : 'This field is required ⚠';
+    temp.weight = objValues.weight ? '' : '⚠ This field is required';
+    temp.regimenId = objValues.regimenId ? '' : '⚠ This field is required';
     temp.prepDistributionSetting = objValues.prepDistributionSetting
       ? ''
-      : 'This field is required ⚠';
+      : '⚠ This field is required';
     temp.populationType = objValues.populationType
       ? ''
-      : 'This field is required ⚠';
-    temp.visitType = objValues.visitType ? '' : 'This field is required ⚠';
+      : '⚠ This field is required';
+    temp.visitType = objValues.visitType ? '' : '⚠ This field is required';
+
     if (objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH') {
       temp.reasonForSwitch = objValues.reasonForSwitch
         ? ''
-        : 'This field is required ⚠';
+        : '⚠ This field is required';
     } else {
       temp.reasonForSwitch = '';
     }
@@ -893,102 +903,10 @@ const ClinicVisit = props => {
   };
   const handleSubmit = e => {
     e.preventDefault();
-    if (validate()) {
-      setSaving(true);
-      objValues.hivTestResultDate = hivTestResultDate;
-      objValues.hivTestResult = hivTestValue;
-      objValues.syphilis = syphilisTest;
-      objValues.hepatitis = hepatitisTest;
-      objValues.urinalysis = urinalysisTest;
-      objValues.creatinine = creatinineTest;
-      objValues.otherTestsDone = otherTest;
-      objValues.prepEnrollmentUuid = patientDto.uuid;
-      objValues.prepNotedSideEffects = notedSideEffects;
-      objValues.notedSideEffects = '';
-      if (props.activeContent && props.activeContent.actionType === 'update') {
-        axios
-          .put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then(response => {
-            setSaving(false);
-            toast.success('Clinic visit updated successfully! ✔', {
-              position: toast.POSITION.BOTTOM_CENTER,
-            });
-            props.setActiveContent({
-              ...props.activeContent,
-              route: 'consultation',
-              activeTab: 'history',
-              actionType: 'view',
-            });
-          })
-          .catch(error => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                error.response.data.apierror &&
-                error.response.data.apierror.message !== ''
-                  ? error.response.data.apierror.message
-                  : 'Something went wrong ❌ please try again';
-              if (error.response.data.apierror) {
-                toast.error(error.response.data.apierror.message, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              } else {
-                toast.error(errorMessage, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              }
-            } else {
-              toast.error('Something went wrong ❌ please try again...', {
-                position: toast.POSITION.BOTTOM_CENTER,
-              });
-            }
-          });
-      } else {
-        axios
-          .post(`${baseUrl}prep/clinic-visit`, objValues, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then(response => {
-            setSaving(false);
-            emptyObjValues();
-            toast.success('Clinic Visit saved successfully! ✔', {
-              position: toast.POSITION.BOTTOM_CENTER,
-            });
-            props.setActiveContent({
-              ...props.activeContent,
-              route: 'consultation',
-              activeTab: 'history',
-              actionType: 'view',
-            });
-          })
-          .catch(error => {
-            setSaving(false);
-
-            if (error.response && error.response.data) {
-              let errorMessage =
-                error.response.data.apierror &&
-                error.response.data.apierror.message !== ''
-                  ? error.response.data.apierror.message
-                  : 'Something went wrong ❌ please try again';
-              if (error.response.data.apierror) {
-                toast.error(error.response.data.apierror.message, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              } else {
-                toast.error(errorMessage, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              }
-            } else {
-              toast.error('Something went wrong ❌ please try again...', {
-                position: toast.POSITION.BOTTOM_CENTER,
-              });
-            }
-          });
-      }
-    }
+    updatePreviousPrepStatusAndSubmit(
+      props.patientObj?.personUuid,
+      props.patientObj?.prepStatus
+    );
   };
 
   const handleCreateNewTest = () => {
@@ -1004,14 +922,12 @@ const ClinicVisit = props => {
       },
     ]);
   };
-
   const isFemale = () => {
     return (
       props.patientObj?.gender?.toLowerCase() === 'female' ||
       props.patientObj?.sex?.toLowerCase() === 'female'
     );
   };
-
   const handlePrepTypeChange = e => {
     setObjValues({ ...objValues, regimenId: '', prepType: e.target.value });
     if (
@@ -1035,22 +951,6 @@ const ClinicVisit = props => {
     setErrors({ ...errors, [e.target.name]: '' });
   };
 
-  function countPrepEligibility(data) {
-    let count = 0;
-    let relevantActivities = ['Prep Commencement', 'Prep Clinic'];
-    data?.forEach(entry => {
-      entry?.activities?.forEach(activity => {
-        if (relevantActivities.includes(activity?.name)) {
-          count++;
-        }
-      });
-    });
-
-    return count;
-  }
-  function isValidDate(date) {
-    return date instanceof Date && !isNaN(date);
-  }
   function areDatesSame(date1, date2) {
     return (
       date1.getFullYear() === date2.getFullYear() &&
@@ -1084,11 +984,9 @@ const ClinicVisit = props => {
   };
 
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
-    codeSet.filter(regimen => {
-      return regimen.id !== lastRegimenId;
-    });
+    codeSet?.filter(regimen => regimen.id !== lastRegimenId);
 
-  const prepRegimenUpdateView = () => {
+  const prepRegimenUpdateView = () =>
     axios
       .get(`${baseUrl}prep-regimen`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -1097,9 +995,8 @@ const ClinicVisit = props => {
         setprepRegimen(response.data);
       })
       .catch(error => {});
-  };
 
-  const getLiverFunctionTestResult = () => {
+  const getLiverFunctionTestResult = () =>
     axios
       .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -1108,7 +1005,7 @@ const ClinicVisit = props => {
         setLiverFunctionTestResult(response.data);
       })
       .catch(error => {});
-  };
+
   useEffect(() => {
     if (
       props.activeContent.actionType === '' ||
@@ -1117,29 +1014,30 @@ const ClinicVisit = props => {
       emptyObjValues();
     }
   }, [props.activeContent.actionType]);
+
   useEffect(() => {
     if (
       objValues.populationType !== null &&
       objValues.populationType !== undefined
     ) {
-      const autoPopulate = populationType.find(
+      const autoPopulate = populationType?.find(
         type => type.code === objValues.populationType
       );
-
       setSelectedPopulationType(autoPopulate ? autoPopulate.display : '');
     }
   }, [objValues.populationType]);
 
   useEffect(() => {
     if (eligibilityVisitDateSync && latestFromEligibility !== null) {
-      const autoPopulate = populationType.find(
+      const autoPopulate = populationType?.find(
         type => type.code === latestFromEligibility?.populationType
       );
-
       setObjValues(prevValues => ({
         ...prevValues,
-        populationType: autoPopulate ? autoPopulate.code : '',
+        populationType: latestFromEligibility?.populationType || '',
         visitType: latestFromEligibility?.visitType || '',
+        monthsOfRefill:
+          visitTypeDurationMapping[`${latestFromEligibility?.visitType}`] || '',
         reasonForSwitch: latestFromEligibility?.reasonForSwitch || '',
         pregnant: latestFromEligibility?.pregnancyStatus || '',
       }));
@@ -1170,6 +1068,7 @@ const ClinicVisit = props => {
     updateTest('syphilis', setSyphilisTest);
     updateTest('hepatitis', setHepatitisTest);
   }, [objValues]);
+
   useEffect(async () => {
     if (
       props.activeContent.id &&
@@ -1182,6 +1081,7 @@ const ClinicVisit = props => {
   }, [props.activeContent]);
 
   useEffect(async () => {
+    setPrepRiskReductionPlan((await getPrepRiskReductionPlan())?.data);
     setAdherenceLevel((await getAdherenceLevel())?.data);
     setPrepRiskReductionPlan(getSyndromicStiScreening()?.data);
     setPrepStatus(getPrepStatus()?.data);
@@ -1197,7 +1097,7 @@ const ClinicVisit = props => {
     setSyphilisTest(getSyphilisResult()?.data);
     setpregnant(getPregnancyStatus()?.data);
     setPrepEntryPoints(getPrepEntryPoint()?.data);
-    setPrepType(getPrepType()?.data);
+    getPrepType();
     setPopulationType(getPopulationType().data);
     setVisitType(getVisitType()?.data);
     setFamilyPlanningMethod(getFamilyPlanningMethod()?.data);
@@ -1220,6 +1120,7 @@ const ClinicVisit = props => {
     if (['update', 'view'].includes(props.activeContent.actionType))
       prepRegimenUpdateView();
   }, [props.activeContent.actionType]);
+
   const handleLftInputChange = event => {
     const { name, value } = event.target;
     setObjValues(prevValues => ({
@@ -1227,6 +1128,7 @@ const ClinicVisit = props => {
       [name]: value,
     }));
   };
+
   useEffect(() => {
     if (eligibilityVisitDateSync && latestFromEligibility) {
       setObjValues(prevValues => ({
@@ -1259,11 +1161,13 @@ const ClinicVisit = props => {
         return null;
     }
   };
+
   const [notedSideEffects, setNotedSideEffects] = useState([]);
   const handleNotedSideEffectsChange = selected => {
     setNotedSideEffects(selected);
     setObjValues({ ...objValues, notedSideEffects: selected });
   };
+
   useEffect(() => {
     return () => {
       setObjValues(prev => ({
@@ -1273,6 +1177,7 @@ const ClinicVisit = props => {
       }));
     };
   }, []);
+
   useEffect(() => {
     if (objValues.otherPrepGiven === 'false') {
       setObjValues(prevValues => ({
@@ -1282,6 +1187,126 @@ const ClinicVisit = props => {
       }));
     }
   }, [objValues.otherPrepGiven]);
+
+  const visitTypeDurationMapping = {
+    PREP_VISIT_TYPE_DISCONTINUATION: null,
+    'PREP_VISIT_TYPE_DISCONTINUATION_FOLLOW-UP': null,
+    PREP_VISIT_TYPE_INITIATION: 30,
+    PREP_VISIT_TYPE_METHOD_SWITCH: null,
+    PREP_VISIT_TYPE_NO_PREP_PROVIDED: null,
+    'PREP_VISIT_TYPE_REFILL_RE-INJECTION': 60,
+    PREP_VISIT_TYPE_RESTART: 30,
+    PREP_VISIT_TYPE_SECOND_INITIATION: 60,
+    PREP_VISIT_TYPE_TRANSFER_IN: null,
+  };
+  function addDaysToDate(dateString, daysToAdd) {
+    const date = new Date(dateString);
+    if (
+      isNaN(date.getTime()) ||
+      typeof daysToAdd !== 'number' ||
+      isNaN(daysToAdd)
+    ) {
+      return '';
+    }
+    date.setDate(date.getDate() + daysToAdd);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  useEffect(() => {
+    let nextAppointment = addDaysToDate(
+      objValues.encounterDate,
+      objValues.monthsOfRefill
+    );
+    setObjValues(prev => ({ ...prev, nextAppointment }));
+  }, [objValues.encounterDate, objValues.monthsOfRefill]);
+
+  async function updatePreviousPrepStatusAndSubmit(personUuid, previousStatus) {
+    if (validate()) {
+      setSaving(true);
+      objValues.duration = objValues.monthsOfRefill;
+      objValues.hivTestResultDate = hivTestResultDate;
+      objValues.hivTestResult = hivTestValue;
+      objValues.syphilis = syphilisTest;
+      objValues.hepatitis = hepatitisTest;
+      objValues.urinalysis = urinalysisTest;
+      objValues.creatinine = creatinineTest;
+      objValues.otherTestsDone = otherTest;
+      objValues.prepEnrollmentUuid = patientDto.uuid;
+      objValues.prepNotedSideEffects = notedSideEffects;
+      objValues.notedSideEffects = '';
+      objValues.previousPrepStatus = props.patientObj?.prepStatus;
+
+      if (props.activeContent && props.activeContent.actionType === 'update') {
+        try {
+          const updateResponse = await axios.put(
+            `${baseUrl}prep-clinic/${props.activeContent.id}`,
+            objValues,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          setSaving(false);
+          toast.success('Clinic visit updated successfully! ✔', {
+            position: toast.POSITION.BOTTOM_CENTER,
+          });
+          props.setActiveContent({
+            ...props.activeContent,
+            route: 'consultation',
+            activeTab: 'history',
+            actionType: 'view',
+          });
+        } catch (error) {
+          handleError(error);
+        }
+      } else {
+        try {
+          const postResponse = await axios.post(
+            `${baseUrl}prep/clinic-visit`,
+            objValues,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          setSaving(false);
+          emptyObjValues();
+          toast.success('Clinic Visit saved successfully! ✔', {
+            position: toast.POSITION.BOTTOM_CENTER,
+          });
+          props.setActiveContent({
+            ...props.activeContent,
+            route: 'consultation',
+            activeTab: 'history',
+            actionType: 'view',
+          });
+        } catch (error) {
+          handleError(error);
+        }
+      }
+    } else {
+    }
+  }
+
+  function handleError(error) {
+    setSaving(false);
+    if (error.response && error.response.data) {
+      let errorMessage =
+        error.response.data.apierror &&
+        error.response.data.apierror.message !== ''
+          ? error.response.data.apierror.message
+          : '❌ Something went wrong. Please try again';
+      toast.error(errorMessage, {
+        position: toast.POSITION.BOTTOM_CENTER,
+      });
+    } else {
+      toast.error('Something went wrong ❌ please try again...', {
+        position: toast.POSITION.BOTTOM_CENTER,
+      });
+    }
+  }
+
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
@@ -1839,7 +1864,6 @@ const ClinicVisit = props => {
                   <FormGroup>
                     <FormLabelName for="liverFunctionTestResults">
                       Liver Function Tests Result
-                      <span style={{ color: 'red' }}> *</span>
                     </FormLabelName>
                     <LiverFunctionTest
                       objValues={objValues}
@@ -1861,7 +1885,6 @@ const ClinicVisit = props => {
                   <FormGroup>
                     <FormLabelName for="dateLiverFunctionTestResults">
                       Date of Liver Function Tests Result{' '}
-                      <span style={{ color: 'red' }}> *</span>
                     </FormLabelName>
                     <Input
                       className="form-control"
@@ -2066,6 +2089,11 @@ const ClinicVisit = props => {
                         {value.display}
                       </option>
                     ))}
+                    {!populationType?.find(
+                      pType => pType.display === 'GenPop'
+                    ) && (
+                      <option value="POPULATION_TYPE_GEN_POP">GenPop</option>
+                    )}
                   </Input>
                   {errors.populationType !== '' ? (
                     <span className={classes.error}>
@@ -2076,6 +2104,7 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
+
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName for="">
@@ -2107,6 +2136,7 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
+
               {objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH' && (
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
@@ -2184,7 +2214,6 @@ const ClinicVisit = props => {
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
                     }}
-                    // disabled
                     onChange={handlePrepTypeChange}
                     value={objValues.prepType}
                     disabled={disabledField}
@@ -2252,7 +2281,7 @@ const ClinicVisit = props => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    {`Duration of refill (Day[s])`}{' '}
+                    {`Duration of refill (days)`}{' '}
                     <span style={{ color: 'red' }}> *</span>
                   </FormLabelName>
                   <Input
@@ -2332,15 +2361,15 @@ const ClinicVisit = props => {
                           >
                             <option value=""> Select Prep Type</option>
                             {prepType
-                              .filter(
+                              ?.filter(
                                 (each, index) =>
                                   each.code !== 'PREP_TYPE_ED_PREP'
                               )
-                              .filter(
+                              ?.filter(
                                 (each, index) =>
                                   each.code !== objValues.prepType
                               )
-                              .map(value => (
+                              ?.map(value => (
                                 <option key={value.id} value={value.code}>
                                   {value.display}
                                 </option>
@@ -2423,27 +2452,6 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
-              {/* <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName >Date PrEP Given <span style={{ color:"red"}}> *</span></FormLabelName>
-                  <Input
-                    type="date"
-                    onKeyDown={(e)=>e.preventDefault()}
-                    name="datePrepGiven"
-                    id="datePrepGiven"
-                    value={objValues.datePrepGiven}
-                    onChange={handleInputChange}
-                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    min={patientDto && patientDto.dateEnrolled ?patientDto.dateEnrolled :""}
-                    max={moment(new Date()).format("YYYY-MM-DD")}
-                    disabled={disabledField}
-                  />
-                  {errors.datePrepGiven !=="" ? (
-                      <span className={classes.error}>{errors.datePrepGiven}</span>
-                  ) : "" }   
-                </FormGroup>
-              </div>  */}
-
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>Other Drugs</FormLabelName>
@@ -2461,28 +2469,6 @@ const ClinicVisit = props => {
                   />
                 </FormGroup>
               </div>
-              {/* <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName >PrEP Status</FormLabelName>
-                  <Input
-                    type="select"
-                    name="prepStatus"
-                    id="prepStatus"
-                    value={objValues.prepStatus}
-                    onChange={handleInputChange}
-                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                    required
-                  >
-                    <option value="">Select</option>
-                    {prepStatus.map((value) => (
-                            <option key={value.id} value={value.code}>
-                                {value.display}
-                            </option>
-                        ))}
-                  </Input>
-                 
-                </FormGroup>
-              </div> */}
 
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
@@ -2548,9 +2534,7 @@ const ClinicVisit = props => {
                     name="creatinineTest"
                     value="Yes"
                     onChange={handleCheckBoxCreatinineTest}
-                    checked={
-                      creatinineTest.creatinineTest == 'Yes' ? true : false
-                    }
+                    checked={creatinineTest.creatinineTest === 'Yes'}
                   />{' '}
                   Creatinine Test
                 </h4>
@@ -2561,10 +2545,7 @@ const ClinicVisit = props => {
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
-                      <FormLabelName>
-                        Creatinine Test Date{' '}
-                        <span style={{ color: 'red' }}> *</span>
-                      </FormLabelName>
+                      <FormLabelName>Creatinine Test Date </FormLabelName>
                       <Input
                         type="date"
                         onKeyDown={e => e.preventDefault()}
@@ -2591,10 +2572,7 @@ const ClinicVisit = props => {
                   </div>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
-                      <FormLabelName>
-                        Creatinine Test Result{' '}
-                        <span style={{ color: 'red' }}> *</span>
-                      </FormLabelName>
+                      <FormLabelName>Creatinine Test Result </FormLabelName>
                       <Input
                         type="text"
                         name="result"
@@ -2633,16 +2611,14 @@ const ClinicVisit = props => {
                     name="urinalysisTest"
                     value="Yes"
                     onChange={handleCheckBoxUrinalysisTest}
-                    checked={
-                      urinalysisTest.urinalysisTest == 'Yes' ? true : false
-                    }
+                    checked={urinalysisTest?.urinalysisTest === 'Yes'}
                   />{' '}
                   Urinalysis Test
                 </h4>
               </Label>
               <br />
               <br />
-              {urinalysisTest.urinalysisTest === 'Yes' && (
+              {urinalysisTest?.urinalysisTest === 'Yes' && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -2652,7 +2628,7 @@ const ClinicVisit = props => {
                         onKeyDown={e => e.preventDefault()}
                         name="testDate"
                         id="testDate"
-                        value={urinalysisTest.testDate}
+                        value={urinalysisTest?.testDate}
                         onChange={handleInputChangeUrinalysisTest}
                         style={{
                           border: '1px solid #014D88',
@@ -2676,7 +2652,7 @@ const ClinicVisit = props => {
                         type="select"
                         name="result"
                         id="result"
-                        value={urinalysisTest.result}
+                        value={urinalysisTest?.result}
                         onChange={handleInputChangeUrinalysisTest}
                         style={{
                           border: '1px solid #014D88',
@@ -2714,9 +2690,7 @@ const ClinicVisit = props => {
                     name="hepatitisTest"
                     value="Yes"
                     onChange={handleCheckBoxHepatitisTest}
-                    checked={
-                      hepatitisTest.hepatitisTest === 'Yes' ? true : false
-                    }
+                    checked={hepatitisTest.hepatitisTest === 'Yes'}
                   />{' '}
                   Hepatitis Test{' '}
                 </h4>
@@ -2785,9 +2759,7 @@ const ClinicVisit = props => {
                     name="syphilisTest"
                     value="Yes"
                     onChange={handleCheckBoxSyphilisTest}
-                    checked={
-                      syphilisTest?.syphilisTest === 'Yes' ? true : false
-                    }
+                    checked={syphilisTest?.syphilisTest === 'Yes'}
                   />{' '}
                   Syphilis Test{' '}
                 </h4>
@@ -2804,7 +2776,7 @@ const ClinicVisit = props => {
                         onKeyDown={e => e.preventDefault()}
                         name="testDate"
                         id="testDate"
-                        value={syphilisTest.testDate}
+                        value={syphilisTest?.testDate}
                         onChange={handleInputChangeSyphilisTest}
                         style={{
                           border: '1px solid #014D88',
@@ -2823,7 +2795,7 @@ const ClinicVisit = props => {
                         type="select"
                         name="result"
                         id="result"
-                        value={syphilisTest.result}
+                        value={syphilisTest?.result}
                         onChange={handleInputChangeSyphilisTest}
                         style={{
                           border: '1px solid #014D88',
@@ -2840,7 +2812,7 @@ const ClinicVisit = props => {
                       </Input>
                     </FormGroup>
                   </div>
-                  {syphilisTest.result === 'Others' && (
+                  {syphilisTest?.result === 'Others' && (
                     <div className=" mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
@@ -2879,13 +2851,12 @@ const ClinicVisit = props => {
                     ref={otherTestInputRef}
                     onChange={handleCheckBoxOtherTest}
                     checked={otherTest.length > 0}
-                  />
-                  Other Test
+                  />{' '}
+                  Other Test{' '}
                 </h4>
               </Label>
               <br />
               <br />
-              {/* {otherTest.otherTest === 'Yes' && (<> */}
               {otherTest.length > 0 &&
                 otherTest?.map(eachTest => (
                   <div className="row" key={eachTest.localId}>
@@ -3003,6 +2974,7 @@ const ClinicVisit = props => {
                           margin: 0,
                           fontSize: '1.2em',
                         }}
+                        disabled={disabledField}
                         onClick={() => handleRemoveTest(eachTest.localId)}
                       >
                         <TiTrash />
@@ -3032,7 +3004,7 @@ const ClinicVisit = props => {
                     startIcon={<AddIcon />}
                     style={{ backgroundColor: '#014d88' }}
                     onClick={handleCreateNewTest}
-                    disabled={saving}
+                    disabled={saving || disabledField}
                   >
                     <span style={{ textTransform: 'capitalize' }}>
                       Add more test results
@@ -3102,13 +3074,48 @@ const ClinicVisit = props => {
                   ''
                 )}
               </div>
+              <Label
+                as="a"
+                color="teal"
+                style={{ width: '106%', height: '35px' }}
+                ribbon
+              >
+                <h4 style={{ color: '#fff' }}></h4>
+              </Label>
+              <br />
+              <br />
+              <br />
+              <div className=" mb-3 col-md-8">
+                <FormLabelName>Comment</FormLabelName>
+                <Input
+                  type="textarea"
+                  name="comment"
+                  id="comment"
+                  placeholder="Enter comment..."
+                  value={objValues.comment}
+                  disabled={disabledField}
+                  onChange={handleInputChange}
+                  style={{
+                    border: '1px solid #014D88',
+                    borderRadius: '0.25rem',
+                    height: '10em',
+                  }}
+                />
+                {errors.comment !== '' ? (
+                  <span className={classes.error}>{errors.comment}</span>
+                ) : (
+                  ''
+                )}
+              </div>
             </div>
             <br />
+
             {!disabledField && (
               <>
                 {props.activeContent &&
                 props.activeContent.actionType === 'update' ? (
-                  <>
+                  <div>
+                    {' '}
                     <MatButton
                       type="submit"
                       variant="contained"
@@ -3130,9 +3137,10 @@ const ClinicVisit = props => {
                         </span>
                       )}
                     </MatButton>
-                  </>
+                  </div>
                 ) : (
-                  <>
+                  <div>
+                    {' '}
                     <MatButton
                       type="submit"
                       variant="contained"
@@ -3153,7 +3161,7 @@ const ClinicVisit = props => {
                         </span>
                       )}
                     </MatButton>
-                  </>
+                  </div>
                 )}
               </>
             )}

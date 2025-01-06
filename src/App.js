@@ -15,24 +15,26 @@ import CheckedInPatientsAlert from './Globals/CheckedInPatientAlert/CheckedInPat
 
 export default function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <CheckedInPatientsAlert />
-        <div>
-          <ToastContainer />
-          <Switch>
-            <Route path="/patient-dashboard">
-              <PatientDetail />
-            </Route>
-            <Route path="/update-patient">
-              <UpdatePatientEnrollment />
-            </Route>
-            <Route path="/">
-              <Home />
-            </Route>
-          </Switch>
-        </div>
-      </AuthProvider>
-    </Router>
+    <div style={{ marginTop: '3em' }}>
+      <Router>
+        <AuthProvider>
+          <CheckedInPatientsAlert />
+          <div>
+            <ToastContainer />
+            <Switch>
+              <Route path="/patient-dashboard">
+                <PatientDetail />
+              </Route>
+              <Route path="/update-patient">
+                <UpdatePatientEnrollment />
+              </Route>
+              <Route path="/">
+                <Home />
+              </Route>
+            </Switch>
+          </div>
+        </AuthProvider>
+      </Router>
+    </div>
   );
 }

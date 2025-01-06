@@ -27,16 +27,6 @@ public class PrepController {
         this.patientActivityService = patientActivityService;
     }
 
-   /* @GetMapping(PREP_URL_VERSION_ONE + "/persons")
-    @ApiOperation("Get Prep Persons")
-    public ResponseEntity<PageDTO> getAllPerson(@RequestParam (required = false, defaultValue = "*")  String searchValue,
-                                                @RequestParam (required = false, defaultValue = "20")int pageSize,
-                                                @RequestParam (required = false, defaultValue = "0") int pageNo) {
-        return new ResponseEntity<>(this.prepService
-                .getAllPrepDtosByPerson (prepService
-                        .findPrepPersonPage(searchValue, pageNo, pageSize)), HttpStatus.OK);
-    }*/
-
     @GetMapping(PREP_URL_VERSION_ONE + "/persons")
     @ApiOperation("Get Prep Persons with optimized api")
     public ResponseEntity<PageDTO> getAllPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,

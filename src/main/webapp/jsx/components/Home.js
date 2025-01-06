@@ -13,10 +13,7 @@ const Home = () => {
 
   return (
     <Fragment>
-      <div
-        className="row page-titles mx-0"
-        style={{ marginTop: '0px', marginBottom: '-10px' }}
-      >
+      <div style={{ marginTop: '3em' }} className="page-titles">
         <ol className="breadcrumb">
           <li className="breadcrumb-item active">
             <h4>PrEP</h4>

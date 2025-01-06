@@ -31,6 +31,7 @@ import { Label } from 'semantic-ui-react';
 import Moment from 'moment';
 import momentLocalizer from 'react-widgets-moment';
 import { useAuth } from '../../../context/AuthProvider/AuthProvider';
+import moment from 'moment';
 Moment.locale('en');
 momentLocalizer();
 
@@ -59,11 +60,23 @@ const tableIcons = {
 };
 
 const Patients = props => {
+  const { accessibleForms, shouldUserAccessForm } = useAuth();
+
+  const useStyles = makeStyles({
+    statusLabel: {
+      width: '150px',
+      display: 'inline-block',
+      textAlign: 'center',
+    },
+  });
+  const classes = useStyles();
   const [patientList, setPatientList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPPI, setShowPPI] = useState(true);
-  const { accessibleForms, shouldUserAccessForm } = useAuth();
 
+  useEffect(() => {
+    patients();
+  }, []);
   async function patients() {
     setLoading(true);
     axios
@@ -106,12 +119,15 @@ const Patients = props => {
           { title: 'PrEP Code', field: 'clientCode', filtering: false },
           { title: 'Sex', field: 'gender', filtering: false },
           { title: 'Age', field: 'age', filtering: false },
-
-          { title: 'PrEP Status', field: 'status', filtering: false },
+          {
+            title: 'PrEP Status',
+            field: 'status',
+            filtering: false,
+          },
           { title: 'Actions', field: 'actions', filtering: false },
         ]}
         data={query =>
-          new Promise((resolve, reject) =>
+          new Promise((resolve, reject) => {
             axios
               .get(
                 `${baseUrl}prep/persons?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
@@ -126,13 +142,15 @@ const Patients = props => {
                     clientCode: row.uniqueId,
                     gender: row && row.gender ? row.gender : '',
                     age: row.age,
-
                     status: (
-                      <Label color="blue" size="mini">
+                      <Label
+                        className={classes.statusLabel}
+                        color="blue"
+                        size="mini"
+                      >
                         {row.prepStatus}
                       </Label>
                     ),
-
                     actions: (
                       <div>
                         <Link
@@ -156,7 +174,10 @@ const Patients = props => {
                               size="small"
                               aria-label="select merge strategy"
                               aria-haspopup="menu"
-                              style={{ backgroundColor: 'rgb(153, 46, 98)' }}
+                              style={{
+                                backgroundColor: 'rgb(153, 46, 98)',
+                                margin: 'auto',
+                              }}
                             >
                               <MdDashboard />
                             </Button>
@@ -181,8 +202,8 @@ const Patients = props => {
                   page: query.page,
                   totalCount: result.data.totalRecords,
                 });
-              })
-          )
+              });
+          })
         }
         options={{
           headerStyle: {
@@ -203,7 +224,7 @@ const Patients = props => {
         components={{
           Toolbar: props => (
             <div className="p-2">
-              <div className="form-check custom-checkbox  float-left mt-4 ml-3">
+              <div className="form-check custom-checkbox float-left mt-4 ml-3">
                 <input
                   type="checkbox"
                   className="form-check-input m-2"
@@ -219,7 +240,8 @@ const Patients = props => {
                 />
                 <label className="form-check-label" htmlFor="basic_checkbox_1">
                   <b style={{ color: '#014d88', fontWeight: 'bold' }}>
-                    SHOW PII
+                    {' '}
+                    SHOW PII{' '}
                   </b>
                 </label>
               </div>
