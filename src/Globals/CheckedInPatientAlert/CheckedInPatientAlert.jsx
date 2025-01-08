@@ -20,12 +20,10 @@ const CheckedInPatientsAlert = () => {
   });
 
   useEffect(() => {
-    // Simulate a user interaction by programmatically clicking the hidden button
     if (hiddenButtonRef.current) {
       hiddenButtonRef.current.click();
     }
 
-    // Preload sounds when enabled
     if (soundEnabled) {
       Object.values(audioRefs.current).forEach(audio => {
         audio.load();
@@ -62,7 +60,11 @@ const CheckedInPatientsAlert = () => {
   };
 
   const onMessageReceived = msg => {
-    if (msg && msg?.toLowerCase()?.includes('check')) {
+    if (
+      msg &&
+      msg?.toLowerCase()?.includes('check') &&
+      msg?.toLowerCase()?.includes('prep')
+    ) {
       showToast(msg, 'messageReceived');
     }
   };

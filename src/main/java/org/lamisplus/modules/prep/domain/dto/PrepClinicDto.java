@@ -110,4 +110,3 @@ public class PrepClinicDto implements Serializable {
     private String comment;
     private String previousPrepStatus;
 }
-

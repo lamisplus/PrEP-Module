@@ -20,7 +20,6 @@ import org.lamisplus.modules.prep.repository.PrepEligibilityRepository;
 import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
 import org.lamisplus.modules.prep.repository.PrepInterruptionRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -396,16 +395,16 @@ public class PrepClinicService {
         return prepClinicRepository.getCurrentDate().orElse(null);
     }
 
-    @Transactional
-    public void updateLastEncounterPrevStatusByPersonUuid(String personUuid, String previousStatus) {
-        prepClinicRepository.updateLastEncounterPrevStatusByPersonUuid(personUuid, previousStatus);
-    }
-
-    @Transactional
-    public void updatePreviousStatusIfExists(String personUuid, String previousStatus) {
-        int eligibleRecordCount = prepClinicRepository.countEligibleRecordsForUpdate(personUuid);
-        if (eligibleRecordCount > 0) {
-            updateLastEncounterPrevStatusByPersonUuid(personUuid, previousStatus);
-        }
-    }
+//    @Transactional
+//    public void updateLastEncounterPrevStatusByPersonUuid(String personUuid, String previousStatus) {
+//        prepClinicRepository.updateLastEncounterPrevStatusByPersonUuid(personUuid, previousStatus);
+//    }
+//
+//    @Transactional
+//    public void updatePreviousStatusIfExists(String personUuid, String previousStatus) {
+//        int eligibleRecordCount = prepClinicRepository.countEligibleRecordsForUpdate(personUuid);
+//        if (eligibleRecordCount > 0) {
+//            updateLastEncounterPrevStatusByPersonUuid(personUuid, previousStatus);
+//        }
+//    }
 }
