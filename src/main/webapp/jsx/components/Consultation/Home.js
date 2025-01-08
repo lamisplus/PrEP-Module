@@ -323,12 +323,9 @@ const ClinicVisit = props => {
 
   const getPatientVisit = async id => {
     axios
-      .get(
-        `${baseUrl}prep-clinic/${props.activeContent.id + props.patientObj.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
+      .get(`${baseUrl}prep-clinic/${props.activeContent.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then(response => {
         const { data } = JSON.parse(JSON.stringify(response));
         setOtherTest(response?.data?.otherTestsDone);
