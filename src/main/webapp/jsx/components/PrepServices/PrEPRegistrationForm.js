@@ -50,7 +50,7 @@ const useStyles = makeStyles(theme => ({
     },
     '& .form-control': {
       borderRadius: '0.25rem',
-      height: '2.5625em',
+      height: '41px',
     },
     '& .card-header:first-child': {
       borderRadius: 'calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0',
@@ -84,7 +84,9 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const PrEPRegistrationForm = props => {
+  ///const patientObj = props.patientObj;
   const [entryPoint, setEntryPoint] = useState([]);
+  //let history = useHistory();
   const classes = useStyles();
   const [objValues, setObjValues] = useState({
     dateEnrolled: '',
@@ -123,6 +125,7 @@ const PrEPRegistrationForm = props => {
         props.activeContent.actionType === 'view' ? true : false
       );
     }
+    //GetPatientPrepEnrollment
   }, []);
   const getTargetGroupvalue = () => {
     axios
@@ -147,6 +150,7 @@ const PrEPRegistrationForm = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
+        //console.log(response.data);
         setEntryPoint(response.data);
       })
       .catch(error => {
@@ -186,6 +190,7 @@ const PrEPRegistrationForm = props => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
+        //console.log(response.data)
         setPatientDto(response.data);
         getTargetGroupvalue();
       })
@@ -220,10 +225,13 @@ const PrEPRegistrationForm = props => {
 
   const validate = () => {
     let temp = { ...errors };
-    temp.dateEnrolled = objValues.dateEnrolled ? '' : 'This field is required⚠';
-    temp.dateReferred = objValues.dateReferred ? '' : 'This field is required⚠';
-    temp.riskType = objValues.riskType ? '' : 'This field is required⚠';
-    temp.uniqueId = objValues.uniqueId ? '' : 'This field is required⚠';
+    temp.dateEnrolled = objValues.dateEnrolled ? '' : 'This field is required';
+    temp.dateReferred = objValues.dateReferred ? '' : 'This field is required';
+    temp.riskType = objValues.riskType ? '' : 'This field is required';
+    //temp.supporterName = objValues.supporterName ? "" : "This field is required"
+    //temp.supporterPhone = objValues.supporterPhone ? "" : "This field is required"
+    //temp.supporterRelationshipType = objValues.supporterRelationshipType ? "" : "This field is required"
+    temp.uniqueId = objValues.uniqueId ? '' : 'This field is required';
     setErrors({
       ...temp,
     });
@@ -233,31 +241,36 @@ const PrEPRegistrationForm = props => {
     e.preventDefault();
     if (validate()) {
       objValues.personId = props.patientObj.personId || props.patientObj.id;
-      objValues.prepEligibilityUuid = patientDto.uuid;
+      objValues.prepEligibilityUuid = patientDto?.uuid;
       objValues.targetGroup = targetGroupValue;
       setSaving(true);
+
       if (props.activeContent && props.activeContent.actionType) {
         axios
           .put(
-            `${baseUrl}prep-enrollment/${props.activeContent.id}`,
+            `${baseUrl}prep-enrollment/${
+              props.activeContent.id ||
+              props.patientObj?.personId ||
+              props.patientObj.id
+            }`,
             objValues,
             { headers: { Authorization: `Bearer ${token}` } }
           )
           .then(response => {
             setSaving(false);
             props.patientObj.prepCount = '1';
-            props.PatientObject();
-            toast.success('PrEP enrolment saved successfully!✔', {
+            toast.success('Prep Enrollment save successful!', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
               route: 'recent-history',
             });
+            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);
-            toast.error('Something went wrong❌');
+            toast.error('Something went wrong');
           });
       } else {
         axios
@@ -267,21 +280,22 @@ const PrEPRegistrationForm = props => {
           .then(response => {
             setSaving(false);
             props.patientObj.prepCount = '1';
-            toast.success('PrEP enrolment saved successfully!✔', {
+            toast.success('Prep Enrollment save successful!', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
               route: 'recent-history',
             });
+            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);
-            toast.error('Something went wrong❌');
+            toast.error('Something went wrong');
           });
       }
     } else {
-      toast.error('All fields are required❌', {
+      toast.error('All fields are required ', {
         position: toast.POSITION.BOTTOM_CENTER,
       });
     }
@@ -306,7 +320,6 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     value={objValues.uniqueId}
                     disabled={disabledField}
-                    style={{ border: '1px solid #014D88' }}
                   />
                   {errors.uniqueId !== '' ? (
                     <span className={classes.error}>{errors.uniqueId}</span>
@@ -325,7 +338,6 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     value={objValues.ancUniqueArtNo}
                     disabled={disabledField}
-                    style={{ border: '1px solid #014D88' }}
                   />
                   {errors.ancUniqueArtNo !== '' ? (
                     <span className={classes.error}>
@@ -382,7 +394,6 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     value={objValues.riskType}
                     disabled={disabledField}
-                    style={{ border: '1px solid #014D88' }}
                   >
                     <option value=""> Select</option>
                     {prepRisk.map(value => (
@@ -409,7 +420,6 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     value={objValues.hivTestingPoint}
                     disabled={disabledField}
-                    style={{ border: '1px solid #014D88' }}
                   >
                     <option value=""> Select</option>
                     {entryPoint.map(value => (
@@ -495,7 +505,7 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     style={{
                       border: '1px solid #014D88',
-                      borderRadius: '0.25rem !important',
+                      borderRadius: '0.2rem',
                     }}
                     disabled={disabledField}
                   />
@@ -544,17 +554,22 @@ const PrEPRegistrationForm = props => {
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label>PrEP Supporter Phone Number</Label>
+                  {/* <Input
+                                        className="form-control"
+                                        type="text"
+                                        name="supporterPhone"
+                                        id="supporterPhone"
+                                        value={objValues.supporterPhone}
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
+                                        //disabled={locationState.actionType==='update'? false : true}
+                                    /> */}
                   <PhoneInput
                     containerStyle={{
                       width: '100%',
                       border: '1px solid #014D88',
-                      borderRadius: '0.25rem !important',
                     }}
-                    style={{ borderRadius: '0.25rem !important' }}
-                    inputStyle={{
-                      width: '100%',
-                      borderRadius: '0.25rem !important',
-                    }}
+                    inputStyle={{ width: '100%', borderRadius: '0px' }}
                     country={'ng'}
                     placeholder="(234)7099999999"
                     maxLength={5}
@@ -590,10 +605,7 @@ const PrEPRegistrationForm = props => {
                   hidden={disabledField}
                   className={classes.button}
                   startIcon={<SaveIcon />}
-                  style={{
-                    backgroundColor: '#014d88',
-                    border: '1px solid #014D88',
-                  }}
+                  style={{ backgroundColor: '#014d88' }}
                   onClick={handleSubmit}
                   disabled={saving}
                 >
@@ -608,26 +620,24 @@ const PrEPRegistrationForm = props => {
               </>
             ) : (
               <>
-                {!disabledField && (
-                  <MatButton
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    className={classes.button}
-                    startIcon={<SaveIcon />}
-                    style={{ backgroundColor: '#014d88' }}
-                    onClick={handleSubmit}
-                    disabled={saving}
-                  >
-                    {!saving ? (
-                      <span style={{ textTransform: 'capitalize' }}>Save</span>
-                    ) : (
-                      <span style={{ textTransform: 'capitalize' }}>
-                        Saving...
-                      </span>
-                    )}
-                  </MatButton>
-                )}
+                <MatButton
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  className={classes.button}
+                  startIcon={<SaveIcon />}
+                  style={{ backgroundColor: '#014d88' }}
+                  onClick={handleSubmit}
+                  disabled={saving}
+                >
+                  {!saving ? (
+                    <span style={{ textTransform: 'capitalize' }}>Save</span>
+                  ) : (
+                    <span style={{ textTransform: 'capitalize' }}>
+                      Saving...
+                    </span>
+                  )}
+                </MatButton>
               </>
             )}
           </form>

@@ -142,7 +142,7 @@ function PatientCard(props) {
           {activeContent.route === 'biometrics' && (
             <ProtectedComponent
               privateComponent={Biometrics}
-              isAuthorized={userPermissions.biometrics || true}
+              isAuthorized={userPermissions.biometrics}
               patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -152,68 +152,69 @@ function PatientCard(props) {
           {activeContent.route === 'consultation' && (
             <ProtectedComponent
               privateComponent={ClinicVisit}
-              isAuthorized={userPermissions.visit || true}
+              isAuthorized={userPermissions.visit}
               patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
+              PatientObject={() => PatientObject()}
             />
           )}
           {activeContent.route === 'prep-commencement' && (
             <ProtectedComponent
               privateComponent={PrEPCommencementForm}
-              isAuthorized={userPermissions.commencement || true}
+              isAuthorized={userPermissions.commencement}
               patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
-              PatientObject={PatientObject}
+              PatientObject={() => PatientObject()}
             />
           )}
           {activeContent.route === 'prep-interruptions' && (
             <ProtectedComponent
               privateComponent={PrEPDiscontinuationsInterruptions}
-              isAuthorized={userPermissions.discontinuation || true}
+              isAuthorized={userPermissions.discontinuation}
               patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
-              PatientObject={PatientObject}
+              PatientObject={() => PatientObject()}
             />
           )}
           {activeContent.route === 'prep-screening' && (
             <ProtectedComponent
               privateComponent={PrEPEligibiltyScreeningForm}
-              isAuthorized={userPermissions?.eligibility || true}
+              isAuthorized={userPermissions?.eligibility}
               patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
               patientDetail={patientDetail}
-              PatientObject={PatientObject}
+              PatientObject={() => PatientObject()}
             />
           )}
           {activeContent.route === 'patient-visits' && (
             <ProtectedComponent
               privateComponent={PatientVisits}
-              isAuthorized={userPermissions?.patientVisits || true}
+              isAuthorized={userPermissions?.patientVisits}
               patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
               patientDetail={patientDetail}
-              PatientObject={PatientObject}
+              PatientObject={() => PatientObject()}
             />
           )}
           {activeContent.route === 'prep-registration' && (
             <ProtectedComponent
               privateComponent={PrEPRegistrationForm}
-              isAuthorized={userPermissions.registration || true}
+              isAuthorized={userPermissions.registration}
               patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
-              PatientObject={PatientObject}
+              PatientObject={() => PatientObject()}
             />
           )}
           {activeContent.route === 'patient-history' && (

@@ -314,7 +314,6 @@ const PrEPCommencementForm = props => {
     return Object.values(temp).every(x => x === '');
   };
 
-  //to check the input value for clinical decision
   const handleInputValueCheckHeight = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     if (
@@ -364,6 +363,7 @@ const PrEPCommencementForm = props => {
               ...props.activeContent,
               route: 'recent-history',
             });
+            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);
@@ -404,6 +404,7 @@ const PrEPCommencementForm = props => {
               ...props.activeContent,
               route: 'recent-history',
             });
+            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);

@@ -25,14 +25,21 @@ export const AuthProvider = ({ children }) => {
   const getFormPermissions = () => {
     const formPermissions = {
       registration:
-        hasAnyPermission('prep_care_card') && isRegistrationAccessible,
+        (hasAnyPermission('prep_care_card') || true) &&
+        isRegistrationAccessible,
       eligibility:
-        hasAnyPermission('prep_care_card') && isEligibilityAccessible,
-      enrollment: hasAnyPermission('prep_care_card') && isEnrollmentAccessible,
-      commencement: hasPermission('prep_care_card') && isCommencementAccessible,
-      visit: hasPermission('prep_care_card') && isVisitAccessible,
+        (hasAnyPermission('prep_care_card', 'prep_eligibility_forms') ||
+          true) &&
+        isEligibilityAccessible,
+      enrollment:
+        (hasAnyPermission('prep_care_card', 'prep_register') || true) &&
+        isEnrollmentAccessible,
+      commencement:
+        (hasPermission('prep_care_card') || true) && isCommencementAccessible,
+      visit: (hasPermission('prep_care_card') || true) && isVisitAccessible,
       discontinuation:
-        hasPermission('prep_care_card') && isDiscontinuationAccessible,
+        (hasPermission('prep_care_card') || true) &&
+        isDiscontinuationAccessible,
       patientVisits:
         hasAnyPermission('view_patient', 'all_permissions') &&
         isPatientVisitsAccessible,

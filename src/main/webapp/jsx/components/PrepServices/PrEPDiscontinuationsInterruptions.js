@@ -147,9 +147,14 @@ const PrEPEligibiltyScreeningForm = props => {
 
   const GetPatientInterruption = id => {
     axios
-      .get(`${baseUrl}prep-interruption/${props.activeContent.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(
+        `${baseUrl}prep-interruption/${
+          props.activeContent.id || props.patientObj.id
+        }`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .then(response => {
         setObjValues(response.data);
       })
@@ -262,12 +267,6 @@ const PrEPEligibiltyScreeningForm = props => {
 
   const validate = () => {
     let temp = { ...errors };
-    // if (
-    //   containsDiscontinued(objValues.interruptionType) &&
-    //   !objValues.reasonForPrepDiscontinuation
-    // ) {
-    //   temp.reasonForPrepDiscontinuation = 'This field is required';
-    // }
     if (
       (objValues.interruptionType === 'PREP_STATUS_ADVERSE_DRUG_REACTION' ||
         objValues.interruptionType === 'PREP_STATUS_STOPPED' ||
@@ -323,7 +322,9 @@ const PrEPEligibiltyScreeningForm = props => {
       if (props.activeContent && props.activeContent.actionType === 'update') {
         axios
           .put(
-            `${baseUrl}prep-interruption/${props.activeContent.id}`,
+            `${baseUrl}prep-interruption/${
+              props.activeContent.id || props.patientObj.id
+            }`,
             objValues,
             {
               headers: { Authorization: `Bearer ${token}` },
@@ -337,6 +338,7 @@ const PrEPEligibiltyScreeningForm = props => {
               ...props.activeContent,
               route: 'recent-history',
             });
+            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);
@@ -357,6 +359,7 @@ const PrEPEligibiltyScreeningForm = props => {
               route: 'recent-history',
               obj: { newStatus },
             });
+            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);
@@ -383,10 +386,6 @@ const PrEPEligibiltyScreeningForm = props => {
     getReasonForDiscontinuationOptions();
   }, []);
 
-  // function containsDiscontinued(inputString) {
-  //   const lowerCaseString = inputString.toLowerCase();
-  //   return lowerCaseString.includes('discontinued');
-  // }
   useEffect(() => {
     return () => {
       if (!['view', 'update'].includes(props.activeContent.actionType)) {
@@ -425,8 +424,8 @@ const PrEPEligibiltyScreeningForm = props => {
   }, [objValues.interruptionType]);
 
   useEffect(() => {
-    GetPatientInterruption(props.activeContent.id);
-  }, [props.activeContent.id]);
+    GetPatientInterruption(props.activeContent.id || props.patientObj.id);
+  }, [props.activeContent.id, props.patientObj.id]);
 
   return (
     <div>
@@ -458,12 +457,6 @@ const PrEPEligibiltyScreeningForm = props => {
                           {value.display}
                         </option>
                       ))}
-                    {/* <option value="PREP_INTERRUPtIONS_DISCONTINUED_ORAL_PREP">
-                      Discontinued Oral PrEP
-                    </option>
-                    <option value="PREP_INTERRUPtIONS_DISCONTINUED_CABLA">
-                      Discontinued CAB-LA
-                    </option> */}
                   </Input>
                   {errors.interruptionType !== '' ? (
                     <span className={classes.error}>

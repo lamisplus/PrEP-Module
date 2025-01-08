@@ -12,7 +12,7 @@ const divStyle = {
 
 const ClinicVisitPage = props => {
   const [key, setKey] = useState('home');
-  const patientObj = props.patientObj;
+  const { patientObj } = props;
   const [recentActivities, setRecentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const getPatientHistory = () => {
@@ -83,6 +83,7 @@ const ClinicVisitPage = props => {
                       patientObj={patientObj}
                       setActiveContent={props.setActiveContent}
                       activeContent={props.activeContent}
+                      PatientObject={() => props.PatientObject()}
                     />
                   </Tab>
                   <Tab eventKey="history" title="HISTORY">

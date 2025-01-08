@@ -99,6 +99,25 @@ const PatientVisits = props => {
     }
   }, []);
 
+  const filterByServiceCode = useCallback((data, serviceCode) => {
+    if (!Array.isArray(data)) {
+      return console.error(
+        'Invalid input. Expected an array but got something else.'
+      );
+    }
+    if (typeof serviceCode !== 'string') {
+      return console.error('Invalid input. Service code must be a string');
+    }
+    const lowerCaseServiceCode = serviceCode.toLowerCase();
+
+    return data.filter(item => {
+      return (
+        typeof item.serviceCode === 'string' &&
+        item.serviceCode.toLowerCase() === lowerCaseServiceCode
+      );
+    });
+  }, []);
+
   const fetchPatientVisits = useCallback(async () => {
     try {
       const response = await axios.get(
@@ -107,9 +126,11 @@ const PatientVisits = props => {
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      const prepVisits = filterByServiceCode(response.data, 'PrEP_code');
 
-      setPatientVisits(response.data);
-      const hasActiveVisit = response.data.some(
+      setPatientVisits(prepVisits);
+
+      const hasActiveVisit = prepVisits.some(
         visit => !visit.checkOutTime || visit.status === 'PENDING'
       );
       setCheckinStatus(hasActiveVisit);
@@ -124,19 +145,24 @@ const PatientVisits = props => {
   }, [fetchServices, fetchPatientVisits]);
 
   const handleCheckout = async () => {
-    const activeVisit = patientVisits.find(visit => visit.status === 'PENDING');
+    const activeVisit = patientVisits.find(
+      visit => visit.status === 'PENDING' && visit.service === 'PrEP_code'
+    );
     if (!activeVisit) {
-      toast.error('No Pending visit found');
+      toast.error('No pending HIV visit found');
       return;
     }
-
+    if (activeVisit.service !== 'HIV_code') {
+      toast.error('Can only checkout HIV services');
+      return;
+    }
     try {
       await axios.put(
         `${baseUrl}patient/visit/checkout/${activeVisit.id}`,
         { checkOutDate: moment(checkoutDate).format('YYYY-MM-DD HH:mm') },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
+      toast.success('Check-out successful');
       setCheckinStatus(false);
       setIsCheckoutModalOpen(false);
       fetchPatientVisits();

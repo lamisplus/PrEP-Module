@@ -28,7 +28,7 @@ const RecentHistory = props => {
   useEffect(() => {
     Summary();
     RecentActivities();
-  }, [props?.patientObj?.personId]);
+  }, [props?.patientObj?.id]);
 
   const RecentActivities = () => {
     axios
@@ -275,6 +275,8 @@ const RecentHistory = props => {
       return acc.concat(item.activities);
     }, []);
   }
+
+  useEffect(() => props.setShouldMenuReload());
   return (
     <Fragment>
       {/* <Ext /> */}

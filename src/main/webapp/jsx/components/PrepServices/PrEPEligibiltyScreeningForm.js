@@ -447,7 +447,7 @@ const BasicInfo = props => {
 
     return Object.values(temp).every(x => x === '');
   };
-  useEffect(() => console.log('temp: ', temp));
+  useEffect(() => props.setShouldMenuReload());
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -514,8 +514,6 @@ const BasicInfo = props => {
             }
           });
       } else {
-        console.log('payload: ', objValues);
-        console.log('pobj: ', props?.patientObj);
         axios
           .post(`${baseUrl}prep/eligibility`, objValues, {
             headers: { Authorization: `Bearer ${token}` },

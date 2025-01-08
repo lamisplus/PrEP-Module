@@ -31,10 +31,10 @@ const Home = () => {
                   onSelect={k => setKey(k)}
                   className="mb-3"
                 >
-                  <Tab eventKey="home" title="Find Patients">
+                  {/* <Tab eventKey="home" title="Find Patients">
                     <PatientList />
-                  </Tab>
-                  <Tab eventKey="prep-patient" title="Checked-In Patients">
+                  </Tab> */}
+                  <Tab eventKey="home" title="Checked-In Patients">
                     <CheckedInPatients />
                   </Tab>
                 </Tabs>
