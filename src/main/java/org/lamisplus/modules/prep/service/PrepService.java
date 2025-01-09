@@ -330,7 +330,7 @@ public class PrepService {
                 .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
                 .collect(Collectors.toList());
 
-        return new PageImpl<>(filteredList, pageable, filteredList.size());
+        return new PageImpl<>(filteredList, pageable, resultPage.getTotalElements());
     }
 
     public Page<PrepClient> findOnlyPrepPersonPage(String searchValue, int pageNo, int pageSize) {
