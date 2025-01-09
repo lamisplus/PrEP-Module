@@ -313,4 +313,23 @@
             WHERE duration = 930;
         </sql>
     </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="09-01-2025-02">
+        <sql>
+            UPDATE prep_clinic
+            SET duration = 50
+            WHERE duration = 1500;
+
+            UPDATE prep_clinic
+            SET duration = 88
+            WHERE duration = 2640;
+
+            UPDATE prep_clinic
+            SET duration = 89
+            WHERE duration = 2670;
+
+            UPDATE prep_clinic
+            SET duration = 91
+            WHERE duration = 2730;
+        </sql>
+    </changeSet>
 </databaseChangeLog>
