@@ -300,4 +300,17 @@
             );
         </sql>
     </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="09-01-2025-01">
+        <sql>
+            UPDATE prep_clinic
+            SET duration = 28
+            WHERE duration = 840;
+            UPDATE prep_clinic
+            SET duration = 29
+            WHERE duration = 870;
+            UPDATE prep_clinic
+            SET duration = 31
+            WHERE duration = 930;
+        </sql>
+    </changeSet>
 </databaseChangeLog>
