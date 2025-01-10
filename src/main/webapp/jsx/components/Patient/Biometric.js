@@ -184,13 +184,11 @@ function Biometrics(props) {
         } else {
           let biometricItems = _.map(fingersCodeset.data, item => {
             return _.extend({}, item, { captured: false });
-            //return item.captured = personCapturedFingers.includes(item.display)
           });
           setFingerType(biometricItems);
         }
       })
       .catch(async error => {
-        console.log('getPersonBiometrics error');
         console.log(error);
 
         let biometricItems = _.map(fingersCodeset.data, item => {
@@ -208,11 +206,8 @@ function Biometrics(props) {
         props.patientId,
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      .then(response => {
-        console.log('cleared store');
-      })
+      .then(response => {})
       .catch(error => {
-        console.log('cleared store error');
         console.log(error);
       });
   };

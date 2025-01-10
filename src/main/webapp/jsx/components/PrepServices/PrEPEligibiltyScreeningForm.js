@@ -447,7 +447,6 @@ const BasicInfo = props => {
 
     return Object.values(temp).every(x => x === '');
   };
-  useEffect(() => props.setShouldMenuReload());
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -478,10 +477,8 @@ const BasicInfo = props => {
             patientObj.eligibilityCount = 1;
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
-            props.PatientObject();
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
-            props.PatientObject();
             toast.success('Prep eligilibility saved successfully! ✔', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
@@ -489,6 +486,7 @@ const BasicInfo = props => {
               ...props.activeContent,
               route: 'recent-history',
             });
+            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);
@@ -530,6 +528,7 @@ const BasicInfo = props => {
               ...props.activeContent,
               route: 'recent-history',
             });
+            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);

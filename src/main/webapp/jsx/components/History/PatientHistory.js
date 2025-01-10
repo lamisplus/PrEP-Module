@@ -25,9 +25,6 @@ import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-widgets/dist/css/react-widgets.css';
-import { makeStyles } from '@material-ui/core/styles';
-//import { useHistory } from "react-router-dom";
-//import {Menu,MenuList,MenuButton,MenuItem,} from "@reach/menu-button";
 import '@reach/menu-button/styles.css';
 import { Modal } from 'react-bootstrap';
 import { Dropdown, Button, Menu, Icon } from 'semantic-ui-react';
@@ -70,7 +67,7 @@ const PatientnHistory = props => {
   useEffect(() => {
     PatientHistory();
   }, [props.patientObj.id, patientObjLocation.id]);
-  ///GET LIST OF Patients
+
   const PatientHistory = () => {
     setLoading(true);
     axios
@@ -106,7 +103,6 @@ const PatientnHistory = props => {
         actionType: action,
       });
     } else if (row.path === 'prep-clinic') {
-      //prep-commencement
       props.setActiveContent({
         ...props.activeContent,
         route: 'consultation',
@@ -138,7 +134,6 @@ const PatientnHistory = props => {
   const LoadDeletePage = row => {
     if (row.path === 'prep-eligibility') {
       setSaving(true);
-      //props.setActiveContent({...props.activeContent, route:'mental-health-view', id:row.id})
       axios
         .delete(`${baseUrl}prep-eligibility/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -164,7 +159,6 @@ const PatientnHistory = props => {
         });
     } else if (row.path === 'prep-clinic') {
       setSaving(true);
-      //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
       axios
         .delete(`${baseUrl}prep-clinic/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -190,7 +184,6 @@ const PatientnHistory = props => {
         });
     } else if (row.path === 'prep-enrollment') {
       setSaving(true);
-      //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
       axios
         .delete(`${baseUrl}prep-enrollment/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -216,7 +209,6 @@ const PatientnHistory = props => {
         });
     } else if (row.path === 'prep-commencement') {
       setSaving(true);
-      //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
       axios
         .delete(`${baseUrl}prep-clinic/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -242,7 +234,6 @@ const PatientnHistory = props => {
         });
     } else if (row.path === 'prep-interruption') {
       setSaving(true);
-      //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
       axios
         .delete(`${baseUrl}prep-interruption/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -283,7 +274,6 @@ const PatientnHistory = props => {
             title: 'Encounter Date',
             field: 'date',
           },
-          // { title: "Status", field: "status", filtering: false },
           { title: 'Actions', field: 'actions', filtering: false },
         ]}
         isLoading={loading}

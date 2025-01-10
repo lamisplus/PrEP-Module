@@ -276,10 +276,8 @@ const RecentHistory = props => {
     }, []);
   }
 
-  useEffect(() => props.setShouldMenuReload());
   return (
     <Fragment>
-      {/* <Ext /> */}
       <div className="row">
         <div className="col-xl-4 col-xxl-4 col-lg-4">
           <div className="card">

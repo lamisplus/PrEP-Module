@@ -3,18 +3,11 @@ import { Form, Row, Card, CardBody, FormGroup, Label, Input } from 'reactstrap';
 import MatButton from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
 import SaveIcon from '@material-ui/icons/Save';
-import CancelIcon from '@material-ui/icons/Cancel';
-// import { Alert } from 'reactstrap';
-// import { Spinner } from 'reactstrap';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { url as baseUrl, token } from '../../../api';
-import { useHistory } from 'react-router-dom';
-//import {  Modal, Button } from "react-bootstrap";
 import 'react-widgets/dist/css/react-widgets.css';
-//import { DateTimePicker } from "react-widgets";
 import PhoneInput from 'react-phone-input-2';
-// import momentLocalizer from "react-widgets-moment";
 import moment from 'moment';
 import { Spinner } from 'reactstrap';
 
@@ -84,9 +77,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const PrEPRegistrationForm = props => {
-  ///const patientObj = props.patientObj;
   const [entryPoint, setEntryPoint] = useState([]);
-  //let history = useHistory();
   const classes = useStyles();
   const [objValues, setObjValues] = useState({
     dateEnrolled: '',
@@ -125,7 +116,6 @@ const PrEPRegistrationForm = props => {
         props.activeContent.actionType === 'view' ? true : false
       );
     }
-    //GetPatientPrepEnrollment
   }, []);
   const getTargetGroupvalue = () => {
     axios
@@ -150,7 +140,6 @@ const PrEPRegistrationForm = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        //console.log(response.data);
         setEntryPoint(response.data);
       })
       .catch(error => {
@@ -190,7 +179,6 @@ const PrEPRegistrationForm = props => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
-        //console.log(response.data)
         setPatientDto(response.data);
         getTargetGroupvalue();
       })
@@ -228,9 +216,6 @@ const PrEPRegistrationForm = props => {
     temp.dateEnrolled = objValues.dateEnrolled ? '' : 'This field is required';
     temp.dateReferred = objValues.dateReferred ? '' : 'This field is required';
     temp.riskType = objValues.riskType ? '' : 'This field is required';
-    //temp.supporterName = objValues.supporterName ? "" : "This field is required"
-    //temp.supporterPhone = objValues.supporterPhone ? "" : "This field is required"
-    //temp.supporterRelationshipType = objValues.supporterRelationshipType ? "" : "This field is required"
     temp.uniqueId = objValues.uniqueId ? '' : 'This field is required';
     setErrors({
       ...temp,
