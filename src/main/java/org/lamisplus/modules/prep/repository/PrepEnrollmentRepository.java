@@ -314,12 +314,43 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, he.date_confirmed_hiv as dateConfirmedHiv,  " +
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
             "(CASE " +
-            "WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
-            "WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
-            "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
-            "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
-            "WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' " +
-            "ELSE prepc.status END) prepStatus" +
+            " WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
+            " WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'" +
+            " WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display " +
+            " WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
+            " WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
+            " WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' " +
+            " WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'" +
+            " WHEN prepi.interruption_type = 'PREP_STATUS_SEROCONVERTED' THEN 'Seroconverted' " +
+            " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN " +
+            " CASE " +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 59 THEN 'Discontinued' " +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 37 THEN 'Delayed Injection' " +
+            " ELSE 'Active' " +
+            " END " +
+            " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN " +
+            " CASE " +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 89 THEN 'Discontinued' " +
+            " WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 67 THEN 'Delayed Injection' " +
+            " ELSE 'Active' " +
+            " END " +
+            " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN " +
+            " CASE " +
+            " WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued' " +
+            " ELSE 'Active' " +
+            " END" +
+            " WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN " +
+            " CASE " +
+            " WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued' " +
+            " ELSE 'Active' " +
+            " END " +
+            " WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN " +
+            " CASE " +
+            " WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped' " +
+            " ELSE 'Active' " +
+            " END " +
+            " ELSE prepc.status " +
+            "END) AS prepStatus " +
             " FROM patient_person p  " +
             " LEFT JOIN (SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid FROM prep_eligibility el " +
             "WHERE el.archived=?1 GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
