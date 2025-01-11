@@ -27,8 +27,6 @@ export const useCheckedInPatientData = (
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-          console.log('patients data: ', patientResponse?.data);
-
           return patientResponse?.data;
         }
       } catch (error) {

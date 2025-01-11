@@ -89,7 +89,6 @@ function PatientCard(props) {
     return phoneNumber ? phoneNumber?.value : '';
   };
   const getAddress = identifier => {
-    console.log('identifier: ', identifier);
     const identifiers = identifier;
     const address = identifiers?.address?.find?.(obj => obj?.city);
     const houseAddress =
@@ -101,7 +100,6 @@ function PatientCard(props) {
     return address ? houseAddress + ' ' + landMark : '';
   };
   function formatAddressStrict(addressObj) {
-    console.log('addr obj: ', addressObj);
     if (
       !addressObj?.address ||
       !Array.isArray(addressObj.address) ||
@@ -118,7 +116,6 @@ function PatientCard(props) {
 
     const line = firstAddress.line[0];
     const city = firstAddress.city?.trim() || '';
-    console.log(`addr: ${line}, ${city}`);
     return `${line}, ${city}`;
   }
   return (
