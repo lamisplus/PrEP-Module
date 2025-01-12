@@ -13,9 +13,10 @@ import Moment from 'moment';
 import momentLocalizer from 'react-widgets-moment';
 import moment from 'moment';
 import Typography from '@material-ui/core/Typography';
-import { AccordionSummary } from '@material-ui/core';
+import { AccordionSummary, CircularProgress } from '@material-ui/core';
 import { useHistory, useLocation } from 'react-router-dom/cjs/react-router-dom';
 import PatientDetail from './PatientDetail';
+import ContentLoader from 'react-content-loader';
 Moment.locale('en');
 momentLocalizer();
 
@@ -218,12 +219,34 @@ function PatientCard(props) {
                       <span>
                         {' '}
                         Address :{' '}
-                        <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.address ||
-                            formatAddressStrict(
-                              props.patientDetail?.personResponseDto?.address
-                            )}{' '}
-                        </b>
+                        {!props.patientDetail ? (
+                          <ContentLoader
+                            speed={2}
+                            width={500}
+                            viewBox="0 0 1000 50"
+                            backgroundColor="#333"
+                            foregroundColor="#555"
+                          >
+                            <rect
+                              x="0"
+                              y="15"
+                              rx="5"
+                              ry="5"
+                              width="100"
+                              height="20"
+                            />
+                          </ContentLoader>
+                        ) : (
+                          <span>
+                            <b style={{ color: '#0B72AA' }}>
+                              {patientObj?.address ||
+                                formatAddressStrict(
+                                  props.patientDetail?.personResponseDto
+                                    ?.address
+                                )}{' '}
+                            </b>
+                          </span>
+                        )}
                       </span>
                     </Col>
                     {patientObj?.prepStatus !== null && (
@@ -232,10 +255,17 @@ function PatientCard(props) {
                           <Typography variant="caption">
                             <Label color={'teal'} size={'mini'}>
                               STATUS :{' '}
-                              {props.activeContent?.obj?.newStatus?.display ||
-                                patientObj?.status ||
-                                patientObj?.prepStatus ||
-                                props?.patientDetail?.prepStatus}
+                              {!props?.patientDetail?.prepStatus ? (
+                                <CircularProgress color="#fff" size={10} />
+                              ) : (
+                                <span>
+                                  {props.activeContent?.obj?.newStatus
+                                    ?.display ||
+                                    patientObj?.status ||
+                                    patientObj?.prepStatus ||
+                                    props?.patientDetail?.prepStatus}
+                                </span>
+                              )}
                             </Label>
                           </Typography>
                         </div>
