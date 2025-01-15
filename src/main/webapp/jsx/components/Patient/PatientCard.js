@@ -16,7 +16,6 @@ import Typography from '@material-ui/core/Typography';
 import { AccordionSummary, CircularProgress } from '@material-ui/core';
 import { useHistory, useLocation } from 'react-router-dom/cjs/react-router-dom';
 import PatientDetail from './PatientDetail';
-import ContentLoader from 'react-content-loader';
 Moment.locale('en');
 momentLocalizer();
 
