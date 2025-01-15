@@ -318,13 +318,12 @@ const PrEPEligibiltyScreeningForm = props => {
       objValues.interruptionDate = objValues.dateClientDied;
     }
     if (validate()) {
+      objValues.personId = props?.patientObj?.personId || props?.patientObj?.id;
       setSaving(true);
       if (props.activeContent && props.activeContent.actionType === 'update') {
         axios
           .put(
-            `${baseUrl}prep-interruption/${
-              props.activeContent.id || props.patientObj.id
-            }`,
+            `${baseUrl}prep-interruption/${props.activeContent.id}`,
             objValues,
             {
               headers: { Authorization: `Bearer ${token}` },
