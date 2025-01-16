@@ -137,7 +137,7 @@ const ClinicVisit = props => {
     temperature: '',
     respiratoryRate: '',
   });
-  //faciliId
+
   const [objValues, setObjValues] = useState({
     adherenceLevel: '',
     dateInitialAdherenceCounseling: '',
@@ -861,6 +861,7 @@ const ClinicVisit = props => {
     temp.monthsOfRefill = objValues.monthsOfRefill
       ? ''
       : '⚠ This field is required';
+    temp.prepType = objValues.prepType ? '' : '⚠ This field is required';
     temp.wasPrepAdministered = objValues.wasPrepAdministered
       ? ''
       : '⚠ This field is required';
@@ -897,6 +898,15 @@ const ClinicVisit = props => {
         : '⚠ This field is required';
     } else {
       temp.reasonForSwitch = '';
+    }
+
+    if (
+      urinalysisTest?.urinalysisTest === 'Yes' &&
+      urinalysisTest?.testDate === ''
+    ) {
+      temp.urinalysisTestDate = '⚠ This field is required';
+    } else {
+      temp.urinalysisTestDate = '';
     }
 
     setErrors({
@@ -2636,8 +2646,10 @@ const ClinicVisit = props => {
                         max={moment(new Date()).format('YYYY-MM-DD')}
                         disabled={disabledField}
                       />
-                      {errors.testDate !== '' ? (
-                        <span className={classes.error}>{errors.testDate}</span>
+                      {errors.urinalysisTestDate !== '' ? (
+                        <span className={classes.error}>
+                          {errors.urinalysisTestDate}
+                        </span>
                       ) : (
                         ''
                       )}
