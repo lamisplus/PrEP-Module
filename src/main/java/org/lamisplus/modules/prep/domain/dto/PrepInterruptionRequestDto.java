@@ -32,4 +32,5 @@ public class PrepInterruptionRequestDto implements Serializable {
     private String reasonForPrepDiscontinuation;
     private String reasonStopped;
     private String reasonStoppedOthers;
+    private String previousPrepStatus;
 }
