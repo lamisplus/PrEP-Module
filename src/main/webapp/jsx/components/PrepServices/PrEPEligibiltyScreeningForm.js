@@ -799,11 +799,6 @@ const BasicInfo = props => {
                     {populationType.map(value => (
                       <option value={value.code}> {value.display} </option>
                     ))}
-                    {!populationType?.find(
-                      pType => pType.display === 'GenPop'
-                    ) && (
-                      <option value="POPULATION_TYPE_GEN_POP">GenPop</option>
-                    )}
                   </select>
                   {errors.populationType !== '' ? (
                     <span className={classes.error}>
