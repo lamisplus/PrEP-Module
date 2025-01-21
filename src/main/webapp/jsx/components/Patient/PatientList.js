@@ -30,7 +30,6 @@ import '@reach/menu-button/styles.css';
 import { Label } from 'semantic-ui-react';
 import Moment from 'moment';
 import momentLocalizer from 'react-widgets-moment';
-import moment from 'moment';
 
 Moment.locale('en');
 momentLocalizer();
