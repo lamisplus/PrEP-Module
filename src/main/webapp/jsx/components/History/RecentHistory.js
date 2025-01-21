@@ -295,7 +295,7 @@ const RecentHistory = props => {
                   defaultActiveKey="0"
                 >
                   <>
-                    {recentActivities.map((data, i) => (
+                    {recentActivities?.map((data, i) => (
                       <div className="accordion-item" key={i}>
                         <Accordion.Toggle
                           as={Card.Text}

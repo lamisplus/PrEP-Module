@@ -112,8 +112,8 @@ const PatientVisits = props => {
 
     return data.filter(item => {
       return (
-        typeof item.serviceCode === 'string' &&
-        item.serviceCode.toLowerCase() === lowerCaseServiceCode
+        typeof item.service === 'string' &&
+        item.service.toLowerCase() === lowerCaseServiceCode
       );
     });
   }, []);
@@ -149,11 +149,11 @@ const PatientVisits = props => {
       visit => visit.status === 'PENDING' && visit.service === 'PrEP_code'
     );
     if (!activeVisit) {
-      toast.error('No pending HIV visit found');
+      toast.error('No pending PrEP visit found');
       return;
     }
-    if (activeVisit.service !== 'HIV_code') {
-      toast.error('Can only checkout HIV services');
+    if (activeVisit.service !== 'PrEP_code') {
+      toast.error('Can only checkout PrEP services');
       return;
     }
     try {
