@@ -157,12 +157,6 @@
             ALTER TABLE prep_clinic ADD COLUMN reason_for_switch VARCHAR(255);
         </sql>
     </changeSet>
-    <!--    <changeSet failOnError="true" author="Gamaliel" id="14-11-2024-1">-->
-    <!--        <sql>-->
-    <!--            ALTER TABLE prep_interruption-->
-    <!--            ADD CONSTRAINT unique_interruption_date_person_uuid UNIQUE (interruption_date, person_uuid);-->
-    <!--        </sql>-->
-    <!--    </changeSet>-->
     <changeSet failOnError="true" author="Gamaliel" id="06-11-2024-1">
         <sql>
             ALTER TABLE prep_eligibility ADD COLUMN reason_for_switch VARCHAR(255);
@@ -210,16 +204,6 @@
             ALTER TABLE prep_clinic ADD COLUMN other_regimen_id VARCHAR(255);
         </sql>
     </changeSet>
-    <!--    <changeSet author="Gamaliel" id="26-10-2024-12">-->
-    <!--        <sql>-->
-    <!--            ALTER TABLE prep_clinic-->
-    <!--            RENAME COLUMN liver_function_test_result TO liver_function_test_results;-->
-
-    <!--            ALTER TABLE prep_clinic-->
-    <!--            ALTER COLUMN liver_function_test_results-->
-    <!--            SET DATA TYPE JSONB USING liver_function_test_results::JSONB;-->
-    <!--        </sql>-->
-    <!--    </changeSet>-->
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-71">
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN liver_function_test_results JSONB;
@@ -251,9 +235,6 @@
             ALTER TABLE prep_clinic ADD COLUMN prep_noted_side_effects JSONB;
         </sql>
     </changeSet>
-    <!--    <changeSet failOnError="true" author="Gamaliel" id="14-11-2024-1-reverse">-->
-    <!--        <sql>ALTER TABLE prep_interruption DROP CONSTRAINT unique_interruption_date_person_uuid;</sql>-->
-    <!--    </changeSet>-->
     <changeSet failOnError="true" author="Gamaliel" id="11-24-2024-1">
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN comment VARCHAR(255);
@@ -264,26 +245,11 @@
             ALTER TABLE prep_clinic ADD COLUMN previous_prep_status VARCHAR(255);
         </sql>
     </changeSet>
-
-    <!--    <changeSet failOnError="true" author="Gamaliel" id="08-01-2024-1">-->
-    <!--        <sql>-->
-    <!--            UPDATE prep_clinic-->
-    <!--            SET duration = 30-->
-    <!--            WHERE duration = 900;-->
-
-    <!--            UPDATE prep_clinic-->
-    <!--            SET duration = 90-->
-    <!--            WHERE duration = 2700;-->
-
-    <!--            UPDATE prep_clinic-->
-    <!--            SET duration = 60-->
-    <!--            WHERE duration = 1800;-->
-
-    <!--            UPDATE prep_clinic-->
-    <!--            SET duration = 180-->
-    <!--            WHERE duration = 5400;-->
-    <!--        </sql>-->
-    <!--    </changeSet>-->
+    <changeSet failOnError="true" author="Gamaliel" id="22-01-2025-1">
+        <sql>
+            ALTER TABLE prep_interruptions ADD COLUMN previous_prep_status VARCHAR(255);
+        </sql>
+    </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="08-01-2024-02">
         <sql>
             UPDATE prep_clinic
