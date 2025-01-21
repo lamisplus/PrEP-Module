@@ -247,7 +247,7 @@
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="22-01-2025-1">
         <sql>
-            ALTER TABLE prep_interruptions ADD COLUMN previous_prep_status VARCHAR(255);
+            ALTER TABLE prep_interruption ADD COLUMN previous_prep_status VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="08-01-2024-02">
@@ -266,19 +266,6 @@
             );
         </sql>
     </changeSet>
-    <!--    <changeSet failOnError="true" author="Gamaliel" id="09-01-2025-01">-->
-    <!--        <sql>-->
-    <!--            UPDATE prep_clinic-->
-    <!--            SET duration = 28-->
-    <!--            WHERE duration = 840;-->
-    <!--            UPDATE prep_clinic-->
-    <!--            SET duration = 29-->
-    <!--            WHERE duration = 870;-->
-    <!--            UPDATE prep_clinic-->
-    <!--            SET duration = 31-->
-    <!--            WHERE duration = 930;-->
-    <!--        </sql>-->
-    <!--    </changeSet>-->
     <changeSet failOnError="true" author="Gamaliel" id="09-01-2025-02">
         <sql>
             UPDATE prep_clinic
