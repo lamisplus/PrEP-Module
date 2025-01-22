@@ -55,7 +55,6 @@ public class PrepService {
         prepEligibility.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());
 
-        //Check if client eligibility on same date exist and throw an error
         prepEligibilityRepository
                 .findByVisitDateAndPersonUuidAndArchived(prepEligibilityRequestDto.getVisitDate(), person.getUuid(), 0)
                 .ifPresent(prepEligibilityRec -> {
@@ -95,7 +94,6 @@ public class PrepService {
         prepEnrollment.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());
 
-        //Check if client Enrollment on same date exist and throw an error
         prepEnrollmentRepository
                 .findByDateEnrolledAndPersonUuid(prepEnrollmentRequestDto.getDateEnrolled(),
                         person.getUuid()).ifPresent(prepEnroll -> {
@@ -161,7 +159,6 @@ public class PrepService {
         prepClinic.setHealthCareWorkerSignature(clinicRequestDto.getHealthCareWorkerSignature());
         prepClinic.setComment(clinicRequestDto.getComment());
         prepClinic.setPreviousPrepStatus(clinicRequestDto.getPreviousPrepStatus());
-        System.out.println("prepClinic: " + prepClinic);
         prepClinic = prepClinicRepository.save(prepClinic);
         prepClinic.setPregnant(clinicRequestDto.getPregnant());
         prepClinic.setPerson(person);
@@ -175,7 +172,6 @@ public class PrepService {
         PrepInterruption prepInterruption = interruptionRequestDtoInterruption(interruptionRequestDto, person.getUuid());
         prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepInterruption.setPreviousPrepStatus(interruptionRequestDto.getPreviousPrepStatus());
-
         prepInterruptionRepository
                 .findFirstByInterruptionDateAndPersonUuidAndArchived(interruptionRequestDto.getInterruptionDate(), person.getUuid(), 0)
                 .ifPresent(existingInterruption -> {
@@ -402,7 +398,6 @@ public class PrepService {
             prepDtos.setPrepStatus(prepClient.getPrepStatus());
             prepDtos.setDateConfirmedHiv(prepClient.getDateConfirmedHiv());
             prepDtos.setCreatedBy(prepClient.getCreatedBy());
-            //prepDtos.setPrepEligibilityCount(prepClient.getEligibilityCount());
         }
 
         return prepDtos;
@@ -421,7 +416,7 @@ public class PrepService {
         Optional<PrepEnrollment> prepEnrollmentOptional = prepEnrollmentRepository
                 .findByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(), status);
         if (prepEnrollmentOptional.isPresent())
-            return enrollmentToEnrollmentDto(prepEnrollmentOptional.get());//PrepEnrollmentDto.builder().build();
+            return enrollmentToEnrollmentDto(prepEnrollmentOptional.get());
         return new PrepEnrollmentDto();
     }
 
@@ -496,8 +491,6 @@ public class PrepService {
         prepEligibilityDto.setLftConducted(eligibility.getLftConducted());
         prepEligibilityDto.setDateLiverFunctionTestResults(eligibility.getDateLiverFunctionTestResults());
         prepEligibilityDto.setLiverFunctionTestResults(eligibility.getLiverFunctionTestResults());
-        //PersonResponseDto personResponseDto = personService.getDtoFromPerson(eligibility.getPerson());
-        //prepEligibilityDto.setPersonResponseDto(personResponseDto);
 
         prepEligibilityDto.setVisitDate(eligibility.getVisitDate());
 
@@ -711,8 +704,6 @@ public class PrepService {
 
         prepDto.setId(prepEnrollment.getId());
         prepDto.setExtra(prepEnrollment.getExtra());
-        //PersonResponseDto personResponseDto = personService.getDtoFromPerson(prepEnrollment.getPerson());
-        //prepDto.setPersonResponseDto(personResponseDto);
         prepDto.setDateStarted(prepEnrollment.getDateStarted());
         prepDto.setStatus(prepEnrollment.getStatus());
         return prepDto;

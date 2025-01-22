@@ -318,6 +318,7 @@ const PrEPEligibiltyScreeningForm = props => {
     }
     if (validate()) {
       objValues.previousPrepStatus = props.patientObj?.prepStatus;
+      console.log('payload: ', objValues);
       setSaving(true);
       if (props.activeContent && props.activeContent.actionType === 'update') {
         axios

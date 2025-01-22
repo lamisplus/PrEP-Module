@@ -30,7 +30,6 @@ public class PatientActivityService {
 
     public List<PatientActivity> getActivitiesFor(Long patientId) {
         Person person = patientRepository.findById(patientId).orElse(null);
-        System.out.println("person: " + person);
         if (person != null) {
             return beanProvider.getBeansOfType(PatientActivityProvider.class)
                     .stream()
@@ -44,7 +43,6 @@ public class PatientActivityService {
     @NotNull
     public List<TimelineVm> getTimelineVms(Long patientId, boolean full) {
         List<PatientActivity> patientActivities = getActivitiesFor(patientId);
-        //Log.info("patientActivities : {}", patientActivities);
         List<TimelineVm> timeline = new ArrayList<>();
 
         Map<String, List<PatientActivity>> activities = patientActivities
