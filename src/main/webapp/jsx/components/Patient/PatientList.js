@@ -143,8 +143,22 @@ const Patients = props => {
                         className={classes.statusLabel}
                         color="blue"
                         size="mini"
+                        style={{ position: 'relative' }}
                       >
                         {row.prepStatus}
+                        {!!row.sendCabLaAlert && (
+                          <span
+                            className="position-absolute top-50 translate-middle-y bg-info border border-light rounded-circle"
+                            style={{
+                              right: '-1%',
+                              transform: 'translate(50%, 0)',
+                              width: '1em',
+                              height: '1em',
+                              padding: 0,
+                              display: 'block',
+                            }}
+                          />
+                        )}
                       </Label>
                     ),
                     actions: (

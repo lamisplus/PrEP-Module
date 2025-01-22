@@ -265,20 +265,20 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "pet.date_created, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,      " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth,  " +
             "he.date_confirmed_hiv as dateConfirmedHiv,   CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,   " +
-            "CASE" +
-            "            WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN" +
-            "            CASE" +
-            "                    WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 36 OR" +
-            "            (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 38 THEN true" +
-            "            ELSE false" +
-            "            END" +
-            "            WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN" +
-            "            CASE" +
-            "                    WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 66 OR" +
-            "            (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 68 THEN true" +
-            "            ELSE false" +
-            "            END" +
-            "            ELSE false" +
+            "            CASE\n" +
+            "    WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
+            "        CASE\n" +
+            "            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 36 THEN 1" +
+            "            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 38 THEN 2" +
+            "            ELSE 0\n" +
+            "        END\n" +
+            "    WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
+            "        CASE\n" +
+            "            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 66 THEN 1" +
+            "            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 68 THEN 2" +
+            "            ELSE 0\n" +
+            "        END\n" +
+            "    ELSE 0\n" +
             "            END AS sendCabLaAlert," +
             "(CASE WHEN el_max.HIVResultAtVisit ILIKE '%Positive%'  " +
             "THEN 'HIV Positive' WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display  " +
@@ -391,17 +391,17 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "            CASE\n" +
             "    WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
             "        CASE\n" +
-            "            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 36 OR\n" +
-            "                 (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 38 THEN true\n" +
-            "            ELSE false\n" +
+            "            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 36 THEN 1" +
+            "            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 38 THEN 2" +
+            "            ELSE 0\n" +
             "        END\n" +
             "    WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
             "        CASE\n" +
-            "            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 66 OR\n" +
-            "                 (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 68 THEN true\n" +
-            "            ELSE false\n" +
+            "            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 66 THEN 1" +
+            "            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) = 68 THEN 2" +
+            "            ELSE 0\n" +
             "        END\n" +
-            "    ELSE false\n" +
+            "    ELSE 0\n" +
             "END AS sendCabLaAlert,\n" +
             "            (CASE  \n" +
             "             WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive'  \n" +

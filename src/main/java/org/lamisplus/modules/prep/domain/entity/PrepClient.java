@@ -23,7 +23,7 @@ public interface PrepClient {
 
     String getPrepCount();
 
-    boolean getSendCabLaAlert();
+    int getSendCabLaAlert();
 
     String getPrepStatus();
 

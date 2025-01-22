@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Accordion from '@material-ui/core/Accordion';
@@ -98,17 +98,37 @@ function PatientCard(props) {
       address && address?.city && address?.city !== null ? address?.city : '';
     return address ? houseAddress + ' ' + landMark : '';
   };
-  const [showReminder, setShowReminder] = useState(true);
-  const toggleModal = () => setShowReminder(prev => !prev);
+  const reminderConfig = useMemo(() => {
+    return [
+      null,
+      {
+        title: 'Upcoming CabLA Appointment!',
+        body: `CabLA appointment is due tommorrow`,
+      },
+      {
+        title: 'Missed CabLA Appointment!',
+        body: `CabLA appointment is overdue!`,
+      },
+    ];
+  }, []);
+  const getReminderAlert = sendCabLaAlert => reminderConfig[sendCabLaAlert];
 
-  useEffect(() => setShowReminder(!patientObj?.sendCabLaAlert), []);
+  const [showReminder, setShowReminder] = useState(0);
+  const toggleModal = () => setShowReminder(0);
+
+  useEffect(() => {
+    setShowReminder(patientObj?.sendCabLaAlert);
+  }, []);
+
   return (
     <div className={classes.root}>
       <Reminder
         show={showReminder}
-        title="CabLA followup Visit"
-        body={`Kindly be reminded that your CabLA appointment is tommorrow (${Date()}). Ensure to avail yourself as early as possible.`}
+        title={showReminder?.title}
+        body={showReminder?.body}
+        patientObj={patientObj}
         onClose={toggleModal}
+        nextAppointmentDate={Date()}
       />
       <Accordion>
         <AccordionSummary>
