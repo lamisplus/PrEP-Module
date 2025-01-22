@@ -174,6 +174,7 @@ public class PrepService {
         Person person = this.getPerson(interruptionRequestDto.getPersonId());
         PrepInterruption prepInterruption = interruptionRequestDtoInterruption(interruptionRequestDto, person.getUuid());
         prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
+        prepInterruption.setPreviousPrepStatus(interruptionRequestDto.getPreviousPrepStatus());
 
         prepInterruptionRepository
                 .findFirstByInterruptionDateAndPersonUuidAndArchived(interruptionRequestDto.getInterruptionDate(), person.getUuid(), 0)
