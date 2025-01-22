@@ -317,6 +317,7 @@ const PrEPEligibiltyScreeningForm = props => {
       objValues.interruptionDate = objValues.dateClientDied;
     }
     if (validate()) {
+      objValues.previousPrepStatus = props.patientObj?.prepStatus;
       setSaving(true);
       if (props.activeContent && props.activeContent.actionType === 'update') {
         axios
@@ -381,10 +382,6 @@ const PrEPEligibiltyScreeningForm = props => {
     getReasonForDiscontinuationOptions();
   }, []);
 
-  // function containsDiscontinued(inputString) {
-  //   const lowerCaseString = inputString.toLowerCase();
-  //   return lowerCaseString.includes('discontinued');
-  // }
   useEffect(() => {
     return () => {
       if (!['view', 'update'].includes(props.activeContent.actionType)) {
