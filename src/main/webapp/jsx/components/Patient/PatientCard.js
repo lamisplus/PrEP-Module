@@ -14,6 +14,7 @@ import momentLocalizer from 'react-widgets-moment';
 import moment from 'moment';
 import Typography from '@material-ui/core/Typography';
 import { AccordionSummary } from '@material-ui/core';
+import { Alert as Reminder } from '../Consultation/Alert/Alert';
 Moment.locale('en');
 momentLocalizer();
 
@@ -97,9 +98,18 @@ function PatientCard(props) {
       address && address?.city && address?.city !== null ? address?.city : '';
     return address ? houseAddress + ' ' + landMark : '';
   };
+  const [showReminder, setShowReminder] = useState(true);
+  const toggleModal = () => setShowReminder(prev => !prev);
 
+  useEffect(() => setShowReminder(!patientObj?.sendCabLaAlert), []);
   return (
     <div className={classes.root}>
+      <Reminder
+        show={showReminder}
+        title="CabLA followup Visit"
+        body={`Kindly be reminded that your CabLA appointment is tommorrow (${Date()}). Ensure to avail yourself as early as possible.`}
+        onClose={toggleModal}
+      />
       <Accordion>
         <AccordionSummary>
           <Row>
