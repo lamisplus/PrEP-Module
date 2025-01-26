@@ -126,7 +126,7 @@
     "swiper": "^6.5.9",
     "use-scroll-position": "0.0.4",
     "web-vitals": "^0.2.4",
-    "yup": "^0.32.8"
+    "yup": "^0.32.11"
   },
   "scripts": {
     "start": "set NODE_OPTIONS=--openssl-legacy-provider && react-scripts start",

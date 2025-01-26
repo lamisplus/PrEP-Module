@@ -19,72 +19,10 @@ import { TiTrash } from 'react-icons/ti';
 import DualListBox from 'react-dual-listbox';
 import 'react-dual-listbox/lib/react-dual-listbox.css';
 import { LiverFunctionTest } from '../PrepServices/PrEPEligibiltyScreeningForm';
+import usePrepClinicState from '../../../hooks/usePrepClinicState';
+import useStyleForVisitForm from '../../../hooks/useStyleForVisitForm';
+import { usePrepEligibilityObj } from '../../../hooks/useApiUtilsForPrepVisit';
 
-const useStyles = makeStyles(theme => ({
-  card: {
-    margin: theme.spacing(20),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(3),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-  cardBottom: {
-    marginBottom: 20,
-  },
-  Select: {
-    height: 45,
-    width: 350,
-  },
-  button: {
-    margin: theme.spacing(1),
-  },
-
-  root: {
-    flexGrow: 1,
-    '& .card-title': {
-      color: '#fff',
-      fontWeight: 'bold',
-    },
-    '& .form-control': {
-      borderRadius: '0.25rem',
-      height: '41px',
-    },
-    '& .card-header:first-child': {
-      borderRadius: 'calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0',
-    },
-    '& .dropdown-toggle::after': {
-      display: ' block !important',
-    },
-    '& select': {
-      '-webkit-appearance': 'listbox !important',
-    },
-    '& p': {
-      color: 'red',
-    },
-    '& label': {
-      fontSize: '14px',
-      color: '#014d88',
-      fontWeight: 'bold',
-    },
-  },
-  input: {
-    display: 'none',
-  },
-  error: {
-    color: '#f85032',
-    fontSize: '11px',
-  },
-  success: {
-    color: '#4BB543 ',
-    fontSize: '11px',
-  },
-}));
 export const CleanupWrapper = ({ isVisible, cleanup, children }) => {
   useEffect(() => {
     return () => {
@@ -98,36 +36,10 @@ export const CleanupWrapper = ({ isVisible, cleanup, children }) => {
 
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
-  const [disabledField, setDisabledField] = useState(false);
   const [patientDto, setPatientDto] = useState();
   const [saving, setSaving] = useState(false);
-  const [adherenceLevel, setAdherenceLevel] = useState([]);
-  const [sti, setSti] = useState([]);
-  const [prepStatus, setPrepStatus] = useState([]);
-  const [prepSideEffect, setPrepSideEffect] = useState([]);
-  const [htsResult, setHtsResult] = useState([]);
-  const [prepRegimen, setprepRegimen] = useState([]);
   const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
-  const [labTestOptions, setLabTestOptions] = useState([]);
-  const [urineTestResult, setUrineTestResult] = useState([]);
-  const [creatinineTestResult, setCreatinineTestResult] = useState([]);
-  const [otherTestResult, setOtherTestResult] = useState([]);
-  const [sphylisTestResult, setSphylisTestResult] = useState([]);
-  const [hepaTestResult, setHepaTestResult] = useState([]);
-  const [familyPlanningMethod, setFamilyPlanningMethod] = useState([]);
-  const [pregnant, setpregnant] = useState([]);
-  const [prepEntryPoint, setPrepEntryPoints] = useState([]);
-  const [prepType, setPrepType] = useState([]);
-  const [populationType, setPopulationType] = useState([]);
-  const [visitType, setVisitType] = useState([]);
   const [selectedPopulationType, setSelectedPopulationType] = useState('');
-  const [latestFromEligibility, setLatestFromEligibility] = useState(null);
-  const [hivTestValue, setHivTestValue] = useState('');
-  const [hivTestResultDate, setHivTestResultDate] = useState('');
-  const [reasonForSwitchOptions, setReasonForSwitchOptions] = useState([]);
-  const [prepRiskReductionPlan, setPrepRiskReductionPlan] = useState([]);
-  const [recentActivities, setRecentActivities] = useState([]);
-  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: '',
     diastolic: '',
@@ -213,216 +125,67 @@ const ClinicVisit = props => {
     testDate: '',
     result: '',
   });
-
+  const {
+    formik,
+    disabledField,
+    setDisabledField,
+    adherenceLevel,
+    setAdherenceLevel,
+    sti,
+    setSti,
+    prepStatus,
+    setPrepStatus,
+    prepSideEffect,
+    setPrepSideEffect,
+    htsResult,
+    setHtsResult,
+    prepRegimen,
+    setPrepRegimen,
+    labTestOptions,
+    setLabTestOptions,
+    urineTestResult,
+    setUrineTestResult,
+    creatinineTestResult,
+    setCreatinineTestResult,
+    otherTestResult,
+    setOtherTestResult,
+    sphylisTestResult,
+    setSphylisTestResult,
+    hepaTestResult,
+    setHepaTestResult,
+    familyPlanningMethod,
+    setFamilyPlanningMethod,
+    pregnant,
+    setPregnant,
+    prepEntryPoint,
+    setPrepEntryPoints,
+    prepType,
+    setPrepType,
+    populationType,
+    setPopulationType,
+    visitType,
+    setVisitType,
+    latestFromEligibility,
+    setLatestFromEligibility,
+    hivTestValue,
+    setHivTestValue,
+    hivTestResultDate,
+    setHivTestResultDate,
+    reasonForSwitchOptions,
+    setReasonForSwitchOptions,
+    prepRiskReductionPlan,
+    setPrepRiskReductionPlan,
+    recentActivities,
+    setRecentActivities,
+    liverFunctionTestResult,
+    setLiverFunctionTestResult,
+  } = usePrepClinicState(props);
   const [otherTest, setOtherTest] = useState([]);
 
-  const classes = useStyles();
+  const classes = useStyleForVisitForm();
   let temp = { ...errors };
   let testsOptions = [];
 
-  const getPregnancyStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setpregnant(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getPrepEntryPoint = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_ENTRY_POINT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepEntryPoints(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getPrepType = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setFullPrepTypeList(response.data);
-        setPrepType(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getTestGroup = () => {
-    axios
-      .get(`${baseUrl}laboratory/labtestgroups`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        response?.data?.map(x => {
-          x?.labTests?.map(x2 => {
-            testsOptions.push({
-              value: x2.id,
-              label: x2.labTestName,
-              testGroupId: x.id,
-              testGroupName: x.groupName,
-              sampleType: x2.sampleType,
-            });
-          });
-        });
-        setLabTestOptions(testsOptions);
-      })
-      .catch(error => {});
-  };
-
-  const getReasonForSwitch = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/REASON_METHOD_SWITCH`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setReasonForSwitchOptions(response.data);
-      })
-      .catch(error => {});
-  };
-  const [fullPrepTypeList, setFullPrepTypeList] = useState([]);
-  const checkEligibleForCabLa = async (currentDate, regimenList) => {
-    if (currentDate) {
-      await axios
-        .get(
-          `${baseUrl}prep-clinic/checkEnableCab/${props.patientObj.personId}/${currentDate}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        )
-        .then(response => {
-          let isEligibleForCABLA = response?.data;
-          let reg = regimenList?.filter(
-            each => each.code !== 'CAB-LA(600mg/3mL)'
-          );
-          let pTypes = [...prepType]?.filter(
-            each => each.code !== 'PREP_TYPE_INJECTIBLES'
-          );
-          if (
-            isEligibleForCABLA ||
-            objValues?.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH' ||
-            ['update'].includes(props.activeContent.actionType)
-          ) {
-            setPrepType(fullPrepTypeList);
-            setprepRegimen(regimenList);
-          } else {
-            setPrepType(pTypes);
-            setprepRegimen(reg);
-          }
-          return response?.data;
-        })
-        .catch(error => {});
-    }
-  };
-
-  const getPatientVisit = async id => {
-    axios
-      .get(`${baseUrl}prep-clinic/${props.activeContent.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        const { data } = JSON.parse(JSON.stringify(response));
-        setOtherTest(response?.data?.otherTestsDone);
-        setObjValues(data);
-      })
-      .catch(error => {});
-  };
-
-  const getHivResult = () => {
-    axios
-      .get(`${baseUrl}prep-clinic/hts-record/${props.patientObj.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        if (response.data?.length === 0) {
-          toast.error(
-            '⚠ No HTS record found. Atleast, 1 test result is required to proceed'
-          );
-        } else if (response.data?.length > 0) {
-          toast.success('👍 HTS record found. You may proceed ✔');
-        }
-        setHivTestValue(response?.data?.[0]?.hivTestResult);
-        setHivTestResultDate(response?.data?.[0]?.visitDate);
-      })
-      .catch(error => {});
-  };
-  const getPatientDtoObj = () => {
-    axios
-      .get(
-        `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(response => {
-        setPatientDto(response.data);
-      })
-      .catch(error => {});
-  };
-  const getPrepEligibilityObj = () => {
-    axios
-      .get(
-        `${baseUrl}prep/eligibility/open/patients/${props.patientObj.personId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(response => {
-        objValues.prepEnrollmentUuid = '';
-      })
-      .catch(error => {});
-  };
-  const PrepRegimen = currentDate => {
-    axios
-      .get(`${baseUrl}prep-regimen`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        checkEligibleForCabLa(currentDate, response.data);
-      })
-      .catch(error => {});
-  };
-  const getPrepStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepStatus(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getPrepRiskReductionPlan = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_RISK_REDUCTION_PLAN`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepRiskReductionPlan(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getPrepSideEffects = async () => {
-    return await axios.get(
-      `${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-  };
-
-  const getHts = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/HTS_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setHtsResult(response.data);
-      })
-      .catch(error => {});
-  };
   function sortByVisitDateDescending(data) {
     return data.sort((a, b) => {
       const dateA = new Date(a.visitDate);
@@ -430,164 +193,32 @@ const ClinicVisit = props => {
       return dateB - dateA;
     });
   }
-  const getLatestFromEligibility = async () => {
-    axios
-      .get(`${baseUrl}prep-eligibility/person/${objValues?.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(async response => {
-        const latestEligibility = sortByVisitDateDescending(response?.data)[0];
-        setLatestFromEligibility(latestEligibility);
-      })
-      .catch(error => {});
-  };
-
-  const getPopulationType = async () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/POPULATION_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPopulationType(response?.data);
-      })
-      .catch(error => {});
-  };
-
-  const getVisitType = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_VISIT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setVisitType(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getWhyPoorFairAdherence = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/WHY_POOR_FAIR_ADHERENCE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setWhyAdherenceLevelPoor(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getSyndromicStiScreening = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/SYNDROMIC_STI_SCREENING`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setSti(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getPrepUrinalysisResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setUrineTestResult(response?.data);
-      })
-      .catch(error => {});
-  };
-
-  const getCreatinineTestResultOptions = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CREATININE_TEST_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setCreatinineTestResult(response?.data);
-      })
-      .catch(error => {});
-  };
-
-  const getPrepOtherTests = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_OTHER_TEST`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setOtherTestResult(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getSyphilisResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/SYPHILIS_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setSphylisTestResult(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getHapetitisScreeningResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/HEPATITIS_SCREENING_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setHepaTestResult(response?.data);
-      })
-      .catch(error => {});
-  };
-
-  const getFamilyPlanningMethod = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/FAMILY_PLANNING_METHOD`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setFamilyPlanningMethod(response.data);
-      })
-      .catch(error => {});
-  };
-
-  async function getAdherenceLevel() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setAdherenceLevel(response.data);
-      })
-      .catch(error => {});
-  }
-
+  console.log('formik vals: ', formik.values);
   const [eligibilityVisitDateSync, setEligibilityVisitDateSync] =
     useState(false);
 
-  const handleInputChange = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.name === 'monthsOfRefill') {
-      const durationInDays = Number(e.target.value);
-      setObjValues({
-        ...objValues,
-        monthsOfRefill: e.target.value,
-        duration: `${durationInDays}`,
-      });
-    } else if (e.target.name === 'encounterDate') {
-      setEligibilityVisitDateSync(
-        areDatesInSync(e.target.value, latestFromEligibility?.visitDate)
-      );
-      PrepRegimen(e.target.value);
-      setObjValues({ ...objValues, [e.target.name]: e.target.value });
-      checkDateMismatch(e.target.value, latestFromEligibility?.visitDate);
-    } else if (e.target.name === 'otherPrepGiven') {
-      setObjValues({ ...objValues, [e.target.name]: e.target.value });
-    } else {
-      setObjValues({ ...objValues, [e.target.name]: e.target.value });
-    }
-  };
+  // const handleInputChange = e => {
+  //   setErrors({ ...errors, [e.target.name]: '' });
+  //   if (e.target.name === 'monthsOfRefill') {
+  //     const durationInDays = Number(e.target.value);
+  //     setObjValues({
+  //       ...objValues,
+  //       monthsOfRefill: e.target.value,
+  //       duration: `${durationInDays}`,
+  //     });
+  //   } else if (e.target.name === 'encounterDate') {
+  //     setEligibilityVisitDateSync(
+  //       areDatesInSync(e.target.value, latestFromEligibility?.visitDate)
+  //     );
+  //     setPrepRegimen(e.target.value);
+  //     setObjValues({ ...objValues, [e.target.name]: e.target.value });
+  //     checkDateMismatch(e.target.value, latestFromEligibility?.visitDate);
+  //   } else if (e.target.name === 'otherPrepGiven') {
+  //     setObjValues({ ...objValues, [e.target.name]: e.target.value });
+  //   } else {
+  //     setObjValues({ ...objValues, [e.target.name]: e.target.value });
+  //   }
+  // };
 
   const checkDateMismatch = (visitDate, eligibilityDate) => {
     if (visitDate !== eligibilityDate) {
@@ -936,29 +567,6 @@ const ClinicVisit = props => {
     ]);
   };
 
-  const handlePrepTypeChange = e => {
-    setObjValues({ ...objValues, regimenId: '', prepType: e.target.value });
-    if (
-      e.target.value === 'PREP_TYPE_OTHERS' ||
-      e.target.value === 'PREP_TYPE_ED_PREP'
-    ) {
-      PrepRegimen(objValues.encounterDate);
-    } else {
-      axios
-        .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then(response => {
-          checkEligibleForCabLa(objValues.encounterDate, response.data);
-        })
-        .catch(error => {
-          //console.log(error);
-        });
-    }
-
-    setErrors({ ...errors, [e.target.name]: '' });
-  };
-
   function areDatesSame(date1, date2) {
     return (
       date1.getFullYear() === date2.getFullYear() &&
@@ -979,40 +587,9 @@ const ClinicVisit = props => {
     }
     return false;
   }
-  const getRecentActivities = () => {
-    axios
-      .get(
-        `${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(response => {
-        setRecentActivities(response.data);
-      })
-      .catch(error => {});
-  };
 
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
     codeSet?.filter(regimen => regimen.id !== lastRegimenId);
-
-  const prepRegimenUpdateView = () =>
-    axios
-      .get(`${baseUrl}prep-regimen`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setprepRegimen(response.data);
-      })
-      .catch(error => {});
-
-  const getLiverFunctionTestResult = () =>
-    axios
-      .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setLiverFunctionTestResult(response.data);
-      })
-      .catch(error => {});
 
   useEffect(() => {
     if (
@@ -1077,57 +654,18 @@ const ClinicVisit = props => {
     updateTest('hepatitis', setHepatitisTest);
   }, [objValues]);
 
+  const { data: prepEligibilityObj, setData: setPrepEligibilityObj } =
+    usePrepEligibilityObj(props?.patientObj?.personId);
+
   useEffect(async () => {
     if (
       props.activeContent.id &&
       props.activeContent.id !== '' &&
       props.activeContent.id !== null
     ) {
-      getPrepEligibilityObj(props.activeContent.id);
       setDisabledField(props.activeContent.actionType === 'view');
     }
   }, [props.activeContent]);
-
-  useEffect(async () => {
-    setPrepRiskReductionPlan((await getPrepRiskReductionPlan())?.data);
-    setAdherenceLevel((await getAdherenceLevel())?.data);
-    setPrepRiskReductionPlan(getSyndromicStiScreening()?.data);
-    setPrepStatus(getPrepStatus()?.data);
-    setHtsResult(getHts()?.data);
-    setPrepSideEffect((await getPrepSideEffects())?.data);
-    setPatientDto(getPatientDtoObj()?.data);
-    setWhyAdherenceLevelPoor(getWhyPoorFairAdherence()?.data);
-    getPrepEligibilityObj();
-    setLabTestOptions(getTestGroup()?.data);
-    setUrineTestResult(getPrepUrinalysisResult()?.data);
-    setOtherTestResult(getPrepOtherTests()?.data);
-    setHepaTestResult(getHapetitisScreeningResult()?.data);
-    setSyphilisTest(getSyphilisResult()?.data);
-    setpregnant(getPregnancyStatus()?.data);
-    setPrepEntryPoints(getPrepEntryPoint()?.data);
-    getPrepType();
-    setPopulationType(getPopulationType().data);
-    setVisitType(getVisitType()?.data);
-    setFamilyPlanningMethod(getFamilyPlanningMethod()?.data);
-    getPatientVisit(props.activeContent.id);
-    setDisabledField(
-      !['update', undefined].includes(props.activeContent.actionType)
-    );
-  }, [props.activeContent]);
-
-  useEffect(() => {
-    getRecentActivities();
-    getHivResult();
-    getReasonForSwitch();
-    getCreatinineTestResultOptions();
-    getLiverFunctionTestResult();
-    getLatestFromEligibility();
-  }, []);
-
-  useEffect(() => {
-    if (['update', 'view'].includes(props.activeContent.actionType))
-      prepRegimenUpdateView();
-  }, [props.activeContent.actionType]);
 
   const handleLftInputChange = event => {
     const { name, value } = event.target;
@@ -1176,26 +714,6 @@ const ClinicVisit = props => {
     setObjValues({ ...objValues, notedSideEffects: selected });
   };
 
-  useEffect(() => {
-    return () => {
-      setObjValues(prev => ({
-        ...prev,
-        otherPrepType: '',
-        otherRegimenId: '',
-      }));
-    };
-  }, []);
-
-  useEffect(() => {
-    if (objValues.otherPrepGiven === 'false') {
-      setObjValues(prevValues => ({
-        ...prevValues,
-        otherPrepType: '',
-        otherRegimenId: '',
-      }));
-    }
-  }, [objValues.otherPrepGiven]);
-
   const visitTypeDurationMapping = {
     PREP_VISIT_TYPE_DISCONTINUATION: null,
     'PREP_VISIT_TYPE_DISCONTINUATION_FOLLOW-UP': null,
@@ -1207,6 +725,7 @@ const ClinicVisit = props => {
     PREP_VISIT_TYPE_SECOND_INITIATION: 60,
     PREP_VISIT_TYPE_TRANSFER_IN: null,
   };
+
   function addDaysToDate(dateString, daysToAdd) {
     const date = new Date(dateString);
     if (
@@ -1314,7 +833,7 @@ const ClinicVisit = props => {
       });
     }
   }
-
+  console.log('regs: ', prepRegimen);
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
@@ -1347,12 +866,12 @@ const ClinicVisit = props => {
                     name="encounterDate"
                     id="encounterDate"
                     onKeyDown={e => e.preventDefault()}
-                    value={objValues.encounterDate}
+                    value={formik.values.encounterDate}
                     style={{
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
                     }}
-                    onChange={handleInputChange}
+                    onChange={formik.handleChange}
                     min={
                       patientDto && patientDto.dateEnrolled
                         ? patientDto.dateEnrolled
@@ -1379,10 +898,10 @@ const ClinicVisit = props => {
                         type="number"
                         name="pulse"
                         id="pulse"
-                        onChange={handleInputChange}
+                        onChange={formik.handleChange}
                         min="40"
                         max="120"
-                        value={objValues.pulse}
+                        value={formik.values.pulse}
                         onKeyUp={handleInputValueCheckPulse}
                         style={{
                           border: '1px solid #014D88',
@@ -1428,10 +947,10 @@ const ClinicVisit = props => {
                         type="number"
                         name="respiratoryRate"
                         id="respiratoryRate"
-                        onChange={handleInputChange}
+                        onChange={formik.handleChange}
                         min="10"
                         max="70"
-                        value={objValues.respiratoryRate}
+                        value={formik.values.respiratoryRate}
                         onKeyUp={handleInputValueCheckRespiratoryRate}
                         style={{
                           border: '1px solid #014D88',
@@ -1479,10 +998,10 @@ const ClinicVisit = props => {
                         type="number"
                         name="temperature"
                         id="temperature"
-                        onChange={handleInputChange}
+                        onChange={formik.handleChange}
                         min="35"
                         max="47"
-                        value={objValues.temperature}
+                        value={formik.values.temperature}
                         onKeyUp={handleInputValueCheckTemperature}
                         style={{
                           border: '1px solid #014D88',
@@ -1533,10 +1052,10 @@ const ClinicVisit = props => {
                         type="number"
                         name="weight"
                         id="weight"
-                        onChange={handleInputChange}
+                        onChange={formik.handleChange}
                         min="3"
                         max="150"
-                        value={objValues.weight}
+                        value={formik.values.weight}
                         onKeyUp={handleInputValueCheckweight}
                         style={{
                           border: '1px solid #014D88',
@@ -1597,8 +1116,8 @@ const ClinicVisit = props => {
                         type="number"
                         name="height"
                         id="height"
-                        onChange={handleInputChange}
-                        value={objValues.height}
+                        onChange={formik.handleChange}
+                        value={formik.values.height}
                         min="48.26"
                         max="216.408"
                         onKeyUp={handleInputValueCheckHeight}
@@ -1687,8 +1206,8 @@ const ClinicVisit = props => {
                         id="systolic"
                         min="90"
                         max="240"
-                        onChange={handleInputChange}
-                        value={objValues.systolic}
+                        onChange={formik.handleChange}
+                        value={formik.values.systolic}
                         onKeyUp={handleInputValueCheckSystolic}
                         style={{
                           border: '1px solid #014D88',
@@ -1714,8 +1233,8 @@ const ClinicVisit = props => {
                         id="diastolic"
                         min={0}
                         max={140}
-                        onChange={handleInputChange}
-                        value={objValues.diastolic}
+                        onChange={formik.handleChange}
+                        value={formik.values.diastolic}
                         onKeyUp={handleInputValueCheckDiastolic}
                         style={{
                           border: '1px solid #014D88',
@@ -1764,8 +1283,8 @@ const ClinicVisit = props => {
                         type="select"
                         name="pregnant"
                         id="pregnant"
-                        onChange={handleInputChange}
-                        value={objValues.pregnant}
+                        onChange={formik.handleChange}
+                        value={formik.values.pregnant}
                         disabled
                         style={{
                           border: '1px solid #014D88',
@@ -1814,7 +1333,6 @@ const ClinicVisit = props => {
                     value={hivTestValue}
                     onChange={e => {
                       setHivTestValue(e.target.value);
-                      handleInputChange(e);
                     }}
                     style={{
                       border: '1px solid #014D88',
@@ -1848,7 +1366,6 @@ const ClinicVisit = props => {
                     }
                     onChange={e => {
                       setHivTestValue(e.target.value);
-                      handleInputChange(e);
                     }}
                     style={{
                       border: '1px solid #014D88',
@@ -1901,8 +1418,8 @@ const ClinicVisit = props => {
                       name="dateLiverFunctionTestResults"
                       id="dateLiverFunctionTestResults"
                       max={moment(new Date()).format('YYYY-MM-DD')}
-                      value={objValues.dateLiverFunctionTestResults}
-                      onChange={handleInputChange}
+                      value={formik.values.dateLiverFunctionTestResults}
+                      onChange={formik.handleChange}
                       style={{
                         border: '1px solid #014D88',
                         borderRadius: '0.25rem',
@@ -1947,8 +1464,8 @@ const ClinicVisit = props => {
                     type="select"
                     name="stiScreening"
                     id="stiScreening"
-                    value={objValues.stiScreening}
-                    onChange={handleInputChange}
+                    value={formik.values.stiScreening}
+                    onChange={formik.handleChange}
                     style={{
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
@@ -1969,8 +1486,8 @@ const ClinicVisit = props => {
                       type="select"
                       name="syndromicStiScreening"
                       id="syndromicStiScreening"
-                      value={objValues.syndromicStiScreening}
-                      onChange={handleInputChange}
+                      value={formik.values.syndromicStiScreening}
+                      onChange={formik.handleChange}
                       style={{
                         border: '1px solid #014D88',
                         borderRadius: '0.25rem',
@@ -1994,8 +1511,8 @@ const ClinicVisit = props => {
                     type="select"
                     name="riskReductionServices"
                     id="riskReductionServices"
-                    value={objValues.riskReductionServices}
-                    onChange={handleInputChange}
+                    value={formik.values.riskReductionServices}
+                    onChange={formik.handleChange}
                     style={{
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
@@ -2020,8 +1537,8 @@ const ClinicVisit = props => {
                     type="select"
                     name="adherenceLevel"
                     id="adherenceLevel"
-                    value={objValues.adherenceLevel}
-                    onChange={handleInputChange}
+                    value={formik.values.adherenceLevel}
+                    onChange={formik.handleChange}
                     style={{
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
@@ -2054,8 +1571,8 @@ const ClinicVisit = props => {
                       type="select"
                       name="whyAdherenceLevelPoor"
                       id="whyAdherenceLevelPoor"
-                      value={objValues.whyAdherenceLevelPoor}
-                      onChange={handleInputChange}
+                      value={formik.values.whyAdherenceLevelPoor}
+                      onChange={formik.handleChange}
                       style={{
                         border: '1px solid #014D88',
                         borderRadius: '0.25rem',
@@ -2083,8 +1600,8 @@ const ClinicVisit = props => {
                     type="select"
                     name="populationType"
                     id="populationType"
-                    onChange={handleInputChange}
-                    value={objValues.populationType}
+                    onChange={formik.handleChange}
+                    value={formik.values.populationType}
                     disabled
                     style={{
                       border: '1px solid #014D88',
@@ -2122,8 +1639,8 @@ const ClinicVisit = props => {
                     type="select"
                     name="visitType"
                     id="visitType"
-                    onChange={handleInputChange}
-                    value={objValues.visitType}
+                    onChange={formik.handleChange}
+                    value={formik.values.visitType}
                     disabled
                     style={{
                       border: '1px solid #014D88',
@@ -2154,8 +1671,8 @@ const ClinicVisit = props => {
                       type="select"
                       name="reasonForSwitch"
                       id="reasonForSwitch"
-                      value={objValues.reasonForSwitch}
-                      onChange={handleInputChange}
+                      value={formik.values.reasonForSwitch}
+                      onChange={formik.handleChange}
                       style={{
                         border: '1px solid #014D88',
                         borderRadius: '0.25rem',
@@ -2188,8 +1705,8 @@ const ClinicVisit = props => {
                     type="select"
                     name="wasPrepAdministered"
                     id="wasPrepAdministered"
-                    value={objValues.wasPrepAdministered}
-                    onChange={handleInputChange}
+                    value={formik.values.wasPrepAdministered}
+                    onChange={formik.handleChange}
                     style={{
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
@@ -2222,8 +1739,8 @@ const ClinicVisit = props => {
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
                     }}
-                    onChange={handlePrepTypeChange}
-                    value={objValues.prepType}
+                    onChange={() => {}}
+                    value={formik.values.prepType}
                     disabled={disabledField}
                   >
                     <option value=""> Select PrEP Type</option>
@@ -2249,8 +1766,8 @@ const ClinicVisit = props => {
                     type="select"
                     name="regimenId"
                     id="regimenId"
-                    onChange={handleInputChange}
-                    value={objValues.regimenId}
+                    onChange={formik.handleChange}
+                    value={formik.values.regimenId}
                     disabled={disabledField}
                     style={{
                       border: '1px solid #014D88',
@@ -2258,26 +1775,11 @@ const ClinicVisit = props => {
                     }}
                   >
                     <option value=""> Select</option>
-                    {['update', 'view'].includes(props.activeContent.actionType)
-                      ? prepRegimen?.map(value => (
-                          <option key={value.id} value={value.id}>
-                            {value.regimen}
-                          </option>
-                        ))
-                      : objValues?.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH'
-                      ? filterOutLastRegimen(
-                          prepRegimen,
-                          props.recentActivities[0]?.regimenId
-                        )?.map(value => (
-                          <option key={value.id} value={value.id}>
-                            {value.regimen}
-                          </option>
-                        ))
-                      : prepRegimen?.map(value => (
-                          <option key={value.id} value={value.id}>
-                            {value.regimen}
-                          </option>
-                        ))}
+                    {prepRegimen?.map(value => (
+                      <option key={value.id} value={value.id}>
+                        {value.regimen}
+                      </option>
+                    ))}
                   </Input>
                   {errors.regimenId !== '' ? (
                     <span className={classes.error}>{errors.regimenId}</span>
@@ -2296,9 +1798,9 @@ const ClinicVisit = props => {
                     type="number"
                     name="monthsOfRefill"
                     id="monthsOfRefill"
-                    value={objValues.monthsOfRefill}
+                    value={formik.values.monthsOfRefill}
                     min={0}
-                    onChange={handleInputChange}
+                    onChange={formik.handleChange}
                     style={{
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
@@ -2325,8 +1827,8 @@ const ClinicVisit = props => {
                           type="select"
                           name="otherPrepGiven"
                           id="otherPrepGiven"
-                          value={objValues.otherPrepGiven}
-                          onChange={handleInputChange}
+                          value={formik.values.otherPrepGiven}
+                          onChange={formik.handleChange}
                           style={{
                             border: '1px solid #014D88',
                             borderRadius: '0.25rem',
@@ -2363,8 +1865,8 @@ const ClinicVisit = props => {
                               border: '1px solid #014D88',
                               borderRadius: '0.25rem',
                             }}
-                            onChange={handleInputChange}
-                            value={objValues.otherPrepType}
+                            onChange={formik.handleChange}
+                            value={formik.values.otherPrepType}
                             disabled={disabledField}
                           >
                             <option value=""> Select Prep Type</option>
@@ -2402,8 +1904,8 @@ const ClinicVisit = props => {
                             type="select"
                             name="otherRegimenId"
                             id="otherRegimenId"
-                            onChange={handleInputChange}
-                            value={objValues.otherRegimenId}
+                            onChange={formik.handleChange}
+                            value={formik.values.otherRegimenId}
                             disabled={disabledField}
                             style={{
                               border: '1px solid #014D88',
@@ -2436,8 +1938,8 @@ const ClinicVisit = props => {
                     type="select"
                     name="prepDistributionSetting"
                     id="prepDistributionSetting"
-                    onChange={handleInputChange}
-                    value={objValues.prepDistributionSetting}
+                    onChange={formik.handleChange}
+                    value={formik.values.prepDistributionSetting}
                     disabled={disabledField}
                     style={{
                       border: '1px solid #014D88',
@@ -2467,8 +1969,8 @@ const ClinicVisit = props => {
                     type="text"
                     name="otherDrugs"
                     id="otherDrugs"
-                    value={objValues.otherDrugs}
-                    onChange={handleInputChange}
+                    value={formik.values.otherDrugs}
+                    onChange={formik.handleChange}
                     style={{
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
@@ -2485,8 +1987,8 @@ const ClinicVisit = props => {
                     type="select"
                     name="familyPlanning"
                     id="familyPlanning"
-                    onChange={handleInputChange}
-                    value={objValues.familyPlanning}
+                    onChange={formik.handleChange}
+                    value={formik.values.familyPlanning}
                     disabled={disabledField}
                     style={{
                       border: '1px solid #014D88',
@@ -2510,12 +2012,12 @@ const ClinicVisit = props => {
                     onKeyDown={e => e.preventDefault()}
                     name="dateOfFamilyPlanning"
                     id="dateOfFamilyPlanning"
-                    value={objValues.dateOfFamilyPlanning}
+                    value={formik.values.dateOfFamilyPlanning}
                     style={{
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
                     }}
-                    onChange={handleInputChange}
+                    onChange={formik.handleChange}
                     max={moment(new Date()).format('YYYY-MM-DD')}
                     disabled={disabledField}
                   />
@@ -3044,8 +2546,8 @@ const ClinicVisit = props => {
                   onKeyDown={e => e.preventDefault()}
                   name="nextAppointment"
                   id="nextAppointment"
-                  value={objValues.nextAppointment}
-                  onChange={handleInputChange}
+                  value={formik.values.nextAppointment}
+                  onChange={formik.handleChange}
                   style={{
                     border: '1px solid #014D88',
                     borderRadius: '0.25rem',
@@ -3068,9 +2570,9 @@ const ClinicVisit = props => {
                   name="healthCareWorkerSignature"
                   id="healthCareWorkerSignature"
                   placeholder="Enter signature..."
-                  value={objValues.healthCareWorkerSignature}
+                  value={formik.values.healthCareWorkerSignature}
                   disabled={disabledField}
-                  onChange={handleInputChange}
+                  onChange={formik.handleChange}
                   style={{
                     border: '1px solid #014D88',
                     borderRadius: '0.25rem',
@@ -3102,9 +2604,9 @@ const ClinicVisit = props => {
                   name="comment"
                   id="comment"
                   placeholder="Enter comment..."
-                  value={objValues.comment}
+                  value={formik.values.comment}
                   disabled={disabledField}
-                  onChange={handleInputChange}
+                  onChange={formik.handleChange}
                   style={{
                     border: '1px solid #014D88',
                     borderRadius: '0.25rem',
