@@ -19,77 +19,12 @@ import 'react-widgets/dist/css/react-widgets.css';
 import moment from 'moment';
 import { Spinner } from 'reactstrap';
 import { LiverFunctionTest } from './PrEPEligibiltyScreeningForm';
-
-const useStyles = makeStyles(theme => ({
-  card: {
-    margin: theme.spacing(20),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(3),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-  cardBottom: {
-    marginBottom: 20,
-  },
-  Select: {
-    height: 45,
-    width: 350,
-  },
-  button: {
-    margin: theme.spacing(1),
-  },
-  root: {
-    flexGrow: 1,
-    '& .card-title': {
-      color: '#fff',
-      fontWeight: 'bold',
-    },
-    '& .form-control': {
-      borderRadius: '0.25rem',
-      height: '41px',
-    },
-    '& .card-header:first-child': {
-      borderRadius: 'calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0',
-    },
-    '& .dropdown-toggle::after': {
-      display: ' block !important',
-    },
-    '& select': {
-      '-webkit-appearance': 'listbox !important',
-    },
-    '& p': {
-      color: 'red',
-    },
-    '& label': {
-      fontSize: '14px',
-      color: '#014d88',
-      fontWeight: 'bold',
-    },
-  },
-  input: {
-    display: 'none',
-  },
-  error: {
-    color: '#f85032',
-    fontSize: '11px',
-  },
-  success: {
-    color: '#4BB543 ',
-    fontSize: '11px',
-  },
-}));
+import useStyleForCommencementForm from '../../../hooks/useStyleForCommencementForm';
+import usePrepClinicState from '../../../hooks/usePrepClinicState';
 
 const PrEPCommencementForm = props => {
   const patientObj = props.patientObj;
-  const classes = useStyles();
-  const [disabledField, setDisabledField] = useState(false);
-  const [prepRegimen, setPrepRegimen] = useState([]);
+  const classes = useStyleForCommencementForm();
   const [historyOfDrugToDrugInteraction, setHistoryOfDrugToDrugInteraction] =
     useState([]);
   const [objValues, setObjValues] = useState({
@@ -119,94 +54,62 @@ const PrEPCommencementForm = props => {
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [pregnant, setPregnant] = useState([]);
   const [patientDto, setPatientDto] = useState();
-  const [prepEntryPoint, setPrepEntryPoint] = useState([]);
   const [urinalysisTestResult, setUrinalysisTestResult] = useState([]);
-  const [prepType, setPrepType] = useState([]);
-  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
-
+  const {
+    formik,
+    disabledField,
+    setDisabledField,
+    adherenceLevel,
+    setAdherenceLevel,
+    sti,
+    setSti,
+    prepStatus,
+    setPrepStatus,
+    prepSideEffect,
+    setPrepSideEffect,
+    htsResult,
+    setHtsResult,
+    prepRegimen,
+    setPrepRegimen,
+    labTestOptions,
+    setLabTestOptions,
+    urineTestResult,
+    setUrineTestResult,
+    familyPlanningMethod,
+    setFamilyPlanningMethod,
+    pregnant,
+    setPregnant,
+    prepEntryPoint,
+    setPrepEntryPoints,
+    prepType,
+    setPrepType,
+    populationType,
+    setPopulationType,
+    visitType,
+    setVisitType,
+    latestFromEligibility,
+    setLatestFromEligibility,
+    hivTestResultDate,
+    setHivTestResultDate,
+    reasonForSwitchOptions,
+    setReasonForSwitchOptions,
+    recentActivities,
+    setRecentActivities,
+    liverFunctionTestResult,
+    setLiverFunctionTestResult,
+  } = usePrepClinicState(props);
   useEffect(() => {
-    pregnancyStatus();
     getPatientDTOObj();
-    fetchPrepRegimen();
-    fetchPrepEntryPoint();
-    fetchPrepType();
-    fetchLiverFunctionTestResult();
     fetchHistoryOfDrugToDrugInteraction();
-    fetchPrepUrinalysisResult();
     if (
       props.activeContent.id &&
       props.activeContent.id !== '' &&
       props.activeContent.id !== null
     ) {
       getPatientCommencement(props.activeContent.id);
-      setDisabledField(props.activeContent.actionType === 'view');
     }
   }, []);
-
-  const fetchPrepRegimen = async () => {
-    axios
-      .get(`${baseUrl}prep-regimen`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepRegimen(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const fetchPrepEntryPoint = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_ENTRY_POINT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepEntryPoint(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const fetchPrepUrinalysisResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setUrinalysisTestResult(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const fetchPrepType = async () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepType(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const fetchLiverFunctionTestResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setLiverFunctionTestResult(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
 
   const fetchHistoryOfDrugToDrugInteraction = () => {
     axios
@@ -237,19 +140,6 @@ const PrEPCommencementForm = props => {
       });
   };
 
-  const pregnancyStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPregnant(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
   const getPatientDTOObj = () => {
     axios
       .get(
@@ -266,7 +156,6 @@ const PrEPCommencementForm = props => {
       });
   };
 
-  //Vital signs clinical decision support
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: '',
     height: '',
@@ -426,43 +315,6 @@ const PrEPCommencementForm = props => {
 
   const handlePrepTypeChange = e => {
     setObjValues({ ...objValues, regimenId: '', prepType: e.target.value });
-    if (
-      e.target.value === 'PREP_TYPE_OTHERS' ||
-      e.target.value === 'PREP_TYPE_ED_PREP'
-    ) {
-      fetchPrepRegimen();
-    } else {
-      axios
-        .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then(response => {
-          setPrepRegimen(response.data);
-        })
-        .catch(error => {
-          //console.log(error);
-        });
-    }
-    setErrors({ ...errors, [e.target.name]: '' });
-  };
-
-  const [latestFromEligibility, setLatestFromEligibility] = useState(null);
-
-  const getLatestFromEligibility = async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}prep-eligibility/person/${objValues?.personId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const latestEligibility = response?.data?.sort((a, b) =>
-        moment(a?.visitDate).isBefore(moment(b?.visitDate))
-      )[response.data.length - 1];
-      setLatestFromEligibility(latestEligibility);
-    } catch (error) {
-      console.error('Error fetching latest eligibility:', error);
-    }
   };
 
   const handleLftInputChange = event => {
@@ -472,10 +324,6 @@ const PrEPCommencementForm = props => {
       [name]: value,
     }));
   };
-
-  useEffect(() => {
-    getLatestFromEligibility();
-  }, []);
 
   useEffect(() => {
     if (latestFromEligibility) {
