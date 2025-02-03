@@ -196,6 +196,7 @@ public class PrepService {
         PrepInterruptionDto prepInterruptionDto = this.interruptionToInterruptionDto(prepInterruption);
         return prepInterruptionDto;
     }
+
     private PrepDtos prepToPrepDtos(List<PrepEnrollment> clients) {
         final Long[] pId = {null};
         final String[] uniqueId = {null};
@@ -266,10 +267,14 @@ public class PrepService {
     }
 
     public PrepDtos getPrepByPersonId(Long personId) {
-        Person person = personRepository.findById(personId).orElse(new Person());
+        Person person = personRepository.findById(personId).get();
+        System.out.println("testPerson1: " + person);
+
         if (person.getId() == null) {
+            System.out.println("testPerson3: " + person);
             return new PrepDtos();
         }
+        System.out.println("testPerson2: " + person);
         return this.prepToPrepDtos(person, prepEnrollmentRepository.findAllByPersonOrderByIdDesc(person));
     }
 
@@ -363,12 +368,10 @@ public class PrepService {
     private PrepDtos prepToPrepDtos(@NotNull Person person, List<PrepEnrollment> clients) {
         boolean isPositive = false;
         PrepDtos prepDtos = new PrepDtos();
-
         if (person == null) throw new EntityNotFoundException(Person.class, "Person", "is null");
         prepDtos.setPersonId(person.getId());
         prepDtos.setPersonResponseDto(personService.getDtoFromPerson(person));
         prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
-
         List<PrepDto> prepDtoList = clients
                 .stream()
                 .map(client -> {
@@ -405,7 +408,6 @@ public class PrepService {
             prepDtos.setPrepStatus(prepClient.getPrepStatus());
             prepDtos.setDateConfirmedHiv(prepClient.getDateConfirmedHiv());
             prepDtos.setCreatedBy(prepClient.getCreatedBy());
-            //prepDtos.setPrepEligibilityCount(prepClient.getEligibilityCount());
         }
 
         return prepDtos;
@@ -515,9 +517,7 @@ public class PrepService {
         if (prepEnrollmentRequestDto == null) {
             return null;
         }
-
         PrepEnrollment prepEnrollment = new PrepEnrollment();
-
         prepEnrollment.setPersonUuid(personUuid);
         prepEnrollment.setExtra(prepEnrollmentRequestDto.getExtra());
         prepEnrollment.setUniqueId(prepEnrollmentRequestDto.getUniqueId());
@@ -542,7 +542,6 @@ public class PrepService {
         if (prepClinicRequestDto == null) {
             return null;
         }
-
         PrepClinic prepClinic = new PrepClinic();
         prepClinic.setPersonUuid(personUuid);
         prepClinic.setExtra(prepClinicRequestDto.getExtra());
@@ -575,7 +574,6 @@ public class PrepService {
         prepClinic.setDatePrepGiven(prepClinicRequestDto.getDatePrepGiven());
         prepClinic.setUrinalysis(prepClinicRequestDto.getUrinalysis());
         prepClinic.setCreatinine(prepClinicRequestDto.getCreatinine());
-
         prepClinic.setHepatitis(prepClinicRequestDto.getHepatitis());
         prepClinic.setSyphilis(prepClinicRequestDto.getSyphilis());
         prepClinic.setOtherTestsDone(prepClinicRequestDto.getOtherTestsDone());
@@ -610,9 +608,7 @@ public class PrepService {
         if (clinic == null) {
             return null;
         }
-
         PrepClinicDto prepClinicDto = new PrepClinicDto();
-
         prepClinicDto.setId(clinic.getId());
         prepClinicDto.setExtra(clinic.getExtra());
         prepClinicDto.setDateInitialAdherenceCounseling(clinic.getDateInitialAdherenceCounseling());
@@ -674,7 +670,6 @@ public class PrepService {
         prepClinicDto.setOtherRegimenId(clinic.getOtherRegimenId());
         prepClinicDto.setComment(clinic.getComment());
         prepClinicDto.setPreviousPrepStatus(clinic.getPreviousPrepStatus());
-
         return prepClinicDto;
     }
 
@@ -682,9 +677,7 @@ public class PrepService {
         if (enrollment == null) {
             return null;
         }
-
         PrepEnrollmentDto enrollmentDto = new PrepEnrollmentDto();
-
         enrollmentDto.setExtra(enrollment.getExtra());
         enrollmentDto.setId(enrollment.getId());
         enrollmentDto.setUniqueId(enrollment.getUniqueId());
@@ -709,13 +702,9 @@ public class PrepService {
         if (prepEnrollment == null) {
             return null;
         }
-
         PrepDto prepDto = new PrepDto();
-
         prepDto.setId(prepEnrollment.getId());
         prepDto.setExtra(prepEnrollment.getExtra());
-        //PersonResponseDto personResponseDto = personService.getDtoFromPerson(prepEnrollment.getPerson());
-        //prepDto.setPersonResponseDto(personResponseDto);
         prepDto.setDateStarted(prepEnrollment.getDateStarted());
         prepDto.setStatus(prepEnrollment.getStatus());
         return prepDto;
@@ -725,9 +714,7 @@ public class PrepService {
         if (interruptionRequestDto == null) {
             return null;
         }
-
         PrepInterruption prepInterruption = new PrepInterruption();
-
         prepInterruption.setInterruptionType(interruptionRequestDto.getInterruptionType());
         prepInterruption.setInterruptionDate(interruptionRequestDto.getInterruptionDate());
         prepInterruption.setDateClientDied(interruptionRequestDto.getDateClientDied());
@@ -750,9 +737,7 @@ public class PrepService {
         if (prepInterruption == null) {
             return null;
         }
-
         PrepInterruptionDto prepInterruptionDto = new PrepInterruptionDto();
-
         prepInterruptionDto.setId(prepInterruption.getId());
         prepInterruptionDto.setInterruptionType(prepInterruption.getInterruptionType());
         prepInterruptionDto.setInterruptionDate(prepInterruption.getInterruptionDate());
@@ -765,12 +750,9 @@ public class PrepService {
         prepInterruptionDto.setDateSeroConverted(prepInterruption.getDateSeroConverted());
         prepInterruptionDto.setDateRestartPlacedBackMedication(prepInterruption.getDateRestartPlacedBackMedication());
         prepInterruptionDto.setLinkToArt(prepInterruption.getLinkToArt());
-
         prepInterruptionDto.setReasonStopped(prepInterruption.getReasonStopped());
         prepInterruptionDto.setReasonStoppedOthers(prepInterruption.getReasonStoppedOthers());
         prepInterruptionDto.setReasonForPrepDiscontinuation(prepInterruption.getReasonForPrepDiscontinuation());
-
-
         return prepInterruptionDto;
     }
 

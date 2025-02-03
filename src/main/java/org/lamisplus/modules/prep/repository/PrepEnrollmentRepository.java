@@ -309,7 +309,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
     Page<PrepClient> findOnlyPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
 
 
-    @Query(value = "SELECT el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration AS dateOfRegistration, " +
+    @Query(value = "SELECT DISTINCT ON (p.hospital_number) el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration AS dateOfRegistration, " +
             "prepc.commencementCount, el.eligibility_count as eligibilityCount, pet.created_by as createdBy, " +
             "pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, " +
             "p.other_name as otherName, p.hospital_number as hospitalNumber, " +
@@ -397,7 +397,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "pet.unique_id, p.id, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
             "p.other_name, p.hospital_number, p.date_of_birth, prepc.status, prepc.visit_type, " +
             "prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.id " +
-            "ORDER BY pet.date_created DESC NULLS LAST", nativeQuery = true)
+            "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Optional<PrepClient> findPersonPrepAndStatusByPatientUuid(Integer archived, Long facilityId, String personUuid);
 
     @Query(value = "SELECT DISTINCT ON (p.hospital_number) " +

@@ -73,7 +73,6 @@ public class PrepClinicService {
         prepClinic = prepClinicRepository.save(prepClinic);
         prepClinic.setPerson(person);
         PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic, null);
-        //prepClinicDto.setStatus("COMMENCED");
         return prepClinicDto;
     }
 
@@ -96,7 +95,6 @@ public class PrepClinicService {
         prepClinic = prepClinicRepository.save(prepClinic);
         prepClinic.setPerson(person);
         PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic, null);
-        //prepClinicDto.setStatus("COMMENCED");
         return prepClinicDto;
     }
 
