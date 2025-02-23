@@ -32,7 +32,6 @@ import {
 
 import '../../index.css';
 import { getPopulationType } from '../../../apiCalls/eligibility';
-import { useLocation } from 'react-router-dom/cjs/react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   card: {
@@ -160,8 +159,6 @@ const BasicInfo = props => {
   const [pregnancyStatus, setPregnancyStatus] = useState([]);
   const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
-  const history = useLocation;
-  const patientObj = history?.state?.patientObj || props?.patientObj;
 
   let temp = { ...errors };
 
@@ -457,7 +454,7 @@ const BasicInfo = props => {
       objValues.personalHivRiskAssessment = riskAssessment;
       objValues.sexPartnerRisk = riskAssessmentPartner;
       objValues.stiScreening = stiScreening;
-      objValues.personId = props?.patientObj?.personId || props?.patientObj?.id;
+      objValues.personId = props?.patientObj?.personId;
       objValues.uniqueId = props?.patientObj?.uniqueId;
       objValues.assessmentForAcuteHivInfection = assessmentForAcuteHivInfection;
       objValues.assessmentForPepIndication = assessmentForPepIndication;
@@ -474,11 +471,9 @@ const BasicInfo = props => {
           .then(response => {
             setSaving(false);
             props.patientObj.eligibilityCount = 1;
-            patientObj.eligibilityCount = 1;
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
-            props.patientObj.hivresultAtVisit =
-              drugHistory.hivTestResultAtvisit;
+            props.PatientObject();
             toast.success('Prep eligilibility saved successfully! ✔', {
               position: toast.POSITION.BOTTOM_CENTER,
             });
@@ -486,7 +481,6 @@ const BasicInfo = props => {
               ...props.activeContent,
               route: 'recent-history',
             });
-            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);
@@ -528,7 +522,6 @@ const BasicInfo = props => {
               ...props.activeContent,
               route: 'recent-history',
             });
-            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);
@@ -563,10 +556,7 @@ const BasicInfo = props => {
   };
 
   const isFemale = () => {
-    return (
-      (props.patientObj.gender?.toLowerCase() ||
-        patientObj.sex?.toLowerCase()) === 'female'
-    );
+    return props.patientObj.gender.toLowerCase() === 'female';
   };
 
   const is30AndAbove = () => {
@@ -635,9 +625,7 @@ const BasicInfo = props => {
   const getRecentActivities = () => {
     axios
       .get(
-        `${baseUrl}prep/activities/patients/${
-          props.patientObj.personId || props.patientObj.id
-        }?full=true`,
+        `${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -810,11 +798,6 @@ const BasicInfo = props => {
                     {populationType.map(value => (
                       <option value={value.code}> {value.display} </option>
                     ))}
-                    {!populationType?.find(
-                      pType => pType.display === 'GenPop'
-                    ) && (
-                      <option value="POPULATION_TYPE_GEN_POP">GenPop</option>
-                    )}
                   </select>
                   {errors.populationType !== '' ? (
                     <span className={classes.error}>
@@ -890,8 +873,8 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              {props?.patientObj?.gender === 'Male' ||
-                (props?.patientObj?.gender === 'male' && (
+              {props.patientObj.gender === 'Male' ||
+                (props.patientObj.gender === 'male' && (
                   <div className="form-group col-md-4 p-2">
                     <FormGroup className="p-2">
                       <Label>Number of wives </Label>
@@ -2133,7 +2116,7 @@ const BasicInfo = props => {
                 Syndromic STI Screening
               </div>
               {props.patientDetail &&
-                props.patientDetail.personResponseDto?.sex === 'Female' && (
+                props.patientDetail.personResponseDto.sex === 'Female' && (
                   <>
                     <div className="form-group  col-md-4 p-3">
                       <FormGroup>
@@ -2200,8 +2183,8 @@ const BasicInfo = props => {
                     </div>
                   </>
                 )}
-              {props.patientObj?.personResponseDto &&
-                props.patientDetail?.personResponseDto.sex === 'Male' && (
+              {props.patientObj.personResponseDto &&
+                props.patientDetail.personResponseDto.sex === 'Male' && (
                   <>
                     <div className="form-group  col-md-4 p-3">
                       <FormGroup>
