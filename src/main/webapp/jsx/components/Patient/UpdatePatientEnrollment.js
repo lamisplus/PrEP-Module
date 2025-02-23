@@ -76,7 +76,6 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const UserRegistration = props => {
-  console.log(props);
   const [basicInfo, setBasicInfo] = useState({
     active: true,
     address: [],
@@ -716,91 +715,83 @@ const UserRegistration = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        //console.log(response.data);
         setCarePoints(response.data);
       })
       .catch(error => {
         //console.log(error);
       });
   };
-  //Get list of Source of Referral
+
   const SourceReferral = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/SOURCE_REFERRAL`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        //console.log(response.data);
         setSourceReferral(response.data);
       })
       .catch(error => {
         //console.log(error);
       });
   };
-  //Get list of HIV STATUS ENROLLMENT
+
   const HivStatus = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/HIV_STATUS_ENROL`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        //console.log(response.data);
         setHivStatus(response.data);
       })
       .catch(error => {
         //console.log(error);
       });
   };
-  //Get list of HIV STATUS ENROLLMENT
+
   const EnrollmentSetting = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/ENROLLMENT_SETTING`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        //console.log(response.data);
         setEnrollSetting(response.data);
       })
       .catch(error => {
         //console.log(error);
       });
   };
-  //Get list of HIV STATUS ENROLLMENT
+
   const TBStatus = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        //console.log(response.data);
         setTbStatus(response.data);
       })
       .catch(error => {
         //console.log(error);
       });
   };
-  //Get list of KP
+
   const KP = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/TARGET_GROUP`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        //console.log(response.data);
         setKP(response.data);
       })
       .catch(error => {
         //console.log(error);
       });
   };
-  //Get list of KP
   const PregnancyStatus = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREGANACY_STATUS`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        //console.log(response.data);
         setPregnancyStatus(response.data);
       })
       .catch(error => {
@@ -817,7 +808,6 @@ const UserRegistration = props => {
       }
     }
     if (e.target.name === 'pregnancyStatusId') {
-      console.log(e.target.value);
       if (e.target.value === '72') {
         setTransferIn(true);
       } else {
