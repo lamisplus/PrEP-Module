@@ -26,7 +26,6 @@ import { MdDashboard } from 'react-icons/md';
 import '@reach/menu-button/styles.css';
 import { Label } from 'semantic-ui-react';
 import SockJsClient from 'react-stomp';
-import axios from 'axios';
 import CustomTable from '../../../Reusables/CustomTable.js';
 import { usePermissions } from '../../../hooks/usePermissions.js';
 import { useCheckedInPatientData } from '../../../hooks/useCheckedInPatientData.jsx';
