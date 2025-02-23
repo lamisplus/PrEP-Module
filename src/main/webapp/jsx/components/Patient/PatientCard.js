@@ -120,6 +120,7 @@ function PatientCard(props) {
     const city = firstAddress.city?.trim() || '';
     return `${line}, ${city}`;
   }
+  
   return (
     <div className={classes.root}>
       <Accordion>
