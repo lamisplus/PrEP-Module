@@ -848,7 +848,76 @@ const ClinicVisit = props => {
       otherTestsDone: otherTest,
     }));
   }, [otherTest]);
+  const checkEligibleForCabLa = currentDate => {
+    if (currentDate) {
+      axios
+        .get(
+          `${baseUrl}prep-clinic/checkEnableCab/${props.patientObj.personId}/${currentDate}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+        .then(response => {
+          return response?.data;
+        })
+        .catch(error => {});
+    }
+  };
 
+  const getPatientVisit = async id => {
+    axios
+      .get(`${baseUrl}prep-clinic/${props.activeContent.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(response => {
+        const { data } = JSON.parse(JSON.stringify(response));
+        setOtherTest(response?.data?.otherTestsDone);
+        setObjValues(data);
+      })
+      .catch(error => {});
+  };
+
+  const getHivResult = () => {
+    axios
+      .get(`${baseUrl}prep-clinic/hts-record/${props.patientObj.personId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(response => {
+        if (response.data?.length === 0) {
+          toast.error(
+            '⚠ No HTS record found. Atleast, 1 test result is required to proceed'
+          );
+        } else if (response.data?.length > 0) {
+          toast.success('👍 HTS record found. You may proceed ✔');
+        }
+        setHivTestValue(response?.data?.[0]?.hivTestResult);
+        setHivTestResultDate(response?.data?.[0]?.visitDate);
+      })
+      .catch(error => {});
+  };
+  const getPatientDtoObj = () => {
+    axios
+      .get(
+        `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then(response => {
+        setPatientDto(response.data);
+      })
+      .catch(error => {});
+  };
+  const getPrepEligibilityObj = () => {
+    axios
+      .get(
+        `${baseUrl}prep/eligibility/open/patients/${props.patientObj.personId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then(response => {
+        objValues.prepEnrollmentUuid = '';
+      })
+      .catch(error => {});
+  };
+  useEffect(() =>
+    console.log('eligStats: ', checkEligibleForCabLa('2025-10-13'))
+  );
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
