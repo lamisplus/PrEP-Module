@@ -193,32 +193,9 @@ const ClinicVisit = props => {
       return dateB - dateA;
     });
   }
-  console.log('formik vals: ', formik.values);
+
   const [eligibilityVisitDateSync, setEligibilityVisitDateSync] =
     useState(false);
-
-  // const handleInputChange = e => {
-  //   setErrors({ ...errors, [e.target.name]: '' });
-  //   if (e.target.name === 'monthsOfRefill') {
-  //     const durationInDays = Number(e.target.value);
-  //     setObjValues({
-  //       ...objValues,
-  //       monthsOfRefill: e.target.value,
-  //       duration: `${durationInDays}`,
-  //     });
-  //   } else if (e.target.name === 'encounterDate') {
-  //     setEligibilityVisitDateSync(
-  //       areDatesInSync(e.target.value, latestFromEligibility?.visitDate)
-  //     );
-  //     setPrepRegimen(e.target.value);
-  //     setObjValues({ ...objValues, [e.target.name]: e.target.value });
-  //     checkDateMismatch(e.target.value, latestFromEligibility?.visitDate);
-  //   } else if (e.target.name === 'otherPrepGiven') {
-  //     setObjValues({ ...objValues, [e.target.name]: e.target.value });
-  //   } else {
-  //     setObjValues({ ...objValues, [e.target.name]: e.target.value });
-  //   }
-  // };
 
   const checkDateMismatch = (visitDate, eligibilityDate) => {
     if (visitDate !== eligibilityDate) {
@@ -343,7 +320,6 @@ const ClinicVisit = props => {
   };
 
   const otherTestInputRef = useRef();
-
   const handleInputValueCheckHeight = e => {
     if (
       e.target.name === 'height' &&
@@ -711,7 +687,6 @@ const ClinicVisit = props => {
   const [notedSideEffects, setNotedSideEffects] = useState([]);
   const handleNotedSideEffectsChange = selected => {
     setNotedSideEffects(selected);
-    setObjValues({ ...objValues, notedSideEffects: selected });
   };
 
   const visitTypeDurationMapping = {
@@ -833,7 +808,47 @@ const ClinicVisit = props => {
       });
     }
   }
-  console.log('regs: ', prepRegimen);
+  useEffect(() => {
+    formik.setFieldValue('prepNotedSideEffects', notedSideEffects);
+  }, [notedSideEffects]);
+  useEffect(() => {
+    formik.setValues(prev => ({
+      ...prev,
+      creatinine: creatinineTest,
+      creatinineResult: creatinineTest,
+    }));
+  }, [creatinineTest]);
+
+  useEffect(() => {
+    formik.setValues(prev => ({
+      ...prev,
+      urinalysis: urinalysisTest,
+      urinalysisResult: urinalysisTest,
+    }));
+  }, [urinalysisTest]);
+
+  useEffect(() => {
+    formik.setValues(prev => ({
+      ...prev,
+      hepatitis: hepatitisTest,
+      hepatitisTestTestResult: hepatitisTest,
+    }));
+  }, [hepatitisTest]);
+
+  useEffect(() => {
+    formik.setValues(prev => ({
+      ...prev,
+      syphilis: syphilisTest,
+      syphilisTestTestResult: syphilisTest,
+    }));
+  }, [syphilisTest]);
+  useEffect(() => {
+    formik.setValues(prev => ({
+      ...prev,
+      otherTestsDone: otherTest,
+    }));
+  }, [otherTest]);
+
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
@@ -1739,7 +1754,7 @@ const ClinicVisit = props => {
                       border: '1px solid #014D88',
                       borderRadius: '0.25rem',
                     }}
-                    onChange={() => {}}
+                    onChange={formik.handleChange}
                     value={formik.values.prepType}
                     disabled={disabledField}
                   >
