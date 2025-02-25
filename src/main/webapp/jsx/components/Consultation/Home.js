@@ -856,6 +856,7 @@ const ClinicVisit = props => {
           { headers: { Authorization: `Bearer ${token}` } }
         )
         .then(response => {
+          console.log('res: ', response.data, props.patientObj.personId);
           return response?.data;
         })
         .catch(error => {});
