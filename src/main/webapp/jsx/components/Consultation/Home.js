@@ -21,7 +21,11 @@ import 'react-dual-listbox/lib/react-dual-listbox.css';
 import { LiverFunctionTest } from '../PrepServices/PrEPEligibiltyScreeningForm';
 import usePrepClinicState from '../../../hooks/usePrepClinicState';
 import useStyleForVisitForm from '../../../hooks/useStyleForVisitForm';
-import { usePrepEligibilityObj } from '../../../hooks/useApiUtilsForPrepVisit';
+import {
+  useHivResult,
+  usePrepEligibilityObj,
+} from '../../../hooks/useApiUtilsForPrepVisit';
+import { useEligibilityCheckApi } from '../../../hooks/useEligibilityCheckApi';
 
 export const CleanupWrapper = ({ isVisible, cleanup, children }) => {
   useEffect(() => {
@@ -180,7 +184,22 @@ const ClinicVisit = props => {
     liverFunctionTestResult,
     setLiverFunctionTestResult,
   } = usePrepClinicState(props);
+  const { isEligibleForCabLa, setIsEligibleForCabLa } = useEligibilityCheckApi(
+    baseUrl,
+    props.patientObj.personId,
+    latestFromEligibility?.visitDate,
+    token
+  );
+  console.log(
+    'params: ',
+    baseUrl,
+    props.patientObj.personId,
+    latestFromEligibility?.visitDate,
+    token
+  );
+
   const [otherTest, setOtherTest] = useState([]);
+  const { data, setData } = useHivResult(props.patientObj.personId);
 
   const classes = useStyleForVisitForm();
   let temp = { ...errors };
@@ -193,7 +212,10 @@ const ClinicVisit = props => {
       return dateB - dateA;
     });
   }
-
+  useEffect(
+    () => console.log('isEligibleForCabLa: ', isEligibleForCabLa),
+    [isEligibleForCabLa]
+  );
   const [eligibilityVisitDateSync, setEligibilityVisitDateSync] =
     useState(false);
 
@@ -848,6 +870,7 @@ const ClinicVisit = props => {
       otherTestsDone: otherTest,
     }));
   }, [otherTest]);
+
   const checkEligibleForCabLa = currentDate => {
     if (currentDate) {
       axios
@@ -905,20 +928,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  const getPrepEligibilityObj = () => {
-    axios
-      .get(
-        `${baseUrl}prep/eligibility/open/patients/${props.patientObj.personId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(response => {
-        objValues.prepEnrollmentUuid = '';
-      })
-      .catch(error => {});
-  };
-  useEffect(() =>
-    console.log('eligStats: ', checkEligibleForCabLa('2025-10-13'))
-  );
+
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">

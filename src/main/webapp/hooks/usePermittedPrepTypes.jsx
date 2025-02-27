@@ -5,6 +5,7 @@ import { usePrepType } from './usePrepCodeSet';
 const usePermittedPrepTypes = (props, dependencies) => {
   const [prepType, setPrepType] = useState([]);
   const { data: allPrepTypes } = usePrepType();
+
   const { isEligibleForCabLa } = useEligibilityCheckApi(
     dependencies.baseUrl,
     props.patientObj.personId,
@@ -12,6 +13,13 @@ const usePermittedPrepTypes = (props, dependencies) => {
     dependencies.token
   );
 
+  console.log(
+    'params form useElig: ',
+    dependencies.baseUrl,
+    props.patientObj.personId,
+    dependencies.visitDate,
+    dependencies.token
+  );
   const getPermittedPrepTypes = async () => {
     const { objValues } = dependencies;
 
