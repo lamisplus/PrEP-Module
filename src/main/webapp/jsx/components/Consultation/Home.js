@@ -585,6 +585,24 @@ const ClinicVisit = props => {
     }
     return false;
   }
+  const getHtsResult = () => {
+    if (htsResult.length === 0) {
+      toast.error(
+        '⚠ No HTS record found. Atleast, 1 test result is required to proceed'
+      );
+    } else if (htsResult.length > 0) {
+      toast.success('👍 HTS record found. You may proceed ✔');
+    }
+    formik.setValues(prev => ({
+      ...prev,
+      // hivTestResult,
+      hivTestResultDate,
+    }));
+  };
+  useEffect(() => {
+    getHtsResult();
+    console.log('values: ', formik.values);
+  }, [htsResult]);
 
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
     codeSet?.filter(regimen => regimen.id !== lastRegimenId);
@@ -899,24 +917,6 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const getHivResult = () => {
-    axios
-      .get(`${baseUrl}prep-clinic/hts-record/${props.patientObj.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        if (response.data?.length === 0) {
-          toast.error(
-            '⚠ No HTS record found. Atleast, 1 test result is required to proceed'
-          );
-        } else if (response.data?.length > 0) {
-          toast.success('👍 HTS record found. You may proceed ✔');
-        }
-        setHivTestValue(response?.data?.[0]?.hivTestResult);
-        setHivTestResultDate(response?.data?.[0]?.visitDate);
-      })
-      .catch(error => {});
-  };
   const getPatientDtoObj = () => {
     axios
       .get(
