@@ -79,13 +79,6 @@ export const usePatientDtoObj = personId => {
 export const useHivResult = personId => {
   const logicFunction = useCallback(
     data => {
-      if (data.length === 0) {
-        toast.error(
-          '⚠ No HTS record found. At least, 1 test result is required to proceed'
-        );
-      } else if (data.length > 0) {
-        toast.success('👍 HTS record found. You may proceed ✔');
-      }
       const hivTestValue = data[0]?.hivTestResult;
       const hivTestResultDate = data[0]?.visitDate;
       return { hivTestValue, hivTestResultDate };

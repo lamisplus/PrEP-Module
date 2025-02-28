@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Grid, Segment, Label } from 'semantic-ui-react';
 import {
   FormGroup,
@@ -190,37 +190,30 @@ const ClinicVisit = props => {
     latestFromEligibility?.visitDate,
     token
   );
-  console.log(
-    'params: ',
-    baseUrl,
-    props.patientObj.personId,
-    latestFromEligibility?.visitDate,
-    token
-  );
 
   const [otherTest, setOtherTest] = useState([]);
-  const { data, setData } = useHivResult(props.patientObj.personId);
+  const { data: latestHtsResult, setData } = useHivResult(
+    props.patientObj.personId
+  );
 
   const classes = useStyleForVisitForm();
   let temp = { ...errors };
-  let testsOptions = [];
 
-  function sortByVisitDateDescending(data) {
-    return data.sort((a, b) => {
-      const dateA = new Date(a.visitDate);
-      const dateB = new Date(b.visitDate);
-      return dateB - dateA;
-    });
-  }
-  useEffect(
-    () => console.log('isEligibleForCabLa: ', isEligibleForCabLa),
-    [isEligibleForCabLa]
-  );
+  useEffect(() => {
+    if (latestHtsResult?.htsResult) {
+      toast.error(
+        '⚠ No HTS record found. At least, 1 test result is required to proceed'
+      );
+    } else {
+      toast.success('👍 HTS record found. You may proceed ✔');
+    }
+  }, []);
+
   const [eligibilityVisitDateSync, setEligibilityVisitDateSync] =
     useState(false);
 
   const checkDateMismatch = (visitDate, eligibilityDate) => {
-    if (visitDate !== eligibilityDate) {
+    if (!visitDate || !eligibilityDate || visitDate !== eligibilityDate) {
       toast.error(
         '⚠ Please enter a date that matches the latest eligibility date!'
       );
@@ -230,6 +223,17 @@ const ClinicVisit = props => {
       );
     }
   };
+  useEffect(() => {
+    checkDateMismatch(
+      formik.values.visitDate,
+      latestFromEligibility?.visitDate
+    );
+    console.log(
+      'vals: ',
+      formik.values.visitDate,
+      latestFromEligibility?.visitDate
+    );
+  }, [formik.values.visitDate]);
 
   useEffect(() => {
     if (!eligibilityVisitDateSync) {
@@ -585,24 +589,6 @@ const ClinicVisit = props => {
     }
     return false;
   }
-  const getHtsResult = () => {
-    if (htsResult.length === 0) {
-      toast.error(
-        '⚠ No HTS record found. Atleast, 1 test result is required to proceed'
-      );
-    } else if (htsResult.length > 0) {
-      toast.success('👍 HTS record found. You may proceed ✔');
-    }
-    formik.setValues(prev => ({
-      ...prev,
-      // hivTestResult,
-      hivTestResultDate,
-    }));
-  };
-  useEffect(() => {
-    getHtsResult();
-    console.log('values: ', formik.values);
-  }, [htsResult]);
 
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
     codeSet?.filter(regimen => regimen.id !== lastRegimenId);
@@ -889,45 +875,20 @@ const ClinicVisit = props => {
     }));
   }, [otherTest]);
 
-  const checkEligibleForCabLa = currentDate => {
-    if (currentDate) {
-      axios
-        .get(
-          `${baseUrl}prep-clinic/checkEnableCab/${props.patientObj.personId}/${currentDate}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        )
-        .then(response => {
-          console.log('res: ', response.data, props.patientObj.personId);
-          return response?.data;
-        })
-        .catch(error => {});
-    }
-  };
-
-  const getPatientVisit = async id => {
-    axios
-      .get(`${baseUrl}prep-clinic/${props.activeContent.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        const { data } = JSON.parse(JSON.stringify(response));
-        setOtherTest(response?.data?.otherTestsDone);
-        setObjValues(data);
-      })
-      .catch(error => {});
-  };
-
-  const getPatientDtoObj = () => {
-    axios
-      .get(
-        `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(response => {
-        setPatientDto(response.data);
-      })
-      .catch(error => {});
-  };
+  const eligibleRegimens = useMemo(
+    () =>
+      isEligibleForCabLa || props.activeContent.actionType === 'update'
+        ? [...prepRegimen]
+        : [...prepRegimen].filter(({ id }) => id !== 2),
+    [isEligibleForCabLa]
+  );
+  const eligiblePrepTypes = useMemo(
+    () =>
+      isEligibleForCabLa || props.activeContent.actionType === 'update'
+        ? [...prepType]
+        : [...prepType].filter(({ id }) => ![1373, 1726].includes(id)),
+    [isEligibleForCabLa]
+  );
 
   return (
     <div className={`${classes.root} container-fluid`}>
@@ -1839,7 +1800,7 @@ const ClinicVisit = props => {
                     disabled={disabledField}
                   >
                     <option value=""> Select PrEP Type</option>
-                    {prepType?.map(value => (
+                    {eligiblePrepTypes?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -1870,7 +1831,7 @@ const ClinicVisit = props => {
                     }}
                   >
                     <option value=""> Select</option>
-                    {prepRegimen?.map(value => (
+                    {eligibleRegimens?.map(value => (
                       <option key={value.id} value={value.id}>
                         {value.regimen}
                       </option>

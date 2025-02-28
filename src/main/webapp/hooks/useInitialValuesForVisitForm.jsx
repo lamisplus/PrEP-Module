@@ -1,4 +1,14 @@
 import React, { useState } from 'react';
+import momentLocalizer from 'react-widgets-moment';
+
+function getCurrentDateFormatted() {
+  const currentDate = new Date();
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  const day = String(currentDate.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
 
 // Assuming patientObj is the only necessary parameter
 const useInitialValuesForVisitForm = (patientObj, objValues) => {
@@ -9,7 +19,7 @@ const useInitialValuesForVisitForm = (patientObj, objValues) => {
     datePrepStart: '',
     dateReferre: '',
     diastolic: '',
-    encounterDate: '',
+    encounterDate: getCurrentDateFormatted(),
     extra: {},
     height: '',
     hepatitis: {},
