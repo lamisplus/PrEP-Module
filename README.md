@@ -1,8 +1,9 @@
+```markdown
 # PrEP Module
 
 ## Project Title & Description
 
-**PrEP Module**
+PrEP Module
 
 - PrEP is a comprehensive module designed to manage Pre-Exposure Prophylaxis (PrEP) services within LamisPlus EMR.
 - It provides functionalities for managing patient data, PrEP eligibility, enrollment, clinic visits, interruptions, and regimens.
@@ -128,7 +129,7 @@ mvn spring-boot:run
 
 ## API Usage
 
-- Refer to the Swagger API documentation for endpoint details.
+- Refer to the API documentation for endpoint details.
 
 ## Environment Variables
 
@@ -188,6 +189,19 @@ mvn test
 - Kubernetes
 - AWS
 - Azure
+
+## API Documentation
+
+### PrEP Clinic Endpoints
+
+- `PUT /api/v1/prep-clinic/{id}`: Update PrEP Clinic by ID.
+- `GET /api/v1/prep-clinic/{id}`: Get PrEP Clinic by ID.
+- `GET /api/v1/prep-clinic/person/{personId}`: Get PrEP Clinic by Person ID.
+- `DELETE /api/v1/prep-clinic/{id}`: Delete PrEP Clinic.
+- `GET /api/v1/prep-clinic/checkEnableCab/{id}/{currentVisitDate}`: Check Cab-La eligibility for current visit.
+- `GET /api/v1/prep-clinic/hts-record/{id}`: Get HTS result and date for previous visit.
+- `GET /api/v1/prep-clinic/current-date`: Get database current date.
+- `PUT /api/v1/prep-clinic/updatePreviousPrepStatus`: Update previous PrEP status.
 
 ## Contributing
 
