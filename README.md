@@ -9,7 +9,7 @@ PrEP Module
 - It provides functionalities for managing patient data, PrEP eligibility, enrollment, clinic visits, interruptions, and regimens.
 - The module integrates with existing LamisPlus EMR modules to streamline the management of PrEP services.
 
-### Key Features
+## Key Features
 
 - Manage patient information and PrEP eligibility
 - Handle PrEP enrollment and clinic commencement
@@ -33,9 +33,6 @@ PrEP Module
 git clone https://github.com/lamisplus/PrEP-Module.git
 cd /<projects-folder>/PrEP-Module
 ```
-```
-
-Feel free to copy and paste this into your `readme.md` file. Let me know if there's anything else you need!
 
 ## Run in Development Environment
 
@@ -250,3 +247,5 @@ mvn test
 
 - **v2.2.1**: Updated dependencies and improved API endpoints.
 ```
+
+Feel free to copy and paste this into your `readme.md` file. Let me know if there's anything else you need!
