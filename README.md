@@ -30,9 +30,9 @@ PrEP Module
 
 ### Clone the Repository
 
-```bash
 git clone https://github.com/lamisplus/PrEP-Module.git
 cd /<projects-folder>/PrEP-Module
+```
 
 ## Run in Development Environment
 
