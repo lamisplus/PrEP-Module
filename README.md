@@ -187,19 +187,6 @@ mvn test
 - AWS
 - Azure
 
-## API Documentation
-
-### PrEP Clinic Endpoints
-
-- `PUT /api/v1/prep-clinic/{id}`: Update PrEP Clinic by ID.
-- `GET /api/v1/prep-clinic/{id}`: Get PrEP Clinic by ID.
-- `GET /api/v1/prep-clinic/person/{personId}`: Get PrEP Clinic by Person ID.
-- `DELETE /api/v1/prep-clinic/{id}`: Delete PrEP Clinic.
-- `GET /api/v1/prep-clinic/checkEnableCab/{id}/{currentVisitDate}`: Check Cab-La eligibility for current visit.
-- `GET /api/v1/prep-clinic/hts-record/{id}`: Get HTS result and date for previous visit.
-- `GET /api/v1/prep-clinic/current-date`: Get database current date.
-- `PUT /api/v1/prep-clinic/updatePreviousPrepStatus`: Update previous PrEP status.
-
 ## Contributing
 
 ### Guidelines for Contributing
@@ -218,10 +205,6 @@ mvn test
 - Use feature branches for new features.
 - Ensure all tests pass before submitting a PR.
 - Provide a detailed description of changes in the PR.
-
-## License
-
-- MIT License
 
 ## Authors & Acknowledgments
 
