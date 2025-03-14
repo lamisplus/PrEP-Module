@@ -244,5 +244,3 @@ mvn test
 
 - **v2.2.1**: Updated dependencies and improved API endpoints.
 ```
-
-Feel free to copy and paste this into your `readme.md` file. Let me know if there's anything else you need!
