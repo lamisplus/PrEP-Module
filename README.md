@@ -1,5 +1,3 @@
-Here's the section without the formatting that causes a colored background and horizontal scroll:
-
 # PrEP Module
 
 ## Project Title & Description
@@ -29,10 +27,10 @@ PrEP Module
 - React.js
 
 ### Clone the Repository
-
+```bash
 git clone https://github.com/lamisplus/PrEP-Module.git
 cd /<projects-folder>/PrEP-Module
-
+```
 ## Run in Development Environment
 
 ### Install Dependencies
