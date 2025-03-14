@@ -33,6 +33,9 @@ PrEP Module
 git clone https://github.com/lamisplus/PrEP-Module.git
 cd /<projects-folder>/PrEP-Module
 ```
+```
+
+Feel free to copy and paste this into your `readme.md` file. Let me know if there's anything else you need!
 
 ## Run in Development Environment
 
