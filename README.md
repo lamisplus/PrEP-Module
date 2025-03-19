@@ -211,7 +211,7 @@ mvn test
 ### Main Contributors
 
 - Gamaliel Dashua, @gamalieldashuaDataFi, @Gamey001 (main contributor)
-- Special Mentions: @Asquarep, @joshuagabriel-datafi, @Ganiyatyakub, @AJ-DataFI
+- Special Mentions: @Asquarep, @joshuagabriel-datafi, @Ganiyatyakub, @AJ-DataFI, @mathewade
 
 ## Troubleshooting & FAQs
 
