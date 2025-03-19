@@ -264,4 +264,62 @@
             ALTER TABLE prep_clinic ADD COLUMN previous_prep_status VARCHAR(255);
         </sql>
     </changeSet>
+
+    <!--    <changeSet failOnError="true" author="Gamaliel" id="08-01-2024-1">-->
+    <!--        <sql>-->
+    <!--            UPDATE prep_clinic-->
+    <!--            SET duration = 30-->
+    <!--            WHERE duration = 900;-->
+
+    <!--            UPDATE prep_clinic-->
+    <!--            SET duration = 90-->
+    <!--            WHERE duration = 2700;-->
+
+    <!--            UPDATE prep_clinic-->
+    <!--            SET duration = 60-->
+    <!--            WHERE duration = 1800;-->
+
+    <!--            UPDATE prep_clinic-->
+    <!--            SET duration = 180-->
+    <!--            WHERE duration = 5400;-->
+    <!--        </sql>-->
+    <!--    </changeSet>-->
+    <changeSet failOnError="true" author="Gamaliel" id="08-01-2024-02">
+        <sql>
+            UPDATE prep_clinic
+            SET visit_type = (
+            SELECT MAX(pe.visit_type)
+            FROM prep_eligibility pe
+            WHERE prep_clinic.encounter_date = pe.visit_date
+            )
+            WHERE visit_type IS NULL
+            AND EXISTS (
+            SELECT 1
+            FROM prep_eligibility pe
+            WHERE prep_clinic.encounter_date = pe.visit_date
+            );
+        </sql>
+    </changeSet>
+    <!--    <changeSet failOnError="true" author="Gamaliel" id="09-01-2025-01">-->
+    <!--        <sql>-->
+    <!--            UPDATE prep_clinic-->
+    <!--            SET duration = 28-->
+    <!--            WHERE duration = 840;-->
+    <!--            UPDATE prep_clinic-->
+    <!--            SET duration = 29-->
+    <!--            WHERE duration = 870;-->
+    <!--            UPDATE prep_clinic-->
+    <!--            SET duration = 31-->
+    <!--            WHERE duration = 930;-->
+    <!--        </sql>-->
+    <!--    </changeSet>-->
+    <changeSet failOnError="true" author="Gamaliel" id="09-01-2025-02">
+        <sql>
+            UPDATE prep_clinic
+            SET duration = CASE
+            WHEN duration > 180 THEN ROUND(duration / 30.0)
+            ELSE duration
+            END;
+        </sql>
+    </changeSet>
 </databaseChangeLog>
