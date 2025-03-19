@@ -81,7 +81,6 @@ class HeartRate extends Component {
         xAxes: [
           {
             display: false,
-            //   barPercentage: 1.2,
             gridLines: {
               display: false,
               drawBorder: false,

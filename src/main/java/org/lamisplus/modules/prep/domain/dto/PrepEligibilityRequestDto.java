@@ -1,6 +1,7 @@
 package org.lamisplus.modules.prep.domain.dto;
 
 import lombok.*;
+import org.codehaus.jackson.JsonNode;
 import org.lamisplus.modules.patient.domain.dto.PersonDto;
 
 import javax.validation.constraints.NotBlank;
@@ -32,7 +33,6 @@ public class PrepEligibilityRequestDto implements Serializable {
     @NotBlank(message = "targetGroup is mandatory")
     private String targetGroup;
     private Object extra;
-    @NotBlank(message = "uniqueId is mandatory")
     private String uniqueId;
     private Integer score;
     @NotNull(message = "visitDate is mandatory")
@@ -40,6 +40,12 @@ public class PrepEligibilityRequestDto implements Serializable {
     private  Object assessmentForPepIndication;
     private  Object assessmentForAcuteHivInfection;
     private  Object assessmentForPrepEligibility;
+    private String lftConducted;
+    private String reasonForSwitch;
+
+    private Object liverFunctionTestResults;
+
+    private LocalDate dateLiverFunctionTestResults;
     private  Object servicesReceivedByClient;
     private String populationType;
     private String visitType;

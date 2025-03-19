@@ -36,14 +36,14 @@ import java.util.UUID;
         @TypeDef(name = "jsonb-node", typeClass = JsonNodeBinaryType.class),
         @TypeDef(name = "json-node", typeClass = JsonNodeStringType.class),
 })
-public class PrepClinic extends Audit implements Serializable{
+public class PrepClinic extends Audit implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id", nullable = false, unique = true)
     private Long id;
 
     @Column(name = " date_initial_adherence_counseling")
-    private LocalDate  dateInitialAdherenceCounseling;
+    private LocalDate dateInitialAdherenceCounseling;
 
     @Column(name = "weight")
     private Double weight;
@@ -97,6 +97,9 @@ public class PrepClinic extends Audit implements Serializable{
 
     @Column(name = "visit_uuid")
     private String visitUuid;
+
+    @Column(name = "visit_type")
+    private String visitType;
 
     @OneToOne
     @JoinColumn(name = "vital_sign_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
@@ -156,12 +159,31 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "prep_given")
     private String prepGiven;
 
+    @Column(name = "date_of_liver_function_test_results")
+    private LocalDate dateLiverFunctionTestResults;
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "liver_function_test_results", columnDefinition = "jsonb", nullable = true)
+    private Object liverFunctionTestResults;
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "prep_noted_side_effects", columnDefinition = "jsonb", nullable = true)
+    private Object prepNotedSideEffects;
+    @Column(name = "reason_for_switch")
+    private String reasonForSwitch;
+    @Column(name = "was_prep_administered")
+    private String wasPrepAdministered;
+    @Column(name = "other_prep_given")
+    private String otherPrepGiven;
+    @Column(name = "other_prep_type")
+    private String otherPrepType;
+    @Column(name = "other_regimen_id")
+    private String otherRegimenId;
     @Column(name = "prep_distribution_setting")
     private String prepDistributionSetting;
 
     @Column(name = "family_planning")
-     private String familyPlanning;
-
+    private String familyPlanning;
     @Column(name = "date_of_family_planning")
     private LocalDate dateOfFamilyPlanning;
 
@@ -172,13 +194,16 @@ public class PrepClinic extends Audit implements Serializable{
     private String hivTestResult;
     @Column(name = "hiv_test_result_date")
     private LocalDate hivTestResultDate;
-
-
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "urinalysis", columnDefinition = "jsonb")
     private Object urinalysis;
-
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "creatinine", columnDefinition = "jsonb")
+    private Object creatinine;
+    @Column(name = "creatinine_result")
+    private String creatinineResult;
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "hepatitis", columnDefinition = "jsonb")
@@ -202,7 +227,7 @@ public class PrepClinic extends Audit implements Serializable{
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "syndromic_sti_screening", columnDefinition = "jsonb")
-    private Object syndromicStiScreening ;
+    private Object syndromicStiScreening;
 
     @Column(name = "risk_reduction_services")
     private String riskReductionServices;
@@ -211,16 +236,10 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "noted_side_effects")
     private String notedSideEffects;
 
-    @Column(name = "date_of_liver_function_test_results")
-    private LocalDate dateLiverFunctionTestResults;
-
     @Column(name = "prep_type")
     private String prepType;
     @Column(name = "population_type")
     private String populationType;
-
-    @Column(name = "liver_function_test_result")
-    private String liverFunctionTestResults;
 
     @Column(name = "history_of_drug_to_drug_interaction")
     private String historyOfDrugToDrugInteraction;
@@ -229,14 +248,20 @@ public class PrepClinic extends Audit implements Serializable{
     @Column(name = "months_of_refill")
     private Integer monthsOfRefill;
 
+    @Column(name = "health_care_worker_signature")
+    private String healthCareWorkerSignature;
+    @Column(name = "comment")
+    private String comment;
+    @Column(name = "previous_prep_status")
+    private String previousPrepStatus;
 
     @PrePersist
-    public void setFields(){
-        if(StringUtils.isEmpty(uuid)){
+    public void setFields() {
+        if (StringUtils.isEmpty(uuid)) {
             uuid = UUID.randomUUID().toString();
         }
-        if(archived == null){
-            archived=0;
+        if (archived == null) {
+            archived = 0;
         }
     }
 }

@@ -1,5 +1,4 @@
 import React, {useState, useEffect } from "react";
-// import { Link } from 'react-router-dom';
 import { Table  } from "react-bootstrap";
 import { Input, Label, FormGroup, } from "reactstrap";
 import { makeStyles } from '@material-ui/core/styles'
@@ -31,14 +30,12 @@ const ADR = (props) => {
   useEffect(() => {
     PrepSideEffect();
   }, []);
-       //Get list of PrepSideEffect
        const PrepSideEffect =()=>{
         axios
            .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
                { headers: {"Authorization" : `Bearer ${token}`} }
            )
            .then((response) => {
-               //console.log(response.data);
                setPrepSideEffect(response.data);
            })
            .catch((error) => {
@@ -49,7 +46,6 @@ const ADR = (props) => {
   const handAdrleInputChange = e => {
     props.setAdrObj ({...props.adrObj,  [e.target.name]: e.target.value});
   }
-   //Validations of the forms
    const validate = () => {        
     temp.adr = props.adrObj.adr ? "" : "This field is required"
     temp.adrOnsetDate = props.adrObj.adrOnsetDate ? "" : "This field is required"
@@ -110,6 +106,7 @@ const ADR = (props) => {
             <Label > Onset Date</Label>
             <Input
                 type="date"
+                onKeyDown={(e)=>e.preventDefault()}
                 name="adrOnsetDate"
                 id="adrOnsetDate"
                 value={props.adrObj.adrOnsetDate}

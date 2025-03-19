@@ -1,7 +1,6 @@
 package org.lamisplus.modules.prep.domain.dto;
 
 import lombok.*;
-import org.lamisplus.modules.prep.domain.entity.PrepInterruption;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -14,9 +13,10 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PrepInterruptionRequestDto implements Serializable {
-    @NotBlank(message = "interruptionType is mandatory")
+    @NotBlank(message = "Interruption type is mandatory")
+    @NotNull(message = "Interruption type is mandatory")
     private String interruptionType;
-    @NotNull(message = "interruptionDate is mandatory")
+    @NotNull(message = "Interruption date is mandatory")
     private LocalDate interruptionDate;
     private LocalDate dateClientDied;
     private String causeOfDeath;
@@ -24,12 +24,12 @@ public class PrepInterruptionRequestDto implements Serializable {
     private LocalDate dateClientReferredOut;
     private String facilityReferredTo;
     private String interruptionReason;
-    @NotNull(message = "personId is mandatory")
+    @NotNull(message = "PersonId is mandatory")
     private Long personId;
     private LocalDate dateSeroConverted;
     private LocalDate dateRestartPlacedBackMedication;
     private Boolean linkToArt;
-
+    private String reasonForPrepDiscontinuation;
     private String reasonStopped;
     private String reasonStoppedOthers;
 }

@@ -26,7 +26,6 @@ const ADR = (props) => {
   const handleInfectionInputChange = e => {
   props.setInfection ({...props.infection,  [e.target.name]: e.target.value});
   }
-  //Validations of the forms
   const validate = () => {        
     temp.ondateInfection = props.infection.ondateInfection ? "" : "This field is required"
     temp.illnessInfection = props.infection.illnessInfection ? "" : "This field is required"
@@ -62,6 +61,7 @@ const ADR = (props) => {
               <Label >Onset Date </Label>
               <Input
                   type="date"
+                  onKeyDown={(e)=>e.preventDefault()}
                   name="ondateInfection"
                   id="ondateInfection"
                   value={props.infection.ondateInfection}

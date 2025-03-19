@@ -10,7 +10,6 @@ class WidgetChartApex extends Component {
 				{
 					name: 'Net Profit',
 					data: [100,200, 100, 300, 200, 400, 200, 300,100, 300,200,300],
-					//radius: 12,	
 				}, 				
 			],
 			options: {

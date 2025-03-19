@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-// Image
 
 import image02 from "../../../../images/avatar/2.jpg";
 import image03 from "../../../../images/avatar/3.jpg";
@@ -17,7 +16,6 @@ const DeletedTable = () => {
   const activePag = useRef(0);
   const [test, settest] = useState(0);
 
-  // Active data
   const chageData = (frist, sec) => {
     for (var i = 0; i < data.length; ++i) {
       if (i >= frist && i < sec) {
@@ -27,21 +25,16 @@ const DeletedTable = () => {
       }
     }
   };
-  // use effect
   useEffect(() => {
     setData(document.querySelectorAll("#delete tbody tr"));
-    //chackboxFun();
   }, [test]);
 
 
-  // Active pagginarion
   activePag.current === 0 && chageData(0, sort);
-  // paggination
   let paggination = Array(Math.ceil(data.length / sort))
     .fill()
     .map((_, i) => i + 1);
 
-  // Active paggination & chage data
   const onClick = (i) => {
     activePag.current = i;
     chageData(activePag.current * sort, (activePag.current + 1) * sort);

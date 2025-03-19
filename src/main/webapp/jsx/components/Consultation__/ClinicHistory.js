@@ -26,8 +26,6 @@ import ViewColumn from '@material-ui/icons/ViewColumn';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-widgets/dist/css/react-widgets.css';
 import { makeStyles } from '@material-ui/core/styles'
-//import { useHistory } from "react-router-dom";
-//import {Menu,MenuList,MenuButton,MenuItem,} from "@reach/menu-button";
 import "@reach/menu-button/styles.css";
 import {  Modal } from "react-bootstrap";
 import { Dropdown,Button, Menu, Icon } from 'semantic-ui-react'
@@ -112,7 +110,6 @@ const PatientnHistory = (props) => {
         }
       }, [props.patientObj.id, props.activeContent.actionType]);
 
-        ///GET LIST OF Patients
         const PatientHistory =()=>{
             setLoading(true)
             axios
@@ -142,7 +139,6 @@ const PatientnHistory = (props) => {
         
         if(row.path==='prep-eligibility'){ 
             setSaving(true)       
-            //props.setActiveContent({...props.activeContent, route:'mental-health-view', id:row.id})
             axios
             .delete(`${baseUrl}prep-eligibility/${row.id}`,
                 { headers: {"Authorization" : `Bearer ${token}`} }
@@ -165,7 +161,6 @@ const PatientnHistory = (props) => {
             });  
         }else if(row.path==='prep-clinic'){
             setSaving(true)
-            //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
             axios
             .delete(`${baseUrl}prep-clinic/${row.id}`,
                 { headers: {"Authorization" : `Bearer ${token}`} }
@@ -189,7 +184,6 @@ const PatientnHistory = (props) => {
 
         }else if(row.path==='prep-enrollment'){
             setSaving(true)
-            //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
             axios
             .delete(`${baseUrl}prep-enrollment/${row.id}`,
                 { headers: {"Authorization" : `Bearer ${token}`} }
@@ -213,7 +207,6 @@ const PatientnHistory = (props) => {
 
         }else if(row.path==='prep-enrollment2'){
             setSaving(true)
-            //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
             axios
             .delete(`${baseUrl}prep-enrollment/${row.id}`,
                 { headers: {"Authorization" : `Bearer ${token}`} }

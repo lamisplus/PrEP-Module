@@ -1,6 +1,5 @@
 import Highcharts from 'highcharts';
 
-// Radialize the colors
 Highcharts.setOptions({
     colors: Highcharts.map(Highcharts.getOptions().colors, function (color) {
         return {
@@ -11,7 +10,7 @@ Highcharts.setOptions({
             },
             stops: [
                 [0, color],
-                [1, Highcharts.color(color).brighten(-0.3).get('rgb')] // darken
+                [1, Highcharts.color(color).brighten(-0.3).get('rgb')]
             ]
         };
     })

@@ -126,9 +126,11 @@ public class PrepEligibilityService {
         prepEligibility.setPopulationType(eligibilityDto.getPopulationType());
         prepEligibility.setVisitType(eligibilityDto.getVisitType());
         prepEligibility.setPregnancyStatus(eligibilityDto.getPregnancyStatus());
-
+        prepEligibility.setReasonForSwitch(eligibilityDto.getReasonForSwitch());
         prepEligibility.setVisitDate( eligibilityDto.getVisitDate());
-
+        prepEligibility.setLftConducted(eligibilityDto.getLftConducted());
+        prepEligibility.setDateLiverFunctionTestResults(eligibilityDto.getDateLiverFunctionTestResults());
+        prepEligibility.setLiverFunctionTestResults(eligibilityDto.getLiverFunctionTestResults());
         return prepEligibility;
     }
     public PrepEligibility eligibilityRequestDtoToEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto, String personUuid) {
@@ -160,9 +162,12 @@ public class PrepEligibilityService {
         prepEligibility.setPopulationType(prepEligibilityRequestDto.getPopulationType());
         prepEligibility.setVisitType(prepEligibilityRequestDto.getVisitType());
         prepEligibility.setPregnancyStatus(prepEligibilityRequestDto.getPregnancyStatus());
-
+        prepEligibility.setReasonForSwitch(prepEligibilityRequestDto.getReasonForSwitch());
         prepEligibility.setVisitDate( prepEligibilityRequestDto.getVisitDate());
+        prepEligibility.setLftConducted(prepEligibilityRequestDto.getLftConducted());
 
+        prepEligibility.setDateLiverFunctionTestResults(prepEligibilityRequestDto.getDateLiverFunctionTestResults());
+        prepEligibility.setLiverFunctionTestResults(prepEligibilityRequestDto.getLiverFunctionTestResults());
         return prepEligibility;
     }
 
@@ -198,9 +203,11 @@ public class PrepEligibilityService {
         prepEligibilityDto.setPregnancyStatus(eligibility.getPregnancyStatus());
         //PersonResponseDto personResponseDto = personService.getDtoFromPerson(eligibility.getPerson());
         //prepEligibilityDto.setPersonResponseDto(personResponseDto);
-
+        prepEligibilityDto.setReasonForSwitch(eligibility.getReasonForSwitch());
         prepEligibilityDto.setVisitDate( eligibility.getVisitDate() );
-
+        prepEligibilityDto.setLftConducted(eligibility.getLftConducted());
+        prepEligibilityDto.setDateLiverFunctionTestResults(eligibility.getDateLiverFunctionTestResults());
+        prepEligibilityDto.setLiverFunctionTestResults(eligibility.getLiverFunctionTestResults());
         return prepEligibilityDto;
     }
 

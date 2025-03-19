@@ -14,8 +14,8 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class PrepClinicRequestDto implements Serializable{
-    private LocalDate  dateInitialAdherenceCounseling;
+public class PrepClinicRequestDto implements Serializable {
+    private LocalDate dateInitialAdherenceCounseling;
 
     @NotNull(message = "weight is mandatory")
     private Double weight;
@@ -64,22 +64,30 @@ public class PrepClinicRequestDto implements Serializable{
     private LocalDate datePrepGiven;
 
     private Object urinalysis;
-
+    private Object creatinine;
+    private String creatinineResult;
     private Object hepatitis;
 
     private Object syphilis;
 
     private Object otherTestsDone;
 
-    private Object syndromicStiScreening ;
+    private Object syndromicStiScreening;
 
     private String riskReductionServices;
 
     private String notedSideEffects;
+    private Object prepNotedSideEffects;
+    private String healthCareWorkerSignature;
 
     private Integer duration;
 
     private String prepGiven;
+    private String otherPrepGiven;
+    private String otherPrepType;
+
+    private String otherRegimenId;
+
     private String prepDistributionSetting;
     private String familyPlanning;
     private LocalDate dateOfFamilyPlanning;
@@ -88,11 +96,18 @@ public class PrepClinicRequestDto implements Serializable{
 
     private String prepType;
     private String populationType;
+    private String visitType;
+
     private LocalDate dateLiverFunctionTestResults;
-    private String liverFunctionTestResults;
+    private Object liverFunctionTestResults;
+    private String reasonForSwitch;
+
+    private String wasPrepAdministered;
     private String historyOfDrugToDrugInteraction;
     private String historyOfDrugAllergies;
     private LocalDate hivTestResultDate;
     private Integer monthsOfRefill;
+    private String comment;
+    private String previousPrepStatus;
 }
 
