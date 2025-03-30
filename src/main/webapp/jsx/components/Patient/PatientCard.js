@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Accordion from '@material-ui/core/Accordion';
@@ -100,14 +100,33 @@ function PatientCard(props) {
   };
   const [showReminder, setShowReminder] = useState(true);
   const toggleModal = () => setShowReminder(prev => !prev);
+  const getRelativeDate = useCallback(daysOffset => {
+    const today = new Date();
+    const relativeDate = new Date(today);
+    relativeDate.setDate(today.getDate() + daysOffset);
+    return relativeDate.toLocaleDateString();
+  }, []);
 
-  useEffect(() => setShowReminder(!patientObj?.sendCabLaAlert), []);
+  const getReminderBody = useCallback(sendCabLaAlert => {
+    const reminderMessages = {
+      1: `Kindly be reminded that your CabLA appointment is tomorrow (${getRelativeDate(
+        1
+      )}). Ensure to avail yourself as early as possible.`,
+      2: `You have missed your CabLA appointment which was suppose to be yesterday (${getRelativeDate(
+        -1
+      )}). Please contact us to reschedule.`,
+    };
+
+    return reminderMessages[sendCabLaAlert] || '';
+  }, []);
+
+  useEffect(() => setShowReminder(parseInt(patientObj?.sendCabLaAlert)), []);
   return (
     <div className={classes.root}>
       <Reminder
         show={showReminder}
         title="CabLA followup Visit"
-        body={`Kindly be reminded that your CabLA appointment is tommorrow (${Date()}). Ensure to avail yourself as early as possible.`}
+        body={getReminderBody(parseInt(patientObj?.sendCabLaAlert))}
         onClose={toggleModal}
       />
       <Accordion>
