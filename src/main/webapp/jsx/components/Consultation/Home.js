@@ -326,7 +326,8 @@ const ClinicVisit = props => {
       })
       .then(response => {
         const { data } = JSON.parse(JSON.stringify(response));
-        setOtherTest(response?.data?.otherTestsDone);
+        setUrinalysisTest(data.urinalysis);
+        setOtherTest(data?.otherTestsDone);
         setObjValues(data);
       })
       .catch(error => {});
