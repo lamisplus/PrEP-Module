@@ -26,6 +26,7 @@ import {
   usePrepEligibilityObj,
 } from '../../../hooks/useApiUtilsForPrepVisit';
 import { useEligibilityCheckApi } from '../../../hooks/useEligibilityCheckApi';
+import { getCurrentDateFormatted } from '../../../hooks/useInitialValuesForVisitForm';
 
 export const CleanupWrapper = ({ isVisible, cleanup, children }) => {
   useEffect(() => {
@@ -71,7 +72,7 @@ const ClinicVisit = props => {
     wasPrepAdministered: '',
     otherTestsDone: [],
     personId: props.patientObj.personId,
-    pregnant: '',
+    pregnancyStatus: '',
     prepEnrollmentUuid: '',
     pulse: '',
     referred: '',
@@ -159,8 +160,8 @@ const ClinicVisit = props => {
     setHepaTestResult,
     familyPlanningMethod,
     setFamilyPlanningMethod,
-    pregnant,
-    setPregnant,
+    pregnancyStatus,
+    setPregnancyStatus,
     prepEntryPoint,
     setPrepEntryPoints,
     prepType,
@@ -198,7 +199,6 @@ const ClinicVisit = props => {
 
   const classes = useStyleForVisitForm();
   let temp = { ...errors };
-
   useEffect(() => {
     if (latestHtsResult?.htsResult) {
       toast.error(
@@ -213,6 +213,7 @@ const ClinicVisit = props => {
     useState(false);
 
   const checkDateMismatch = (visitDate, eligibilityDate) => {
+    if (visitDate === getCurrentDateFormatted()) return;
     if (!visitDate || !eligibilityDate || visitDate !== eligibilityDate) {
       toast.error(
         '⚠ Please enter a date that matches the latest eligibility date!'
@@ -223,18 +224,27 @@ const ClinicVisit = props => {
       );
     }
   };
+
   useEffect(() => {
     checkDateMismatch(
-      formik.values.visitDate,
+      formik.values.encounterDate,
       latestFromEligibility?.visitDate
     );
-    console.log(
-      'vals: ',
-      formik.values.visitDate,
-      latestFromEligibility?.visitDate
-    );
-  }, [formik.values.visitDate]);
-
+    formik.setValues(prevs => ({
+      ...prevs,
+      hivTestValue: latestHtsResult?.hivTestValue,
+      hivTestResultDate: latestHtsResult?.hivTestResultDate,
+      populationType: latestFromEligibility?.populationType,
+      visitType: latestFromEligibility?.visitType,
+      liverFunctionTestResults: latestFromEligibility?.liverFunctionTestResults,
+      dateLiverFunctionTestResults:
+        latestFromEligibility?.dateLiverFunctionTestResults,
+      pregnancyStatus: latestFromEligibility?.pregnancyStatus,
+    }));
+  }, [formik.values.encounterDate]);
+  useEffect(() =>
+    console.log('latestFromEligibility: ', latestFromEligibility)
+  );
   useEffect(() => {
     if (!eligibilityVisitDateSync) {
       setObjValues(prevValues => ({
@@ -1340,7 +1350,7 @@ const ClinicVisit = props => {
                         name="pregnant"
                         id="pregnant"
                         onChange={formik.handleChange}
-                        value={formik.values.pregnant}
+                        value={formik.values.pregnancyStatus}
                         disabled
                         style={{
                           border: '1px solid #014D88',
@@ -1348,14 +1358,16 @@ const ClinicVisit = props => {
                         }}
                       >
                         <option value="">Select Pregnancy Status</option>
-                        {pregnant?.map(value => (
+                        {pregnancyStatus?.map(value => (
                           <option key={value.id} value={value.code}>
                             {value.display}
                           </option>
                         ))}
                       </Input>
-                      {errors.pregnant !== '' ? (
-                        <span className={classes.error}>{errors.pregnant}</span>
+                      {errors.pregnancyStatus !== '' ? (
+                        <span className={classes.error}>
+                          {errors.pregnancyStatus}
+                        </span>
                       ) : (
                         ''
                       )}
@@ -1386,7 +1398,7 @@ const ClinicVisit = props => {
                     type="text"
                     name="hivTestResult"
                     id="hivTestResult"
-                    value={hivTestValue}
+                    value={formik.values.hivTestValue}
                     onChange={e => {
                       setHivTestValue(e.target.value);
                     }}
@@ -1412,13 +1424,15 @@ const ClinicVisit = props => {
                     <span style={{ color: 'red' }}> *</span>
                   </FormLabelName>
                   <Input
-                    type={hivTestValue == 'NOT DONE' ? 'text' : 'date'}
+                    type={
+                      formik.values.hivTestValue == 'NOT DONE' ? 'text' : 'date'
+                    }
                     name="hivTestResultDate"
                     id="hivTestResultDate"
                     value={
-                      hivTestValue == 'NOT DONE'
+                      formik.values.hivTestValue == 'NOT DONE'
                         ? 'NOT APPLICABLE'
-                        : hivTestResultDate
+                        : formik.values.hivTestResultDate
                     }
                     onChange={e => {
                       setHivTestValue(e.target.value);
@@ -1447,7 +1461,7 @@ const ClinicVisit = props => {
                       Liver Function Tests Result
                     </FormLabelName>
                     <LiverFunctionTest
-                      objValues={objValues}
+                      objValues={formik.values}
                       handleInputChange={handleLftInputChange}
                       liverFunctionTestResult={liverFunctionTestResult}
                       disabledField={true}

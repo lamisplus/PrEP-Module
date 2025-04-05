@@ -444,7 +444,6 @@ const BasicInfo = props => {
 
     return Object.values(temp).every(x => x === '');
   };
-  useEffect(() => console.log('temp: ', temp));
 
   const handleSubmit = e => {
     e.preventDefault();

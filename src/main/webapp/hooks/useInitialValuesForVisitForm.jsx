@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import momentLocalizer from 'react-widgets-moment';
 
-function getCurrentDateFormatted() {
+export function getCurrentDateFormatted() {
   const currentDate = new Date();
   const year = currentDate.getFullYear();
   const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
@@ -29,7 +29,7 @@ const useInitialValuesForVisitForm = (patientObj, objValues) => {
     wasPrepAdministered: '',
     otherTestsDone: [],
     personId: patientObj?.personId || '', // Use patientObj parameter
-    pregnant: '',
+    pregnancyStatus: '',
     prepEnrollmentUuid: '',
     pulse: '',
     referred: '',
@@ -64,7 +64,7 @@ const useInitialValuesForVisitForm = (patientObj, objValues) => {
     visitType: '',
     reasonForSwitch: '',
     dateLiverFunctionTestResults: '',
-    liverFunctionTestResults: [],
+    liverFunctionTestResults: '',
   });
 
   return { initialValues };

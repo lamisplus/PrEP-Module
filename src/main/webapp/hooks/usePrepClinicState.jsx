@@ -55,7 +55,8 @@ const usePrepClinicState = props => {
     useHepatitisScreeningResult();
   const { data: familyPlanningMethod, setData: setFamilyPlanningMethod } =
     useFamilyPlanningMethod();
-  const { data: pregnant, setData: setPregnant } = usePregnancyStatus();
+  const { data: pregnancyStatus, setData: setPregnancyStatus } =
+    usePregnancyStatus();
   const { data: prepEntryPoint, setData: setPrepEntryPoints } =
     usePrepEntryPoint();
   const { data: prepType, setData: setPrepType } = usePrepType();
@@ -115,8 +116,8 @@ const usePrepClinicState = props => {
     setHepaTestResult,
     familyPlanningMethod,
     setFamilyPlanningMethod,
-    pregnant,
-    setPregnant,
+    pregnancyStatus,
+    setPregnancyStatus,
     prepEntryPoint,
     setPrepEntryPoints,
     prepType,
