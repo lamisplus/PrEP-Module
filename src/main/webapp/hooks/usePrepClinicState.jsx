@@ -81,9 +81,7 @@ const usePrepClinicState = props => {
   const { onSubmit, saving } = useSubmitHandlerForVisitForm();
 
   const formik = useFormik({
-    initialValues,
-    validationSchema,
-    onSubmit,
+    onSubmit: () => console.log('yesdsss'),
   });
 
   return {

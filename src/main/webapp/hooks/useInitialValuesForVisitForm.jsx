@@ -1,25 +1,23 @@
-import React, { useState } from 'react';
-import momentLocalizer from 'react-widgets-moment';
-
-export function getCurrentDateFormatted() {
+// Assuming patientObj is the only necessary parameter
+import React, { useState, useEffect } from 'react';
+export const getCurrentDateFormatted = () => {
   const currentDate = new Date();
   const year = currentDate.getFullYear();
   const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
   const day = String(currentDate.getDate()).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
-}
+};
 
-// Assuming patientObj is the only necessary parameter
 const useInitialValuesForVisitForm = (patientObj, objValues) => {
-  const [initialValues, setInitialValues] = useState({
+  const [initialValues, setInitialValues] = useState(() => ({
     adherenceLevel: '',
     dateInitialAdherenceCounseling: '',
     datePrepGiven: '',
     datePrepStart: '',
     dateReferre: '',
     diastolic: '',
-    encounterDate: getCurrentDateFormatted(),
+    encounterDate: '',
     extra: {},
     height: '',
     hepatitis: {},
@@ -28,7 +26,7 @@ const useInitialValuesForVisitForm = (patientObj, objValues) => {
     notedSideEffects: '',
     wasPrepAdministered: '',
     otherTestsDone: [],
-    personId: patientObj?.personId || '', // Use patientObj parameter
+    personId: patientObj?.personId || '',
     pregnancyStatus: '',
     prepEnrollmentUuid: '',
     pulse: '',
@@ -65,7 +63,14 @@ const useInitialValuesForVisitForm = (patientObj, objValues) => {
     reasonForSwitch: '',
     dateLiverFunctionTestResults: '',
     liverFunctionTestResults: '',
-  });
+  }));
+
+  useEffect(() => {
+    setInitialValues(prevValues => ({
+      ...prevValues,
+      encounterDate: getCurrentDateFormatted(),
+    }));
+  }, [patientObj, objValues]); // Add any other dependencies here
 
   return { initialValues };
 };
