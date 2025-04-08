@@ -2575,7 +2575,6 @@ const ClinicVisit = props => {
                           className={classes.button}
                           startIcon={<SaveIcon />}
                           style={{ backgroundColor: '#014d88' }}
-                          onClick={formik.handleSubmit}
                           disabled={saving}
                         >
                           {!saving ? (
