@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 export const useValidation = () => {
   const [validationSchema, setValidationSchema] = useState(
     Yup.object({
-      hivTestResult: Yup.string().required(
+      hivTestValue: Yup.string().required(
         'At least, 1 HIV test result is required'
       ),
       monthsOfRefill: Yup.string().required('This field is required'),

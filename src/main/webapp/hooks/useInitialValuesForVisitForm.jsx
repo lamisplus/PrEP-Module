@@ -50,6 +50,8 @@ const useInitialValuesForVisitForm = (patientObj, objValues) => {
     why: '',
     otherDrugs: '',
     prepGiven: '',
+    hivTestValue: '',
+    hivTestResultDate: '',
     hivTestResult: '',
     hivTestResultDate: '',
     prepType: '',
@@ -70,8 +72,7 @@ const useInitialValuesForVisitForm = (patientObj, objValues) => {
       ...prevValues,
       encounterDate: getCurrentDateFormatted(),
     }));
-  }, [patientObj, objValues]); // Add any other dependencies here
-
+  }, [patientObj, objValues]);
   return { initialValues };
 };
 
