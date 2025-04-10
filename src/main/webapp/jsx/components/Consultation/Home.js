@@ -206,8 +206,10 @@ const ClinicVisit = props => {
       toast.success('👍 HTS record found. You may proceed ✔');
     }
   }, []);
+  const [isInitialValues, setIsInitialValues] = useState(1);
 
   const checkDateMismatch = (visitDate, eligibilityDate) => {
+    if (isInitialValues) return;
     if (!eligibilityDate || (visitDate && visitDate !== eligibilityDate)) {
       toast.error(
         '⚠ Please enter a date that matches the latest eligibility date!'
@@ -257,6 +259,7 @@ const ClinicVisit = props => {
       }));
     }
   }, [localEncounterDate]);
+
   const handleInputChangeUrinalysisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     setUrinalysisTest({ ...urinalysisTest, [e.target.name]: e.target.value });
@@ -269,19 +272,23 @@ const ClinicVisit = props => {
     });
     setCreatinineTest({ ...creatinineTest, [e.target.name]: e.target.value });
   };
+
   const handleInputChangeOtherTest = (e, localId) => {
     let temp = [...otherTest];
     let index = temp.findIndex(x => Number(x.localId) === Number(localId));
     temp[index][e.target.name] = e.target.value;
     setOtherTest(temp);
   };
+
   const handleRemoveTest = localId => {
     setOtherTest(prev => prev?.filter(test => test.localId !== localId));
   };
+
   const handleInputChangeHepatitisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     setHepatitisTest({ ...hepatitisTest, [e.target.name]: e.target.value });
   };
+
   const handleInputChangeSyphilisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     setSyphilisTest({ ...syphilisTest, [e.target.name]: e.target.value });
@@ -292,6 +299,7 @@ const ClinicVisit = props => {
     }
     setSyphilisTest({ ...syphilisTest, [e.target.name]: e.target.value });
   };
+
   const handleCheckBoxUrinalysisTest = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     if (urinalysisTest?.urinalysisTest === 'Yes') {
@@ -354,6 +362,7 @@ const ClinicVisit = props => {
   };
 
   const otherTestInputRef = useRef();
+
   const handleInputValueCheckHeight = e => {
     if (
       e.target.name === 'height' &&
@@ -366,6 +375,7 @@ const ClinicVisit = props => {
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: '' });
     }
   };
+
   const handleInputValueCheckweight = e => {
     if (
       e.target.name === 'weight' &&
@@ -378,6 +388,7 @@ const ClinicVisit = props => {
       setVitalClinicalSupport({ ...vitalClinicalSupport, weight: '' });
     }
   };
+
   const handleInputValueCheckSystolic = e => {
     if (
       e.target.name === 'systolic' &&
@@ -390,6 +401,7 @@ const ClinicVisit = props => {
       setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: '' });
     }
   };
+
   const handleInputValueCheckDiastolic = e => {
     if (
       e.target.name === 'diastolic' &&
@@ -402,6 +414,7 @@ const ClinicVisit = props => {
       setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: '' });
     }
   };
+
   const handleInputValueCheckPulse = e => {
     if (
       e.target.name === 'pulse' &&
@@ -413,6 +426,7 @@ const ClinicVisit = props => {
       setVitalClinicalSupport({ ...vitalClinicalSupport, pulse: '' });
     }
   };
+
   const handleInputValueCheckRespiratoryRate = e => {
     if (
       e.target.name === 'respiratoryRate' &&
@@ -428,6 +442,7 @@ const ClinicVisit = props => {
       setVitalClinicalSupport({ ...vitalClinicalSupport, respiratoryRate: '' });
     }
   };
+
   const handleInputValueCheckTemperature = e => {
     if (
       e.target.name === 'temperature' &&
@@ -469,6 +484,7 @@ const ClinicVisit = props => {
       date1.getDate() === date2.getDate()
     );
   }
+
   function hasPrepEligibility(targetDate, activitiesArray) {
     for (const activityGroup of activitiesArray) {
       for (const activity of activityGroup?.activities) {
@@ -743,7 +759,10 @@ const ClinicVisit = props => {
         : [...prepType].filter(({ id }) => ![1373, 1726].includes(id)),
     [isEligibleForCabLa]
   );
-
+  const handleEncounterDate = e => {
+    setIsInitialValues(0);
+    formik.handleChange(e);
+  };
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
@@ -783,7 +802,7 @@ const ClinicVisit = props => {
                           border: '1px solid #014D88',
                           borderRadius: '0.25rem',
                         }}
-                        onChange={formik.handleChange}
+                        onChange={handleEncounterDate}
                         min={
                           patientDto && patientDto.dateEnrolled
                             ? patientDto.dateEnrolled
@@ -1032,6 +1051,7 @@ const ClinicVisit = props => {
                             value={formik.values.height}
                             min="48.26"
                             max="216.408"
+                            step="0.01"
                             onKeyUp={handleInputValueCheckHeight}
                             style={{
                               border: '1px solid #014D88',
