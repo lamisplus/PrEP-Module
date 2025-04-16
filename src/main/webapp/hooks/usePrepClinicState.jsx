@@ -2,7 +2,6 @@ import React from 'react';
 import { useFormik } from 'formik';
 import { useValidation } from './useValidation';
 import useInitialValuesForVisitForm from './useInitialValuesForVisitForm';
-import useSubmitHandlerForVisitForm from './useOnSubmitHandlerForVisitForm';
 import {
   useWhyPoorFairAdherence,
   useSyndromicStiScreening,
@@ -31,6 +30,8 @@ import {
   useHivResult,
   useLatestFromEligibility,
 } from './useApiUtilsForPrepVisit';
+import useSubmitPrepClinicForm from './useSubmitPrepClinicForm';
+import { token, url } from '../api';
 
 const usePrepClinicState = props => {
   const [disabledField, setDisabledField] = React.useState(false);
@@ -78,12 +79,12 @@ const usePrepClinicState = props => {
     useLiverFunctionTestResult();
   const { validationSchema } = useValidation();
   const { initialValues } = useInitialValuesForVisitForm();
-  const { onSubmit, saving } = useSubmitHandlerForVisitForm();
+  const { submitForm } = useSubmitPrepClinicForm(props, url, token);
 
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit: () => alert(1),
+    onSubmit: values => submitForm(values),
   });
 
   return {
