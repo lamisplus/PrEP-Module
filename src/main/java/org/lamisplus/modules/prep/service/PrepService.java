@@ -266,13 +266,9 @@ public class PrepService {
 
     public PrepDtos getPrepByPersonId(Long personId) {
         Person person = personRepository.findById(personId).orElse(new Person());
-        System.out.println("person: " + person);
         if (person.getId() == null) {
             return new PrepDtos();
         }
-        System.out.println("person from enrollRepo: " + prepEnrollmentRepository.findFirstByPersonOrderByIdDesc(person));
-
-        System.out.println("result returned: " + this.prepToPrepDtos(person, prepEnrollmentRepository.findFirstByPersonOrderByIdDesc(person)));
         return this.prepToPrepDtos(person, prepEnrollmentRepository.findFirstByPersonOrderByIdDesc(person));
     }
 
@@ -364,19 +360,12 @@ public class PrepService {
     }
 
     private PrepDtos prepToPrepDtos(@NotNull Person person, List<PrepEnrollment> clients) {
-        System.out.println("break120");
         boolean isPositive = false;
-        System.out.println("break119");
         PrepDtos prepDtos = new PrepDtos();
-        System.out.println("break118");
         if (person == null) throw new EntityNotFoundException(Person.class, "Person", "is null");
-        System.out.println("break117");
         prepDtos.setPersonId(person.getId());
-        System.out.println("break116");
         prepDtos.setPersonResponseDto(personService.getDtoFromPerson(person));
-        System.out.println("break115");
         prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
-        System.out.println("break114");
         List<PrepDto> prepDtoList = clients
                 .stream()
                 .map(client -> {
@@ -393,39 +382,26 @@ public class PrepService {
                     return this.prepEnrollmentToPrepDto(client);
                 })
                 .collect(Collectors.toList());
-        System.out.println("break113");
         int prepCount = prepDtoList.size();
-        System.out.println("break112");
         prepDtos.setPrepEnrollmentCount(prepCount);
-        System.out.println("break111");
         prepDtos.setPrepDtoList(prepDtoList);
-        System.out.println("break110");
         Integer commencementCount = prepClinicRepository.countAllByPersonUuid(person.getUuid());
-        System.out.println("break19");
         prepDtos.setCommenced((commencementCount > 0) ? true : false);
-        System.out.println("break18");
         prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
-        System.out.println("break7");
         prepDtos.setHivPositive(isPositive);
-        System.out.println("break6");
         prepDtos.setPrepCommencementCount(commencementCount);
-        System.out.println("break5");
         PrepClient prepClient = prepEnrollmentRepository
                 .findPersonPrepAndStatusByPatientUuid(UN_ARCHIVED,
                         currentUserOrganizationService.getCurrentUserOrganization(), person.getUuid())
                 .orElse(null);
-        System.out.println("break14");
         if (prepClient == null) {
-            System.out.println("break13");
             prepDtos.setPrepStatus("Not Available");
         } else {
-            System.out.println("break12");
             prepDtos.setPrepStatus(prepClient.getPrepStatus());
             prepDtos.setDateConfirmedHiv(prepClient.getDateConfirmedHiv());
             prepDtos.setCreatedBy(prepClient.getCreatedBy());
             //prepDtos.setPrepEligibilityCount(prepClient.getEligibilityCount());
         }
-        System.out.println("break11");
         return prepDtos;
     }
 
