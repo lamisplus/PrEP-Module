@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Accordion from '@material-ui/core/Accordion';
@@ -15,6 +15,9 @@ import moment from 'moment';
 import Typography from '@material-ui/core/Typography';
 import { AccordionSummary } from '@material-ui/core';
 import { Alert as Reminder } from '../Consultation/Alert/Alert';
+import { useGetAddress } from '../../../hooks/patientCard/useGetAddress';
+import useGetPhoneNumber from '../../../hooks/patientCard/useGetPhoneNumber';
+import useCalculateAge from '../../../hooks/patientCard/useCalculateAge';
 Moment.locale('en');
 momentLocalizer();
 
@@ -57,77 +60,42 @@ function PatientCard(props) {
   const { classes } = props;
   const patientObj = props?.patientObj;
 
-  const calculate_age = dob => {
-    var today = new Date();
-    var dateParts = dob.split('-');
-    var dateObject = new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
-    var birthDate = new Date(dateObject);
-    var age_now = today?.getFullYear() - birthDate?.getFullYear();
-    var m = today?.getMonth() - birthDate?.getMonth();
-    if (m < 0 || (m === 0 && today?.getDate() < birthDate?.getDate())) {
-      age_now--;
-    }
-    if (age_now === 0) {
-      return m + ' month(s)';
-    }
-    return age_now + ' year(s)';
-  };
-  const getHospitalNumber = identifier => {
-    const identifiers = identifier;
-    const hospitalNumber = identifiers?.identifier?.find?.(
-      obj => obj.type === 'HospitalNumber'
-    );
-    return hospitalNumber ? hospitalNumber?.value : '';
-  };
-  const getPhoneNumber = identifier => {
-    const identifiers = identifier;
-    const phoneNumber = identifiers?.contactPoint?.find?.(
-      obj => obj?.type === 'phone'
-    );
-    return phoneNumber ? phoneNumber?.value : '';
-  };
-  const getAddress = identifier => {
-    console.log('identifier: ', identifier);
-    const identifiers = identifier;
-    const address = identifiers?.address?.find?.(obj => obj?.city);
-    const houseAddress =
-      Array.isArray(address?.line) && address?.line[0] != null
-        ? address?.line[0]
-        : '';
-    const landMark =
-      address && address?.city && address?.city !== null ? address?.city : '';
-    return address ? houseAddress + ' ' + landMark : '';
-  };
-  const [showReminder, setShowReminder] = useState(true);
-  const toggleModal = () => setShowReminder(prev => !prev);
-  const getRelativeDate = useCallback(daysOffset => {
-    const today = new Date();
-    const relativeDate = new Date(today);
-    relativeDate.setDate(today.getDate() + daysOffset);
-    return relativeDate.toLocaleDateString();
+  const reminderConfig = useMemo(() => {
+    return [
+      null,
+      {
+        title: 'Upcoming CabLA Appointment!',
+        body: `CabLA appointment is due tommorrow`,
+      },
+      {
+        title: 'Missed CabLA Appointment!',
+        body: `CabLA appointment is overdue!`,
+      },
+    ];
   }, []);
 
-  const getReminderBody = useCallback(sendCabLaAlert => {
-    const reminderMessages = {
-      1: `Kindly be reminded that your CabLA appointment is tomorrow (${getRelativeDate(
-        1
-      )}). Ensure to avail yourself as early as possible.`,
-      2: `You have missed your CabLA appointment which was suppose to be yesterday (${getRelativeDate(
-        -1
-      )}). Please contact us to reschedule.`,
-    };
+  const { getAddress } = useGetAddress();
+  const { getPhoneNumber } = useGetPhoneNumber();
+  const { calculateAge } = useCalculateAge();
 
-    return reminderMessages[sendCabLaAlert] || '';
+  const getReminderAlert = sendCabLaAlert => reminderConfig[sendCabLaAlert];
+
+  const [showReminder, setShowReminder] = useState(0);
+  const toggleModal = () => setShowReminder(0);
+
+  useEffect(() => {
+    setShowReminder(patientObj?.sendCabLaAlert);
   }, []);
 
-  useEffect(() => setShowReminder(parseInt(patientObj?.sendCabLaAlert)), []);
   return (
     <div className={classes.root}>
       <Reminder
         show={showReminder}
-        title="CabLA followup Visit"
-        body={getReminderBody(parseInt(patientObj?.sendCabLaAlert))}
+        title={showReminder?.title}
+        body={showReminder?.body}
+        patientObj={patientObj}
         onClose={toggleModal}
+        nextAppointmentDate={Date()}
       />
       <Accordion>
         <AccordionSummary>
@@ -183,7 +151,7 @@ function PatientCard(props) {
                         {' '}
                         Age :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {calculate_age(
+                          {calculateAge(
                             moment(patientObj?.dateOfBirth).format('DD-MM-YYYY')
                           )}
                         </b>
@@ -210,7 +178,8 @@ function PatientCard(props) {
                         {' '}
                         Phone Number :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.phoneNumber}
+                          {patientObj?.phoneNumber ||
+                            getPhoneNumber(props?.patientDetail)}
                         </b>
                       </span>
                     </Col>
@@ -219,7 +188,8 @@ function PatientCard(props) {
                         {' '}
                         Address :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.address}{' '}
+                          {patientObj?.address ||
+                            getAddress(props?.patientDetail)}{' '}
                         </b>
                       </span>
                     </Col>

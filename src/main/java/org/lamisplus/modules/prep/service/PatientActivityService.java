@@ -30,7 +30,6 @@ public class PatientActivityService {
 
     public List<PatientActivity> getActivitiesFor(Long patientId) {
         Person person = patientRepository.findById(patientId).orElse(null);
-        System.out.println("person: " + person);
         if (person != null) {
             return beanProvider.getBeansOfType(PatientActivityProvider.class)
                     .stream()

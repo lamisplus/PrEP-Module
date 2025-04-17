@@ -207,11 +207,10 @@ const Patients = props => {
             color: '#fff',
           },
           searchFieldStyle: {
-            width: '200%',
+            width: '100%',
             margingLeft: '250px',
           },
           filtering: false,
-          exportButton: true,
           searchFieldAlignment: 'left',
           pageSizeOptions: [10, 20, 100],
           pageSize: 10,
