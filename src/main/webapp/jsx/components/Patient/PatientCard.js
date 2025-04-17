@@ -18,6 +18,8 @@ import { Alert as Reminder } from '../Consultation/Alert/Alert';
 import { useGetAddress } from '../../../hooks/patientCard/useGetAddress';
 import useGetPhoneNumber from '../../../hooks/patientCard/useGetPhoneNumber';
 import useCalculateAge from '../../../hooks/patientCard/useCalculateAge';
+import useGetReminderAlert from '../../../hooks/patientCard/useGetReminderAlert';
+import useBasicPatientDetails from '../../../hooks/patientCard/useBasicPatientDetails';
 Moment.locale('en');
 momentLocalizer();
 
@@ -60,31 +62,23 @@ function PatientCard(props) {
   const { classes } = props;
   const patientObj = props?.patientObj;
 
-  const reminderConfig = useMemo(() => {
-    return [
-      null,
-      {
-        title: 'Upcoming CabLA Appointment!',
-        body: `CabLA appointment is due tommorrow`,
-      },
-      {
-        title: 'Missed CabLA Appointment!',
-        body: `CabLA appointment is overdue!`,
-      },
-    ];
-  }, []);
-
   const { getAddress } = useGetAddress();
   const { getPhoneNumber } = useGetPhoneNumber();
   const { calculateAge } = useCalculateAge();
-
-  const getReminderAlert = sendCabLaAlert => reminderConfig[sendCabLaAlert];
-
+  const { getReminderAlert } = useGetReminderAlert();
+  const {
+    getSex,
+    getUniqueId,
+    getDateOfBirth,
+    getAge,
+    getFirstName,
+    getSurname,
+  } = useBasicPatientDetails();
   const [showReminder, setShowReminder] = useState(0);
   const toggleModal = () => setShowReminder(0);
 
   useEffect(() => {
-    setShowReminder(patientObj?.sendCabLaAlert);
+    setShowReminder(getReminderAlert(parseInt(patientObj?.sendCabLaAlert)));
   }, []);
 
   return (
@@ -95,7 +89,6 @@ function PatientCard(props) {
         body={showReminder?.body}
         patientObj={patientObj}
         onClose={toggleModal}
-        nextAppointmentDate={Date()}
       />
       <Accordion>
         <AccordionSummary>
@@ -108,7 +101,9 @@ function PatientCard(props) {
                       <b
                         style={{ fontSize: '25px', color: 'rgb(153, 46, 98)' }}
                       >
-                        {patientObj?.firstName + ' ' + patientObj?.surname}
+                        {(patientObj?.firstName || getFirstName()) +
+                          ' ' +
+                          (patientObj?.surname || getSurname())}
                       </b>
                       <Link to={'/'}>
                         <ButtonMui
@@ -133,7 +128,8 @@ function PatientCard(props) {
                         {' '}
                         Patient ID :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.hospitalNumber}
+                          {patientObj?.hospitalNumber ||
+                            getUniqueId(props?.patientDetail)}
                         </b>
                       </span>
                     </Col>
@@ -142,7 +138,8 @@ function PatientCard(props) {
                       <span>
                         Date Of Birth :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.dateOfBirth}
+                          {patientObj?.dateOfBirth ||
+                            getDateOfBirth(props?.patientDetail)}
                         </b>
                       </span>
                     </Col>
@@ -152,7 +149,10 @@ function PatientCard(props) {
                         Age :{' '}
                         <b style={{ color: '#0B72AA' }}>
                           {calculateAge(
-                            moment(patientObj?.dateOfBirth).format('DD-MM-YYYY')
+                            moment(
+                              patientObj?.dateOfBirth ||
+                                getDateOfBirth(props?.patientDetail)
+                            ).format('DD-MM-YYYY')
                           )}
                         </b>
                       </span>
@@ -161,7 +161,9 @@ function PatientCard(props) {
                       <span>
                         {' '}
                         Gender :{' '}
-                        <b style={{ color: '#0B72AA' }}>{patientObj?.gender}</b>
+                        <b style={{ color: '#0B72AA' }}>
+                          {patientObj?.gender || getSex(props?.patientDetail)}
+                        </b>
                       </span>
                     </Col>
                     <Col md={4}>
@@ -169,7 +171,9 @@ function PatientCard(props) {
                         {' '}
                         Sex at Birth :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.sexAtBirth || patientObj?.gender}
+                          {patientObj?.sexAtBirth ||
+                            patientObj?.gender ||
+                            getSex(props?.patientDetail)}
                         </b>
                       </span>
                     </Col>
