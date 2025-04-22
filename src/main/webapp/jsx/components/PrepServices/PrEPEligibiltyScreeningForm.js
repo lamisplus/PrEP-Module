@@ -444,6 +444,7 @@ const BasicInfo = props => {
 
     return Object.values(temp).every(x => x === '');
   };
+  useEffect(() => console.log('temp: ', temp));
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -556,7 +557,7 @@ const BasicInfo = props => {
   };
 
   const isFemale = () => {
-    return props.patientObj.gender.toLowerCase() === 'female';
+    return props?.patientObj?.gender?.toLowerCase() === 'female';
   };
 
   const is30AndAbove = () => {

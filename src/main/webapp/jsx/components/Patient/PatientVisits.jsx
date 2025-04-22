@@ -171,6 +171,34 @@ const PatientVisits = props => {
     }
   };
 
+  const handleTimeoutCheckout = ()=>{
+    const activeVisit = patientVisits.find(
+      visit => visit.status === 'PENDING' && visit.service === 'PrEP_code'
+    );
+    if (!activeVisit) {
+      toast.error('No pending PrEP visit found');
+      return;
+    }
+    if (activeVisit.service !== 'PrEP_code') {
+      toast.error('Can only checkout PrEP services');
+      return;
+    }
+    try {
+      await axios.put(
+        `${baseUrl}patient/visit/checkout/${activeVisit.id}`,
+        { checkOutDate: moment(checkoutDate).format('YYYY-MM-DD HH:mm') },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Check-out successful');
+      setCheckinStatus(false);
+      setIsCheckoutModalOpen(false);
+      fetchPatientVisits();
+    } catch (error) {
+      toast.error('Check-out failed');
+    }
+  };
+  }
+  
   const columns = useMemo(
     () => [
       {
