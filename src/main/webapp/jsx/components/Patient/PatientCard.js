@@ -66,14 +66,8 @@ function PatientCard(props) {
   const { getPhoneNumber } = useGetPhoneNumber();
   const { calculateAge } = useCalculateAge();
   const { getReminderAlert } = useGetReminderAlert();
-  const {
-    getSex,
-    getUniqueId,
-    getDateOfBirth,
-    getAge,
-    getFirstName,
-    getSurname,
-  } = useBasicPatientDetails();
+  const { getSex, getUniqueId, getDateOfBirth, getFirstName, getSurname } =
+    useBasicPatientDetails();
   const [showReminder, setShowReminder] = useState(0);
   const toggleModal = () => setShowReminder(0);
 
@@ -202,9 +196,7 @@ function PatientCard(props) {
                         <div>
                           <Typography variant="caption">
                             <Label color={'teal'} size={'mini'}>
-                              STATUS :{' '}
-                              {props.activeContent?.obj?.newStatus?.display ||
-                                patientObj?.prepStatus}
+                              STATUS : {patientObj?.prepStatus}
                             </Label>
                           </Typography>
                         </div>
