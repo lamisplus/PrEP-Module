@@ -112,7 +112,6 @@ function PatientCard(props) {
 
     const firstAddress = addressObj.address[0];
     if (!firstAddress || !Array.isArray(firstAddress.line)) {
-      alert(1);
       return;
     }
 
@@ -120,7 +119,7 @@ function PatientCard(props) {
     const city = firstAddress.city?.trim() || '';
     return `${line}, ${city}`;
   }
-  
+
   return (
     <div className={classes.root}>
       <Accordion>
@@ -260,13 +259,7 @@ function PatientCard(props) {
                               {!props?.patientDetail?.prepStatus ? (
                                 <CircularProgress color="#fff" size={10} />
                               ) : (
-                                <span>
-                                  {props.activeContent?.obj?.newStatus
-                                    ?.display ||
-                                    patientObj?.status ||
-                                    patientObj?.prepStatus ||
-                                    props?.patientDetail?.prepStatus}
-                                </span>
+                                props?.patientDetail?.prepStatus
                               )}
                             </Label>
                           </Typography>
