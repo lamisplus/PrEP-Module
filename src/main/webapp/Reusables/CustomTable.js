@@ -8,7 +8,6 @@ const defaultOptions = {
     color: '#fff',
   },
   searchFieldStyle: {
-    width: '200%',
     margingLeft: '250px',
   },
   filtering: false,
