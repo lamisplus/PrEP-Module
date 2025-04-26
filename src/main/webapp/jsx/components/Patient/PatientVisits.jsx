@@ -171,7 +171,7 @@ const PatientVisits = props => {
     }
   };
 
-  const handleTimeoutCheckout = ()=>{
+  const handleTimeoutCheckout = async () => {
     const activeVisit = patientVisits.find(
       visit => visit.status === 'PENDING' && visit.service === 'PrEP_code'
     );
@@ -197,8 +197,7 @@ const PatientVisits = props => {
       toast.error('Check-out failed');
     }
   };
-  }
-  
+
   const columns = useMemo(
     () => [
       {
