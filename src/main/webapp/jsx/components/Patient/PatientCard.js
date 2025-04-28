@@ -256,10 +256,8 @@ function PatientCard(props) {
                           <Typography variant="caption">
                             <Label color={'teal'} size={'mini'}>
                               STATUS :{' '}
-                              {!props?.patientDetail?.prepStatus ? (
+                              {props?.patientDetail?.prepStatus || (
                                 <CircularProgress color="#fff" size={10} />
-                              ) : (
-                                props?.patientDetail?.prepStatus
                               )}
                             </Label>
                           </Typography>

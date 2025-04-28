@@ -86,6 +86,10 @@ function PatientCard(props) {
     PatientObject();
   }, []);
 
+  useEffect(() => {
+    if (!patientObjLocation?.isOnPrep)
+      setActiveContent(prev => ({ ...prev, route: 'prep-screening' }));
+  }, []);
   async function PatientObject() {
     axios
       .get(

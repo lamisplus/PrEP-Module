@@ -29,6 +29,9 @@ import SockJsClient from 'react-stomp';
 import CustomTable from '../../../Reusables/CustomTable.js';
 import { usePermissions } from '../../../hooks/usePermissions.js';
 import { useCheckedInPatientData } from '../../../hooks/useCheckedInPatientData.jsx';
+import { ArrowForward } from '@mui/icons-material';
+import { TiArrowForward } from 'react-icons/ti';
+import { Dashboard } from '@material-ui/icons';
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -125,16 +128,6 @@ const CheckedInPatients = props => {
         filtering: false,
       },
       {
-        title: 'PrEP Status',
-        field: 'status',
-        filtering: false,
-        render: rowData => (
-          <Label color="blue" size="mini">
-            {rowData.isOnPrep ? 'Enrolled' : 'Not Enrolled'}
-          </Label>
-        ),
-      },
-      {
         title: 'Actions',
         field: 'actions',
         filtering: false,
@@ -149,33 +142,65 @@ const CheckedInPatients = props => {
               <ButtonGroup
                 variant="contained"
                 aria-label="split button"
-                style={{
-                  backgroundColor: 'rgb(153, 46, 98)',
-                  height: '30px',
-                  width: '215px',
-                }}
                 size="large"
+                style={{
+                  width: '200px', // Set a fixed width for the ButtonGroup
+                }}
               >
-                <Button
-                  color="primary"
-                  size="small"
-                  aria-label="select merge strategy"
-                  aria-haspopup="menu"
-                  style={{ backgroundColor: 'rgb(153, 46, 98)' }}
-                >
-                  <MdDashboard />
-                </Button>
-                <Button style={{ backgroundColor: 'rgb(153, 46, 98)' }}>
-                  <span
+                {rowData?.isOnPrep ? (
+                  <Button
+                    startIcon={
+                      <Dashboard
+                        color="inherit"
+                        style={{
+                          color: '#fff',
+                          fontSize: '1em',
+                        }}
+                      />
+                    }
                     style={{
-                      fontSize: '12px',
-                      color: '#fff',
-                      fontWeight: 'bolder',
+                      backgroundColor: 'rgb(153, 46, 98)',
+                      width: '100%', // Ensure the button takes the full width of the ButtonGroup
                     }}
                   >
-                    Patient Dashboard
-                  </span>
-                </Button>
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        color: '#fff',
+                        fontWeight: 'bolder',
+                      }}
+                    >
+                      Patient Dashboard
+                    </span>
+                  </Button>
+                ) : (
+                  <Button
+                    startIcon={
+                      <TiArrowForward
+                        style={{
+                          color: '#fff',
+                          fontSize: '1em',
+                        }}
+                      />
+                    }
+                    style={{
+                      backgroundColor: 'rgb(153, 46, 98)',
+                      width: '100%', // Ensure the button takes the full width of the ButtonGroup
+                      color: '#fff',
+                      fontSize: '1em',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        color: '#fff',
+                        fontWeight: 'bolder',
+                      }}
+                    >
+                      PrEP screening
+                    </span>
+                  </Button>
+                )}
               </ButtonGroup>
             </Link>
           </div>
