@@ -299,12 +299,17 @@ const PrEPRegistrationForm = props => {
                     Unique Client's ID <span style={{ color: 'red' }}> *</span>{' '}
                   </Label>
                   <Input
+                    className="form-control"
                     type="text"
                     name="uniqueId"
                     id="uniqueId"
                     onChange={handleInputChange}
                     value={objValues.uniqueId}
                     disabled={disabledField}
+                    style={{
+                      border: '1px solid #014D88',
+                      borderRadius: '0.2rem',
+                    }}
                   />
                   {errors.uniqueId !== '' ? (
                     <span className={classes.error}>{errors.uniqueId}</span>
@@ -323,6 +328,11 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     value={objValues.ancUniqueArtNo}
                     disabled={disabledField}
+                    className="form-control"
+                    style={{
+                      border: '1px solid #014D88',
+                      borderRadius: '0.2rem',
+                    }}
                   />
                   {errors.ancUniqueArtNo !== '' ? (
                     <span className={classes.error}>
@@ -379,6 +389,11 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     value={objValues.riskType}
                     disabled={disabledField}
+                    className="form-control"
+                    style={{
+                      border: '1px solid #014D88',
+                      borderRadius: '0.2rem',
+                    }}
                   >
                     <option value=""> Select</option>
                     {prepRisk.map(value => (
@@ -405,6 +420,11 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     value={objValues.hivTestingPoint}
                     disabled={disabledField}
+                    className="form-control"
+                    style={{
+                      border: '1px solid #014D88',
+                      borderRadius: '0.2rem',
+                    }}
                   >
                     <option value=""> Select</option>
                     {entryPoint.map(value => (
@@ -539,16 +559,6 @@ const PrEPRegistrationForm = props => {
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label>PrEP Supporter Phone Number</Label>
-                  {/* <Input
-                                        className="form-control"
-                                        type="text"
-                                        name="supporterPhone"
-                                        id="supporterPhone"
-                                        value={objValues.supporterPhone}
-                                        onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        //disabled={locationState.actionType==='update'? false : true}
-                                    /> */}
                   <PhoneInput
                     containerStyle={{
                       width: '100%',
