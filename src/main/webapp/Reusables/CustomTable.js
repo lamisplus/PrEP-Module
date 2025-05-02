@@ -21,7 +21,7 @@ const defaultOptions = {
 const CustomTable = ({ title, columns, data, icons, showPPI, onPPIChange }) => {
   const CustomToolbar = props => (
     <div>
-      <div className="form-check custom-checkbox float-left mt-4 ml-3">
+      <div className="form-check custom-checkbox float-left mt-4 ml-3 p-2">
         <input
           type="checkbox"
           className="form-check-input m-1 mt-2"
