@@ -197,7 +197,7 @@ const CheckedInPatients = props => {
                         fontWeight: 'bolder',
                       }}
                     >
-                      PrEP screening
+                      Enroll patient
                     </span>
                   </Button>
                 )}
