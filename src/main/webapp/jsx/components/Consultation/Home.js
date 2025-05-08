@@ -40,6 +40,9 @@ import { useHandlePulseInputValueCheck } from '../../../hooks/useHandlePulseInpu
 import { useHandleRespiratoryRateInputValueCheck } from '../../../hooks/useHandleRespiratoryRateInputValueCheck';
 import { useHandleTemperatureInputValueCheck } from '../../../hooks/useHandleTemperatureInputValueCheck';
 import useUpdateTestResults from '../../../hooks/useUpdateTestResults';
+import useCheckDateMismatch from '../../../hooks/useCheckDateMismatch';
+import useVisitTypeDurationMapping from '../../../hooks/vistUtils/useVisitTypeDurationMapping';
+import useGetNextAppDate from '../../../hooks/vistUtils/useGetNextAppDate';
 
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
@@ -209,6 +212,7 @@ const ClinicVisit = props => {
 
   const [isInitialValues, setIsInitialValues] = useState(1);
   const [localEncounterDate, setLocalEncounterDate] = useState('');
+  const { checkDateMismatch } = useCheckDateMismatch();
 
   useEffect(
     () => setLocalEncounterDate(formik.values.encounterDate),
@@ -365,9 +369,6 @@ const ClinicVisit = props => {
     );
   }
 
-  const filterOutLastRegimen = (codeSet, lastRegimenId) =>
-    codeSet?.filter(regimen => regimen.id !== lastRegimenId);
-
   useEffect(() => {
     if (
       props.activeContent.actionType === '' ||
@@ -439,41 +440,15 @@ const ClinicVisit = props => {
     setNotedSideEffects(selected);
   };
 
-  const visitTypeDurationMapping = {
-    PREP_VISIT_TYPE_DISCONTINUATION: null,
-    'PREP_VISIT_TYPE_DISCONTINUATION_FOLLOW-UP': null,
-    PREP_VISIT_TYPE_INITIATION: 30,
-    PREP_VISIT_TYPE_METHOD_SWITCH: null,
-    PREP_VISIT_TYPE_NO_PREP_PROVIDED: null,
-    'PREP_VISIT_TYPE_REFILL_RE-INJECTION': 60,
-    PREP_VISIT_TYPE_RESTART: 30,
-    PREP_VISIT_TYPE_SECOND_INITIATION: 60,
-    PREP_VISIT_TYPE_TRANSFER_IN: null,
-  };
-
-  function addDaysToDate(dateString, daysToAdd) {
-    const date = new Date(dateString);
-    if (
-      isNaN(date.getTime()) ||
-      typeof daysToAdd !== 'number' ||
-      isNaN(daysToAdd)
-    ) {
-      return '';
-    }
-    date.setDate(date.getDate() + daysToAdd);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
+  const { visitTypeDurationMapping } = useVisitTypeDurationMapping();
+  const { getNextAppDate } = useGetNextAppDate();
   useEffect(() => {
-    let nextAppointment = addDaysToDate(
+    let nextAppointment = getNextAppDate(
       formik.values.encounterDate,
       formik.values.monthsOfRefill
     );
     formik.setValues(prev => ({ ...prev, nextAppointment }));
-  }, [formik.values.encounterDate, objValues.monthsOfRefill]);
+  }, [formik.values.encounterDate, formik.values.monthsOfRefill]);
 
   function handleError(error) {
     setSaving(false);
@@ -534,24 +509,46 @@ const ClinicVisit = props => {
     }));
   }, [otherTest]);
 
-  const eligibleRegimens = useMemo(
-    () =>
-      isEligibleForCabLa || props.activeContent.actionType === 'update'
-        ? [...prepRegimen]
-        : [...prepRegimen].filter(({ id }) => id !== 2),
-    [isEligibleForCabLa]
-  );
+  const eligibleRegimens = useMemo(() => {
+    return isEligibleForCabLa || props.activeContent.actionType === 'update'
+      ? [...prepRegimen]
+      : [...prepRegimen].filter(({ id }) => id !== 2);
+  }, [isEligibleForCabLa, props.activeContent.actionType, prepRegimen]);
   const eligiblePrepTypes = useMemo(
     () =>
       isEligibleForCabLa || props.activeContent.actionType === 'update'
         ? [...prepType]
         : [...prepType].filter(({ id }) => ![1373, 1726].includes(id)),
-    [isEligibleForCabLa]
+    [isEligibleForCabLa, props.activeContent.actionType, prepType]
   );
+
+  const isMatchedDate = useMemo(() => {
+    if (!localEncounterDate) {
+      return checkDateMismatch(
+        localEncounterDate || '',
+        latestFromEligibility?.visitDate || '',
+        isInitialValues
+      );
+    }
+    return false;
+  }, [localEncounterDate]);
+
   const handleEncounterDate = e => {
     setIsInitialValues(0);
     formik.handleChange(e);
   };
+  useEffect(() => {
+    formik.setValues(prev => ({
+      ...prev,
+      hivTestValue: latestHtsResult?.hivTestValue || '',
+      hivTestResult: latestHtsResult?.hivTestValue || '',
+      hivTestResultDate: latestHtsResult?.hivTestResultDate || '',
+    }));
+  }, [latestHtsResult]);
+
+  const getValue = (matchedValue, defaultValue = '') =>
+    isMatchedDate ? matchedValue : defaultValue;
+
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">

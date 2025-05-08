@@ -9,7 +9,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import Home from './main/webapp/jsx/components/Home';
 import PatientDetail from './main/webapp/jsx/components/Patient/PatientDetail';
 import UpdatePatientEnrollment from './main/webapp/jsx/components/Patient/UpdatePatientEnrollment';
-import { usePrepRegimen } from './main/webapp/hooks/usePrepCodeSet';
+import { usePrepRegimen } from './main/webapp/hooks/vistUtils/usePrepCodeSet';
 
 export default function App() {
   return (

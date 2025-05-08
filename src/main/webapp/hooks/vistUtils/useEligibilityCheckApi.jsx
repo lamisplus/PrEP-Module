@@ -3,19 +3,20 @@ import { useEffect, useState } from 'react';
 
 export const useEligibilityCheckApi = (baseUrl, personId, visitDate, token) => {
   const [isEligibleForCabLa, setIsEligibleForCabLa] = useState(false);
-  console.log('actual params: ', baseUrl, personId, visitDate, token);
+
   useEffect(() => {
     const checkEligibility = async () => {
-      try {
-        if (visitDate) {
-          const response = await axios.get(
-            `${baseUrl}prep-clinic/checkEnableCab/${personId}/${visitDate}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          console.log('isElig: ', response.data);
+      if (!visitDate) {
+        console.warn('Visit date is undefined');
+        return;
+      }
 
-          setIsEligibleForCabLa(response.data);
-        }
+      try {
+        const response = await axios.get(
+          `${baseUrl}prep-clinic/checkEnableCab/${personId}/${visitDate}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setIsEligibleForCabLa(response.data);
       } catch (error) {
         console.error('Error fetching eligibility:', error);
       }
@@ -23,5 +24,6 @@ export const useEligibilityCheckApi = (baseUrl, personId, visitDate, token) => {
 
     checkEligibility();
   }, [baseUrl, personId, visitDate, token]);
+
   return { isEligibleForCabLa, setIsEligibleForCabLa };
 };

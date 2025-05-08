@@ -19,12 +19,12 @@ import 'react-widgets/dist/css/react-widgets.css';
 import moment from 'moment';
 import { Spinner } from 'reactstrap';
 import { LiverFunctionTest } from './PrEPEligibiltyScreeningForm';
-import useStyleForCommencementForm from '../../../hooks/useStyleForCommencementForm';
+import useStyles from '../../../hooks/style/useStyleForCommencementForm';
 import usePrepClinicState from '../../../hooks/usePrepClinicState';
 
 const PrEPCommencementForm = props => {
   const patientObj = props.patientObj;
-  const classes = useStyleForCommencementForm();
+  const classes = useStyles();
   const [historyOfDrugToDrugInteraction, setHistoryOfDrugToDrugInteraction] =
     useState([]);
   const [objValues, setObjValues] = useState({

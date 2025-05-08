@@ -1,7 +1,6 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import useCheckDateMismatch from './useCheckDateMismatch';
-import useVisitTypeDurationMapping from './vistUtils/useVisitTypeDurationMapping';
-import useGetNextAppDate from './vistUtils/useGetNextAppDate';
+import useGetNextAppDate from './useGetNextAppDate';
 
 const useSetPrepVisitAutopopulatedValues = (
   formik,
@@ -11,7 +10,8 @@ const useSetPrepVisitAutopopulatedValues = (
   isInitialValues
 ) => {
   const { checkDateMismatch } = useCheckDateMismatch();
-  const { visitTypeDurationMapping } = useVisitTypeDurationMapping();
+  const { getNextAppDate } = useGetNextAppDate();
+
   useEffect(() => {
     const isMatchedDate = checkDateMismatch(
       localEncounterDate,
@@ -29,9 +29,6 @@ const useSetPrepVisitAutopopulatedValues = (
       hivTestResultDate: getValue(latestHtsResult?.hivTestResultDate),
       populationType: getValue(latestFromEligibility?.populationType),
       visitType: getValue(latestFromEligibility?.visitType),
-      monthsOfRefill: getValue(
-        visitTypeDurationMapping[latestFromEligibility?.visitType]
-      ),
       liverFunctionTestResults: getValue(
         latestFromEligibility?.liverFunctionTestResults
       ),

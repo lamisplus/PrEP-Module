@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import useUpdatePreviousPrepStatus from './useUpdatePreviousPrepStatus';
+import useUpdatePreviousPrepStatus from './vistUtils/useUpdatePreviousPrepStatus';
 
 const useSubmitPrepClinicForm = (props, baseUrl, token) => {
   const {} = useUpdatePreviousPrepStatus(props);

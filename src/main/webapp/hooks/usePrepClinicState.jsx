@@ -1,6 +1,6 @@
 import React from 'react';
 import { useFormik } from 'formik';
-import { useValidation } from './useValidation';
+import { useValidation } from './vistUtils/useValidation';
 import useInitialValuesForVisitForm from './useInitialValuesForVisitForm';
 import {
   useWhyPoorFairAdherence,
@@ -25,11 +25,11 @@ import {
   usePrepRiskReductionPlan,
   useLiverFunctionTestResult,
   useRecentActivities,
-} from './usePrepCodeSet';
+} from './vistUtils/usePrepCodeSet';
 import {
   useHivResult,
   useLatestFromEligibility,
-} from './useApiUtilsForPrepVisit';
+} from './vistUtils/useApiUtilsForPrepVisit';
 import useSubmitPrepClinicForm from './useSubmitPrepClinicForm';
 import { token, url } from '../api';
 
@@ -86,7 +86,7 @@ const usePrepClinicState = props => {
     validationSchema,
     onSubmit: values => submitForm(values),
   });
-
+  console.log('reg: ', prepRegimen, prepType);
   return {
     formik,
     disabledField,

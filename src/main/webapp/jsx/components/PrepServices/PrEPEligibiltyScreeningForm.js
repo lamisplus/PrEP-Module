@@ -132,6 +132,7 @@ export const LiverFunctionTest = ({
     value: value?.code,
     label: value?.display,
   }));
+
   useEffect(() => {
     setSelectedValues(objValues.liverFunctionTestResults);
   }, [objValues.liverFunctionTestResults]);
@@ -732,7 +733,10 @@ const BasicInfo = props => {
                   >
                     <option value={''}>Select</option>
                     {visitType.map(value => (
-                      <option value={value.code}> {value.display} </option>
+                      <option key={value.code} value={value.code}>
+                        {' '}
+                        {value.display}{' '}
+                      </option>
                     ))}
                   </select>
                   {errors.visitType !== '' ? (
@@ -796,7 +800,10 @@ const BasicInfo = props => {
                   >
                     <option value={''}>Select</option>
                     {populationType.map(value => (
-                      <option value={value.code}> {value.display} </option>
+                      <option key={value.code} value={value.code}>
+                        {' '}
+                        {value.display}{' '}
+                      </option>
                     ))}
                   </select>
                   {errors.populationType !== '' ? (
@@ -829,7 +836,10 @@ const BasicInfo = props => {
                     >
                       <option value={''}>Select</option>
                       {pregnancyStatus.map(value => (
-                        <option value={value.code}> {value.display} </option>
+                        <option key={value.code} value={value.code}>
+                          {' '}
+                          {value.display}{' '}
+                        </option>
                       ))}
                     </select>
                     {errors.pregnancyStatus !== '' ? (

@@ -122,14 +122,14 @@ function PatientCard(props) {
 
   return (
     <div className={classes.root}>
-      <Reminder
+      {/* <Reminder
         show={showReminder}
         title={showReminder?.title}
         body={showReminder?.body}
         patientObj={patientObj}
         onClose={toggleModal}
         nextAppointmentDate={Date()}
-      />
+      /> */}
       <Accordion>
         <AccordionSummary>
           <Row>

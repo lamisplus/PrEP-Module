@@ -146,7 +146,7 @@ const Patients = props => {
                         style={{ position: 'relative' }}
                       >
                         {row.prepStatus}
-                        {!!row.sendCabLaAlert && (
+                        {/* {!!row.sendCabLaAlert && (
                           <span
                             className="position-absolute top-50 translate-middle-y bg-info border border-light rounded-circle"
                             style={{
@@ -158,7 +158,7 @@ const Patients = props => {
                               display: 'block',
                             }}
                           />
-                        )}
+                        )} */}
                       </Label>
                     ),
                     actions: (
