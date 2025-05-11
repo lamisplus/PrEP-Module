@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Grid, Segment, Label } from 'semantic-ui-react';
-import {
-  FormGroup,
-  Label as FormLabelName,
-  InputGroup,
-  InputGroupText,
-  Input,
-} from 'reactstrap';
+import { FormGroup, Label as FormLabelName, Input } from 'reactstrap';
 import { url as baseUrl, token } from '../../../api';
 import { Button as MatButton } from '@material-ui/core';
 import SaveIcon from '@material-ui/icons/Save';
@@ -39,17 +33,16 @@ import { useHandleDiastolicInputValueCheck } from '../../../hooks/useHandleDiast
 import { useHandlePulseInputValueCheck } from '../../../hooks/useHandlePulseInputValueCheck';
 import { useHandleRespiratoryRateInputValueCheck } from '../../../hooks/useHandleRespiratoryRateInputValueCheck';
 import { useHandleTemperatureInputValueCheck } from '../../../hooks/useHandleTemperatureInputValueCheck';
-import useUpdateTestResults from '../../../hooks/useUpdateTestResults';
 import useCheckDateMismatch from '../../../hooks/useCheckDateMismatch';
-import useVisitTypeDurationMapping from '../../../hooks/vistUtils/useVisitTypeDurationMapping';
 import useGetNextAppDate from '../../../hooks/vistUtils/useGetNextAppDate';
+import VitalSigns from './VitalSigns';
+import ConditionalFieldWrapper from './ConditionalFieldWrapper/ConditionalFieldWrapper';
+import TestResultEntryField from './CreatinineTest/TestResultEntryField';
 
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
-  const [patientDto, setPatientDto] = useState();
   const [saving, setSaving] = useState(false);
   const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
-  const [selectedPopulationType, setSelectedPopulationType] = useState('');
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: '',
     diastolic: '',
@@ -60,60 +53,6 @@ const ClinicVisit = props => {
     respiratoryRate: '',
   });
 
-  const [objValues, setObjValues] = useState({
-    adherenceLevel: '',
-    dateInitialAdherenceCounseling: '',
-    datePrepGiven: '',
-    datePrepStart: '',
-    dateReferre: '',
-    diastolic: '',
-    encounterDate: '',
-    extra: {},
-    height: '',
-    hepatitis: {},
-    nextAppointment: '',
-    prepNotedSideEffects: [],
-    notedSideEffects: '',
-    wasPrepAdministered: '',
-    otherTestsDone: [],
-    personId: props.patientObj.personId,
-    pregnancyStatus: '',
-    prepEnrollmentUuid: '',
-    pulse: '',
-    referred: '',
-    regimenId: '',
-    otherRegimenId: '',
-    otherPrepGiven: '',
-    respiratoryRate: '',
-    riskReductionServices: '',
-    healthCareWorkerSignature: '',
-    stiScreening: '',
-    syndromicStiScreening: null,
-    syphilis: {},
-    systolic: '',
-    temperature: '',
-    urinalysis: {},
-    creatinine: {},
-    urinalysisResult: '',
-    creatinineResult: '',
-    weight: '',
-    why: '',
-    otherDrugs: '',
-    prepGiven: '',
-    hivTestResult: '',
-    hivTestResultDate: '',
-    prepType: '',
-    otherPrepType: '',
-    populationType: '',
-    prepDistributionSetting: '',
-    familyPlanning: '',
-    dateOfFamilyPlanning: '',
-    monthsOfRefill: '',
-    visitType: '',
-    reasonForSwitch: '',
-    dateLiverFunctionTestResults: '',
-    liverFunctionTestResults: [],
-  });
   const [urinalysisTest, setUrinalysisTest] = useState({
     urinalysisTest: 'No',
     testDate: '',
@@ -378,27 +317,6 @@ const ClinicVisit = props => {
     }
   }, [props.activeContent.actionType]);
 
-  // useEffect(() => {
-  //   if (
-  //     objValues.populationType !== null &&
-  //     objValues.populationType !== undefined
-  //   ) {
-  //     const autoPopulate = populationType?.find(
-  //       type => type.code === objValues.populationType
-  //     );
-  //     setSelectedPopulationType(autoPopulate ? autoPopulate.display : '');
-  //   }
-  // }, [objValues.populationType]);
-
-  // const { updateTest } = useUpdateTestResults(formik.values);
-
-  // useEffect(() => {
-  //   updateTest('urinalysis', setUrinalysisTest);
-  //   updateTest('creatinine', setCreatinineTest);
-  //   updateTest('syphilis', setSyphilisTest);
-  //   updateTest('hepatitis', setHepatitisTest);
-  // }, [formik.values]);
-
   useEffect(async () => {
     if (
       props.activeContent.id &&
@@ -411,36 +329,18 @@ const ClinicVisit = props => {
 
   const handleLftInputChange = event => {
     const { name, value } = event.target;
-    setObjValues(prevValues => ({
+    formik.setValues(prevValues => ({
       ...prevValues,
       [name]: value,
     }));
   };
 
-  const getOptions = () => {
-    switch (objValues.otherPrepType) {
-      case 'PREP_TYPE_ORAL':
-        return <option value="1">TDF(300mg)+3TC(300mg)</option>;
-      case 'PREP_TYPE_INJECTIBLES':
-        return <option value="2">IM CAB-LA(600mg/3mL)</option>;
-      case 'PREP_TYPE_ED_PREP':
-        return (
-          <>
-            <option value="2">IM CAB-LA(600mg/3mL)</option>
-            <option value="1">TDF(300mg)+3TC(300mg)</option>
-          </>
-        );
-      default:
-        return null;
-    }
-  };
-
   const [notedSideEffects, setNotedSideEffects] = useState([]);
+
   const handleNotedSideEffectsChange = selected => {
     setNotedSideEffects(selected);
   };
 
-  const { visitTypeDurationMapping } = useVisitTypeDurationMapping();
   const { getNextAppDate } = useGetNextAppDate();
   useEffect(() => {
     let nextAppointment = getNextAppDate(
@@ -470,6 +370,7 @@ const ClinicVisit = props => {
   useEffect(() => {
     formik.setFieldValue('prepNotedSideEffects', notedSideEffects);
   }, [notedSideEffects]);
+
   useEffect(() => {
     formik.setValues(prev => ({
       ...prev,
@@ -533,10 +434,6 @@ const ClinicVisit = props => {
     return false;
   }, [localEncounterDate]);
 
-  const handleEncounterDate = e => {
-    setIsInitialValues(0);
-    formik.handleChange(e);
-  };
   useEffect(() => {
     formik.setValues(prev => ({
       ...prev,
@@ -546,9 +443,24 @@ const ClinicVisit = props => {
     }));
   }, [latestHtsResult]);
 
-  const getValue = (matchedValue, defaultValue = '') =>
-    isMatchedDate ? matchedValue : defaultValue;
-
+  const getOtherPrepTypeOptions = () => {
+    switch (formik.values.otherPrepType) {
+      case 'PREP_TYPE_ORAL':
+        return <option value="1">TDF(300mg)+3TC(300mg)</option>;
+      case 'PREP_TYPE_INJECTIBLES':
+        return <option value="2">IM CAB-LA(600mg/3mL)</option>;
+      case 'PREP_TYPE_ED_PREP':
+        return (
+          <>
+            <option value="2">IM CAB-LA(600mg/3mL)</option>
+            <option value="1">TDF(300mg)+3TC(300mg)</option>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+  console.log('formik: ', formik);
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
@@ -561,469 +473,28 @@ const ClinicVisit = props => {
           <Grid>
             <Grid.Column>
               <Segment>
-                <Label
-                  as="a"
-                  color="blue"
-                  style={{ width: '106%', height: '35px' }}
-                  ribbon
-                >
-                  <h4 style={{ color: '#fff' }}>VITAL SIGNS</h4>
-                </Label>
-                <br />
-                <br />
-                <div className="row">
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <FormLabelName>
-                        Date of Visit <span style={{ color: 'red' }}> *</span>
-                      </FormLabelName>
-                      <Input
-                        className="form-control"
-                        type="date"
-                        name="encounterDate"
-                        id="encounterDate"
-                        onKeyDown={e => e.preventDefault()}
-                        value={formik.values.encounterDate}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
-                        onChange={handleEncounterDate}
-                        min={
-                          patientDto && patientDto.dateEnrolled
-                            ? patientDto.dateEnrolled
-                            : ''
-                        }
-                        max={moment(new Date()).format('YYYY-MM-DD')}
-                        disabled={disabledField}
-                      />
-                      {formik.touched.encounterDate && (
-                        <span className={classes.error}>
-                          {formik.errors.encounterDate}
-                        </span>
-                      )}
-                    </FormGroup>
-                  </div>
-                  <div className="row">
-                    <div className=" mb-3 col-md-4">
-                      <FormGroup>
-                        <FormLabelName>Pulse</FormLabelName>
-                        <InputGroup>
-                          <Input
-                            type="number"
-                            name="pulse"
-                            id="pulse"
-                            onChange={formik.handleChange}
-                            min="40"
-                            max="120"
-                            value={formik.values.pulse}
-                            onKeyUp={handlePulseInputValueCheck}
-                            style={{
-                              border: '1px solid #014D88',
-                              borderRadius: '0.25rem',
-                              borderTopRightRadius: '0',
-                              borderBottomRightRadius: '0',
-                            }}
-                            disabled={disabledField}
-                          />
-                          <InputGroupText
-                            addonType="append"
-                            style={{
-                              backgroundColor: '#014D88',
-                              color: '#fff',
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                              borderTopRightRadius: '0.25rem',
-                              borderBottomRightRadius: '0.25rem',
-                            }}
-                          >
-                            bmp
-                          </InputGroupText>
-                        </InputGroup>
-                        {vitalClinicalSupport.pulse !== '' ? (
-                          <span className={classes.error}>
-                            {vitalClinicalSupport.pulse}
-                          </span>
-                        ) : (
-                          ''
-                        )}
-                        {formik.touched.pulse && (
-                          <span className={classes.error}>
-                            {formik.errors.pulse}
-                          </span>
-                        )}
-                      </FormGroup>
-                    </div>
-                    <div className=" mb-3 col-md-4">
-                      <FormGroup>
-                        <FormLabelName>Respiratory Rate </FormLabelName>
-                        <InputGroup>
-                          <Input
-                            type="number"
-                            name="respiratoryRate"
-                            id="respiratoryRate"
-                            onChange={formik.handleChange}
-                            min="10"
-                            max="70"
-                            value={formik.values.respiratoryRate}
-                            onKeyUp={handleRespiratoryRateInputValueCheck}
-                            style={{
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                              borderTopLeftRadius: '0.25rem',
-                              borderBottomLeftRadius: '0.25rem',
-                            }}
-                            disabled={disabledField}
-                          />
-                          <InputGroupText
-                            addonType="append"
-                            style={{
-                              backgroundColor: '#014D88',
-                              color: '#fff',
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                              borderTopRightRadius: '0.25rem',
-                              borderBottomRightRadius: '0.25rem',
-                            }}
-                          >
-                            bmp
-                          </InputGroupText>
-                        </InputGroup>
-                        {vitalClinicalSupport.respiratoryRate !== '' ? (
-                          <span className={classes.error}>
-                            {vitalClinicalSupport.respiratoryRate}
-                          </span>
-                        ) : (
-                          ''
-                        )}
-                        {formik.errors.respiratoryRate && (
-                          <span className={classes.error}>
-                            {formik.errors.respiratoryRate}
-                          </span>
-                        )}
-                      </FormGroup>
-                    </div>
-                    <div className=" mb-3 col-md-4">
-                      <FormGroup>
-                        <FormLabelName>Temperature </FormLabelName>
-                        <InputGroup>
-                          <Input
-                            type="number"
-                            name="temperature"
-                            id="temperature"
-                            onChange={formik.handleChange}
-                            min="35"
-                            max="47"
-                            value={formik.values.temperature}
-                            onKeyUp={handleTemperatureInputValueCheck}
-                            style={{
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                              borderTopLeftRadius: '0.25rem',
-                              borderBottomLeftRadius: '0.25rem',
-                            }}
-                            disabled={disabledField}
-                          />
-                          <InputGroupText
-                            addonType="append"
-                            style={{
-                              backgroundColor: '#014D88',
-                              color: '#fff',
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                              borderTopRightRadius: '0.25rem',
-                              borderBottomRightRadius: '0.25rem',
-                            }}
-                          >
-                            <sup>o</sup>c
-                          </InputGroupText>
-                        </InputGroup>
-                        {vitalClinicalSupport.temperature !== '' ? (
-                          <span className={classes.error}>
-                            {vitalClinicalSupport.temperature}
-                          </span>
-                        ) : (
-                          ''
-                        )}
-                        {formik.errors.temperature && (
-                          <span className={classes.error}>
-                            {formik.errors.temperature}
-                          </span>
-                        )}
-                      </FormGroup>
-                    </div>
-
-                    <div className=" mb-3 col-md-5">
-                      <FormGroup>
-                        <FormLabelName>
-                          Body Weight <span style={{ color: 'red' }}> *</span>
-                        </FormLabelName>
-                        <InputGroup>
-                          <Input
-                            type="number"
-                            name="weight"
-                            id="weight"
-                            onChange={formik.handleChange}
-                            min="3"
-                            max="150"
-                            value={formik.values.weight}
-                            onKeyUp={handleWeightInputValueCheck}
-                            style={{
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                              borderTopLeftRadius: '0.25rem',
-                              borderBottomLeftRadius: '0.25rem',
-                            }}
-                            disabled={disabledField}
-                          />
-                          <InputGroupText
-                            addonType="append"
-                            style={{
-                              backgroundColor: '#014D88',
-                              color: '#fff',
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                              borderTopRightRadius: '0.25rem',
-                              borderBottomRightRadius: '0.25rem',
-                            }}
-                          >
-                            kg
-                          </InputGroupText>
-                        </InputGroup>
-                        {vitalClinicalSupport.weight !== '' ? (
-                          <span className={classes.error}>
-                            {vitalClinicalSupport.weight}
-                          </span>
-                        ) : (
-                          ''
-                        )}
-                        {formik.touched.weight && formik.errors.weight && (
-                          <span className={classes.error}>
-                            {formik.errors.weight}
-                          </span>
-                        )}
-                      </FormGroup>
-                    </div>
-                    <div className="form-group mb-3 col-md-5">
-                      <FormGroup>
-                        <FormLabelName>
-                          Height <span style={{ color: 'red' }}> *</span>
-                        </FormLabelName>
-                        <InputGroup>
-                          <InputGroupText
-                            addonType="append"
-                            style={{
-                              backgroundColor: '#014D88',
-                              color: '#fff',
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                              borderTopLeftRadius: '0.25rem',
-                              borderBottomLeftRadius: '0.25rem',
-                            }}
-                          >
-                            cm
-                          </InputGroupText>
-                          <Input
-                            type="number"
-                            name="height"
-                            id="height"
-                            onChange={formik.handleChange}
-                            value={formik.values.height}
-                            min="48.26"
-                            max="216.408"
-                            step="0.01"
-                            onKeyUp={handleHeightInputValueCheck}
-                            style={{
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                            }}
-                            disabled={disabledField}
-                          />
-                          <InputGroupText
-                            addonType="append"
-                            style={{
-                              backgroundColor: '#992E62',
-                              color: '#fff',
-                              border: '1px solid #992E62',
-                              borderRadius: '0rem',
-                              borderTopRightRadius: '0.25rem',
-                              borderBottomRightRadius: '0.25rem',
-                            }}
-                          >
-                            {objValues.height !== ''
-                              ? (objValues.height / 100).toFixed(2) + 'm'
-                              : 'm'}
-                          </InputGroupText>
-                        </InputGroup>
-                        {vitalClinicalSupport.height !== '' ? (
-                          <span className={classes.error}>
-                            {vitalClinicalSupport.height}
-                          </span>
-                        ) : (
-                          ''
-                        )}
-                        {formik.touched.height && formik.errors.height && (
-                          <span className={classes.error}>
-                            {formik.errors.height}
-                          </span>
-                        )}
-                      </FormGroup>
-                    </div>
-                    <div className="form-group mb-3 mt-2 col-md-2">
-                      {objValues.weight !== '' && objValues.height !== '' && (
-                        <FormGroup>
-                          <Label> </Label>
-                          <InputGroup>
-                            <InputGroupText
-                              addonType="append"
-                              style={{
-                                backgroundColor: '#014D88',
-                                color: '#fff',
-                                border: '1px solid #014D88',
-                              }}
-                            >
-                              BMI :{' '}
-                              {(
-                                objValues.weight /
-                                ((objValues.height / 100) *
-                                  (objValues.height / 100))
-                              ).toFixed(2)}
-                            </InputGroupText>
-                          </InputGroup>
-                        </FormGroup>
-                      )}
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="form-group mb-3 col-md-8">
-                      <FormGroup>
-                        <FormLabelName>Blood Pressure</FormLabelName>
-                        <InputGroup>
-                          <InputGroupText
-                            addonType="append"
-                            style={{
-                              backgroundColor: '#014D88',
-                              color: '#fff',
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                              borderTopLefttRadius: '0.25rem',
-                              borderBottomLeftRadius: '0.25rem',
-                            }}
-                          >
-                            systolic(mmHg)
-                          </InputGroupText>
-                          <Input
-                            type="number"
-                            name="systolic"
-                            id="systolic"
-                            min="90"
-                            max="240"
-                            onChange={formik.handleChange}
-                            value={formik.values.systolic}
-                            onKeyUp={handleSystolicInputValueCheck}
-                            style={{
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                            }}
-                            disabled={disabledField}
-                          />
-
-                          <InputGroupText
-                            addonType="append"
-                            style={{
-                              backgroundColor: '#014D88',
-                              color: '#fff',
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                            }}
-                          >
-                            diastolic(mmHg)
-                          </InputGroupText>
-                          <Input
-                            type="number"
-                            name="diastolic"
-                            id="diastolic"
-                            min={0}
-                            max={140}
-                            onChange={formik.handleChange}
-                            value={formik.values.diastolic}
-                            onKeyUp={handleDiastolicInputValueCheck}
-                            style={{
-                              border: '1px solid #014D88',
-                              borderRadius: '0rem',
-                              borderTopRightRadius: '0.25rem',
-                              borderBottomRightRadius: '0.25rem',
-                            }}
-                            disabled={disabledField}
-                          />
-                        </InputGroup>
-                        {vitalClinicalSupport.systolic !== '' ? (
-                          <span className={classes.error}>
-                            {vitalClinicalSupport.systolic}
-                          </span>
-                        ) : (
-                          ''
-                        )}
-                        {formik.touched.systolic && formik.errors.systolic && (
-                          <span className={classes.error}>
-                            {formik.errors.systolic}
-                          </span>
-                        )}
-
-                        {vitalClinicalSupport.diastolic !== '' ? (
-                          <span className={classes.error}>
-                            {vitalClinicalSupport.diastolic}
-                          </span>
-                        ) : (
-                          ''
-                        )}
-                        {formik.touched.diastolic &&
-                        formik.errors.diastolic !== '' ? (
-                          <span className={classes.error}>
-                            {formik.errors.diastolic}
-                          </span>
-                        ) : (
-                          ''
-                        )}
-                      </FormGroup>
-                    </div>
-                    {isFemale() && (
-                      <div className="form-group mb-3 col-md-4">
-                        <FormGroup>
-                          <FormLabelName>
-                            Pregnancy Status{' '}
-                            <span style={{ color: 'red' }}> *</span>
-                          </FormLabelName>
-                          <Input
-                            type="select"
-                            name="pregnant"
-                            id="pregnant"
-                            onChange={formik.handleChange}
-                            value={formik.values.pregnancyStatus}
-                            disabled
-                            style={{
-                              border: '1px solid #014D88',
-                              borderRadius: '0.25rem',
-                            }}
-                          >
-                            <option value="">Select Pregnancy Status</option>
-                            {pregnancyStatus?.map(value => (
-                              <option key={value.id} value={value.code}>
-                                {value.display}
-                              </option>
-                            ))}
-                          </Input>
-                          {formik.touched.pregnancyStatus &&
-                            formik.errors.pregnancyStatus && (
-                              <span className={classes.error}>
-                                {formik.errors.pregnancyStatus}
-                              </span>
-                            )}
-                        </FormGroup>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <VitalSigns
+                  formik={formik}
+                  setIsInitialValues={setIsInitialValues}
+                  vitalClinicalSupport={vitalClinicalSupport}
+                  handlePulseInputValueCheck={handlePulseInputValueCheck}
+                  handleDiastolicInputValueCheck={
+                    handleDiastolicInputValueCheck
+                  }
+                  handleHeightInputValueCheck={handleHeightInputValueCheck}
+                  handleRespiratoryRateInputValueCheck={
+                    handleRespiratoryRateInputValueCheck
+                  }
+                  handleSystolicInputValueCheck={handleSystolicInputValueCheck}
+                  handleTemperatureInputValueCheck={
+                    handleTemperatureInputValueCheck
+                  }
+                  handleWeightInputValueCheck={handleWeightInputValueCheck}
+                  disabledField={disabledField}
+                  classes={classes}
+                  isFemale={isFemale}
+                  pregnancyStatus={pregnancyStatus}
+                />
                 <Label
                   as="a"
                   color="black"
@@ -1195,7 +666,7 @@ const ClinicVisit = props => {
                       </Input>
                     </FormGroup>
                   </div>
-                  {objValues.stiScreening === 'true' && (
+                  {formik.values.stiScreening === 'true' && (
                     <div className=" mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>Syndromic STI Screening </FormLabelName>
@@ -1278,7 +749,7 @@ const ClinicVisit = props => {
                         )}
                     </FormGroup>
                   </div>
-                  {objValues.adherenceLevel ===
+                  {formik.values.adherenceLevel ===
                     'PREP_LEVEL_OF_ADHERENCE_(POOR)_≥_7_DOSES' && (
                     <div className=" mb-3 col-md-6">
                       <FormGroup>
@@ -1379,7 +850,8 @@ const ClinicVisit = props => {
                     </FormGroup>
                   </div>
 
-                  {objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH' && (
+                  {formik.values.visitType ===
+                    'PREP_VISIT_TYPE_METHOD_SWITCH' && (
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>Reason for switch</FormLabelName>
@@ -1530,7 +1002,7 @@ const ClinicVisit = props => {
                         )}
                     </FormGroup>
                   </div>
-                  {objValues.prepType && (
+                  {formik.values.prepType && (
                     <>
                       <div className="form-group mb-3 col-md-6">
                         <>
@@ -1562,79 +1034,89 @@ const ClinicVisit = props => {
                             )}
                         </>
                       </div>
-                      {objValues.otherPrepGiven === 'true' && (
+                      {formik.values.otherPrepGiven === 'true' && (
                         <>
-                          <div className="form-group mb-3 col-md-6">
-                            <FormGroup>
-                              <FormLabelName for="">
-                                Other PrEP Type
-                                <span style={{ color: 'red' }}> *</span>
-                              </FormLabelName>
-                              <Input
-                                type="select"
-                                name="otherPrepType"
-                                id="otherPrepType"
-                                style={{
-                                  border: '1px solid #014D88',
-                                  borderRadius: '0.25rem',
-                                }}
-                                onChange={formik.handleChange}
-                                value={formik.values.otherPrepType}
-                                disabled={disabledField}
-                              >
-                                <option value=""> Select Prep Type</option>
-                                {prepType
-                                  ?.filter(
-                                    (each, index) =>
-                                      each.code !== 'PREP_TYPE_ED_PREP'
-                                  )
-                                  ?.filter(
-                                    (each, index) =>
-                                      each.code !== objValues.prepType
-                                  )
-                                  ?.map(value => (
-                                    <option key={value.id} value={value.code}>
-                                      {value.display}
-                                    </option>
-                                  ))}
-                              </Input>
-                              {formik.touched.otherPrepType &&
-                                formik.errors.otherPrepType && (
-                                  <span className={classes.error}>
-                                    {formik.errors.otherPrepType}
-                                  </span>
-                                )}
-                            </FormGroup>
-                          </div>
-                          <div className="form-group mb-3 col-md-6">
-                            <FormGroup>
-                              <FormLabelName for="">
-                                Other PrEP Regimen{' '}
-                                <span style={{ color: 'red' }}> *</span>
-                              </FormLabelName>
-                              <Input
-                                type="select"
-                                name="otherRegimenId"
-                                id="otherRegimenId"
-                                onChange={formik.handleChange}
-                                value={formik.values.otherRegimenId}
-                                disabled={disabledField}
-                                style={{
-                                  border: '1px solid #014D88',
-                                  borderRadius: '0.25rem',
-                                }}
-                              >
-                                <option value="">Select</option>
-                                {getOptions()}
-                              </Input>
-                              {formik.touched.otherRegimenId &&
-                                formik.errors.otherRegimenId && (
-                                  <span className={classes.error}>
-                                    {formik.errors.otherRegimenId}
-                                  </span>
-                                )}
-                            </FormGroup>
-                          </div>
+                          <ConditionalFieldWrapper
+                            setFieldValue={formik.setFieldValue}
+                            fieldId="otherPrepType"
+                          >
+                            <div className="form-group mb-3 col-md-6">
+                              <FormGroup>
+                                <FormLabelName for="">
+                                  Other PrEP Type
+                                  <span style={{ color: 'red' }}> *</span>
+                                </FormLabelName>
+                                <Input
+                                  type="select"
+                                  name="otherPrepType"
+                                  id="otherPrepType"
+                                  style={{
+                                    border: '1px solid #014D88',
+                                    borderRadius: '0.25rem',
+                                  }}
+                                  onChange={formik.handleChange}
+                                  value={formik.values.otherPrepType}
+                                  disabled={disabledField}
+                                >
+                                  <option value=""> Select Prep Type</option>
+                                  {eligiblePrepTypes
+                                    ?.filter(
+                                      (each, index) =>
+                                        each.code !== 'PREP_TYPE_ED_PREP'
+                                    )
+                                    ?.filter(
+                                      (each, index) =>
+                                        each.code !== formik.values.prepType
+                                    )
+                                    ?.map(value => (
+                                      <option key={value.id} value={value.code}>
+                                        {value.display}
+                                      </option>
+                                    ))}
+                                </Input>
+                                {formik.touched.otherPrepType &&
+                                  formik.errors.otherPrepType && (
+                                    <span className={classes.error}>
+                                      {formik.errors.otherPrepType}
+                                    </span>
+                                  )}
+                              </FormGroup>
+                            </div>
+                          </ConditionalFieldWrapper>
+                          <ConditionalFieldWrapper
+                            setFieldValue={formik.setFieldValue}
+                            fieldId="otherRegimenId"
+                          >
+                            <div className="form-group mb-3 col-md-6">
+                              <FormGroup>
+                                <FormLabelName for="">
+                                  Other PrEP Regimen{' '}
+                                  <span style={{ color: 'red' }}> *</span>
+                                </FormLabelName>
+                                <Input
+                                  type="select"
+                                  name="otherRegimenId"
+                                  id="otherRegimenId"
+                                  onChange={formik.handleChange}
+                                  value={formik.values.otherRegimenId}
+                                  disabled={disabledField}
+                                  style={{
+                                    border: '1px solid #014D88',
+                                    borderRadius: '0.25rem',
+                                  }}
+                                >
+                                  <option value="">Select</option>
+                                  {getOtherPrepTypeOptions()}
+                                </Input>
+                                {formik.touched.otherRegimenId &&
+                                  formik.errors.otherRegimenId && (
+                                    <span className={classes.error}>
+                                      {formik.errors.otherRegimenId}
+                                    </span>
+                                  )}
+                              </FormGroup>
+                            </div>
+                          </ConditionalFieldWrapper>
                         </>
                       )}
                     </>
@@ -1741,7 +1223,7 @@ const ClinicVisit = props => {
                   </div>
                   <br />
                   <br />
-                  <Label
+                  {/* <Label
                     as="a"
                     color="blue"
                     style={{ width: '106%', height: '35px' }}
@@ -1776,7 +1258,7 @@ const ClinicVisit = props => {
                               border: '1px solid #014D88',
                               borderRadius: '0.25rem',
                             }}
-                            min={objValues.encounterDate}
+                            min={formik.values.encounterDate}
                             max={moment(new Date()).format('YYYY-MM-DD')}
                             disabled={disabledField}
                           />
@@ -1851,7 +1333,7 @@ const ClinicVisit = props => {
                               border: '1px solid #014D88',
                               borderRadius: '0.25rem',
                             }}
-                            min={objValues.encounterDate}
+                            min={formik.values.encounterDate}
                             max={moment(new Date()).format('YYYY-MM-DD')}
                             disabled={disabledField}
                           />
@@ -1931,7 +1413,7 @@ const ClinicVisit = props => {
                               border: '1px solid #014D88',
                               borderRadius: '0.25rem',
                             }}
-                            min={objValues.encounterDate}
+                            min={formik.values.encounterDate}
                             max={moment(new Date()).format('YYYY-MM-DD')}
                             disabled={disabledField}
                           />
@@ -2001,7 +1483,7 @@ const ClinicVisit = props => {
                               borderRadius: '0.25rem',
                             }}
                             disabled={disabledField}
-                            min={objValues.encounterDate}
+                            min={formik.values.encounterDate}
                             max={moment(new Date()).format('YYYY-MM-DD')}
                           />
                         </FormGroup>
@@ -2052,7 +1534,90 @@ const ClinicVisit = props => {
                         </div>
                       )}
                     </>
-                  )}
+                  )} */}
+                  <TestResultEntryField
+                    testName="Urinalysis"
+                    testCheckboxName="urinalysisTest"
+                    checkboxState={urinalysisTest.urinalysisTest}
+                    handleCheckboxChange={handleCheckboxUrinalysisTest}
+                    dateName="testDate"
+                    dateValue={urinalysisTest.testDate}
+                    dateTouched={formik.touched.urinalysisTestDate}
+                    dateError={formik.errors.urinalysisTestDate}
+                    handleDateChange={handleInputChangeUrinalysisTest}
+                    resultName="result"
+                    resultValue={urinalysisTest.result}
+                    resultTouched={formik.touched.urinalysisTestResult}
+                    resultError={formik.errors.urinalysisTestResult}
+                    handleResultChange={handleInputChangeUrinalysisTest}
+                    formik={formik}
+                    disabledField={disabledField}
+                    classes={classes}
+                    color="blue"
+                  />
+
+                  <TestResultEntryField
+                    testName="Creatinine"
+                    testCheckboxName="creatinineTest"
+                    checkboxState={creatinineTest.creatinineTest}
+                    handleCheckboxChange={handleCheckboxCreatinineTest}
+                    dateName="testDate"
+                    dateValue={creatinineTest.testDate}
+                    dateTouched={formik.touched.creatinineTestDate}
+                    dateError={formik.errors.creatinineTestDate}
+                    handleDateChange={handleCreatinineTestInputChange}
+                    resultName="result"
+                    resultValue={creatinineTest.result}
+                    resultTouched={formik.touched.creatinineTestResult}
+                    resultError={formik.errors.creatinineTestResult}
+                    handleResultChange={handleCreatinineTestInputChange}
+                    formik={formik}
+                    disabledField={disabledField}
+                    classes={classes}
+                    color="teal"
+                  />
+
+                  <TestResultEntryField
+                    testName="Syphilis"
+                    testCheckboxName="syphilisTest"
+                    checkboxState={syphilisTest.syphilisTest}
+                    handleCheckboxChange={handleCheckboxSyphilisTest}
+                    dateName="testDate"
+                    dateValue={syphilisTest.testDate}
+                    dateTouched={formik.touched.syphilisTestDate}
+                    dateError={formik.errors.syphilisTestDate}
+                    handleDateChange={handleSyphilisTestInputChange}
+                    resultName="result"
+                    resultValue={syphilisTest.result}
+                    resultTouched={formik.touched.syphilisTestResult}
+                    resultError={formik.errors.syphilisTestResult}
+                    handleResultChange={handleSyphilisTestInputChange}
+                    formik={formik}
+                    disabledField={disabledField}
+                    classes={classes}
+                    color="blue"
+                  />
+
+                  <TestResultEntryField
+                    testName="Hepatitis"
+                    testCheckboxName="hepatitisTest"
+                    checkboxState={hepatitisTest.hepatitisTest}
+                    handleCheckboxChange={handleCheckboxHepatitisTest}
+                    dateName="testDate"
+                    dateValue={hepatitisTest.testDate}
+                    dateTouched={formik.touched.hepatitisTestDate}
+                    dateError={formik.errors.hepatitisTestDate}
+                    handleDateChange={handleInputChangeHepatitisTest}
+                    resultName="result"
+                    resultValue={hepatitisTest.result}
+                    resultTouched={formik.touched.hepatitisTestResult}
+                    resultError={formik.errors.hepatitisTestResult}
+                    handleResultChange={handleInputChangeHepatitisTest}
+                    formik={formik}
+                    disabledField={disabledField}
+                    classes={classes}
+                    color="red"
+                  />
                   <br />
                   <br />
                   <Label
@@ -2157,7 +1722,7 @@ const ClinicVisit = props => {
                                 borderRadius: '0.25rem',
                               }}
                               disabled={disabledField}
-                              min={objValues.encounterDate}
+                              min={formik.values.encounterDate}
                               max={moment(new Date()).format('YYYY-MM-DD')}
                             />
                           </FormGroup>
@@ -2264,7 +1829,7 @@ const ClinicVisit = props => {
                         border: '1px solid #014D88',
                         borderRadius: '0.25rem',
                       }}
-                      min={objValues.encounterDate}
+                      min={formik.values.encounterDate}
                       disabled={disabledField}
                     />
                     {formik.touched.nextAppointment &&

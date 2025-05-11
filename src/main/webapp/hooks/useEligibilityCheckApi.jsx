@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 
 export const useEligibilityCheckApi = (baseUrl, personId, visitDate, token) => {
   const [isEligibleForCabLa, setIsEligibleForCabLa] = useState(false);
-  console.log('actual params: ', baseUrl, personId, visitDate, token);
+
   useEffect(() => {
     const checkEligibility = async () => {
       try {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import { useValidation } from './vistUtils/useValidation';
 import useInitialValuesForVisitForm from './useInitialValuesForVisitForm';
@@ -34,7 +34,7 @@ import useSubmitPrepClinicForm from './useSubmitPrepClinicForm';
 import { token, url } from '../api';
 
 const usePrepClinicState = props => {
-  const [disabledField, setDisabledField] = React.useState(false);
+  const [disabledField, setDisabledField] = useState(false);
   const { data: adherenceLevel, setData: setAdherenceLevel } =
     useWhyPoorFairAdherence();
   const { data: sti, setData: setSti } = useSyndromicStiScreening();
@@ -86,7 +86,7 @@ const usePrepClinicState = props => {
     validationSchema,
     onSubmit: values => submitForm(values),
   });
-  console.log('reg: ', prepRegimen, prepType);
+
   return {
     formik,
     disabledField,

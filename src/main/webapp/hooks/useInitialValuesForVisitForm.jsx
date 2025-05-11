@@ -9,7 +9,7 @@ export const getCurrentDateFormatted = () => {
   return `${year}-${month}-${day}`;
 };
 
-const useInitialValuesForVisitForm = (patientObj, objValues) => {
+const useInitialValuesForVisitForm = patientObj => {
   const [initialValues, setInitialValues] = useState(() => ({
     adherenceLevel: '',
     dateInitialAdherenceCounseling: '',
@@ -38,7 +38,7 @@ const useInitialValuesForVisitForm = (patientObj, objValues) => {
     riskReductionServices: '',
     healthCareWorkerSignature: '',
     stiScreening: '',
-    syndromicStiScreening: null,
+    syndromicStiScreening: '',
     syphilis: {},
     systolic: '',
     temperature: '',
@@ -66,13 +66,6 @@ const useInitialValuesForVisitForm = (patientObj, objValues) => {
     dateLiverFunctionTestResults: '',
     liverFunctionTestResults: '',
   }));
-
-  useEffect(() => {
-    setInitialValues(prevValues => ({
-      ...prevValues,
-      encounterDate: getCurrentDateFormatted(),
-    }));
-  }, [patientObj, objValues]);
   return { initialValues };
 };
 

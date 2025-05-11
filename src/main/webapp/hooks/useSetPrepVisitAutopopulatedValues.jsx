@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import useCheckDateMismatch from './useCheckDateMismatch';
 import useVisitTypeDurationMapping from './vistUtils/useVisitTypeDurationMapping';
-import useGetNextAppDate from './vistUtils/useGetNextAppDate';
 
 const useSetPrepVisitAutopopulatedValues = (
   formik,
