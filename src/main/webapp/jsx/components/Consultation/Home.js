@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Grid, Segment, Label } from 'semantic-ui-react';
 import { FormGroup, Label as FormLabelName, Input } from 'reactstrap';
 import { url as baseUrl, token } from '../../../api';
-import { Button as MatButton } from '@material-ui/core';
-import SaveIcon from '@material-ui/icons/Save';
 import moment from 'moment';
 import { toast } from 'react-toastify';
 import DualListBox from 'react-dual-listbox';
@@ -30,17 +28,29 @@ import { useHandleDiastolicInputValueCheck } from '../../../hooks/useHandleDiast
 import { useHandlePulseInputValueCheck } from '../../../hooks/useHandlePulseInputValueCheck';
 import { useHandleRespiratoryRateInputValueCheck } from '../../../hooks/useHandleRespiratoryRateInputValueCheck';
 import { useHandleTemperatureInputValueCheck } from '../../../hooks/useHandleTemperatureInputValueCheck';
-import useCheckDateMismatch from '../../../hooks/useCheckDateMismatch';
 import useGetNextAppDate from '../../../hooks/vistUtils/useGetNextAppDate';
 import VitalSigns from './VitalSigns';
 import ConditionalFieldWrapper from './ConditionalFieldWrapper/ConditionalFieldWrapper';
 import TestResultEntryField from './CreatinineTest/TestResultEntryField';
 import OtherTestSection from './OtherTestEntryField/OtherTestEntryField';
+import useEligibleRegimens from '../../../hooks/useEligibleRegimens';
+import useEligiblePrepTypes from '../../../hooks/useEligiblePrepTypes';
+import useOtherPrepTypeOptions from '../../../hooks/useOtherPrepTypeOptions';
+import useIsFemale from '../../../hooks/useIsFemale';
+import useCreateNewTest from '../../../hooks/useHandleCreateNewTest';
+import SubmitButton from './SubmitButton';
+import useUrinalysisTestInputChange from '../../../hooks/useUrinalysisTestInputChange';
+import useOtherTestInputChange from '../../../hooks/useOtherTestInputChange';
+import useHepatitisTestInputChange from '../../../hooks/useHepatitisTestInputChange';
+import useRemoveTest from '../../../hooks/useRemoveTest';
+import useLftInputChange from '../../../hooks/useLftInputChange';
+import useNotedSideEffectsChange from '../../../hooks/useNotedSideEffectsChange';
 
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
+  const [otherTest, setOtherTest] = useState([]);
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: '',
     diastolic: '',
@@ -50,7 +60,6 @@ const ClinicVisit = props => {
     temperature: '',
     respiratoryRate: '',
   });
-
   const [urinalysisTest, setUrinalysisTest] = useState({
     urinalysisTest: 'No',
     testDate: '',
@@ -72,60 +81,35 @@ const ClinicVisit = props => {
     testDate: '',
     result: '',
   });
+
+  const [isInitialValues, setIsInitialValues] = useState(1);
+  const [localEncounterDate, setLocalEncounterDate] = useState('');
+  const [notedSideEffects, setNotedSideEffects] = useState([]);
+  const otherTestInputRef = useRef();
+  const classes = useStyleForVisitForm();
+  const { error, root, inputStyle, commentField } = classes;
+  const isFemale = useIsFemale(props.patientObj.gender);
+  const { handleCreateNewTest } = useCreateNewTest(setOtherTest);
   const {
     formik,
     disabledField,
     setDisabledField,
     adherenceLevel,
-    setAdherenceLevel,
     sti,
-    setSti,
-    prepStatus,
-    setPrepStatus,
     prepSideEffect,
-    setPrepSideEffect,
-    htsResult,
-    setHtsResult,
     prepRegimen,
-    setPrepRegimen,
-    labTestOptions,
-    setLabTestOptions,
-    urineTestResult,
-    setUrineTestResult,
-    creatinineTestResult,
-    setCreatinineTestResult,
     otherTestResult,
-    setOtherTestResult,
-    sphylisTestResult,
-    setSphylisTestResult,
-    hepaTestResult,
-    setHepaTestResult,
     familyPlanningMethod,
-    setFamilyPlanningMethod,
     pregnancyStatus,
-    setPregnancyStatus,
     prepEntryPoint,
-    setPrepEntryPoints,
     prepType,
-    setPrepType,
     populationType,
-    setPopulationType,
     visitType,
-    setVisitType,
     latestFromEligibility,
-    setLatestFromEligibility,
-    hivTestValue,
     setHivTestValue,
-    hivTestResultDate,
-    setHivTestResultDate,
     reasonForSwitchOptions,
-    setReasonForSwitchOptions,
     prepRiskReductionPlan,
-    setPrepRiskReductionPlan,
-    recentActivities,
-    setRecentActivities,
     liverFunctionTestResult,
-    setLiverFunctionTestResult,
   } = usePrepClinicState(props);
 
   const { isEligibleForCabLa, setIsEligibleForCabLa } = useEligibilityCheckApi(
@@ -135,27 +119,10 @@ const ClinicVisit = props => {
     token
   );
 
-  const [otherTest, setOtherTest] = useState([]);
   const { data: latestHtsResult, setData } = useHivResult(
     props.patientObj.personId
   );
   const { isHtsFound } = useHtsResultCheck();
-
-  useEffect(() => {
-    if (latestHtsResult?.hivTestValue) isHtsFound(latestHtsResult.hivTestValue);
-  }, [latestHtsResult]);
-
-  const classes = useStyleForVisitForm();
-
-  const [isInitialValues, setIsInitialValues] = useState(1);
-  const [localEncounterDate, setLocalEncounterDate] = useState('');
-  const { checkDateMismatch } = useCheckDateMismatch();
-
-  useEffect(
-    () => setLocalEncounterDate(formik.values.encounterDate),
-    [formik.values.encounterDate]
-  );
-
   useSetPrepVisitAutopopulatedValues(
     formik,
     localEncounterDate,
@@ -171,10 +138,11 @@ const ClinicVisit = props => {
     errors
   );
 
-  const handleInputChangeUrinalysisTest = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
-    setUrinalysisTest({ ...urinalysisTest, [e.target.name]: e.target.value });
-  };
+  const { handleInputChangeUrinalysisTest } = useUrinalysisTestInputChange(
+    setErrors,
+    setUrinalysisTest,
+    errors
+  );
 
   const { handleCreatinineTestInputChange } =
     useHandleCreatinineTestInputChange(
@@ -184,26 +152,17 @@ const ClinicVisit = props => {
       errors
     );
 
-  const handleInputChangeOtherTest = (e, localId) => {
-    let temp = [...otherTest];
-    let index = temp.findIndex(x => Number(x.localId) === Number(localId));
-    temp[index][e.target.name] = e.target.value;
-    setOtherTest(temp);
-  };
+  const { handleInputChangeOtherTest } = useOtherTestInputChange(
+    setOtherTest,
+    otherTest
+  );
 
-  const handleRemoveTest = localId => {
-    setOtherTest(prev => prev?.filter(test => test.localId !== localId));
-  };
+  const { handleRemoveTest } = useRemoveTest(setOtherTest);
 
-  const handleInputChangeHepatitisTest = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
-    setHepatitisTest({ ...hepatitisTest, [e.target.name]: e.target.value });
-  };
-
-  const { handleCheckBoxUrinalysisTest } = useHandleCheckboxUrinalysisTest(
+  const { handleInputChangeHepatitisTest } = useHepatitisTestInputChange(
     setErrors,
-    setUrinalysisTest,
-    urinalysisTest,
+    setHepatitisTest,
+    hepatitisTest,
     errors
   );
 
@@ -220,12 +179,14 @@ const ClinicVisit = props => {
     syphilisTest,
     errors
   );
+
   const { handleCheckboxUrinalysisTest } = useHandleCheckboxUrinalysisTest(
     setErrors,
     setUrinalysisTest,
     urinalysisTest,
     errors
   );
+
   const { handleCheckboxHepatitisTest } = useHandleCheckboxHepatitisTest(
     setErrors,
     setHepatitisTest,
@@ -240,8 +201,6 @@ const ClinicVisit = props => {
     formik.values,
     errors
   );
-
-  const otherTestInputRef = useRef();
 
   const { handleHeightInputValueCheck } = useHandleHeightInputValueChange(
     setVitalClinicalSupport,
@@ -280,33 +239,36 @@ const ClinicVisit = props => {
       vitalClinicalSupport
     );
 
-  const isFemale = () => {
-    return props.patientObj.gender.toLowerCase() === 'female';
-  };
+  const { handleLftInputChange } = useLftInputChange(formik);
 
-  const handleCreateNewTest = () => {
-    setOtherTest([
-      ...otherTest,
-      {
-        localId: otherTest.length,
-        otherTest: 'Yes',
-        testDate: '',
-        result: '',
-        name: '',
-        otherTestName: '',
-      },
-    ]);
-  };
+  const { handleNotedSideEffectsChange } =
+    useNotedSideEffectsChange(setNotedSideEffects);
+
+  const { getNextAppDate } = useGetNextAppDate();
+
+  const eligibleRegimens = useEligibleRegimens(
+    isEligibleForCabLa,
+    props.activeContent.actionType,
+    prepRegimen
+  );
+
+  const eligiblePrepTypes = useEligiblePrepTypes(
+    isEligibleForCabLa,
+    props.activeContent.actionType,
+    prepType
+  );
+  const getOtherPrepTypeOptions = useOtherPrepTypeOptions(
+    formik.values.otherPrepType
+  );
 
   useEffect(() => {
-    if (
-      props.activeContent.actionType === '' ||
-      props.activeContent.actionType === null
-    ) {
-      // formik.resetForm();
-    }
-  }, [props.activeContent.actionType]);
+    if (latestHtsResult?.hivTestValue) isHtsFound(latestHtsResult.hivTestValue);
+  }, [latestHtsResult]);
 
+  useEffect(
+    () => setLocalEncounterDate(formik.values.encounterDate),
+    [formik.values.encounterDate]
+  );
   useEffect(async () => {
     if (
       props.activeContent.id &&
@@ -317,21 +279,6 @@ const ClinicVisit = props => {
     }
   }, [props.activeContent]);
 
-  const handleLftInputChange = event => {
-    const { name, value } = event.target;
-    formik.setValues(prevValues => ({
-      ...prevValues,
-      [name]: value,
-    }));
-  };
-
-  const [notedSideEffects, setNotedSideEffects] = useState([]);
-
-  const handleNotedSideEffectsChange = selected => {
-    setNotedSideEffects(selected);
-  };
-
-  const { getNextAppDate } = useGetNextAppDate();
   useEffect(() => {
     let nextAppointment = getNextAppDate(
       formik.values.encounterDate,
@@ -339,25 +286,6 @@ const ClinicVisit = props => {
     );
     formik.setValues(prev => ({ ...prev, nextAppointment }));
   }, [formik.values.encounterDate, formik.values.monthsOfRefill]);
-
-  function handleError(error) {
-    setSaving(false);
-    if (error.response && error.response.data) {
-      let errorMessage =
-        error.response.data.apierror &&
-        error.response.data.apierror.message !== ''
-          ? error.response.data.apierror.message
-          : '❌ Something went wrong. Please try again';
-      toast.error(errorMessage, {
-        position: toast.POSITION.BOTTOM_CENTER,
-      });
-    } else {
-      toast.error('Something went wrong ❌ please try again...', {
-        position: toast.POSITION.BOTTOM_CENTER,
-      });
-    }
-  }
-
   useEffect(() => {
     formik.setFieldValue('prepNotedSideEffects', notedSideEffects);
   }, [notedSideEffects]);
@@ -400,31 +328,6 @@ const ClinicVisit = props => {
       otherTestsDone: otherTest,
     }));
   }, [otherTest]);
-
-  const eligibleRegimens = useMemo(() => {
-    return isEligibleForCabLa || props.activeContent.actionType === 'update'
-      ? [...prepRegimen]
-      : [...prepRegimen].filter(({ id }) => id !== 2);
-  }, [isEligibleForCabLa, props.activeContent.actionType, prepRegimen]);
-  const eligiblePrepTypes = useMemo(
-    () =>
-      isEligibleForCabLa || props.activeContent.actionType === 'update'
-        ? [...prepType]
-        : [...prepType].filter(({ id }) => ![1373, 1726].includes(id)),
-    [isEligibleForCabLa, props.activeContent.actionType, prepType]
-  );
-
-  const isMatchedDate = useMemo(() => {
-    if (!localEncounterDate) {
-      return checkDateMismatch(
-        localEncounterDate || '',
-        latestFromEligibility?.visitDate || '',
-        isInitialValues
-      );
-    }
-    return false;
-  }, [localEncounterDate]);
-
   useEffect(() => {
     formik.setValues(prev => ({
       ...prev,
@@ -434,26 +337,9 @@ const ClinicVisit = props => {
     }));
   }, [latestHtsResult]);
 
-  const getOtherPrepTypeOptions = () => {
-    switch (formik.values.otherPrepType) {
-      case 'PREP_TYPE_ORAL':
-        return <option value="1">TDF(300mg)+3TC(300mg)</option>;
-      case 'PREP_TYPE_INJECTIBLES':
-        return <option value="2">IM CAB-LA(600mg/3mL)</option>;
-      case 'PREP_TYPE_ED_PREP':
-        return (
-          <>
-            <option value="2">IM CAB-LA(600mg/3mL)</option>
-            <option value="1">TDF(300mg)+3TC(300mg)</option>
-          </>
-        );
-      default:
-        return null;
-    }
-  };
   console.log('formik: ', formik);
   return (
-    <div className={`${classes.root} container-fluid`}>
+    <div className={`${root} container-fluid`}>
       <div className="row">
         <div className="col-12">
           <h2 className="p-2">Clinic Follow-up Visit</h2>
@@ -512,16 +398,13 @@ const ClinicVisit = props => {
                         onChange={e => {
                           setHivTestValue(e.target.value);
                         }}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                         disabled
                       />
                       <div className="p-1">
                         {formik.touched.pregnancyStatus &&
                           formik.errors.lastHts && (
-                            <span className={classes.error}>
+                            <span className={error}>
                               {formik.errors.lastHts}
                             </span>
                           )}
@@ -550,16 +433,13 @@ const ClinicVisit = props => {
                         onChange={e => {
                           setHivTestValue(e.target.value);
                         }}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                         disabled
                       />
                       <div className="p-1">
                         {formik.touched.lastHtsDate &&
                           formik.errors.lastHtsDate && (
-                            <span className={classes.error}>
+                            <span className={error}>
                               {formik.errors.lastHtsDate}
                             </span>
                           )}
@@ -581,7 +461,7 @@ const ClinicVisit = props => {
                         />
                         {formik.touched.liverFunctionTestResults &&
                           formik.errors.liverFunctionTestResults && (
-                            <span className={classes.error}>
+                            <span className={error}>
                               {formik.errors.liverFunctionTestResults}
                             </span>
                           )}
@@ -609,7 +489,7 @@ const ClinicVisit = props => {
                         />
                         {formik.touched.dateLiverFunctionTestResults &&
                           formik.errors.dateLiverFunctionTestResults && (
-                            <span className={classes.error}>
+                            <span className={error}>
                               {formik.errors.dateLiverFunctionTestResults}
                             </span>
                           )}
@@ -630,7 +510,7 @@ const ClinicVisit = props => {
                       />
                       {formik.touched.notedSideEffects &&
                         formik.errors.notedSideEffects && (
-                          <span className={classes.error}>
+                          <span className={error}>
                             {formik.errors.notedSideEffects}
                           </span>
                         )}
@@ -645,10 +525,7 @@ const ClinicVisit = props => {
                         id="stiScreening"
                         value={formik.values.stiScreening}
                         onChange={formik.handleChange}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
@@ -692,10 +569,7 @@ const ClinicVisit = props => {
                         id="riskReductionServices"
                         value={formik.values.riskReductionServices}
                         onChange={formik.handleChange}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                         disabled={disabledField}
                       >
                         <option key={100} value="">
@@ -718,10 +592,7 @@ const ClinicVisit = props => {
                         id="adherenceLevel"
                         value={formik.values.adherenceLevel}
                         onChange={formik.handleChange}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
@@ -734,7 +605,7 @@ const ClinicVisit = props => {
                       </Input>
                       {formik.touched.adherenceLevel &&
                         formik.errors.adherenceLevel && (
-                          <span className={classes.error}>
+                          <span className={error}>
                             {formik.errors.adherenceLevel}
                           </span>
                         )}
@@ -781,10 +652,7 @@ const ClinicVisit = props => {
                         onChange={formik.handleChange}
                         value={formik.values.populationType}
                         disabled
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                       >
                         <option value=""> Select Population Type</option>
                         {populationType?.map(value => (
@@ -802,7 +670,7 @@ const ClinicVisit = props => {
                       </Input>
                       {formik.touched.adherenceLevel &&
                         formik.errors.populationType && (
-                          <span className={classes.error}>
+                          <span className={error}>
                             {formik.errors.populationType}
                           </span>
                         )}
@@ -821,10 +689,7 @@ const ClinicVisit = props => {
                         onChange={formik.handleChange}
                         value={formik.values.visitType}
                         disabled
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                       >
                         <option value=""> Select Visit Type</option>
                         {visitType?.map(value => (
@@ -834,9 +699,7 @@ const ClinicVisit = props => {
                         ))}
                       </Input>
                       {formik.touched.visitType && formik.errors.visitType && (
-                        <span className={classes.error}>
-                          {formik.errors.visitType}
-                        </span>
+                        <span className={error}>{formik.errors.visitType}</span>
                       )}
                     </FormGroup>
                   </div>
@@ -870,7 +733,7 @@ const ClinicVisit = props => {
                       </FormGroup>
                       {formik.touched.reasonForSwitch &&
                         formik.errors.reasonForSwitch && (
-                          <span className={classes.error}>
+                          <span className={error}>
                             {formik.errors.reasonForSwitch}
                           </span>
                         )}
@@ -886,10 +749,7 @@ const ClinicVisit = props => {
                         id="wasPrepAdministered"
                         value={formik.values.wasPrepAdministered}
                         onChange={formik.handleChange}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
@@ -899,7 +759,7 @@ const ClinicVisit = props => {
                     </FormGroup>
                     {formik.touched.wasPrepAdministered &&
                       formik.errors.wasPrepAdministered && (
-                        <span className={classes.error}>
+                        <span className={error}>
                           {formik.errors.wasPrepAdministered}
                         </span>
                       )}
@@ -913,10 +773,7 @@ const ClinicVisit = props => {
                         type="select"
                         name="prepType"
                         id="prepType"
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                         onChange={formik.handleChange}
                         value={formik.values.prepType}
                         disabled={disabledField}
@@ -929,9 +786,7 @@ const ClinicVisit = props => {
                         ))}
                       </Input>
                       {formik.touched.prepType && formik.errors.prepType && (
-                        <span className={classes.error}>
-                          {formik.errors.prepType}
-                        </span>
+                        <span className={error}>{formik.errors.prepType}</span>
                       )}
                     </FormGroup>
                   </div>
@@ -947,10 +802,7 @@ const ClinicVisit = props => {
                         onChange={formik.handleChange}
                         value={formik.values.regimenId}
                         disabled={disabledField}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                       >
                         <option value=""> Select</option>
                         {eligibleRegimens?.map(value => (
@@ -960,9 +812,7 @@ const ClinicVisit = props => {
                         ))}
                       </Input>
                       {formik.touched.regimenId && formik.errors.regimenId && (
-                        <span className={classes.error}>
-                          {formik.errors.regimenId}
-                        </span>
+                        <span className={error}>{formik.errors.regimenId}</span>
                       )}
                     </FormGroup>
                   </div>
@@ -979,15 +829,12 @@ const ClinicVisit = props => {
                         value={formik.values.monthsOfRefill}
                         min={0}
                         onChange={formik.handleChange}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                         disabled={disabledField}
                       />
                       {formik.touched.monthsOfRefill &&
                         formik.errors.monthsOfRefill && (
-                          <span className={classes.error}>
+                          <span className={error}>
                             {formik.errors.monthsOfRefill}
                           </span>
                         )}
@@ -1019,7 +866,7 @@ const ClinicVisit = props => {
                           </FormGroup>
                           {formik.touched.otherPrepGiven &&
                             formik.errors.otherPrepGiven && (
-                              <span className={classes.error}>
+                              <span className={error}>
                                 {formik.errors.otherPrepGiven}
                               </span>
                             )}
@@ -1067,7 +914,7 @@ const ClinicVisit = props => {
                                 </Input>
                                 {formik.touched.otherPrepType &&
                                   formik.errors.otherPrepType && (
-                                    <span className={classes.error}>
+                                    <span className={error}>
                                       {formik.errors.otherPrepType}
                                     </span>
                                   )}
@@ -1097,11 +944,11 @@ const ClinicVisit = props => {
                                   }}
                                 >
                                   <option value="">Select</option>
-                                  {getOtherPrepTypeOptions()}
+                                  {getOtherPrepTypeOptions}
                                 </Input>
                                 {formik.touched.otherRegimenId &&
                                   formik.errors.otherRegimenId && (
-                                    <span className={classes.error}>
+                                    <span className={error}>
                                       {formik.errors.otherRegimenId}
                                     </span>
                                   )}
@@ -1125,10 +972,7 @@ const ClinicVisit = props => {
                         onChange={formik.handleChange}
                         value={formik.values.prepDistributionSetting}
                         disabled={disabledField}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                       >
                         <option value=""></option>
                         {prepEntryPoint?.map(value => (
@@ -1139,7 +983,7 @@ const ClinicVisit = props => {
                       </Input>
                       {formik.touched.prepDistributionSetting &&
                         formik.errors.prepDistributionSetting && (
-                          <span className={classes.error}>
+                          <span className={error}>
                             {formik.errors.prepDistributionSetting}
                           </span>
                         )}
@@ -1154,10 +998,7 @@ const ClinicVisit = props => {
                         id="otherDrugs"
                         value={formik.values.otherDrugs}
                         onChange={formik.handleChange}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                         disabled={disabledField}
                       />
                     </FormGroup>
@@ -1173,10 +1014,7 @@ const ClinicVisit = props => {
                         onChange={formik.handleChange}
                         value={formik.values.familyPlanning}
                         disabled={disabledField}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                       >
                         <option value=""></option>
                         {familyPlanningMethod?.map(value => (
@@ -1196,17 +1034,14 @@ const ClinicVisit = props => {
                         name="dateOfFamilyPlanning"
                         id="dateOfFamilyPlanning"
                         value={formik.values.dateOfFamilyPlanning}
-                        style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
-                        }}
+                        className={inputStyle}
                         onChange={formik.handleChange}
                         max={moment(new Date()).format('YYYY-MM-DD')}
                         disabled={disabledField}
                       />
                       {formik.touched.dateOfFamilyPlanning &&
                         formik.errors.dateOfFamilyPlanning && (
-                          <span className={classes.error}>
+                          <span className={error}>
                             {formik.errors.dateOfFamilyPlanning}
                           </span>
                         )}
@@ -1336,16 +1171,13 @@ const ClinicVisit = props => {
                       id="nextAppointment"
                       value={formik.values.nextAppointment}
                       onChange={formik.handleChange}
-                      style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.25rem',
-                      }}
+                      className={inputStyle}
                       min={formik.values.encounterDate}
                       disabled={disabledField}
                     />
                     {formik.touched.nextAppointment &&
                       formik.errors.nextAppointment && (
-                        <span className={classes.error}>
+                        <span className={error}>
                           {formik.errors.nextAppointment}
                         </span>
                       )}
@@ -1360,13 +1192,10 @@ const ClinicVisit = props => {
                       value={formik.values.healthCareWorkerSignature}
                       disabled={disabledField}
                       onChange={formik.handleChange}
-                      style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.25rem',
-                      }}
+                      className={inputStyle}
                     />
                     {formik.errors.healthCareWorkerSignature !== '' ? (
-                      <span className={classes.error}>
+                      <span className={error}>
                         {formik.errors.healthCareWorkerSignature}
                       </span>
                     ) : (
@@ -1394,74 +1223,21 @@ const ClinicVisit = props => {
                       value={formik.values.comment}
                       disabled={disabledField}
                       onChange={formik.handleChange}
-                      style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.25rem',
-                        height: '10em',
-                      }}
+                      style={{ height: '10em' }}
+                      className={{ ...inputStyle }}
                     />
                     {formik.errors.comment && (
-                      <span className={classes.error}>
-                        {formik.errors.comment}
-                      </span>
+                      <span className={error}>{formik.errors.comment}</span>
                     )}
                   </div>
                 </div>
                 <br />
-
-                {!disabledField && (
-                  <>
-                    {props.activeContent &&
-                    props.activeContent.actionType === 'update' ? (
-                      <div>
-                        {' '}
-                        <MatButton
-                          type="submit"
-                          variant="contained"
-                          color="primary"
-                          hidden={disabledField}
-                          className={classes.button}
-                          startIcon={<SaveIcon />}
-                          style={{ backgroundColor: '#014d88' }}
-                          disabled={saving}
-                        >
-                          {!saving ? (
-                            <span style={{ textTransform: 'capitalize' }}>
-                              Update
-                            </span>
-                          ) : (
-                            <span style={{ textTransform: 'capitalize' }}>
-                              Updating...
-                            </span>
-                          )}
-                        </MatButton>
-                      </div>
-                    ) : (
-                      <div>
-                        {' '}
-                        <MatButton
-                          type="submit"
-                          variant="contained"
-                          color="primary"
-                          className={classes.button}
-                          startIcon={<SaveIcon />}
-                          style={{ backgroundColor: '#014d88' }}
-                          disabled={saving}
-                        >
-                          {!saving ? (
-                            <span style={{ textTransform: 'capitalize' }}>
-                              Save
-                            </span>
-                          ) : (
-                            <span style={{ textTransform: 'capitalize' }}>
-                              Saving...
-                            </span>
-                          )}
-                        </MatButton>
-                      </div>
-                    )}
-                  </>
-                )}
+                <SubmitButton
+                  disabledField={disabledField}
+                  actionType={props.activeContent.actionType}
+                  saving={saving}
+                  classes={classes}
+                />
               </Segment>
             </Grid.Column>
           </Grid>

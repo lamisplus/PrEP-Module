@@ -53,9 +53,11 @@ const useStyleForVisitForm = () => {
         fontWeight: 'bold',
       },
     },
-    input: {
-      display: 'none',
+    inputStyle: {
+      border: '1px solid #014D88',
+      borderRadius: '0.25rem',
     },
+    commentField: { height: '10em' },
     error: {
       color: '#f85032',
       fontSize: '11px',

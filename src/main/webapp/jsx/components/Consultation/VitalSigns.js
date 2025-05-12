@@ -29,6 +29,7 @@ const VitalSigns = ({
     setIsInitialValues(0);
     formik.handleChange(e);
   };
+
   return (
     <>
       <Label
@@ -442,7 +443,7 @@ const VitalSigns = ({
               )}
             </FormGroup>
           </div>
-          {isFemale() && (
+          {isFemale && (
             <div className="form-group mb-3 col-md-4">
               <FormGroup>
                 <FormLabelName>
