@@ -209,10 +209,7 @@ function PatientCard(props) {
                         {' '}
                         Phone Number :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.phone ||
-                            patientObj?.phoneNumber ||
-                            props?.patientDetail?.personResponseDto
-                              ?.contactPoint?.contactPoint[0].value}
+                          {patientObj?.phone || patientObj?.phoneNumber}
                         </b>
                       </span>
                     </Col>
