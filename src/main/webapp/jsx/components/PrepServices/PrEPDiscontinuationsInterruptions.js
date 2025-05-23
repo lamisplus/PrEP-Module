@@ -79,6 +79,13 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const CODESET_KEYS = [
+  'PREP_STATUS',
+  'PREP_STATUS_STOPPED_REASON',
+  'CAUSE_DEATH',
+  'REASON_FOR_DISCONTINUATION',
+];
+
 const PrEPEligibiltyScreeningForm = props => {
   const patientObj = props.patientObj;
   const classes = useStyles();
@@ -109,10 +116,25 @@ const PrEPEligibiltyScreeningForm = props => {
   const [reasonForDiscontinuationOptions, setReasonForDiscontinuationOptions] =
     useState([]);
   const [patientDto, setPatientDto] = useState();
+  const [codeset, setCodeset] = useState({});
+
+  useEffect(async () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/codeSets`, {
+        params: { codes: CODESET_KEYS },
+        paramsSerializer: params =>
+          params.codes
+            .map(code => `codes=${encodeURIComponent(code)}`)
+            .join('&'),
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(({ data }) => {
+        setCodeset(data);
+      });
+  }, []);
 
   useEffect(() => {
     PREP_STATUS();
-    PREP_STATUS_STOPPED_REASON();
     GetPatientDTOObj();
     CAUSE_DEATH();
     getReasonForDiscontinuationOptions();
@@ -447,13 +469,13 @@ const PrEPEligibiltyScreeningForm = props => {
                     disabled={disabledField}
                   >
                     <option value="">Select</option>
-                    {prepStatus
-                      .filter(interruption => interruption?.id !== 743)
-                      .map(value => (
-                        <option key={value.id} value={value.code}>
-                          {value.display}
-                        </option>
-                      ))}
+                    {codeset?.PREP_STATUS?.filter(
+                      interruption => interruption?.id !== 743
+                    ).map(value => (
+                      <option key={value.id} value={value.code}>
+                        {value.display}
+                      </option>
+                    ))}
                     {/* <option value="PREP_INTERRUPtIONS_DISCONTINUED_ORAL_PREP">
                       Discontinued Oral PrEP
                     </option>
@@ -528,7 +550,7 @@ const PrEPEligibiltyScreeningForm = props => {
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        {reasonStooped.map(value => (
+                        {codeset?.PREP_STATUS_STOPPED_REASON?.map(value => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
@@ -676,7 +698,7 @@ const PrEPEligibiltyScreeningForm = props => {
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        {causeOfDeath.map(value => (
+                        {codeset?.CAUSE_DEATH?.map(value => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
