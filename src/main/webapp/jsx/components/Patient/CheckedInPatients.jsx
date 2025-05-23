@@ -147,7 +147,7 @@ const CheckedInPatients = props => {
                   width: '200px', // Set a fixed width for the ButtonGroup
                 }}
               >
-                {rowData?.isOnPrep ? (
+                {rowData.isOnPrep === undefined && (
                   <Button
                     startIcon={
                       <Dashboard
@@ -173,7 +173,36 @@ const CheckedInPatients = props => {
                       Patient Dashboard
                     </span>
                   </Button>
-                ) : (
+                )}
+                {rowData.isOnPrep === true && (
+                  <Button
+                    startIcon={
+                      <Dashboard
+                        color="inherit"
+                        style={{
+                          color: '#fff',
+                          fontSize: '1em',
+                        }}
+                      />
+                    }
+                    style={{
+                      backgroundColor: 'rgb(153, 46, 98)',
+                      width: '100%', // Ensure the button takes the full width of the ButtonGroup
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        color: '#fff',
+                        fontWeight: 'bolder',
+                      }}
+                    >
+                      Patient Dashboard
+                    </span>
+                  </Button>
+                )}
+
+                {rowData?.isOnPrep === false && (
                   <Button
                     startIcon={
                       <TiArrowForward
