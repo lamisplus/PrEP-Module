@@ -85,6 +85,15 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const CODESET_KEYS = [
+  'PREGNANCY_STATUS',
+  'PrEP_ENTRY_POINT',
+  'PrEP_TYPE',
+  'PREP_HISTORY_OF_DRUG_INTERACTIONS',
+  'LIVER_FUNCTION_TEST_RESULT',
+  'PREP_URINALYSIS_RESULT',
+];
+
 const PrEPCommencementForm = props => {
   const patientObj = props.patientObj;
   const classes = useStyles();
@@ -125,6 +134,22 @@ const PrEPCommencementForm = props => {
   const [urinalysisTestResult, setUrinalysisTestResult] = useState([]);
   const [prepType, setPrepType] = useState([]);
   const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
+  const [codeset, setCodeset] = useState({});
+
+  useEffect(async () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/codeSets`, {
+        params: { codes: CODESET_KEYS },
+        paramsSerializer: params =>
+          params.codes
+            .map(code => `codes=${encodeURIComponent(code)}`)
+            .join('&'),
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(({ data }) => {
+        setCodeset(data);
+      });
+  }, []);
 
   useEffect(() => {
     pregnancyStatus();
@@ -711,7 +736,7 @@ const PrEPCommencementForm = props => {
                       }}
                     >
                       <option value=""></option>
-                      {pregnant.map(value => (
+                      {codeset?.PREGNANCY_STATUS?.map(value => (
                         <option key={value.id} value={value.code}>
                           {value.display}
                         </option>
@@ -780,7 +805,7 @@ const PrEPCommencementForm = props => {
                   }}
                 >
                   <option value="">Select</option>
-                  {urinalysisTestResult.map(value => (
+                  {codeset?.PREP_URINALYSIS_RESULT?.map(value => (
                     <option key={value.id} value={value.display}>
                       {value.display}
                     </option>
@@ -805,7 +830,7 @@ const PrEPCommencementForm = props => {
                   disabled={disabledField}
                 >
                   <option value="">Select</option>
-                  {historyOfDrugToDrugInteraction.map(value => (
+                  {codeset?.PREP_HISTORY_OF_DRUG_INTERACTIONS?.map(value => (
                     <option key={value.id} value={value.code}>
                       {value.display}
                     </option>
@@ -824,7 +849,7 @@ const PrEPCommencementForm = props => {
                 <LiverFunctionTest
                   objValues={objValues}
                   handleInputChange={handleLftInputChange}
-                  liverFunctionTestResult={liverFunctionTestResult}
+                  liverFunctionTestResult={codeset?.LIVER_FUNCTION_TEST_RESULT}
                   disabledField={disabledField}
                   isAutoPop={true}
                 />
@@ -928,7 +953,7 @@ const PrEPCommencementForm = props => {
                   value={objValues.prepType}
                 >
                   <option value="">Select Prep Type</option>
-                  {prepType.map(value => (
+                  {codeset?.PrEP_TYPE?.map(value => (
                     <option key={value.id} value={value.code}>
                       {value.display}
                     </option>
@@ -987,7 +1012,7 @@ const PrEPCommencementForm = props => {
                   }}
                 >
                   <option value=""></option>
-                  {prepEntryPoint.map(value => (
+                  {codeset?.PrEP_ENTRY_POINT?.map(value => (
                     <option key={value.code} value={value.code}>
                       {value.display}
                     </option>
