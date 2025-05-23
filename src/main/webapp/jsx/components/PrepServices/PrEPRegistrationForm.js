@@ -76,6 +76,8 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const CODESET_KEYS = ['RELATIONSHIP', 'PREP_RISK_TYPE', 'PrEP_ENTRY_POINT'];
+
 const PrEPRegistrationForm = props => {
   const [entryPoint, setEntryPoint] = useState([]);
   const classes = useStyles();
@@ -101,11 +103,25 @@ const PrEPRegistrationForm = props => {
   const [patientDto, setPatientDto] = useState();
   const [disabledField, setSisabledField] = useState(false);
   const [targetGroupValue, setTargetGroupValue] = useState('');
+  const [codeset, setCodeset] = useState({});
+
+  useEffect(async () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/codeSets`, {
+        params: { codes: CODESET_KEYS },
+        paramsSerializer: params =>
+          params.codes
+            .map(code => `codes=${encodeURIComponent(code)}`)
+            .join('&'),
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(({ data }) => {
+        setCodeset(data);
+      });
+  }, []);
+
   useEffect(() => {
     GetPatientDTOObj();
-    RELATIONSHIP();
-    PREP_RISK_TYPE();
-    EntryPoint();
     if (
       props.activeContent.id &&
       props.activeContent.id !== '' &&
@@ -117,6 +133,7 @@ const PrEPRegistrationForm = props => {
       );
     }
   }, []);
+
   const getTargetGroupvalue = () => {
     axios
       .get(
@@ -396,7 +413,7 @@ const PrEPRegistrationForm = props => {
                     }}
                   >
                     <option value=""> Select</option>
-                    {prepRisk.map(value => (
+                    {codeset?.PREP_RISK_TYPE?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -427,7 +444,7 @@ const PrEPRegistrationForm = props => {
                     }}
                   >
                     <option value=""> Select</option>
-                    {entryPoint.map(value => (
+                    {codeset?.PrEP_ENTRY_POINT?.map(value => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -541,7 +558,7 @@ const PrEPRegistrationForm = props => {
                   >
                     <option value=""> Select</option>
 
-                    {relatives.map(value => (
+                    {codeset?.RELATIONSHIP?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
