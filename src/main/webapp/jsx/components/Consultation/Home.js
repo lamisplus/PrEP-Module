@@ -95,7 +95,28 @@ export const CleanupWrapper = ({ isVisible, cleanup, children }) => {
   }, [isVisible, cleanup]);
   return isVisible ? children : null;
 };
-
+const CODESET_KEYS = [
+  'PrEP_RISK_REDUCTION_PLAN',
+  'REASON_METHOD_SWITCH',
+  'CREATININE_TEST_RESULT',
+  'LIVER_FUNCTION_TEST_RESULT',
+  'PrEP_LEVEL_OF_ADHERENCE',
+  'SYNDROMIC_STI_SCREENING',
+  'PREP_STATUS',
+  'HTS_RESULT',
+  'PREP_SIDE_EFFECTS',
+  'WHY_POOR_FAIR_ADHERENCE',
+  'PREP_URINALYSIS_RESULT',
+  'PREP_OTHER_TEST',
+  'HEPATITIS_SCREENING_RESULT',
+  'SYPHILIS_RESULT',
+  'PREGNANCY_STATUS',
+  'PrEP_ENTRY_POINT',
+  'PrEP_TYPE',
+  'POPULATION_TYPE',
+  'PrEP_VISIT_TYPE',
+  'FAMILY_PLANNING_METHOD',
+];
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
   const [disabledField, setDisabledField] = useState(false);
@@ -215,44 +236,26 @@ const ClinicVisit = props => {
   });
 
   const [otherTest, setOtherTest] = useState([]);
+  const [codeset, setCodeset] = useState({});
+
+  useEffect(async () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/codeSets`, {
+        params: { codes: CODESET_KEYS },
+        paramsSerializer: params =>
+          params.codes
+            .map(code => `codes=${encodeURIComponent(code)}`)
+            .join('&'),
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(({ data }) => {
+        setCodeset(data);
+      });
+  }, []);
 
   const classes = useStyles();
   let temp = { ...errors };
   let testsOptions = [];
-
-  const getPregnancyStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setpregnant(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getPrepEntryPoint = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_ENTRY_POINT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepEntryPoints(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getPrepType = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setFullPrepTypeList(response.data);
-        setPrepType(response.data);
-      })
-      .catch(error => {});
-  };
 
   const getTestGroup = () => {
     axios
@@ -276,16 +279,6 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
 
-  const getReasonForSwitch = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/REASON_METHOD_SWITCH`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setReasonForSwitchOptions(response.data);
-      })
-      .catch(error => {});
-  };
   const [fullPrepTypeList, setFullPrepTypeList] = useState([]);
   const checkEligibleForCabLa = async (currentDate, regimenList) => {
     if (currentDate) {
@@ -393,47 +386,7 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-  const getPrepStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepStatus(response.data);
-      })
-      .catch(error => {});
-  };
 
-  const getPrepRiskReductionPlan = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_RISK_REDUCTION_PLAN`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepRiskReductionPlan(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getPrepSideEffects = async () => {
-    return await axios.get(
-      `${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-  };
-
-  const getHts = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/HTS_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setHtsResult(response.data);
-      })
-      .catch(error => {});
-  };
   function sortByVisitDateDescending(data) {
     return data.sort((a, b) => {
       const dateA = new Date(a.visitDate);
@@ -457,127 +410,6 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-
-  const getPopulationType = async () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/POPULATION_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPopulationType(response?.data);
-      })
-      .catch(error => {});
-  };
-
-  const getVisitType = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_VISIT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setVisitType(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getWhyPoorFairAdherence = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/WHY_POOR_FAIR_ADHERENCE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setWhyAdherenceLevelPoor(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getSyndromicStiScreening = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/SYNDROMIC_STI_SCREENING`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setSti(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getPrepUrinalysisResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setUrineTestResult(response?.data);
-      })
-      .catch(error => {});
-  };
-
-  const getCreatinineTestResultOptions = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CREATININE_TEST_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setCreatinineTestResult(response?.data);
-      })
-      .catch(error => {});
-  };
-
-  const getPrepOtherTests = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_OTHER_TEST`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setOtherTestResult(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getSyphilisResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/SYPHILIS_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setSphylisTestResult(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const getHapetitisScreeningResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/HEPATITIS_SCREENING_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setHepaTestResult(response?.data);
-      })
-      .catch(error => {});
-  };
-
-  const getFamilyPlanningMethod = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/FAMILY_PLANNING_METHOD`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setFamilyPlanningMethod(response.data);
-      })
-      .catch(error => {});
-  };
-
-  async function getAdherenceLevel() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setAdherenceLevel(response.data);
-      })
-      .catch(error => {});
-  }
 
   const [eligibilityVisitDateSync, setEligibilityVisitDateSync] =
     useState(false);
@@ -1014,16 +846,6 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
 
-  const getLiverFunctionTestResult = () =>
-    axios
-      .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setLiverFunctionTestResult(response.data);
-      })
-      .catch(error => {});
-
   useEffect(() => {
     if (
       props.activeContent.actionType === '' ||
@@ -1044,9 +866,10 @@ const ClinicVisit = props => {
       setSelectedPopulationType(autoPopulate ? autoPopulate.display : '');
     }
   }, [objValues.populationType]);
-
+  console.log('latestFromEligibility: ', latestFromEligibility);
   useEffect(() => {
     if (eligibilityVisitDateSync && latestFromEligibility !== null) {
+      console.log('latestFromEligibility33333: ', latestFromEligibility);
       const autoPopulate = populationType?.find(
         type => type.code === latestFromEligibility?.populationType
       );
@@ -1099,26 +922,9 @@ const ClinicVisit = props => {
   }, [props.activeContent]);
 
   useEffect(async () => {
-    setPrepRiskReductionPlan((await getPrepRiskReductionPlan())?.data);
-    setAdherenceLevel((await getAdherenceLevel())?.data);
-    setPrepRiskReductionPlan(getSyndromicStiScreening()?.data);
-    setPrepStatus(getPrepStatus()?.data);
-    setHtsResult(getHts()?.data);
-    setPrepSideEffect((await getPrepSideEffects())?.data);
     setPatientDto(getPatientDtoObj()?.data);
-    setWhyAdherenceLevelPoor(getWhyPoorFairAdherence()?.data);
     getPrepEligibilityObj();
     setLabTestOptions(getTestGroup()?.data);
-    setUrineTestResult(getPrepUrinalysisResult()?.data);
-    setOtherTestResult(getPrepOtherTests()?.data);
-    setHepaTestResult(getHapetitisScreeningResult()?.data);
-    setSyphilisTest(getSyphilisResult()?.data);
-    setpregnant(getPregnancyStatus()?.data);
-    setPrepEntryPoints(getPrepEntryPoint()?.data);
-    getPrepType();
-    setPopulationType(getPopulationType().data);
-    setVisitType(getVisitType()?.data);
-    setFamilyPlanningMethod(getFamilyPlanningMethod()?.data);
     getPatientVisit(props.activeContent.id);
     setDisabledField(
       !['update', undefined].includes(props.activeContent.actionType)
@@ -1128,9 +934,6 @@ const ClinicVisit = props => {
   useEffect(() => {
     getRecentActivities();
     getHivResult();
-    getReasonForSwitch();
-    getCreatinineTestResultOptions();
-    getLiverFunctionTestResult();
     getLatestFromEligibility();
   }, []);
 
@@ -1788,7 +1591,7 @@ const ClinicVisit = props => {
                         }}
                       >
                         <option value="">Select Pregnancy Status</option>
-                        {pregnant?.map(value => (
+                        {codeset?.PREGNANCY_STATUS?.map(value => (
                           <option key={value.id} value={value.code}>
                             {value.display}
                           </option>
@@ -1891,7 +1694,9 @@ const ClinicVisit = props => {
                     <LiverFunctionTest
                       objValues={objValues}
                       handleInputChange={handleLftInputChange}
-                      liverFunctionTestResult={liverFunctionTestResult}
+                      liverFunctionTestResult={
+                        codeset?.LIVER_FUNCTION_TEST_RESULT
+                      }
                       disabledField={true}
                       isAutoPop={true}
                     />
@@ -1934,27 +1739,29 @@ const ClinicVisit = props => {
                   </FormGroup>
                 </div>
               </>
-              <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName>Noted Side Effects</FormLabelName>
-                  <DualListBox
-                    options={prepSideEffect?.map(effect => ({
-                      value: effect.code,
-                      label: effect.display,
-                    }))}
-                    selected={notedSideEffects}
-                    onChange={handleNotedSideEffectsChange}
-                    disabled={disabledField}
-                  />
-                  {errors.notedSideEffects !== '' ? (
-                    <span className={classes.error}>
-                      {errors.notedSideEffects}
-                    </span>
-                  ) : (
-                    ''
-                  )}
-                </FormGroup>
-              </div>
+              {codeset?.PREP_SIDE_EFFECTS && (
+                <div className=" mb-3 col-md-6">
+                  <FormGroup>
+                    <FormLabelName>Noted Side Effects</FormLabelName>
+                    <DualListBox
+                      options={codeset.PREP_SIDE_EFFECTS.map(effect => ({
+                        value: effect?.code,
+                        label: effect?.display,
+                      }))}
+                      selected={notedSideEffects}
+                      onChange={handleNotedSideEffectsChange}
+                      disabled={disabledField}
+                    />
+                    {errors.notedSideEffects !== '' ? (
+                      <span className={classes.error}>
+                        {errors.notedSideEffects}
+                      </span>
+                    ) : (
+                      ''
+                    )}
+                  </FormGroup>
+                </div>
+              )}
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>STI Screening</FormLabelName>
@@ -1993,7 +1800,7 @@ const ClinicVisit = props => {
                       disabled={disabledField}
                     >
                       <option value="">Select</option>
-                      {sti?.map(value => (
+                      {codeset?.SYNDROMIC_STI_SCREENING?.map(value => (
                         <option key={value.id} value={value.id}>
                           {value.display}
                         </option>
@@ -2020,7 +1827,7 @@ const ClinicVisit = props => {
                     <option key={100} value="">
                       Select
                     </option>
-                    {prepRiskReductionPlan?.map(plan => (
+                    {codeset?.PrEP_RISK_REDUCTION_PLAN?.map(plan => (
                       <option key={plan.id} value={plan.id}>
                         {plan.display}
                       </option>
@@ -2045,7 +1852,7 @@ const ClinicVisit = props => {
                   >
                     <option value="">Select</option>
 
-                    {adherenceLevel?.map(value => (
+                    {codeset?.PrEP_LEVEL_OF_ADHERENCE?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -2079,7 +1886,7 @@ const ClinicVisit = props => {
                     >
                       <option value="">Select</option>
 
-                      {whyAdherenceLevelPoor?.map(value => (
+                      {codeset?.WHY_POOR_FAIR_ADHERENCE?.map(value => (
                         <option key={value.id} value={value.code}>
                           {value.display}
                         </option>
@@ -2107,12 +1914,12 @@ const ClinicVisit = props => {
                     }}
                   >
                     <option value=""> Select Population Type</option>
-                    {populationType?.map(value => (
+                    {codeset?.POPULATION_TYPE?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
                     ))}
-                    {!populationType?.find(
+                    {!codeset?.POPULATION_TYPE?.find(
                       pType => pType.display === 'GenPop'
                     ) && (
                       <option value="POPULATION_TYPE_GEN_POP">GenPop</option>
@@ -2146,7 +1953,7 @@ const ClinicVisit = props => {
                     }}
                   >
                     <option value=""> Select Visit Type</option>
-                    {visitType?.map(value => (
+                    {codeset?.PrEP_VISIT_TYPE?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -2179,7 +1986,7 @@ const ClinicVisit = props => {
                     >
                       <option value="">Select</option>
 
-                      {reasonForSwitchOptions?.map(value => (
+                      {codeset?.REASON_METHOD_SWITCH?.map(value => (
                         <option key={value.id} value={value.code}>
                           {value.display}
                         </option>
@@ -2242,7 +2049,7 @@ const ClinicVisit = props => {
                     disabled={disabledField}
                   >
                     <option value=""> Select PrEP Type</option>
-                    {prepType?.map(value => (
+                    {codeset?.PrEP_TYPE?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -2383,11 +2190,9 @@ const ClinicVisit = props => {
                             disabled={disabledField}
                           >
                             <option value=""> Select Prep Type</option>
-                            {prepType
-                              ?.filter(
-                                (each, index) =>
-                                  each.code !== 'PREP_TYPE_ED_PREP'
-                              )
+                            {codeset?.PrEP_TYPE?.filter(
+                              (each, index) => each.code !== 'PREP_TYPE_ED_PREP'
+                            )
                               ?.filter(
                                 (each, index) =>
                                   each.code !== objValues.prepType
@@ -2460,7 +2265,7 @@ const ClinicVisit = props => {
                     }}
                   >
                     <option value=""></option>
-                    {prepEntryPoint?.map(value => (
+                    {codeset?.PrEP_ENTRY_POINT?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -2509,7 +2314,7 @@ const ClinicVisit = props => {
                     }}
                   >
                     <option value=""></option>
-                    {familyPlanningMethod?.map(value => (
+                    {codeset?.FAMILY_PLANNING_METHOD?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
@@ -2684,7 +2489,7 @@ const ClinicVisit = props => {
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        {urineTestResult?.map(value => (
+                        {codeset?.PREP_URINALYSIS_RESULT?.map(value => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
@@ -2758,7 +2563,7 @@ const ClinicVisit = props => {
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        {hepaTestResult?.map(value => (
+                        {codeset?.HEPATITIS_SCREENING_RESULT?.map(value => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
@@ -2827,7 +2632,7 @@ const ClinicVisit = props => {
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        {sphylisTestResult?.map(value => (
+                        {codeset?.SYPHILIS_RESULT?.map(value => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
@@ -2880,7 +2685,7 @@ const ClinicVisit = props => {
               </Label>
               <br />
               <br />
-              {otherTest.length > 0 &&
+              {otherTest?.length > 0 &&
                 otherTest?.map(eachTest => (
                   <div className="row" key={eachTest.localId}>
                     <div className=" mb-1 col-md-3">
@@ -2903,7 +2708,7 @@ const ClinicVisit = props => {
                           disabled={disabledField}
                         >
                           <option value="">Select</option>
-                          {otherTestResult?.map(value => (
+                          {codeset?.PREP_OTHER_TEST?.map(value => (
                             <option key={value.id} value={value.code}>
                               {value.display}
                             </option>
