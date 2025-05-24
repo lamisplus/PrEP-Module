@@ -117,38 +117,21 @@ const CODESET_KEYS = [
   'PrEP_VISIT_TYPE',
   'FAMILY_PLANNING_METHOD',
 ];
+
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
   const [disabledField, setDisabledField] = useState(false);
   const [patientDto, setPatientDto] = useState();
   const [saving, setSaving] = useState(false);
-  const [adherenceLevel, setAdherenceLevel] = useState([]);
-  const [sti, setSti] = useState([]);
-  const [prepStatus, setPrepStatus] = useState([]);
-  const [prepSideEffect, setPrepSideEffect] = useState([]);
-  const [htsResult, setHtsResult] = useState([]);
   const [prepRegimen, setprepRegimen] = useState([]);
-  const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
   const [labTestOptions, setLabTestOptions] = useState([]);
-  const [urineTestResult, setUrineTestResult] = useState([]);
-  const [creatinineTestResult, setCreatinineTestResult] = useState([]);
-  const [otherTestResult, setOtherTestResult] = useState([]);
-  const [sphylisTestResult, setSphylisTestResult] = useState([]);
-  const [hepaTestResult, setHepaTestResult] = useState([]);
-  const [familyPlanningMethod, setFamilyPlanningMethod] = useState([]);
-  const [pregnant, setpregnant] = useState([]);
-  const [prepEntryPoint, setPrepEntryPoints] = useState([]);
   const [prepType, setPrepType] = useState([]);
   const [populationType, setPopulationType] = useState([]);
-  const [visitType, setVisitType] = useState([]);
   const [selectedPopulationType, setSelectedPopulationType] = useState('');
   const [latestFromEligibility, setLatestFromEligibility] = useState(null);
   const [hivTestValue, setHivTestValue] = useState('');
   const [hivTestResultDate, setHivTestResultDate] = useState('');
-  const [reasonForSwitchOptions, setReasonForSwitchOptions] = useState([]);
-  const [prepRiskReductionPlan, setPrepRiskReductionPlan] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
-  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: '',
     diastolic: '',
@@ -315,16 +298,22 @@ const ClinicVisit = props => {
   };
 
   const getPatientVisit = async id => {
-    axios
-      .get(`${baseUrl}prep-clinic/${props.activeContent.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        const { data } = JSON.parse(JSON.stringify(response));
-        setOtherTest(response?.data?.otherTestsDone);
-        setObjValues(data);
-      })
-      .catch(error => {});
+    if (props.activeContent.id !== undefined) {
+      axios
+        .get(`${baseUrl}prep-clinic/${props.activeContent.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(response => {
+          const { data } = JSON.parse(JSON.stringify(response));
+          setOtherTest(response?.data?.otherTestsDone);
+          setObjValues(data);
+        })
+        .catch(error => {
+          console.error('Error fetching patient visit:', error);
+        });
+    } else {
+      console.warn('ID is undefined, skipping API call.');
+    }
   };
 
   const getHivResult = () => {
@@ -866,10 +855,9 @@ const ClinicVisit = props => {
       setSelectedPopulationType(autoPopulate ? autoPopulate.display : '');
     }
   }, [objValues.populationType]);
-  console.log('latestFromEligibility: ', latestFromEligibility);
+
   useEffect(() => {
     if (eligibilityVisitDateSync && latestFromEligibility !== null) {
-      console.log('latestFromEligibility33333: ', latestFromEligibility);
       const autoPopulate = populationType?.find(
         type => type.code === latestFromEligibility?.populationType
       );

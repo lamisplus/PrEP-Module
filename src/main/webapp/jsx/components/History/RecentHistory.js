@@ -275,7 +275,7 @@ const RecentHistory = props => {
       return acc.concat(item.activities);
     }, []);
   }
-
+  console.log('current reg: ', summary);
   return (
     <Fragment>
       <div className="row">

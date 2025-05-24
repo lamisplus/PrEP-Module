@@ -152,14 +152,7 @@ const PrEPCommencementForm = props => {
   }, []);
 
   useEffect(() => {
-    pregnancyStatus();
     getPatientDTOObj();
-    fetchPrepRegimen();
-    fetchPrepEntryPoint();
-    fetchPrepType();
-    fetchLiverFunctionTestResult();
-    fetchHistoryOfDrugToDrugInteraction();
-    fetchPrepUrinalysisResult();
     if (
       props.activeContent.id &&
       props.activeContent.id !== '' &&
@@ -177,72 +170,6 @@ const PrEPCommencementForm = props => {
       })
       .then(response => {
         setPrepRegimen(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const fetchPrepEntryPoint = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_ENTRY_POINT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepEntryPoint(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const fetchPrepUrinalysisResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setUrinalysisTestResult(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const fetchPrepType = async () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepType(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const fetchLiverFunctionTestResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setLiverFunctionTestResult(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const fetchHistoryOfDrugToDrugInteraction = () => {
-    axios
-      .get(
-        `${baseUrl}application-codesets/v2/PREP_HISTORY_OF_DRUG_INTERACTIONS`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-      .then(response => {
-        setHistoryOfDrugToDrugInteraction(response.data);
       })
       .catch(error => {
         //console.log(error);
@@ -267,19 +194,6 @@ const PrEPCommencementForm = props => {
       });
   };
 
-  const pregnancyStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPregnant(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
   const getPatientDTOObj = () => {
     axios
       .get(
@@ -298,7 +212,6 @@ const PrEPCommencementForm = props => {
       });
   };
 
-  //Vital signs clinical decision support
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: '',
     height: '',

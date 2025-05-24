@@ -19,19 +19,7 @@ import 'react-widgets/dist/css/react-widgets.css';
 import * as moment from 'moment';
 import SaveIcon from '@material-ui/icons/Save';
 
-import {
-  savePrepEligibility,
-  getCounselingType,
-  getPatientPrepEligibility,
-  getVisitType,
-  getRecentActivities,
-  getPregnancyStatus,
-  getReasonForDecline,
-  getLiverFunctionTestResult,
-} from '../../../apiCalls/eligibility';
-
 import '../../index.css';
-import { getPopulationType } from '../../../apiCalls/eligibility';
 import { useLocation } from 'react-router-dom/cjs/react-router-dom';
 
 const useStyles = makeStyles(theme => ({
@@ -165,32 +153,11 @@ const BasicInfo = props => {
   const [disabledField, setSisabledField] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [counselingType, setCounselingType] = useState([]);
-  const [visitType, setVisitType] = useState([]);
   const [reasonForSwitchOptions, setReasonForSwitchOptions] = useState([]);
-  const [reasonForDecline, setReasonForDecline] = useState([]);
-  const [populationType, setPopulationType] = useState([]);
-  const [pregnancyStatus, setPregnancyStatus] = useState([]);
-  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const history = useLocation;
   const patientObj = history?.state?.patientObj || props?.patientObj;
   const [codeset, setCodeset] = useState({});
-
-  useEffect(async () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/codeSets`, {
-        params: { codes: CODESET_KEYS },
-        paramsSerializer: params =>
-          params.codes
-            .map(code => `codes=${encodeURIComponent(code)}`)
-            .join('&'),
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(({ data: { data } }) => {
-        setCodeset(data);
-      });
-  }, []);
   let temp = { ...errors };
 
   const [objValues, setObjValues] = useState({
@@ -358,16 +325,6 @@ const BasicInfo = props => {
         console.error('Error fetching patient eligibility data:', error);
       });
   };
-  const getReasonForSwitch = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/REASON_METHOD_SWITCH`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setReasonForSwitchOptions(response.data);
-      })
-      .catch(error => {});
-  };
 
   const handleInputChange = e => {
     setErrors({ ...temp, [e.target.name]: '' });
@@ -486,7 +443,6 @@ const BasicInfo = props => {
 
     return Object.values(temp).every(x => x === '');
   };
-  useEffect(() => console.log('temp: ', temp));
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -688,22 +644,8 @@ const BasicInfo = props => {
       });
   };
 
-  const getLiverFunctionTestResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setLiverFunctionTestResult(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
   useEffect(() => {
     getRecentActivities();
-    // getLiverFunctionTestResult();
-    // getReasonForSwitch();
   }, []);
   useEffect(() => {
     if (objValues.lftConducted === 'false') {
@@ -714,6 +656,7 @@ const BasicInfo = props => {
       }));
     }
   }, [objValues.lftConducted]);
+
   useEffect(() => {
     if (drugHistory.hivTestedBefore === 'false') {
       setDrugHistory(prevHistory => ({
@@ -722,6 +665,7 @@ const BasicInfo = props => {
       }));
     }
   }, [drugHistory.hivTestedBefore]);
+
   return (
     <>
       <Card className={classes.root}>
@@ -783,8 +727,11 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={''}>Select</option>
-                    {codeset?.PrEP_TYPE?.map(value => (
-                      <option value={value.code}> {value.display} </option>
+                    {codeset?.PrEP_VISIT_TYPE?.map(value => (
+                      <option key={value.code} value={value.code}>
+                        {' '}
+                        {value.display}{' '}
+                      </option>
                     ))}
                   </select>
                   {errors.visitType !== '' ? (
@@ -848,7 +795,10 @@ const BasicInfo = props => {
                   >
                     <option value={''}>Select</option>
                     {codeset?.POPULATION_TYPE?.map(value => (
-                      <option value={value.code}> {value.display} </option>
+                      <option key={value.code} value={value.code}>
+                        {' '}
+                        {value.display}{' '}
+                      </option>
                     ))}
                     {!codeset?.POPULATION_TYPE?.find(
                       pType => pType.display === 'GenPop'
@@ -886,7 +836,10 @@ const BasicInfo = props => {
                     >
                       <option value={''}>Select</option>
                       {codeset?.PREGNANCY_STATUS?.map(value => (
-                        <option value={value.code}> {value.display} </option>
+                        <option key={value.code} value={value.code}>
+                          {' '}
+                          {value.display}{' '}
+                        </option>
                       ))}
                     </select>
                     {errors.pregnancyStatus !== '' ? (
@@ -1028,7 +981,9 @@ const BasicInfo = props => {
                       <LiverFunctionTest
                         objValues={objValues}
                         handleInputChange={handleLftInputChange}
-                        liverFunctionTestResult={liverFunctionTestResult}
+                        liverFunctionTestResult={
+                          codeset?.LIVER_FUNCTION_TEST_RESULT
+                        }
                         disabledField={disabledField}
                       />
                       {errors.liverFunctionTestResults !== '' ? (

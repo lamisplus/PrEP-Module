@@ -134,10 +134,7 @@ const PrEPEligibiltyScreeningForm = props => {
   }, []);
 
   useEffect(() => {
-    PREP_STATUS();
     GetPatientDTOObj();
-    CAUSE_DEATH();
-    getReasonForDiscontinuationOptions();
     if (
       props.activeContent.id &&
       props.activeContent.id !== '' &&
@@ -150,84 +147,40 @@ const PrEPEligibiltyScreeningForm = props => {
   }, []);
 
   const GetPatientDTOObj = () => {
-    axios
-      .get(
-        `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-      .then(response => {
-        setPatientDto(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
+    if (props.patientObj?.personId !== undefined) {
+      axios
+        .get(
+          `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        )
+        .then(response => {
+          setPatientDto(response.data);
+        })
+        .catch(error => {
+          console.error('Error fetching patient DTO:', error);
+        });
+    } else {
+      console.warn('Person ID is undefined, skipping API call.');
+    }
   };
 
   const GetPatientInterruption = id => {
-    axios
-      .get(`${baseUrl}prep-interruption/${props.activeContent.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setObjValues(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const PREP_STATUS = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepStatus(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const CAUSE_DEATH = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CAUSE_DEATH`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setCauseOfDeath(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const PREP_STATUS_STOPPED_REASON = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_STATUS_STOPPED_REASON`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setReasonStooped(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const getReasonForDiscontinuationOptions = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/REASON_FOR_DISCONTINUATION`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setReasonForDiscontinuationOptions(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
+    if (props.activeContent.id !== undefined) {
+      axios
+        .get(`${baseUrl}prep-interruption/${props.activeContent.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(response => {
+          setObjValues(response.data);
+        })
+        .catch(error => {
+          console.error('Error fetching patient interruption:', error);
+        });
+    } else {
+      console.warn('ID is undefined, skipping API call.');
+    }
   };
 
   const getNewPrepStatus = (interruptionOption, allPrepInterruptions) => {
@@ -402,10 +355,6 @@ const PrEPEligibiltyScreeningForm = props => {
   };
 
   useEffect(() => {
-    getReasonForDiscontinuationOptions();
-  }, []);
-
-  useEffect(() => {
     return () => {
       if (!['view', 'update'].includes(props.activeContent.actionType)) {
         setObjValues(prevValues => ({
@@ -476,12 +425,6 @@ const PrEPEligibiltyScreeningForm = props => {
                         {value.display}
                       </option>
                     ))}
-                    {/* <option value="PREP_INTERRUPtIONS_DISCONTINUED_ORAL_PREP">
-                      Discontinued Oral PrEP
-                    </option>
-                    <option value="PREP_INTERRUPtIONS_DISCONTINUED_CABLA">
-                      Discontinued CAB-LA
-                    </option> */}
                   </Input>
                   {errors.interruptionType !== '' ? (
                     <span className={classes.error}>

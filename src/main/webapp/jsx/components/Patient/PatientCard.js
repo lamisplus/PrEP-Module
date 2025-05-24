@@ -119,7 +119,33 @@ function PatientCard(props) {
     const city = firstAddress.city?.trim() || '';
     return `${line}, ${city}`;
   }
+  function extractPhoneNumber(personObject) {
+    if (
+      !personObject ||
+      !personObject.personResponseDto ||
+      !personObject.personResponseDto.contactPoint
+    ) {
+      return null;
+    }
+    const contactPoints =
+      personObject.personResponseDto.contactPoint.contactPoint;
+    const phoneContact = contactPoints.find(
+      contact => contact.type === 'phone'
+    );
+    return phoneContact ? phoneContact.value : null;
+  }
+  function sanitizeInput(input) {
+    const falsyStrings = ['false', 'null', 'undefined', '', '0'];
 
+    if (
+      !input ||
+      falsyStrings.includes(input.toString().toLowerCase().trim())
+    ) {
+      return '';
+    }
+
+    return input;
+  }
   return (
     <div className={classes.root}>
       <Accordion>
@@ -133,10 +159,12 @@ function PatientCard(props) {
                       <b
                         style={{ fontSize: '25px', color: 'rgb(153, 46, 98)' }}
                       >
-                        {patientObj?.fullname ||
-                          `${
-                            patientObj?.firstName + ' ' + patientObj?.surname
-                          }`}
+                        {sanitizeInput(
+                          patientObj?.fullname ||
+                            `${
+                              patientObj?.firstName + ' ' + patientObj?.surname
+                            }`
+                        )}
                       </b>
                       <Link to={'/'}>
                         <ButtonMui
@@ -161,9 +189,11 @@ function PatientCard(props) {
                         {' '}
                         Patient ID :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.hospitalNumber ||
-                            props?.patientDetail?.personResponseDto?.identifier
-                              ?.identifier[0].value}
+                          {sanitizeInput(
+                            patientObj?.hospitalNumber ||
+                              props?.patientDetail?.personResponseDto
+                                ?.identifier?.identifier[0].value
+                          )}
                         </b>
                       </span>
                     </Col>
@@ -172,9 +202,11 @@ function PatientCard(props) {
                       <span>
                         Date Of Birth :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.dateOfBirth ||
-                            props?.patientDetail?.personResponseDto
-                              ?.dateOfBirth}
+                          {sanitizeInput(
+                            patientObj?.dateOfBirth ||
+                              props?.patientDetail?.personResponseDto
+                                ?.dateOfBirth
+                          )}
                         </b>
                       </span>
                     </Col>
@@ -183,12 +215,14 @@ function PatientCard(props) {
                         {' '}
                         Age :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {calculate_age(
-                            moment(
-                              patientObj?.dateOfBirth ||
-                                props?.patientDetail?.personResponseDto
-                                  ?.dateOfBirth
-                            ).format('DD-MM-YYYY')
+                          {sanitizeInput(
+                            calculate_age(
+                              moment(
+                                patientObj?.dateOfBirth ||
+                                  props?.patientDetail?.personResponseDto
+                                    ?.dateOfBirth
+                              ).format('DD-MM-YYYY')
+                            )
                           )}
                         </b>
                       </span>
@@ -198,9 +232,11 @@ function PatientCard(props) {
                         {' '}
                         Gender :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.sex ||
-                            patientObj?.gender ||
-                            props?.patientDetail?.personResponseDto?.sex}
+                          {sanitizeInput(
+                            patientObj?.sex ||
+                              patientObj?.gender ||
+                              props?.patientDetail?.personResponseDto?.sex
+                          )}
                         </b>
                       </span>
                     </Col>
@@ -209,7 +245,10 @@ function PatientCard(props) {
                         {' '}
                         Phone Number :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.phone || patientObj?.phoneNumber}
+                          {sanitizeInput(
+                            extractPhoneNumber(props?.patientDetail) ||
+                              patientObj?.phoneNumber
+                          )}
                         </b>
                       </span>
                     </Col>
@@ -237,11 +276,13 @@ function PatientCard(props) {
                         ) : (
                           <span>
                             <b style={{ color: '#0B72AA' }}>
-                              {patientObj?.address ||
-                                formatAddressStrict(
-                                  props.patientDetail?.personResponseDto
-                                    ?.address
-                                )}{' '}
+                              {sanitizeInput(
+                                patientObj?.address ||
+                                  formatAddressStrict(
+                                    props.patientDetail?.personResponseDto
+                                      ?.address
+                                  )
+                              )}{' '}
                             </b>
                           </span>
                         )}
@@ -253,9 +294,9 @@ function PatientCard(props) {
                           <Typography variant="caption">
                             <Label color={'teal'} size={'mini'}>
                               STATUS :{' '}
-                              {props?.patientDetail?.prepStatus || (
-                                <CircularProgress color="#fff" size={10} />
-                              )}
+                              {sanitizeInput(
+                                props?.patientDetail?.prepStatus
+                              ) || <CircularProgress color="#fff" size={10} />}
                             </Label>
                           </Typography>
                         </div>

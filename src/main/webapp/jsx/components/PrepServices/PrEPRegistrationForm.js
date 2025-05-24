@@ -151,42 +151,7 @@ const PrEPRegistrationForm = props => {
         //console.log(error);
       });
   };
-  const EntryPoint = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/HTS_ENTRY_POINT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setEntryPoint(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-  const RELATIONSHIP = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/RELATIONSHIP`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setRelatives(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-  const PREP_RISK_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_RISK_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepRisk(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
+
   const GetPatientDTOObj = () => {
     axios
       .get(

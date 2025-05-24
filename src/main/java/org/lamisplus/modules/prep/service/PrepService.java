@@ -164,7 +164,6 @@ public class PrepService {
         prepClinic.setHealthCareWorkerSignature(clinicRequestDto.getHealthCareWorkerSignature());
         prepClinic.setComment(clinicRequestDto.getComment());
         prepClinic.setPreviousPrepStatus(clinicRequestDto.getPreviousPrepStatus());
-        System.out.println("prepClinic: " + prepClinic);
         prepClinic = prepClinicRepository.save(prepClinic);
         prepClinic.setPregnant(clinicRequestDto.getPregnant());
         prepClinic.setPerson(person);
@@ -268,13 +267,10 @@ public class PrepService {
 
     public PrepDtos getPrepByPersonId(Long personId) {
         Person person = personRepository.findById(personId).get();
-        System.out.println("testPerson1: " + person);
 
         if (person.getId() == null) {
-            System.out.println("testPerson3: " + person);
             return new PrepDtos();
         }
-        System.out.println("testPerson2: " + person);
         return this.prepToPrepDtos(person, prepEnrollmentRepository.findAllByPersonOrderByIdDesc(person));
     }
 
@@ -798,7 +794,6 @@ public class PrepService {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonString = objectMapper.writeValueAsString(jsonData);
-            System.out.println("Serialized JSON data: " + jsonString);
             return prepEnrollmentRepository.findAllPocPersonPrepAndStatus(UN_ARCHIVED, facilityId, jsonString, pageable);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize JSON data", e);
