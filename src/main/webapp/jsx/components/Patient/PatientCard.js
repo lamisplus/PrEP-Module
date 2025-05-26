@@ -101,6 +101,7 @@ function PatientCard(props) {
       address && address?.city && address?.city !== null ? address?.city : '';
     return address ? houseAddress + ' ' + landMark : '';
   };
+
   function formatAddressStrict(addressObj) {
     if (
       !addressObj?.address ||
@@ -115,9 +116,9 @@ function PatientCard(props) {
       return;
     }
 
-    const line = firstAddress.line[0];
+    const line = 'null';
     const city = firstAddress.city?.trim() || '';
-    return `${line}, ${city}`;
+    return `${sanitizeInput(line) + (sanitizeInput(line) && ',')} ${city}`;
   }
   function extractPhoneNumber(personObject) {
     if (
@@ -136,7 +137,6 @@ function PatientCard(props) {
   }
   function sanitizeInput(input) {
     const falsyStrings = ['false', 'null', 'undefined', '', '0'];
-
     if (
       !input ||
       falsyStrings.includes(input.toString().toLowerCase().trim())
@@ -146,6 +146,7 @@ function PatientCard(props) {
 
     return input;
   }
+
   return (
     <div className={classes.root}>
       <Accordion>
@@ -276,13 +277,11 @@ function PatientCard(props) {
                         ) : (
                           <span>
                             <b style={{ color: '#0B72AA' }}>
-                              {sanitizeInput(
-                                patientObj?.address ||
-                                  formatAddressStrict(
-                                    props.patientDetail?.personResponseDto
-                                      ?.address
-                                  )
-                              )}{' '}
+                              {sanitizeInput(patientObj?.address) ||
+                                formatAddressStrict(
+                                  props.patientDetail?.personResponseDto
+                                    ?.address
+                                )}{' '}
                             </b>
                           </span>
                         )}
