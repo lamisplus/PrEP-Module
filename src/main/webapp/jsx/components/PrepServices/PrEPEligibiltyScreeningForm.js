@@ -350,6 +350,9 @@ const BasicInfo = props => {
 
   const validate = () => {
     temp.visitDate = objValues.visitDate ? '' : '⚠ This field is required.';
+    temp.populationType = objValues.populationType
+      ? ''
+      : '⚠ This field is required';
     temp.lftConducted = objValues.lftConducted
       ? ''
       : '⚠ This field is required';
@@ -604,6 +607,7 @@ const BasicInfo = props => {
       }));
     }
   }, [drugHistory.hivTestedBefore]);
+  console.log('temp', temp);
   return (
     <>
       <Card className={classes.root}>
