@@ -75,7 +75,7 @@ function PatientCard(props) {
     history.location && history.location.state
       ? history.location.state.prepId
       : {};
-  //console.log(patientObj)
+
   useEffect(() => {
     PatientObject();
   }, []);
@@ -87,7 +87,6 @@ function PatientCard(props) {
       })
       .then(response => {
         setPatientDetail(response.data);
-        //patientObj=response.data
       })
       .catch(error => {});
   }
@@ -109,23 +108,19 @@ function PatientCard(props) {
       </div>
       <Card>
         <CardContent>
-          {/* This component is where the patient menu and route is define and manage */}
-          {/* start of patient card detail */}
           <PatientCardDetail
             patientObj={patientObjLocation}
             setActiveContent={setActiveContent}
             activeContent={activeContent}
             patientDetail={patientDetail}
           />
-          {/* End of patient card detail */}
-          {/* This is the submenu components */}
           <SubMenu
             patientObj={patientObjLocation}
             setActiveContent={setActiveContent}
             patientDetail={patientDetail}
           />
           <br />
-          {/* This is the submenu routes */}
+
           {activeContent.route === 'recent-history' && (
             <RecentHistory
               patientObj={patientObjLocation}

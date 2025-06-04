@@ -70,13 +70,9 @@ public class PrepClinic extends Audit implements Serializable {
     @Column(name = "regimen_id")
     private long regimenId;
 
-    /*@Column(name = "regimen_type_id")
-    private long regimenTypeId;*/
-
     @Column(name = "archived")
     private Integer archived;
 
-    //Urinalysis Result
     @Column(name = "urinalysis_result")
     private String urinalysisResult;
 
@@ -213,11 +209,6 @@ public class PrepClinic extends Audit implements Serializable {
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "syphilis", columnDefinition = "jsonb")
     private Object syphilis;
-
-//    @Type(type = "jsonb")
-//    @Basic(fetch = FetchType.LAZY)
-//    @Column(name = "other_tests_done", columnDefinition = "jsonb")
-//    private Object otherTestsDone;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)

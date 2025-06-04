@@ -29,75 +29,9 @@ import {
   getReasonForDecline,
   getLiverFunctionTestResult,
 } from '../../../apiCalls/eligibility';
-
 import '../../index.css';
 import { getPopulationType } from '../../../apiCalls/eligibility';
-
-const useStyles = makeStyles(theme => ({
-  card: {
-    margin: theme.spacing(20),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(3),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-  cardBottom: {
-    marginBottom: 20,
-  },
-  Select: {
-    height: 45,
-    width: 300,
-  },
-  button: {
-    margin: theme.spacing(1),
-  },
-  root: {
-    '& > *': {
-      margin: theme.spacing(1),
-    },
-    '& .card-title': {
-      color: '#fff',
-      fontWeight: 'bold',
-    },
-    '& .form-control': {
-      borderRadius: '0.25rem',
-      height: '41px',
-    },
-    '& .card-header:first-child': {
-      borderRadius: 'calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0',
-    },
-    '& .dropdown-toggle::after': {
-      display: ' block !important',
-    },
-    '& select': {
-      '-webkit-appearance': 'listbox !important',
-    },
-    '& p': {
-      color: 'red',
-    },
-    '& label': {
-      fontSize: '14px',
-      color: '#014d88',
-      fontWeight: 'bold',
-    },
-  },
-  demo: {
-    backgroundColor: theme.palette.background.default,
-  },
-  inline: {
-    display: 'inline',
-  },
-  error: {
-    color: '#f85032',
-    fontSize: '12.8px',
-  },
-}));
+import { useStyles } from './useStyles';
 
 export const DateInputWrapper = ({ children }) => {
   const handleKeyDown = event => {
@@ -416,6 +350,9 @@ const BasicInfo = props => {
 
   const validate = () => {
     temp.visitDate = objValues.visitDate ? '' : '⚠ This field is required.';
+    temp.populationType = objValues.populationType
+      ? ''
+      : '⚠ This field is required';
     temp.lftConducted = objValues.lftConducted
       ? ''
       : '⚠ This field is required';
@@ -444,7 +381,6 @@ const BasicInfo = props => {
 
     return Object.values(temp).every(x => x === '');
   };
-  useEffect(() => console.log('temp: ', temp));
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -671,6 +607,7 @@ const BasicInfo = props => {
       }));
     }
   }, [drugHistory.hivTestedBefore]);
+  console.log('temp', temp);
   return (
     <>
       <Card className={classes.root}>
@@ -733,7 +670,10 @@ const BasicInfo = props => {
                   >
                     <option value={''}>Select</option>
                     {visitType.map(value => (
-                      <option value={value.code}> {value.display} </option>
+                      <option key={value.code} value={value.code}>
+                        {' '}
+                        {value.display}{' '}
+                      </option>
                     ))}
                   </select>
                   {errors.visitType !== '' ? (
@@ -797,13 +737,11 @@ const BasicInfo = props => {
                   >
                     <option value={''}>Select</option>
                     {populationType.map(value => (
-                      <option value={value.code}> {value.display} </option>
+                      <option key={value.code} value={value.code}>
+                        {' '}
+                        {value.display}{' '}
+                      </option>
                     ))}
-                    {!populationType?.find(
-                      pType => pType.display === 'GenPop'
-                    ) && (
-                      <option value="POPULATION_TYPE_GEN_POP">GenPop</option>
-                    )}
                   </select>
                   {errors.populationType !== '' ? (
                     <span className={classes.error}>
@@ -835,7 +773,10 @@ const BasicInfo = props => {
                     >
                       <option value={''}>Select</option>
                       {pregnancyStatus.map(value => (
-                        <option value={value.code}> {value.display} </option>
+                        <option key={value.code} value={value.code}>
+                          {' '}
+                          {value.display}{' '}
+                        </option>
                       ))}
                     </select>
                     {errors.pregnancyStatus !== '' ? (

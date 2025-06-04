@@ -7,6 +7,8 @@ public interface PrepClient {
 
     String getFirstName();
 
+    String getSendCabLaAlert();
+
     String getPersonUuid();
 
     String getSurname();

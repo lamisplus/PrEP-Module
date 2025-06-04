@@ -137,7 +137,7 @@ const ClinicVisit = props => {
     temperature: '',
     respiratoryRate: '',
   });
-  //faciliId
+
   const [objValues, setObjValues] = useState({
     adherenceLevel: '',
     dateInitialAdherenceCounseling: '',
@@ -326,7 +326,8 @@ const ClinicVisit = props => {
       })
       .then(response => {
         const { data } = JSON.parse(JSON.stringify(response));
-        setOtherTest(response?.data?.otherTestsDone);
+        setUrinalysisTest(data.urinalysis);
+        setOtherTest(data?.otherTestsDone);
         setObjValues(data);
       })
       .catch(error => {});
@@ -861,6 +862,7 @@ const ClinicVisit = props => {
     temp.monthsOfRefill = objValues.monthsOfRefill
       ? ''
       : '⚠ This field is required';
+    temp.prepType = objValues.prepType ? '' : '⚠ This field is required';
     temp.wasPrepAdministered = objValues.wasPrepAdministered
       ? ''
       : '⚠ This field is required';
@@ -898,12 +900,12 @@ const ClinicVisit = props => {
     } else {
       temp.reasonForSwitch = '';
     }
-
     setErrors({
       ...temp,
     });
     return Object.values(temp).every(x => x === '');
   };
+
   const handleSubmit = e => {
     e.preventDefault();
     updatePreviousPrepStatusAndSubmit(
@@ -2467,57 +2469,6 @@ const ClinicVisit = props => {
                   />
                 </FormGroup>
               </div>
-
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName for="">Family Planning</FormLabelName>
-                  <Input
-                    type="select"
-                    name="familyPlanning"
-                    id="familyPlanning"
-                    onChange={handleInputChange}
-                    value={objValues.familyPlanning}
-                    disabled={disabledField}
-                    style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
-                    }}
-                  >
-                    <option value=""></option>
-                    {familyPlanningMethod?.map(value => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-              </div>
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName>Date of Family Planning </FormLabelName>
-                  <Input
-                    type="date"
-                    onKeyDown={e => e.preventDefault()}
-                    name="dateOfFamilyPlanning"
-                    id="dateOfFamilyPlanning"
-                    value={objValues.dateOfFamilyPlanning}
-                    style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
-                    }}
-                    onChange={handleInputChange}
-                    max={moment(new Date()).format('YYYY-MM-DD')}
-                    disabled={disabledField}
-                  />
-                  {errors.dateOfFamilyPlanning !== '' ? (
-                    <span className={classes.error}>
-                      {errors.dateOfFamilyPlanning}
-                    </span>
-                  ) : (
-                    ''
-                  )}
-                </FormGroup>
-              </div>
               <br />
               <br />
               <Label
@@ -2636,8 +2587,10 @@ const ClinicVisit = props => {
                         max={moment(new Date()).format('YYYY-MM-DD')}
                         disabled={disabledField}
                       />
-                      {errors.testDate !== '' ? (
-                        <span className={classes.error}>{errors.testDate}</span>
+                      {errors.urinalysisTestDate !== '' ? (
+                        <span className={classes.error}>
+                          {errors.urinalysisTestDate}
+                        </span>
                       ) : (
                         ''
                       )}
