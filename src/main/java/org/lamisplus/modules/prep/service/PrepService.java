@@ -174,6 +174,7 @@ public class PrepService {
         Person person = this.getPerson(interruptionRequestDto.getPersonId());
         PrepInterruption prepInterruption = interruptionRequestDtoInterruption(interruptionRequestDto, person.getUuid());
         prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
+        prepInterruption.setPreviousPrepStatus(interruptionRequestDto.getPreviousPrepStatus());
 
         prepInterruptionRepository
                 .findFirstByInterruptionDateAndPersonUuidAndArchived(interruptionRequestDto.getInterruptionDate(), person.getUuid(), 0)
@@ -268,7 +269,7 @@ public class PrepService {
         if (person.getId() == null) {
             return new PrepDtos();
         }
-        return this.prepToPrepDtos(person, prepEnrollmentRepository.findAllByPersonOrderByIdDesc(person));
+        return this.prepToPrepDtos(person, prepEnrollmentRepository.findFirstByPersonOrderByIdDesc(person));
     }
 
     public List<PrepEnrollmentDto> getEnrollmentByPersonId(Long personId) {
@@ -361,12 +362,10 @@ public class PrepService {
     private PrepDtos prepToPrepDtos(@NotNull Person person, List<PrepEnrollment> clients) {
         boolean isPositive = false;
         PrepDtos prepDtos = new PrepDtos();
-
         if (person == null) throw new EntityNotFoundException(Person.class, "Person", "is null");
         prepDtos.setPersonId(person.getId());
         prepDtos.setPersonResponseDto(personService.getDtoFromPerson(person));
         prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
-
         List<PrepDto> prepDtoList = clients
                 .stream()
                 .map(client -> {
@@ -403,7 +402,6 @@ public class PrepService {
             prepDtos.setCreatedBy(prepClient.getCreatedBy());
             //prepDtos.setPrepEligibilityCount(prepClient.getEligibilityCount());
         }
-
         return prepDtos;
     }
 

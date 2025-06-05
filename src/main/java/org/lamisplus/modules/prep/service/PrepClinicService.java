@@ -216,6 +216,7 @@ public class PrepClinicService {
         prepClinic.setDateLiverFunctionTestResults(prepClinicDto.getDateLiverFunctionTestResults());
         prepClinic.setLiverFunctionTestResults(prepClinicDto.getLiverFunctionTestResults());
         prepClinic.setReasonForSwitch(prepClinicDto.getReasonForSwitch());
+        prepClinic.setVisitType(prepClinicDto.getVisitType());
         prepClinic.setWasPrepAdministered(prepClinicDto.getWasPrepAdministered());
         prepClinic.setOtherPrepGiven(prepClinicDto.getOtherPrepGiven());
         prepClinic.setOtherPrepType(prepClinicDto.getOtherPrepType());

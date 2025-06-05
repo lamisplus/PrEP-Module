@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Accordion from '@material-ui/core/Accordion';
@@ -14,6 +14,12 @@ import momentLocalizer from 'react-widgets-moment';
 import moment from 'moment';
 import Typography from '@material-ui/core/Typography';
 import { AccordionSummary } from '@material-ui/core';
+import { Alert as Reminder } from '../Consultation/Alert/Alert';
+import { useGetAddress } from '../../../hooks/patientCard/useGetAddress';
+import useGetPhoneNumber from '../../../hooks/patientCard/useGetPhoneNumber';
+import useCalculateAge from '../../../hooks/patientCard/useCalculateAge';
+import useGetReminderAlert from '../../../hooks/patientCard/useGetReminderAlert';
+import useBasicPatientDetails from '../../../hooks/patientCard/useBasicPatientDetails';
 Moment.locale('en');
 momentLocalizer();
 
@@ -56,50 +62,28 @@ function PatientCard(props) {
   const { classes } = props;
   const patientObj = props?.patientObj;
 
-  const calculate_age = dob => {
-    var today = new Date();
-    var dateParts = dob.split('-');
-    var dateObject = new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
-    var birthDate = new Date(dateObject);
-    var age_now = today?.getFullYear() - birthDate?.getFullYear();
-    var m = today?.getMonth() - birthDate?.getMonth();
-    if (m < 0 || (m === 0 && today?.getDate() < birthDate?.getDate())) {
-      age_now--;
-    }
-    if (age_now === 0) {
-      return m + ' month(s)';
-    }
-    return age_now + ' year(s)';
-  };
-  const getHospitalNumber = identifier => {
-    const identifiers = identifier;
-    const hospitalNumber = identifiers?.identifier?.find?.(
-      obj => obj.type === 'HospitalNumber'
-    );
-    return hospitalNumber ? hospitalNumber?.value : '';
-  };
-  const getPhoneNumber = identifier => {
-    const identifiers = identifier;
-    const phoneNumber = identifiers?.contactPoint?.find?.(
-      obj => obj?.type === 'phone'
-    );
-    return phoneNumber ? phoneNumber?.value : '';
-  };
-  const getAddress = identifier => {
-    console.log('identifier: ', identifier);
-    const identifiers = identifier;
-    const address = identifiers?.address?.find?.(obj => obj?.city);
-    const houseAddress =
-      Array.isArray(address?.line) && address?.line[0] != null
-        ? address?.line[0]
-        : '';
-    const landMark =
-      address && address?.city && address?.city !== null ? address?.city : '';
-    return address ? houseAddress + ' ' + landMark : '';
-  };
+  const { getAddress } = useGetAddress();
+  const { getPhoneNumber } = useGetPhoneNumber();
+  const { calculateAge } = useCalculateAge();
+  const { getReminderAlert } = useGetReminderAlert();
+  const { getSex, getUniqueId, getDateOfBirth, getFirstName, getSurname } =
+    useBasicPatientDetails();
+  const [showReminder, setShowReminder] = useState(0);
+  const toggleModal = () => setShowReminder(0);
+
+  useEffect(() => {
+    setShowReminder(getReminderAlert(parseInt(patientObj?.sendCabLaAlert)));
+  }, []);
 
   return (
     <div className={classes.root}>
+      <Reminder
+        show={showReminder}
+        title={showReminder?.title}
+        body={showReminder?.body}
+        patientObj={patientObj}
+        onClose={toggleModal}
+      />
       <Accordion>
         <AccordionSummary>
           <Row>
@@ -111,7 +95,9 @@ function PatientCard(props) {
                       <b
                         style={{ fontSize: '25px', color: 'rgb(153, 46, 98)' }}
                       >
-                        {patientObj?.firstName + ' ' + patientObj?.surname}
+                        {(patientObj?.firstName || getFirstName()) +
+                          ' ' +
+                          (patientObj?.surname || getSurname())}
                       </b>
                       <Link to={'/'}>
                         <ButtonMui
@@ -136,7 +122,8 @@ function PatientCard(props) {
                         {' '}
                         Patient ID :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.hospitalNumber}
+                          {patientObj?.hospitalNumber ||
+                            getUniqueId(props?.patientDetail)}
                         </b>
                       </span>
                     </Col>
@@ -145,7 +132,8 @@ function PatientCard(props) {
                       <span>
                         Date Of Birth :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.dateOfBirth}
+                          {patientObj?.dateOfBirth ||
+                            getDateOfBirth(props?.patientDetail)}
                         </b>
                       </span>
                     </Col>
@@ -154,8 +142,11 @@ function PatientCard(props) {
                         {' '}
                         Age :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {calculate_age(
-                            moment(patientObj?.dateOfBirth).format('DD-MM-YYYY')
+                          {calculateAge(
+                            moment(
+                              patientObj?.dateOfBirth ||
+                                getDateOfBirth(props?.patientDetail)
+                            ).format('DD-MM-YYYY')
                           )}
                         </b>
                       </span>
@@ -164,7 +155,9 @@ function PatientCard(props) {
                       <span>
                         {' '}
                         Gender :{' '}
-                        <b style={{ color: '#0B72AA' }}>{patientObj?.gender}</b>
+                        <b style={{ color: '#0B72AA' }}>
+                          {patientObj?.gender || getSex(props?.patientDetail)}
+                        </b>
                       </span>
                     </Col>
                     <Col md={4}>
@@ -172,7 +165,9 @@ function PatientCard(props) {
                         {' '}
                         Sex at Birth :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.sexAtBirth || patientObj?.gender}
+                          {patientObj?.sexAtBirth ||
+                            patientObj?.gender ||
+                            getSex(props?.patientDetail)}
                         </b>
                       </span>
                     </Col>
@@ -181,7 +176,8 @@ function PatientCard(props) {
                         {' '}
                         Phone Number :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.phoneNumber}
+                          {patientObj?.phoneNumber ||
+                            getPhoneNumber(props?.patientDetail)}
                         </b>
                       </span>
                     </Col>
@@ -190,7 +186,8 @@ function PatientCard(props) {
                         {' '}
                         Address :{' '}
                         <b style={{ color: '#0B72AA' }}>
-                          {patientObj?.address}{' '}
+                          {patientObj?.address ||
+                            getAddress(props?.patientDetail)}{' '}
                         </b>
                       </span>
                     </Col>
@@ -199,9 +196,7 @@ function PatientCard(props) {
                         <div>
                           <Typography variant="caption">
                             <Label color={'teal'} size={'mini'}>
-                              STATUS :{' '}
-                              {props.activeContent?.obj?.newStatus?.display ||
-                                patientObj?.prepStatus}
+                              STATUS : {patientObj?.prepStatus}
                             </Label>
                           </Typography>
                         </div>

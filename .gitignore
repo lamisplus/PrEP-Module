@@ -33,7 +33,7 @@ application-debug.log
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
+/build
 src/main/resources/views/static/hiv/
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -41,3 +41,4 @@ src/main/resources/views/static/hiv/
 ### VS Code ###
 .vscode/
 
+.qodo

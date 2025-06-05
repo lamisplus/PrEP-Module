@@ -1,9 +1,6 @@
 package org.lamisplus.modules.prep.domain.dto;
-
 import lombok.Data;
 import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
-import org.lamisplus.modules.prep.domain.entity.PrepEnrollment;
-
 import java.time.LocalDate;
 import java.util.List;
 
