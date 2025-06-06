@@ -19,6 +19,7 @@ import { TiTrash } from 'react-icons/ti';
 import DualListBox from 'react-dual-listbox';
 import 'react-dual-listbox/lib/react-dual-listbox.css';
 import { LiverFunctionTest } from '../PrepServices/PrEPEligibiltyScreeningForm';
+import DurationWrapper from './DurationWrapper/DurationWrapper';
 
 const useStyles = makeStyles(theme => ({
   card: {
@@ -95,7 +96,7 @@ export const CleanupWrapper = ({ isVisible, cleanup, children }) => {
   }, [isVisible, cleanup]);
   return isVisible ? children : null;
 };
-
+const prepTypesMappedToDuration = ['PREP_TYPE_INJECTIBLES', 'PREP_TYPE_ORAL'];
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
   const [disabledField, setDisabledField] = useState(false);
@@ -2278,36 +2279,39 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName>
-                    {`Duration of refill (days)`}{' '}
-                    <span style={{ color: 'red' }}> *</span>
-                  </FormLabelName>
-                  <Input
-                    type="number"
-                    name="monthsOfRefill"
-                    id="monthsOfRefill"
-                    value={objValues.monthsOfRefill}
-                    min={0}
-                    onChange={handleInputChange}
-                    style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
-                    }}
-                    disabled={disabledField}
-                  />
-                  {errors.monthsOfRefill !== '' ? (
-                    <span className={classes.error}>
-                      {errors.monthsOfRefill}
-                    </span>
-                  ) : (
-                    ''
-                  )}
-                </FormGroup>
-              </div>
               {objValues.prepType && (
                 <>
+                  <div className=" mb-3 col-md-6">
+                    <FormGroup>
+                      <FormLabelName>
+                        {`Duration of refill (days)`}{' '}
+                        <span style={{ color: 'red' }}> *</span>
+                      </FormLabelName>
+                      <DurationWrapper
+                        prepType={
+                          prepTypesMappedToDuration.includes(objValues.prepType)
+                            ? objValues.prepType
+                            : 'DEFAULT'
+                        }
+                        name={'monthsOfRefill'}
+                        id="monthsOfRefill"
+                        value={objValues.monthsOfRefill}
+                        style={{
+                          border: '1px solid #014D88',
+                          borderRadius: '0.25rem',
+                        }}
+                        handleInputChange={handleInputChange}
+                        disabled={disabledField}
+                      />
+                      {errors.monthsOfRefill !== '' ? (
+                        <span className={classes.error}>
+                          {errors.monthsOfRefill}
+                        </span>
+                      ) : (
+                        ''
+                      )}
+                    </FormGroup>
+                  </div>
                   <div className="form-group mb-3 col-md-6">
                     <>
                       <FormGroup>
