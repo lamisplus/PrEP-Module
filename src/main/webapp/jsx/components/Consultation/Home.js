@@ -97,6 +97,28 @@ export const CleanupWrapper = ({ isVisible, cleanup, children }) => {
   return isVisible ? children : null;
 };
 const prepTypesMappedToDuration = ['PREP_TYPE_INJECTIBLES', 'PREP_TYPE_ORAL'];
+
+const durationMap = {
+  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_30': '30',
+  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_60': '60',
+  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_90': '90',
+};
+function getDuration(key) {
+  if (durationMap[key]) {
+    return durationMap[key];
+  }
+  const match = key?.toString().match(/\d+/);
+  return match ? match[0] : key;
+}
+
+function getDurationByValue(value) {
+  for (const key in durationMap) {
+    if (durationMap[key] === '' + value) {
+      return key;
+    }
+  }
+}
+
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
   const [disabledField, setDisabledField] = useState(false);
@@ -231,7 +253,6 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-
   const getPrepEntryPoint = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PrEP_ENTRY_POINT`, {
@@ -326,9 +347,13 @@ const ClinicVisit = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        const { data } = JSON.parse(JSON.stringify(response));
+        let { data } = JSON.parse(JSON.stringify(response));
         setUrinalysisTest(data.urinalysis);
         setOtherTest(data?.otherTestsDone);
+        data = {
+          ...data,
+          monthsOfRefill: getDurationByValue(data.monthsOfRefill),
+        };
         setObjValues(data);
       })
       .catch(error => {});
@@ -571,10 +596,11 @@ const ClinicVisit = props => {
   const handleInputChange = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     if (e.target.name === 'monthsOfRefill') {
-      const durationInDays = Number(e.target.value);
+      const durationInDays = e.target.value;
+      console.log(durationInDays, e.target.value);
       setObjValues({
         ...objValues,
-        monthsOfRefill: e.target.value,
+        monthsOfRefill: `${durationInDays}`,
         duration: `${durationInDays}`,
       });
     } else if (e.target.name === 'encounterDate') {
@@ -1205,11 +1231,11 @@ const ClinicVisit = props => {
     if (
       isNaN(date.getTime()) ||
       typeof daysToAdd !== 'number' ||
-      isNaN(daysToAdd)
+      isNaN(parseInt(daysToAdd))
     ) {
       return '';
     }
-    date.setDate(date.getDate() + daysToAdd);
+    date.setDate(date.getDate() + parseInt(daysToAdd));
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -1219,15 +1245,18 @@ const ClinicVisit = props => {
   useEffect(() => {
     let nextAppointment = addDaysToDate(
       objValues.encounterDate,
-      objValues.monthsOfRefill
+      parseInt(getDuration(objValues.monthsOfRefill))
     );
-    setObjValues(prev => ({ ...prev, nextAppointment }));
+    if (!['update', 'view'].includes(props.activeContent.actionType)) {
+      setObjValues(prev => ({ ...prev, nextAppointment }));
+    }
   }, [objValues.encounterDate, objValues.monthsOfRefill]);
 
   async function updatePreviousPrepStatusAndSubmit(personUuid, previousStatus) {
     if (validate()) {
       setSaving(true);
-      objValues.duration = objValues.monthsOfRefill;
+      objValues.duration = getDuration(objValues.monthsOfRefill);
+      objValues.monthsOfRefill = getDuration(objValues.monthsOfRefill);
       objValues.hivTestResultDate = hivTestResultDate;
       objValues.hivTestResult = hivTestValue;
       objValues.syphilis = syphilisTest;
@@ -1307,7 +1336,7 @@ const ClinicVisit = props => {
       });
     }
   }
-
+  console.log(temp, objValues);
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
@@ -2301,7 +2330,7 @@ const ClinicVisit = props => {
                           borderRadius: '0.25rem',
                         }}
                         handleInputChange={handleInputChange}
-                        disabled={disabledField}
+                        disabledField={disabledField}
                       />
                       {errors.monthsOfRefill !== '' ? (
                         <span className={classes.error}>
@@ -2440,7 +2469,7 @@ const ClinicVisit = props => {
                       borderRadius: '0.25rem',
                     }}
                   >
-                    <option value=""></option>
+                    <option value="">Select setting</option>
                     {prepEntryPoint?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
@@ -2996,7 +3025,7 @@ const ClinicVisit = props => {
                     borderRadius: '0.25rem',
                   }}
                   min={objValues.encounterDate}
-                  disabled={disabledField}
+                  disabled
                 />
                 {errors.nextAppointment !== '' ? (
                   <span className={classes.error}>

@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input } from 'reactstrap';
+import { url as baseUrl, token } from '../../../../api';
+import axios from 'axios';
 
 const InjectiblesDurationInput = ({
   name,
@@ -8,6 +10,24 @@ const InjectiblesDurationInput = ({
   style,
   disabledField,
 }) => {
+  const [durationOfRefillOptions, setDurationOfRefillOptions] = useState([]);
+
+  const getDurationOfRill = () => {
+    axios
+      .get(
+        `${baseUrl}application-codesets/v2/DURATION_OF_CAB-LA_INJECTABLE_REFILL`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      .then(response => {
+        setDurationOfRefillOptions(response.data);
+      })
+      .catch(error => {});
+  };
+
+  useEffect(() => getDurationOfRill(), []);
+
   return (
     <div>
       <Input
@@ -20,8 +40,8 @@ const InjectiblesDurationInput = ({
         disabled={disabledField}
       >
         <option value={''}>Select Duration</option>
-        {[30, 60].map(option => (
-          <option key={option} value={option}>{`${option} days`}</option>
+        {durationOfRefillOptions.map(({ display, code }) => (
+          <option key={code} value={code}>{`${display} days`}</option>
         ))}
       </Input>
     </div>

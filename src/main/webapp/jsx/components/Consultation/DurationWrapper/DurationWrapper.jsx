@@ -18,7 +18,7 @@ const DurationWrapper = ({
   ...restOfProps
 }) => {
   const inputField = durationInputMap[prepType];
-  console.log('input field: ', inputField, prepType);
+
   return inputField
     ? inputField({
         name,
