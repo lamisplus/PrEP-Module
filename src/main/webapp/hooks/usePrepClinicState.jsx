@@ -84,8 +84,11 @@ const usePrepClinicState = props => {
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit: values => submitForm(values),
+    onSubmit: values => {
+      submitForm(values);
+    },
   });
+  console.log(props.patientObj);
 
   return {
     formik,

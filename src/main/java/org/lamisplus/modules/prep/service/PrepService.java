@@ -135,13 +135,14 @@ public class PrepService {
 
     public PrepClinicDto saveClinic(PrepClinicRequestDto clinicRequestDto) {
         String enrollmentUuid = clinicRequestDto.getPrepEnrollmentUuid();
-
+        System.out.println("actual enrollmentUuid1: " + enrollmentUuid);
         Person person = this.getPerson(clinicRequestDto.getPersonId());
-
         PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(enrollmentUuid)
                 .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", enrollmentUuid));
+        System.out.println("actual enrollmentUuid2: " + enrollmentUuid);
 
         if (!prepEnrollment.getPersonUuid().equals(person.getUuid())) {
+            System.out.println("actual enrollmentUuid3: " + enrollmentUuid);
             throw new IllegalTypeException(PrepClinic.class, "Person not same enrolled", enrollmentUuid);
         }
 

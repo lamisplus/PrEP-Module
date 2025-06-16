@@ -1,17 +1,29 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import useUpdatePreviousPrepStatus from './vistUtils/useUpdatePreviousPrepStatus';
+import { useGetPatientDtoObj } from './vistUtils/useGetPatientDtoObj';
 
 const useSubmitPrepClinicForm = (props, baseUrl, token) => {
-  const {} = useUpdatePreviousPrepStatus(props);
+  const { getPatientDtoObj } = useGetPatientDtoObj();
   const submitForm = async objValues => {
-    // return console.log('works: ', objValues);
+    const {
+      data: { uuid: enrollmentUuid },
+    } = await getPatientDtoObj(props.patientObj?.personId, baseUrl, token);
+    console.log('enrollmentUuid: ', enrollmentUuid);
+    const payload = JSON.parse(
+      JSON.stringify({
+        ...objValues,
+        prepStatus: props.patientObj?.prepStatus,
+        personId: props.patientObj?.personId,
+        prepEnrollmentUuid: enrollmentUuid,
+        urinalysisResult: '',
+      })
+    );
 
     try {
       if (props.activeContent && props.activeContent.actionType === 'update') {
         await axios.put(
           `${baseUrl}prep-clinic/${props.activeContent.id}`,
-          objValues,
+          payload,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -20,7 +32,7 @@ const useSubmitPrepClinicForm = (props, baseUrl, token) => {
           position: toast.POSITION.BOTTOM_CENTER,
         });
       } else {
-        await axios.post(`${baseUrl}prep/clinic-visit`, objValues, {
+        await axios.post(`${baseUrl}prep/clinic-visit`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
         toast.success('Clinic Visit saved successfully! ✔', {

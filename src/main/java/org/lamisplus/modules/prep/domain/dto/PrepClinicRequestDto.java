@@ -67,37 +67,26 @@ public class PrepClinicRequestDto implements Serializable {
     private Object creatinine;
     private String creatinineResult;
     private Object hepatitis;
-
     private Object syphilis;
-
     private Object otherTestsDone;
-
     private Object syndromicStiScreening;
-
     private String riskReductionServices;
-
     private String notedSideEffects;
     private Object prepNotedSideEffects;
     private String healthCareWorkerSignature;
-
     private Integer duration;
-
     private String prepGiven;
     private String otherPrepGiven;
     private String otherPrepType;
-
     private String otherRegimenId;
-
     private String prepDistributionSetting;
     private String familyPlanning;
     private LocalDate dateOfFamilyPlanning;
     private String otherDrugs;
     private String hivTestResult;
-
     private String prepType;
     private String populationType;
     private String visitType;
-
     private LocalDate dateLiverFunctionTestResults;
     private Object liverFunctionTestResults;
     private String reasonForSwitch;

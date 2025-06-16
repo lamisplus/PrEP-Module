@@ -23,22 +23,21 @@ const useSetPrepVisitAutopopulatedValues = (
 
     formik.setValues(prevs => ({
       ...prevs,
-      hivTestValue: getValue(latestHtsResult?.hivTestValue),
-      hivTestResult: getValue(latestHtsResult?.hivTestValue),
-      hivTestResultDate: getValue(latestHtsResult?.hivTestResultDate),
-      populationType: getValue(latestFromEligibility?.populationType),
-      visitType: getValue(latestFromEligibility?.visitType),
-      monthsOfRefill: getValue(
-        visitTypeDurationMapping[latestFromEligibility?.visitType]
-      ),
-      liverFunctionTestResults: getValue(
-        latestFromEligibility?.liverFunctionTestResults
-      ),
-      dateLiverFunctionTestResults: getValue(
-        latestFromEligibility?.dateLiverFunctionTestResults
-      ),
+      hivTestValue: getValue(latestHtsResult?.hivTestValue) || '',
+      hivTestResult: getValue(latestHtsResult?.hivTestValue) || '',
+      hivTestResultDate: getValue(latestHtsResult?.hivTestResultDate) || '',
+      populationType: getValue(latestFromEligibility?.populationType) || '',
+      visitType: getValue(latestFromEligibility?.visitType) || '',
+      monthsOfRefill:
+        getValue(visitTypeDurationMapping[latestFromEligibility?.visitType]) ||
+        '',
+      liverFunctionTestResults:
+        getValue(latestFromEligibility?.liverFunctionTestResults) || '',
+      dateLiverFunctionTestResults:
+        getValue(latestFromEligibility?.dateLiverFunctionTestResults) || '',
       pregnancyStatus: getValue(latestFromEligibility?.pregnancyStatus),
-      pregnant: getValue(latestFromEligibility?.pregnancyStatus),
+      pregnant: getValue(latestFromEligibility?.pregnancyStatus) || '',
+      reasonForSwitch: getValue(latestFromEligibility?.reasonForSwitch) || '',
     }));
   }, [localEncounterDate]);
 };

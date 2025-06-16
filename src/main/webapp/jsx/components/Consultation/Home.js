@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Grid, Segment, Label } from 'semantic-ui-react';
 import { FormGroup, Label as FormLabelName, Input } from 'reactstrap';
 import { url as baseUrl, token } from '../../../api';
 import moment from 'moment';
-import { toast } from 'react-toastify';
 import DualListBox from 'react-dual-listbox';
 import 'react-dual-listbox/lib/react-dual-listbox.css';
 import { LiverFunctionTest } from '../PrepServices/PrEPEligibiltyScreeningForm';
@@ -45,6 +44,10 @@ import useHepatitisTestInputChange from '../../../hooks/useHepatitisTestInputCha
 import useRemoveTest from '../../../hooks/useRemoveTest';
 import useLftInputChange from '../../../hooks/useLftInputChange';
 import useNotedSideEffectsChange from '../../../hooks/useNotedSideEffectsChange';
+import useFilterOutRegimen from '../../../hooks/vistUtils/useFilterOutRegimen';
+import useIsLastVisitTypeMethodSwitch from '../../../hooks/vistUtils/useIsLastVisitTypeMethodSwitch';
+import useFilterOutPrepType from '../../../hooks/vistUtils/useFilterOutPrepType';
+import { useGetPatientDtoObj } from '../../../hooks/vistUtils/useGetPatientDtoObj';
 
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
@@ -87,7 +90,7 @@ const ClinicVisit = props => {
   const [notedSideEffects, setNotedSideEffects] = useState([]);
   const otherTestInputRef = useRef();
   const classes = useStyleForVisitForm();
-  const { error, root, inputStyle, commentField } = classes;
+  const { error, root, inputStyle } = classes;
   const isFemale = useIsFemale(props.patientObj.gender);
   const { handleCreateNewTest } = useCreateNewTest(setOtherTest);
   const {
@@ -112,12 +115,38 @@ const ClinicVisit = props => {
     liverFunctionTestResult,
   } = usePrepClinicState(props);
 
+  const { filterOutRegimen } = useFilterOutRegimen(
+    prepRegimen,
+    props.recentActivities[0]?.regimenId
+  );
+  const { filterOutPrepType } = useFilterOutPrepType(
+    prepType,
+    props.recentActivities[0]?.prepType
+  );
+
+  const { isLastVisitTypeMethodSwitch } = useIsLastVisitTypeMethodSwitch(
+    formik.values.visitType
+  );
+
+  const filteredRegimensByPreviousVisitType = isLastVisitTypeMethodSwitch(
+    formik.values.visitType
+  )
+    ? filterOutRegimen()
+    : [...prepRegimen];
+
+  const filteredPrepTypeByPreviousVisitType = isLastVisitTypeMethodSwitch(
+    formik.values.visitType
+  )
+    ? filterOutPrepType()
+    : [...prepType];
+
   const { isEligibleForCabLa, setIsEligibleForCabLa } = useEligibilityCheckApi(
     baseUrl,
     props.patientObj.personId,
     latestFromEligibility?.visitDate,
     token
   );
+  const { getPatientDtoObj } = useGetPatientDtoObj();
 
   const { data: latestHtsResult, setData } = useHivResult(
     props.patientObj.personId
@@ -141,6 +170,7 @@ const ClinicVisit = props => {
   const { handleInputChangeUrinalysisTest } = useUrinalysisTestInputChange(
     setErrors,
     setUrinalysisTest,
+    urinalysisTest,
     errors
   );
 
@@ -249,13 +279,13 @@ const ClinicVisit = props => {
   const eligibleRegimens = useEligibleRegimens(
     isEligibleForCabLa,
     props.activeContent.actionType,
-    prepRegimen
+    filteredRegimensByPreviousVisitType
   );
 
   const eligiblePrepTypes = useEligiblePrepTypes(
     isEligibleForCabLa,
     props.activeContent.actionType,
-    prepType
+    filteredPrepTypeByPreviousVisitType
   );
   const getOtherPrepTypeOptions = useOtherPrepTypeOptions(
     formik.values.otherPrepType
@@ -337,7 +367,6 @@ const ClinicVisit = props => {
     }));
   }, [latestHtsResult]);
 
-  console.log('formik: ', formik);
   return (
     <div className={`${root} container-fluid`}>
       <div className="row">
