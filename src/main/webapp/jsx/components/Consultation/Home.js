@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Grid, Segment, Label } from 'semantic-ui-react';
 import {
   FormGroup,
@@ -86,17 +86,14 @@ const useStyles = makeStyles(theme => ({
     fontSize: '11px',
   },
 }));
-export const CleanupWrapper = ({ isVisible, cleanup, children }) => {
+export const CleanupWrapper = ({ cleanup, children }) => {
   useEffect(() => {
     return () => {
-      if (!isVisible) {
-        cleanup();
-      }
+      cleanup();
     };
-  }, [isVisible, cleanup]);
-  return isVisible ? children : null;
+  }, []);
+  return children;
 };
-const prepTypesMappedToDuration = ['PREP_TYPE_INJECTIBLES', 'PREP_TYPE_ORAL'];
 
 const durationMap = {
   'DURATION_OF_CAB-LA_INJECTABLE_REFILL_30': '30',
@@ -118,6 +115,8 @@ function getDurationByValue(value) {
     }
   }
 }
+
+const regimenMapping = { orals: '1', cabLa: '2' };
 
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
@@ -309,6 +308,8 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
   const [fullPrepTypeList, setFullPrepTypeList] = useState([]);
+
+  const [isCabLaEligible, setIsCabLaEligible] = useState(false);
   const checkEligibleForCabLa = async (currentDate, regimenList) => {
     if (currentDate) {
       await axios
@@ -318,6 +319,7 @@ const ClinicVisit = props => {
         )
         .then(response => {
           let isEligibleForCABLA = response?.data;
+          setIsCabLaEligible(isEligibleForCABLA);
           let reg = regimenList?.filter(
             each => each.code !== 'CAB-LA(600mg/3mL)'
           );
@@ -350,9 +352,13 @@ const ClinicVisit = props => {
         let { data } = JSON.parse(JSON.stringify(response));
         setUrinalysisTest(data.urinalysis);
         setOtherTest(data?.otherTestsDone);
+        setIsCabLaEligible(true);
         data = {
           ...data,
-          monthsOfRefill: getDurationByValue(data.monthsOfRefill),
+          monthsOfRefill:
+            getDurationByValue(data?.monthsOfRefill) || data?.monthsOfRefill,
+          duration:
+            getDurationByValue(data.monthsOfRefill) || data?.monthsOfRefill,
         };
         setObjValues(data);
       })
@@ -597,7 +603,6 @@ const ClinicVisit = props => {
     setErrors({ ...errors, [e.target.name]: '' });
     if (e.target.name === 'monthsOfRefill') {
       const durationInDays = e.target.value;
-      console.log(durationInDays, e.target.value);
       setObjValues({
         ...objValues,
         monthsOfRefill: `${durationInDays}`,
@@ -1063,8 +1068,6 @@ const ClinicVisit = props => {
         ...prevValues,
         populationType: latestFromEligibility?.populationType || '',
         visitType: latestFromEligibility?.visitType || '',
-        monthsOfRefill:
-          visitTypeDurationMapping[`${latestFromEligibility?.visitType}`] || '',
         reasonForSwitch: latestFromEligibility?.reasonForSwitch || '',
         pregnant: latestFromEligibility?.pregnancyStatus || '',
       }));
@@ -1336,7 +1339,16 @@ const ClinicVisit = props => {
       });
     }
   }
-  console.log(temp, objValues);
+
+  const isSelectedRegimenCabLa = useCallback(() => {
+    return objValues?.regimenId.toString() === regimenMapping['cabLa'];
+  }, [objValues]);
+
+  useEffect(() => {
+    if (!['update', 'view'].includes(props.activeContent.actionType))
+      setObjValues(prev => ({ ...prev, monthsOfRefill: '', duration: '' }));
+  }, [objValues?.regimenId]);
+
   return (
     <div className={`${classes.root} container-fluid`}>
       <div className="row">
@@ -2279,7 +2291,7 @@ const ClinicVisit = props => {
                       borderRadius: '0.25rem',
                     }}
                   >
-                    <option value=""> Select</option>
+                    <option value="">Select</option>
                     {['update', 'view'].includes(props.activeContent.actionType)
                       ? prepRegimen?.map(value => (
                           <option key={value.id} value={value.id}>
@@ -2308,7 +2320,8 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
-              {objValues.prepType && (
+
+              {objValues.regimenId && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -2317,11 +2330,8 @@ const ClinicVisit = props => {
                         <span style={{ color: 'red' }}> *</span>
                       </FormLabelName>
                       <DurationWrapper
-                        prepType={
-                          prepTypesMappedToDuration.includes(objValues.prepType)
-                            ? objValues.prepType
-                            : 'DEFAULT'
-                        }
+                        isCabLaEligible={isCabLaEligible}
+                        isSelectedRegimenCabLa={isSelectedRegimenCabLa()}
                         name={'monthsOfRefill'}
                         id="monthsOfRefill"
                         value={objValues.monthsOfRefill}
@@ -2331,6 +2341,7 @@ const ClinicVisit = props => {
                         }}
                         handleInputChange={handleInputChange}
                         disabledField={disabledField}
+                        setObjValues={setObjValues}
                       />
                       {errors.monthsOfRefill !== '' ? (
                         <span className={classes.error}>
@@ -2517,6 +2528,7 @@ const ClinicVisit = props => {
                     value="Yes"
                     onChange={handleCheckBoxCreatinineTest}
                     checked={creatinineTest.creatinineTest === 'Yes'}
+                    disabled={disabledField}
                   />{' '}
                   Creatinine Test
                 </h4>
@@ -2594,6 +2606,7 @@ const ClinicVisit = props => {
                     value="Yes"
                     onChange={handleCheckBoxUrinalysisTest}
                     checked={urinalysisTest?.urinalysisTest === 'Yes'}
+                    disabled={disabledField}
                   />{' '}
                   Urinalysis Test
                 </h4>
@@ -2675,6 +2688,7 @@ const ClinicVisit = props => {
                     value="Yes"
                     onChange={handleCheckBoxHepatitisTest}
                     checked={hepatitisTest.hepatitisTest === 'Yes'}
+                    disabled={disabledField}
                   />{' '}
                   Hepatitis Test{' '}
                 </h4>
@@ -2744,6 +2758,7 @@ const ClinicVisit = props => {
                     value="Yes"
                     onChange={handleCheckBoxSyphilisTest}
                     checked={syphilisTest?.syphilisTest === 'Yes'}
+                    disabled={disabledField}
                   />{' '}
                   Syphilis Test{' '}
                 </h4>
@@ -2835,6 +2850,7 @@ const ClinicVisit = props => {
                     ref={otherTestInputRef}
                     onChange={handleCheckBoxOtherTest}
                     checked={otherTest.length > 0}
+                    disabled={disabledField}
                   />{' '}
                   Other Test{' '}
                 </h4>
