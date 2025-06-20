@@ -2,22 +2,21 @@ import React from 'react';
 import InjectiblesDurationInput from '../InjectiblesDurationInput/InjectiblesDurationInput';
 import OralsDurationInput from '../OralsDurationInput/OralsDurationInput';
 
-const durationInputMap = {
-  PREP_TYPE_INJECTIBLES: props => <InjectiblesDurationInput {...props} />,
-  PREP_TYPE_ORAL: props => <OralsDurationInput {...props} />,
-  DEFAULT: props => <OralsDurationInput {...props} />,
-};
-
 const DurationWrapper = ({
-  prepType,
+  isCabLaEligible,
+  isSelectedRegimenCabLa,
   name,
   value,
   handleInputChange,
   style,
   disabledField,
+  setObjValues,
   ...restOfProps
 }) => {
-  const inputField = durationInputMap[prepType];
+  const inputField =
+    isCabLaEligible && isSelectedRegimenCabLa
+      ? props => <InjectiblesDurationInput {...props} />
+      : props => <OralsDurationInput {...props} />;
 
   return inputField
     ? inputField({
@@ -26,6 +25,7 @@ const DurationWrapper = ({
         handleInputChange,
         style,
         disabledField,
+        setObjValues,
         ...restOfProps,
       })
     : null;
