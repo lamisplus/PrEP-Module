@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Input } from 'reactstrap';
 import { url as baseUrl, token } from '../../../../api';
 import axios from 'axios';
+import { CleanupWrapper } from '../Home';
 
 const InjectiblesDurationInput = ({
   name,
@@ -9,6 +10,7 @@ const InjectiblesDurationInput = ({
   handleInputChange,
   style,
   disabledField,
+  setObjValues,
 }) => {
   const [durationOfRefillOptions, setDurationOfRefillOptions] = useState([]);
 
@@ -29,22 +31,28 @@ const InjectiblesDurationInput = ({
   useEffect(() => getDurationOfRill(), []);
 
   return (
-    <div>
-      <Input
-        type={'select'}
-        name={name}
-        id={name}
-        value={value}
-        onChange={handleInputChange}
-        style={style}
-        disabled={disabledField}
-      >
-        <option value={''}>Select Duration</option>
-        {durationOfRefillOptions.map(({ display, code }) => (
-          <option key={code} value={code}>{`${display} days`}</option>
-        ))}
-      </Input>
-    </div>
+    <CleanupWrapper
+      cleanup={() =>
+        setObjValues(prev => ({ ...prev, monthsOfRefill: '', duration: '' }))
+      }
+    >
+      <div>
+        <Input
+          type={'select'}
+          name={name}
+          id={name}
+          value={value}
+          onChange={handleInputChange}
+          style={style}
+          disabled={disabledField}
+        >
+          <option value={''}>Select Duration</option>
+          {durationOfRefillOptions.map(({ display, code }) => (
+            <option key={code} value={code}>{`${display} days`}</option>
+          ))}
+        </Input>
+      </div>
+    </CleanupWrapper>
   );
 };
 
