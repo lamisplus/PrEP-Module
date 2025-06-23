@@ -9,7 +9,6 @@ const OralsDurationInput = ({
   disabledField,
   setObjValues,
 }) => {
-  console.log('setObjValues: ', setObjValues);
   return (
     <CleanupWrapper
       cleanup={() =>

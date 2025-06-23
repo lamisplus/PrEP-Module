@@ -95,6 +95,8 @@ export const CleanupWrapper = ({ cleanup, children }) => {
   return children;
 };
 
+const prepTypesMappedToDuration = ['PREP_TYPE_INJECTIBLES', 'PREP_TYPE_ORAL'];
+
 const durationMap = {
   'DURATION_OF_CAB-LA_INJECTABLE_REFILL_30': '30',
   'DURATION_OF_CAB-LA_INJECTABLE_REFILL_60': '60',
@@ -355,10 +357,8 @@ const ClinicVisit = props => {
         setIsCabLaEligible(true);
         data = {
           ...data,
-          monthsOfRefill:
-            getDurationByValue(data?.monthsOfRefill) || data?.monthsOfRefill,
-          duration:
-            getDurationByValue(data.monthsOfRefill) || data?.monthsOfRefill,
+          monthsOfRefill: getDurationByValue(data.monthsOfRefill),
+          duration: getDurationByValue(data.monthsOfRefill),
         };
         setObjValues(data);
       })
@@ -743,7 +743,6 @@ const ClinicVisit = props => {
       ]);
     }
   };
-
   const otherTestInputRef = useRef();
 
   const handleInputValueCheckHeight = e => {
