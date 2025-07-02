@@ -344,7 +344,6 @@ const ClinicVisit = props => {
         .catch(error => {});
     }
   };
-
   const getPatientVisit = async id => {
     axios
       .get(`${baseUrl}prep-clinic/${props.activeContent.id}`, {
@@ -357,8 +356,9 @@ const ClinicVisit = props => {
         setIsCabLaEligible(true);
         data = {
           ...data,
-          monthsOfRefill: getDurationByValue(data.monthsOfRefill),
-          duration: getDurationByValue(data.monthsOfRefill),
+          monthsOfRefill:
+            getDurationByValue(data.monthsOfRefill) || data?.monthsOfRefill,
+          duration: getDurationByValue(data.monthsOfRefill) || data?.duration,
         };
         setObjValues(data);
       })
