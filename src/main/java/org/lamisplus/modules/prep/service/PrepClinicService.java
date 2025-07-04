@@ -1,5 +1,6 @@
 package org.lamisplus.modules.prep.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
@@ -40,7 +41,7 @@ public class PrepClinicService {
     private final CurrentUserOrganizationService currentUserOrganizationService;
     private final PrepEnrollmentRepository prepEnrollmentRepository;
     private final PrepEligibilityRepository prepEligibilityRepository;
-
+    private final ObjectMapper objectMapper;
     private final VisitService visitService;
     private final VisitRepository visitRepository;
     private final PrepClinicRepository prepClinicRepository;
@@ -408,5 +409,28 @@ public class PrepClinicService {
         if (eligibleRecordCount > 0) {
             updateLastEncounterPrevStatusByPersonUuid(personUuid, previousStatus);
         }
+    }
+
+    public boolean updateClinicByEligibility(
+            LocalDate encounterDate,
+            String personUuid,
+            String visitType,
+            String populationType,
+            String pregnant,
+            String liverFunctionTestResults,
+            String reasonForSwitch,
+            LocalDate dateOfLiverFunctionTestResults
+    ) {
+        int updated = prepClinicRepository.updateFirstPrepClinicMatchViaCte(
+                encounterDate,
+                personUuid,
+                visitType,
+                populationType,
+                pregnant,
+                liverFunctionTestResults,
+                reasonForSwitch,
+                dateOfLiverFunctionTestResults
+        );
+        return updated == 1;
     }
 }
