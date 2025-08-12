@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -124,4 +125,36 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
             " AND pc2.is_commencement = false " +
             ")", nativeQuery = true)
     int updateLastEncounterPrevStatusByPersonUuid(String personUuid, String previousStatus);
+
+    @Modifying
+    @Transactional
+    @Query(value =
+            "WITH target AS ( " +
+                    "SELECT id FROM prep_clinic " +
+                    "WHERE encounter_date = ?1 " +
+                    "AND is_commencement = false " +
+                    "AND person_uuid = ?2 " +
+                    "ORDER BY id ASC " +
+                    "LIMIT 1 " +
+                    ") " +
+                    "UPDATE prep_clinic " +
+                    "SET visit_type = ?3, " +
+                    "population_type = ?4, " +
+                    "pregnant = ?5, " +
+                    "liver_function_test_results = CAST(?6 AS jsonb), " +  // ✅ This cast is essential
+                    "reason_for_switch = ?7, " +
+                    "date_of_liver_function_test_results = ?8 " +
+                    "WHERE id = (SELECT id FROM target)", nativeQuery = true)
+    int updateFirstPrepClinicMatchViaCte(
+            LocalDate encounterDate,
+            String personUuid,
+            String visitType,
+            String populationType,
+            String pregnant,
+            String liverFunctionTestResults, // ✅ must be a JSON string
+            String reasonForSwitch,
+            LocalDate dateOfLiverFunctionTestResults
+    );
+
+
 }

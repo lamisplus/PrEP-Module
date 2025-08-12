@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   CardBody,
@@ -19,6 +19,7 @@ import 'react-widgets/dist/css/react-widgets.css';
 import moment from 'moment';
 import { Spinner } from 'reactstrap';
 import { LiverFunctionTest } from './PrEPEligibiltyScreeningForm';
+import DurationWrapper from '../Consultation/DurationWrapper/DurationWrapper';
 
 const useStyles = makeStyles(theme => ({
   card: {
@@ -85,6 +86,26 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const durationMap = {
+  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_30': '30',
+  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_60': '60',
+  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_90': '90',
+};
+const regimenMapping = { orals: '1', cabLa: '2' };
+function getDuration(key) {
+  if (durationMap[key]) {
+    return durationMap[key];
+  }
+  const match = key?.toString().match(/\d+/);
+  return match ? match[0] : key;
+}
+function getDurationByValue(value) {
+  for (const key in durationMap) {
+    if (durationMap[key] === '' + value) {
+      return key;
+    }
+  }
+}
 const PrEPCommencementForm = props => {
   const patientObj = props.patientObj;
   const classes = useStyles();
@@ -230,7 +251,13 @@ const PrEPCommencementForm = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        setObjValues(response.data.find(x => x.id === id));
+        let data = response.data.find(x => x.id === id);
+        data = {
+          ...data,
+          monthsOfRefill:
+            getDurationByValue(data?.monthsOfRefill) || data?.monthsOfRefill,
+        };
+        setObjValues(data);
       })
       .catch(error => {
         //console.log(error);
@@ -340,6 +367,8 @@ const PrEPCommencementForm = props => {
     e.preventDefault();
     if (validate()) {
       setSaving(true);
+      objValues.duration = getDuration(objValues.monthsOfRefill);
+      objValues.monthsOfRefill = getDuration(objValues.monthsOfRefill);
       objValues.prepEnrollmentUuid = patientDto.uuid;
       if (props.activeContent && props.activeContent.actionType === 'update') {
         axios
@@ -488,6 +517,15 @@ const PrEPCommencementForm = props => {
       }));
     }
   }, [latestFromEligibility]);
+
+  const isSelectedRegimenCabLa = useCallback(() => {
+    return objValues?.regimenId.toString() === regimenMapping['cabLa'];
+  }, [objValues]);
+
+  useEffect(() => {
+    if (!['update', 'view'].includes(props.activeContent.actionType))
+      setObjValues(prev => ({ ...prev, monthsOfRefill: '', duration: '' }));
+  }, [objValues?.regimenId]);
 
   return (
     <Card className={classes.root}>
@@ -914,6 +952,7 @@ const PrEPCommencementForm = props => {
                   }}
                   onChange={handlePrepTypeChange}
                   value={objValues.prepType}
+                  disabled={disabledField}
                 >
                   <option value="">Select Prep Type</option>
                   {prepType.map(value => (
@@ -988,45 +1027,60 @@ const PrEPCommencementForm = props => {
                 )}
               </FormGroup>
             </div>
-            <div className="mb-3 col-md-6">
-              <FormGroup>
-                <Label>Duration of Refill (Day[s])</Label>
-                <Input
-                  type="number"
-                  name="monthsOfRefill"
-                  id="monthsOfRefill"
-                  value={objValues.monthsOfRefill}
-                  min={0}
-                  onChange={handleInputChange}
-                  style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
-                  }}
-                  disabled={disabledField}
-                />
-              </FormGroup>
-            </div>
+            {objValues.regimenId && (
+              <div className=" mb-3 col-md-6">
+                <FormGroup>
+                  <FormLabelName>
+                    {`Duration of refill (days)`}{' '}
+                    <span style={{ color: 'red' }}> *</span>
+                  </FormLabelName>
+                  <DurationWrapper
+                    isCabLaEligible={true}
+                    isSelectedRegimenCabLa={isSelectedRegimenCabLa()}
+                    name={'monthsOfRefill'}
+                    id="monthsOfRefill"
+                    value={objValues.monthsOfRefill}
+                    style={{
+                      border: '1px solid #014D88',
+                      borderRadius: '0.25rem',
+                    }}
+                    handleInputChange={handleInputChange}
+                    disabledField={disabledField}
+                    setObjValues={setObjValues}
+                  />
+                  {errors.monthsOfRefill !== '' ? (
+                    <span className={classes.error}>
+                      {errors.monthsOfRefill}
+                    </span>
+                  ) : (
+                    ''
+                  )}
+                </FormGroup>
+              </div>
+            )}
           </div>
           {saving && <Spinner />}
           <br />
-          <MatButton
-            type="submit"
-            variant="contained"
-            color="primary"
-            className={classes.button}
-            startIcon={<SaveIcon />}
-            style={{ backgroundColor: '#014d88' }}
-            onClick={handleSubmit}
-            disabled={saving}
-          >
-            <span style={{ textTransform: 'capitalize' }}>
-              {saving
-                ? 'Saving...'
-                : props.activeContent?.actionType
-                ? 'Update'
-                : 'Save'}
-            </span>
-          </MatButton>
+          {!(props.activeContent.actionType === 'view') && (
+            <MatButton
+              type="submit"
+              variant="contained"
+              color="primary"
+              className={classes.button}
+              startIcon={<SaveIcon />}
+              style={{ backgroundColor: '#014d88' }}
+              onClick={handleSubmit}
+              disabled={saving}
+            >
+              <span style={{ textTransform: 'capitalize' }}>
+                {saving
+                  ? 'Saving...'
+                  : props.activeContent?.actionType
+                  ? 'Update'
+                  : 'Save'}
+              </span>
+            </MatButton>
+          )}
         </form>
       </CardBody>
     </Card>

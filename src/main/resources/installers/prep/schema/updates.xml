@@ -249,7 +249,7 @@
         <sql>
             ALTER TABLE prep_interruption ADD COLUMN previous_prep_status VARCHAR(255);
         </sql>
-    </changeSet>    
+    </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="08-01-2024-02">
         <sql>
             UPDATE prep_clinic
@@ -273,6 +273,13 @@
             WHEN duration > 180 THEN ROUND(duration / 30.0)
             ELSE duration
             END;
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="04-07-2025-01">
+        <sql>
+            UPDATE prep_clinic
+            SET pregnant = 'PREGANACY_STATUS_PREGNANT'
+            where pregnant = 'true' OR pregnant = '1'
         </sql>
     </changeSet>
 </databaseChangeLog>
