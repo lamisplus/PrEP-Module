@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Grid, Segment, Label } from 'semantic-ui-react';
 import {
   FormGroup,
@@ -19,6 +19,7 @@ import { TiTrash } from 'react-icons/ti';
 import DualListBox from 'react-dual-listbox';
 import 'react-dual-listbox/lib/react-dual-listbox.css';
 import { LiverFunctionTest } from '../PrepServices/PrEPEligibiltyScreeningForm';
+import DurationWrapper from './DurationWrapper/DurationWrapper';
 
 const useStyles = makeStyles(theme => ({
   card: {
@@ -85,16 +86,39 @@ const useStyles = makeStyles(theme => ({
     fontSize: '11px',
   },
 }));
-export const CleanupWrapper = ({ isVisible, cleanup, children }) => {
+export const CleanupWrapper = ({ cleanup, children }) => {
   useEffect(() => {
     return () => {
-      if (!isVisible) {
-        cleanup();
-      }
+      cleanup();
     };
-  }, [isVisible, cleanup]);
-  return isVisible ? children : null;
+  }, []);
+  return children;
 };
+
+const prepTypesMappedToDuration = ['PREP_TYPE_INJECTIBLES', 'PREP_TYPE_ORAL'];
+
+const durationMap = {
+  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_30': '30',
+  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_60': '60',
+  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_90': '90',
+};
+function getDuration(key) {
+  if (durationMap[key]) {
+    return durationMap[key];
+  }
+  const match = key?.toString().match(/\d+/);
+  return match ? match[0] : key;
+}
+
+function getDurationByValue(value) {
+  for (const key in durationMap) {
+    if (durationMap[key] === '' + value) {
+      return key;
+    }
+  }
+}
+
+const regimenMapping = { orals: '1', cabLa: '2' };
 
 const ClinicVisit = props => {
   const [errors, setErrors] = useState({});
@@ -230,7 +254,6 @@ const ClinicVisit = props => {
       })
       .catch(error => {});
   };
-
   const getPrepEntryPoint = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PrEP_ENTRY_POINT`, {
@@ -287,6 +310,8 @@ const ClinicVisit = props => {
       .catch(error => {});
   };
   const [fullPrepTypeList, setFullPrepTypeList] = useState([]);
+
+  const [isCabLaEligible, setIsCabLaEligible] = useState(false);
   const checkEligibleForCabLa = async (currentDate, regimenList) => {
     if (currentDate) {
       await axios
@@ -296,6 +321,7 @@ const ClinicVisit = props => {
         )
         .then(response => {
           let isEligibleForCABLA = response?.data;
+          setIsCabLaEligible(isEligibleForCABLA);
           let reg = regimenList?.filter(
             each => each.code !== 'CAB-LA(600mg/3mL)'
           );
@@ -318,16 +344,22 @@ const ClinicVisit = props => {
         .catch(error => {});
     }
   };
-
   const getPatientVisit = async id => {
     axios
       .get(`${baseUrl}prep-clinic/${props.activeContent.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        const { data } = JSON.parse(JSON.stringify(response));
+        let { data } = JSON.parse(JSON.stringify(response));
         setUrinalysisTest(data.urinalysis);
         setOtherTest(data?.otherTestsDone);
+        setIsCabLaEligible(true);
+        data = {
+          ...data,
+          monthsOfRefill:
+            getDurationByValue(data.monthsOfRefill) || data?.monthsOfRefill,
+          duration: getDurationByValue(data.monthsOfRefill) || data?.duration,
+        };
         setObjValues(data);
       })
       .catch(error => {});
@@ -570,10 +602,10 @@ const ClinicVisit = props => {
   const handleInputChange = e => {
     setErrors({ ...errors, [e.target.name]: '' });
     if (e.target.name === 'monthsOfRefill') {
-      const durationInDays = Number(e.target.value);
+      const durationInDays = e.target.value;
       setObjValues({
         ...objValues,
-        monthsOfRefill: e.target.value,
+        monthsOfRefill: `${durationInDays}`,
         duration: `${durationInDays}`,
       });
     } else if (e.target.name === 'encounterDate') {
@@ -711,7 +743,6 @@ const ClinicVisit = props => {
       ]);
     }
   };
-
   const otherTestInputRef = useRef();
 
   const handleInputValueCheckHeight = e => {
@@ -1036,8 +1067,6 @@ const ClinicVisit = props => {
         ...prevValues,
         populationType: latestFromEligibility?.populationType || '',
         visitType: latestFromEligibility?.visitType || '',
-        monthsOfRefill:
-          visitTypeDurationMapping[`${latestFromEligibility?.visitType}`] || '',
         reasonForSwitch: latestFromEligibility?.reasonForSwitch || '',
         pregnant: latestFromEligibility?.pregnancyStatus || '',
       }));
@@ -1204,11 +1233,11 @@ const ClinicVisit = props => {
     if (
       isNaN(date.getTime()) ||
       typeof daysToAdd !== 'number' ||
-      isNaN(daysToAdd)
+      isNaN(parseInt(daysToAdd))
     ) {
       return '';
     }
-    date.setDate(date.getDate() + daysToAdd);
+    date.setDate(date.getDate() + parseInt(daysToAdd));
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -1218,15 +1247,18 @@ const ClinicVisit = props => {
   useEffect(() => {
     let nextAppointment = addDaysToDate(
       objValues.encounterDate,
-      objValues.monthsOfRefill
+      parseInt(getDuration(objValues.monthsOfRefill))
     );
-    setObjValues(prev => ({ ...prev, nextAppointment }));
+    if (!['update', 'view'].includes(props.activeContent.actionType)) {
+      setObjValues(prev => ({ ...prev, nextAppointment }));
+    }
   }, [objValues.encounterDate, objValues.monthsOfRefill]);
 
   async function updatePreviousPrepStatusAndSubmit(personUuid, previousStatus) {
     if (validate()) {
       setSaving(true);
-      objValues.duration = objValues.monthsOfRefill;
+      objValues.duration = getDuration(objValues.monthsOfRefill);
+      objValues.monthsOfRefill = getDuration(objValues.monthsOfRefill);
       objValues.hivTestResultDate = hivTestResultDate;
       objValues.hivTestResult = hivTestValue;
       objValues.syphilis = syphilisTest;
@@ -1306,6 +1338,15 @@ const ClinicVisit = props => {
       });
     }
   }
+
+  const isSelectedRegimenCabLa = useCallback(() => {
+    return objValues?.regimenId.toString() === regimenMapping['cabLa'];
+  }, [objValues]);
+
+  useEffect(() => {
+    if (!['update', 'view'].includes(props.activeContent.actionType))
+      setObjValues(prev => ({ ...prev, monthsOfRefill: '', duration: '' }));
+  }, [objValues?.regimenId]);
 
   return (
     <div className={`${classes.root} container-fluid`}>
@@ -2249,7 +2290,7 @@ const ClinicVisit = props => {
                       borderRadius: '0.25rem',
                     }}
                   >
-                    <option value=""> Select</option>
+                    <option value="">Select</option>
                     {['update', 'view'].includes(props.activeContent.actionType)
                       ? prepRegimen?.map(value => (
                           <option key={value.id} value={value.id}>
@@ -2278,36 +2319,38 @@ const ClinicVisit = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className=" mb-3 col-md-6">
-                <FormGroup>
-                  <FormLabelName>
-                    {`Duration of refill (days)`}{' '}
-                    <span style={{ color: 'red' }}> *</span>
-                  </FormLabelName>
-                  <Input
-                    type="number"
-                    name="monthsOfRefill"
-                    id="monthsOfRefill"
-                    value={objValues.monthsOfRefill}
-                    min={0}
-                    onChange={handleInputChange}
-                    style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
-                    }}
-                    disabled={disabledField}
-                  />
-                  {errors.monthsOfRefill !== '' ? (
-                    <span className={classes.error}>
-                      {errors.monthsOfRefill}
-                    </span>
-                  ) : (
-                    ''
-                  )}
-                </FormGroup>
-              </div>
-              {objValues.prepType && (
+
+              {objValues.regimenId && (
                 <>
+                  <div className=" mb-3 col-md-6">
+                    <FormGroup>
+                      <FormLabelName>
+                        {`Duration of refill (days)`}{' '}
+                        <span style={{ color: 'red' }}> *</span>
+                      </FormLabelName>
+                      <DurationWrapper
+                        isCabLaEligible={isCabLaEligible}
+                        isSelectedRegimenCabLa={isSelectedRegimenCabLa()}
+                        name={'monthsOfRefill'}
+                        id="monthsOfRefill"
+                        value={objValues.monthsOfRefill}
+                        style={{
+                          border: '1px solid #014D88',
+                          borderRadius: '0.25rem',
+                        }}
+                        handleInputChange={handleInputChange}
+                        disabledField={disabledField}
+                        setObjValues={setObjValues}
+                      />
+                      {errors.monthsOfRefill !== '' ? (
+                        <span className={classes.error}>
+                          {errors.monthsOfRefill}
+                        </span>
+                      ) : (
+                        ''
+                      )}
+                    </FormGroup>
+                  </div>
                   <div className="form-group mb-3 col-md-6">
                     <>
                       <FormGroup>
@@ -2436,7 +2479,7 @@ const ClinicVisit = props => {
                       borderRadius: '0.25rem',
                     }}
                   >
-                    <option value=""></option>
+                    <option value="">Select setting</option>
                     {prepEntryPoint?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
@@ -2484,6 +2527,7 @@ const ClinicVisit = props => {
                     value="Yes"
                     onChange={handleCheckBoxCreatinineTest}
                     checked={creatinineTest.creatinineTest === 'Yes'}
+                    disabled={disabledField}
                   />{' '}
                   Creatinine Test
                 </h4>
@@ -2561,6 +2605,7 @@ const ClinicVisit = props => {
                     value="Yes"
                     onChange={handleCheckBoxUrinalysisTest}
                     checked={urinalysisTest?.urinalysisTest === 'Yes'}
+                    disabled={disabledField}
                   />{' '}
                   Urinalysis Test
                 </h4>
@@ -2642,6 +2687,7 @@ const ClinicVisit = props => {
                     value="Yes"
                     onChange={handleCheckBoxHepatitisTest}
                     checked={hepatitisTest.hepatitisTest === 'Yes'}
+                    disabled={disabledField}
                   />{' '}
                   Hepatitis Test{' '}
                 </h4>
@@ -2711,6 +2757,7 @@ const ClinicVisit = props => {
                     value="Yes"
                     onChange={handleCheckBoxSyphilisTest}
                     checked={syphilisTest?.syphilisTest === 'Yes'}
+                    disabled={disabledField}
                   />{' '}
                   Syphilis Test{' '}
                 </h4>
@@ -2802,6 +2849,7 @@ const ClinicVisit = props => {
                     ref={otherTestInputRef}
                     onChange={handleCheckBoxOtherTest}
                     checked={otherTest.length > 0}
+                    disabled={disabledField}
                   />{' '}
                   Other Test{' '}
                 </h4>
@@ -2992,7 +3040,7 @@ const ClinicVisit = props => {
                     borderRadius: '0.25rem',
                   }}
                   min={objValues.encounterDate}
-                  disabled={disabledField}
+                  disabled
                 />
                 {errors.nextAppointment !== '' ? (
                   <span className={classes.error}>

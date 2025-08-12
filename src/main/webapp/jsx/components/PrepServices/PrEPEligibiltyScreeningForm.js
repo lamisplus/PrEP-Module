@@ -607,7 +607,7 @@ const BasicInfo = props => {
       }));
     }
   }, [drugHistory.hivTestedBefore]);
-  console.log('temp', temp);
+
   return (
     <>
       <Card className={classes.root}>
@@ -2621,7 +2621,6 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              {/* <Dropdown placeholder='Skills' fluid multiple selection options={reasonForDecline} /> */}
               {servicesReceivedByClient?.willingToCommencePrep === 'false' && (
                 <div className="form-group  col-md-4">
                   <FormGroup>
