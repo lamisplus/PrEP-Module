@@ -1,105 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Row, Card, CardBody, FormGroup, Label, Input } from 'reactstrap';
-import MatButton from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
-import SaveIcon from '@material-ui/icons/Save';
-import CancelIcon from '@material-ui/icons/Cancel';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { url as baseUrl, token } from '../../../api';
-import 'react-widgets/dist/css/react-widgets.css';
-import moment from 'moment';
-import { Spinner } from 'reactstrap';
+import React, { useState, useEffect } from "react";
+import { Form, Row, Card, CardBody, FormGroup, Label, Input } from "reactstrap";
+import MatButton from "@material-ui/core/Button";
+import { makeStyles } from "@material-ui/core/styles";
+import SaveIcon from "@material-ui/icons/Save";
+import CancelIcon from "@material-ui/icons/Cancel";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { url as baseUrl, token } from "../../../api";
+import "react-widgets/dist/css/react-widgets.css";
+import moment from "moment";
+import { Spinner } from "reactstrap";
+import { useStyles } from "../../../hooks/styles/prepDiscontinuationsInterruptions/useStyles";
 
-const useStyles = makeStyles(theme => ({
-  card: {
-    margin: theme.spacing(20),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(3),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-  cardBottom: {
-    marginBottom: 20,
-  },
-  Select: {
-    height: 45,
-    width: 300,
-  },
-  button: {
-    margin: theme.spacing(1),
-  },
-  root: {
-    flexGrow: 1,
-    '& .card-title': {
-      color: '#fff',
-      fontWeight: 'bold',
-    },
-    '& .form-control': {
-      borderRadius: '0.25rem',
-      height: '2.5625em',
-    },
-    '& .card-header:first-child': {
-      borderRadius: 'calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0',
-    },
-    '& .dropdown-toggle::after': {
-      display: ' block !important',
-    },
-    '& select': {
-      '-webkit-appearance': 'listbox !important',
-    },
-    '& p': {
-      color: 'red',
-    },
-    '& label': {
-      fontSize: '14px',
-      color: '#014d88',
-      fontWeight: 'bold',
-    },
-  },
-  demo: {
-    backgroundColor: theme.palette.background.default,
-  },
-  inline: {
-    display: 'inline',
-  },
-  error: {
-    color: '#f85032',
-    fontSize: '12.8px',
-  },
-  success: {
-    color: '#4BB543 ',
-    fontSize: '11px',
-  },
-}));
+const CODESET_KEYS = [
+  "PREP_STATUS",
+  "PREP_STATUS_STOPPED_REASON",
+  "CAUSE_DEATH",
+  "REASON_FOR_DISCONTINUATION",
+];
 
 const PrEPEligibiltyScreeningForm = props => {
   const patientObj = props.patientObj;
   const classes = useStyles();
   const [disabledField, setDisabledField] = useState(false);
   const [objValues, setObjValues] = useState({
-    dateInterruption: '',
-    why: '',
-    interruptionType: '',
-    dateRestartPlacedBackMedication: '',
+    dateInterruption: "",
+    why: "",
+    interruptionType: "",
+    dateRestartPlacedBackMedication: "",
     personId: patientObj.personId,
-    causeOfDeath: '',
-    dateClientDied: '',
-    dateClientReferredOut: '',
-    facilityReferredTo: '',
-    interruptionDate: '',
-    interruptionReason: '',
-    sourceOfDeathInfo: '',
-    dateSeroconverted: '',
-    reasonStopped: '',
-    reasonStoppedOthers: '',
-    reasonForPrepDiscontinuation: '',
+    causeOfDeath: "",
+    dateClientDied: "",
+    dateClientReferredOut: "",
+    facilityReferredTo: "",
+    interruptionDate: "",
+    interruptionReason: "",
+    sourceOfDeathInfo: "",
+    dateSeroconverted: "",
+    reasonStopped: "",
+    reasonStoppedOthers: "",
+    reasonForPrepDiscontinuation: "",
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -109,7 +49,22 @@ const PrEPEligibiltyScreeningForm = props => {
   const [reasonForDiscontinuationOptions, setReasonForDiscontinuationOptions] =
     useState([]);
   const [patientDto, setPatientDto] = useState();
+  const [codeset, setCodeset] = useState({});
 
+  useEffect(async () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/codeSets`, {
+        params: { codes: CODESET_KEYS },
+        paramsSerializer: params =>
+          params.codes
+            .map(code => `codes=${encodeURIComponent(code)}`)
+            .join("&"),
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(({ data }) => {
+        setCodeset(data);
+      });
+  }, []);
   useEffect(() => {
     PREP_STATUS();
     PREP_STATUS_STOPPED_REASON();
@@ -118,11 +73,11 @@ const PrEPEligibiltyScreeningForm = props => {
     getReasonForDiscontinuationOptions();
     if (
       props.activeContent.id &&
-      props.activeContent.id !== '' &&
+      props.activeContent.id !== "" &&
       props.activeContent.id !== null
     ) {
       setDisabledField(
-        props.activeContent.actionType === 'view' ? true : false
+        props.activeContent.actionType === "view" ? true : false
       );
     }
   }, []);
@@ -213,43 +168,43 @@ const PrEPEligibiltyScreeningForm = props => {
       interruptionOption?.interruptionType?.toLowerCase();
     const newPrepInterruptionObj = allPrepInterruptions?.find(interruption =>
       transformedInterruption.includes(
-        interruption?.display?.replace(/\s/g, '_').toLowerCase()
+        interruption?.display?.replace(/\s/g, "_").toLowerCase()
       )
     );
     return newPrepInterruptionObj;
   };
 
   const handleInputChange = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.name === 'interruptionType') {
+    setErrors({ ...errors, [e.target.name]: "" });
+    if (e.target.name === "interruptionType") {
       switch (e.target.value) {
-        case 'PREP_STATUS_STOPPED':
+        case "PREP_STATUS_STOPPED":
           setObjValues({
             ...objValues,
-            reasonStopped: '',
-            reasonStoppedOthers: '',
+            reasonStopped: "",
+            reasonStoppedOthers: "",
           });
           break;
-        case 'PREP_STATUS_DEAD':
+        case "PREP_STATUS_DEAD":
           setObjValues({
             ...objValues,
-            causeOfDeath: '',
-            sourceOfDeathInfo: '',
-            dateClientDied: '',
+            causeOfDeath: "",
+            sourceOfDeathInfo: "",
+            dateClientDied: "",
           });
           break;
-        case 'PREP_STATUS_RESTART':
-          setObjValues({ ...objValues, dateRestartPlacedBackMedication: '' });
+        case "PREP_STATUS_RESTART":
+          setObjValues({ ...objValues, dateRestartPlacedBackMedication: "" });
           break;
-        case 'PREP_STATUS_TRANSFER_OUT':
+        case "PREP_STATUS_TRANSFER_OUT":
           setObjValues({
             ...objValues,
-            dateClientReferredOut: '',
-            facilityReferredTo: '',
+            dateClientReferredOut: "",
+            facilityReferredTo: "",
           });
           break;
-        case 'PREP_STATUS_SEROCONVERTED':
-          setObjValues({ ...objValues, linkToArt: '', dateSeroconverted: '' });
+        case "PREP_STATUS_SEROCONVERTED":
+          setObjValues({ ...objValues, linkToArt: "", dateSeroconverted: "" });
           break;
         default:
           break;
@@ -267,59 +222,59 @@ const PrEPEligibiltyScreeningForm = props => {
     //   temp.reasonForPrepDiscontinuation = 'This field is required';
     // }
     if (
-      (objValues.interruptionType === 'PREP_STATUS_ADVERSE_DRUG_REACTION' ||
-        objValues.interruptionType === 'PREP_STATUS_STOPPED' ||
-        objValues.interruptionType === 'PREP_STATUS_LOSS_TO_FOLLOW_UP') &&
+      (objValues.interruptionType === "PREP_STATUS_ADVERSE_DRUG_REACTION" ||
+        objValues.interruptionType === "PREP_STATUS_STOPPED" ||
+        objValues.interruptionType === "PREP_STATUS_LOSS_TO_FOLLOW_UP") &&
       !objValues.interruptionDate
     ) {
-      temp.interruptionDate = 'This field is required';
+      temp.interruptionDate = "This field is required";
     }
     if (
-      objValues.interruptionType === 'PREP_STATUS_TRANSFER_OUT' &&
+      objValues.interruptionType === "PREP_STATUS_TRANSFER_OUT" &&
       !objValues.dateClientReferredOut
     ) {
-      temp.dateClientReferredOut = 'This field is required';
+      temp.dateClientReferredOut = "This field is required";
     }
     if (
-      objValues.interruptionType === 'PREP_STATUS_DEAD' &&
+      objValues.interruptionType === "PREP_STATUS_DEAD" &&
       !objValues.dateClientDied
     ) {
-      temp.dateClientDied = 'This field is required';
+      temp.dateClientDied = "This field is required";
     }
     if (!objValues.interruptionType) {
-      temp.interruptionType = 'This field is required';
+      temp.interruptionType = "This field is required";
     }
     setErrors({ ...temp });
-    return Object.values(temp).every(x => x === '');
+    return Object.values(temp).every(x => x === "");
   };
 
   const handleSubmit = e => {
     e.preventDefault();
     if (
-      objValues.interruptionDate === '' &&
-      objValues.dateSeroconverted !== ''
+      objValues.interruptionDate === "" &&
+      objValues.dateSeroconverted !== ""
     ) {
       objValues.interruptionDate = objValues.dateSeroconverted;
     } else if (
-      objValues.interruptionDate === '' &&
-      objValues.dateRestartPlacedBackMedication !== ''
+      objValues.interruptionDate === "" &&
+      objValues.dateRestartPlacedBackMedication !== ""
     ) {
       objValues.interruptionDate = objValues.dateRestartPlacedBackMedication;
     } else if (
-      objValues.interruptionDate === '' &&
-      objValues.dateClientReferredOut !== ''
+      objValues.interruptionDate === "" &&
+      objValues.dateClientReferredOut !== ""
     ) {
       objValues.interruptionDate = objValues.dateClientReferredOut;
     } else if (
-      objValues.interruptionDate === '' &&
-      objValues.dateClientDied !== ''
+      objValues.interruptionDate === "" &&
+      objValues.dateClientDied !== ""
     ) {
       objValues.interruptionDate = objValues.dateClientDied;
     }
     if (validate()) {
       objValues.previousPrepStatus = props.patientObj?.prepStatus;
       setSaving(true);
-      if (props.activeContent && props.activeContent.actionType === 'update') {
+      if (props.activeContent && props.activeContent.actionType === "update") {
         axios
           .put(
             `${baseUrl}prep-interruption/${props.activeContent.id}`,
@@ -330,11 +285,11 @@ const PrEPEligibiltyScreeningForm = props => {
           )
           .then(response => {
             setSaving(false);
-            toast.success('👍 Record saved successfully! ✔');
+            toast.success("👍 Record saved successfully! ✔");
             props.PatientObject();
             props.setActiveContent({
               ...props.activeContent,
-              route: 'recent-history',
+              route: "recent-history",
             });
           })
           .catch(error => {
@@ -349,11 +304,11 @@ const PrEPEligibiltyScreeningForm = props => {
           .then(response => {
             const newStatus = getNewPrepStatus(response.data, prepStatus);
             setSaving(false);
-            toast.success('👍 Record saved successfully! ✔');
+            toast.success("👍 Record saved successfully! ✔");
             props.PatientObject();
             props.setActiveContent({
               ...props.activeContent,
-              route: 'recent-history',
+              route: "recent-history",
               obj: { newStatus },
             });
           })
@@ -369,12 +324,12 @@ const PrEPEligibiltyScreeningForm = props => {
     if (error.response && error.response.data) {
       let errorMessage =
         error.response.data.apierror &&
-        error.response.data.apierror.message !== ''
+        error.response.data.apierror.message !== ""
           ? error.response.data.apierror.message
-          : '❌ Something went wrong. Please try again...';
+          : "❌ Something went wrong. Please try again...";
       toast.error(errorMessage);
     } else {
-      toast.error('❌ Something went wrong. Please try again...');
+      toast.error("❌ Something went wrong. Please try again...");
     }
   };
 
@@ -384,36 +339,36 @@ const PrEPEligibiltyScreeningForm = props => {
 
   useEffect(() => {
     return () => {
-      if (!['view', 'update'].includes(props.activeContent.actionType)) {
+      if (!["view", "update"].includes(props.activeContent.actionType)) {
         setObjValues(prevValues => ({
           ...prevValues,
-          dateInterruption: '',
-          dateRestartPlacedBackMedication: '',
-          causeOfDeath: '',
-          dateClientDied: '',
-          dateClientReferredOut: '',
-          facilityReferredTo: '',
-          interruptionDate: '',
-          sourceOfDeathInfo: '',
-          dateSeroconverted: '',
-          reasonStopped: '',
-          reasonStoppedOthers: '',
-          reasonForPrepDiscontinuation: '',
+          dateInterruption: "",
+          dateRestartPlacedBackMedication: "",
+          causeOfDeath: "",
+          dateClientDied: "",
+          dateClientReferredOut: "",
+          facilityReferredTo: "",
+          interruptionDate: "",
+          sourceOfDeathInfo: "",
+          dateSeroconverted: "",
+          reasonStopped: "",
+          reasonStoppedOthers: "",
+          reasonForPrepDiscontinuation: "",
         }));
 
         setErrors(prevErrors => ({
           ...prevErrors,
-          interruptionDate: '',
-          reasonStopped: '',
-          reasonStoppedOthers: '',
-          dateClientReferredOut: '',
-          facilityReferredTo: '',
-          dateClientDied: '',
-          causeOfDeath: '',
-          sourceOfDeathInfo: '',
-          dateRestartPlacedBackMedication: '',
-          dateSeroconverted: '',
-          reasonForPrepDiscontinuation: '',
+          interruptionDate: "",
+          reasonStopped: "",
+          reasonStoppedOthers: "",
+          dateClientReferredOut: "",
+          facilityReferredTo: "",
+          dateClientDied: "",
+          causeOfDeath: "",
+          sourceOfDeathInfo: "",
+          dateRestartPlacedBackMedication: "",
+          dateSeroconverted: "",
+          reasonForPrepDiscontinuation: "",
         }));
       }
     };
@@ -433,7 +388,7 @@ const PrEPEligibiltyScreeningForm = props => {
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label for="uniqueId">
-                    PrEP Interruptions <span style={{ color: 'red' }}> *</span>
+                    PrEP Interruptions <span style={{ color: "red" }}> *</span>
                   </Label>
                   <Input
                     type="select"
@@ -442,47 +397,41 @@ const PrEPEligibiltyScreeningForm = props => {
                     onChange={handleInputChange}
                     value={objValues.interruptionType}
                     required
-                    style={{ border: '1px solid #014D88' }}
+                    style={{ border: "1px solid #014D88" }}
                     disabled={disabledField}
                   >
                     <option value="">Select</option>
-                    {prepStatus
-                      .filter(interruption => interruption?.id !== 743)
-                      .map(value => (
-                        <option key={value.id} value={value.code}>
-                          {value.display}
-                        </option>
-                      ))}
-                    {/* <option value="PREP_INTERRUPtIONS_DISCONTINUED_ORAL_PREP">
-                      Discontinued Oral PrEP
-                    </option>
-                    <option value="PREP_INTERRUPtIONS_DISCONTINUED_CABLA">
-                      Discontinued CAB-LA
-                    </option> */}
+                    {codeset?.PREP_STATUS?.filter(
+                      interruption => interruption?.id !== 743
+                    ).map(value => (
+                      <option key={value.id} value={value.code}>
+                        {value.display}
+                      </option>
+                    ))}
                   </Input>
-                  {errors.interruptionType !== '' ? (
+                  {errors.interruptionType !== "" ? (
                     <span className={classes.error}>
                       {errors.interruptionType}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
               {(objValues.interruptionType ===
-                'PREP_STATUS_ADVERSE_DRUG_REACTION' ||
-                objValues.interruptionType === 'PREP_STATUS_STOPPED' ||
+                "PREP_STATUS_ADVERSE_DRUG_REACTION" ||
+                objValues.interruptionType === "PREP_STATUS_STOPPED" ||
                 objValues.interruptionType ===
-                  'PREP_INTERRUPtIONS_DISCONTINUED_ORAL_PREP' ||
+                  "PREP_INTERRUPtIONS_DISCONTINUED_ORAL_PREP" ||
                 objValues.interruptionType ===
-                  'PREP_INTERRUPtIONS_DISCONTINUED_CABLA' ||
+                  "PREP_INTERRUPtIONS_DISCONTINUED_CABLA" ||
                 objValues.interruptionType ===
-                  'PREP_STATUS_LOSS_TO_FOLLOW_UP') && (
+                  "PREP_STATUS_LOSS_TO_FOLLOW_UP") && (
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
                     <Label for="uniqueId">
-                      Date of Interruption{' '}
-                      <span style={{ color: 'red' }}> *</span>
+                      Date of Interruption{" "}
+                      <span style={{ color: "red" }}> *</span>
                     </Label>
                     <Input
                       type="date"
@@ -494,25 +443,25 @@ const PrEPEligibiltyScreeningForm = props => {
                       min={
                         patientDto && patientDto.dateEnrolled
                           ? patientDto.dateEnrolled
-                          : ''
+                          : ""
                       }
-                      max={moment(new Date()).format('YYYY-MM-DD')}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
                       onChange={handleInputChange}
                       value={objValues.interruptionDate}
                       required
                       disabled={disabledField}
                     />
-                    {errors.interruptionDate !== '' ? (
+                    {errors.interruptionDate !== "" ? (
                       <span className={classes.error}>
                         {errors.interruptionDate}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
               )}
-              {objValues.interruptionType === 'PREP_STATUS_STOPPED' && (
+              {objValues.interruptionType === "PREP_STATUS_STOPPED" && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
@@ -521,28 +470,28 @@ const PrEPEligibiltyScreeningForm = props => {
                         type="select"
                         name="reasonStopped"
                         id="reasonStopped"
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                         onChange={handleInputChange}
                         value={objValues.reasonStopped}
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        {reasonStooped.map(value => (
+                        {codeset?.PREP_STATUS_STOPPED_REASON?.map(value => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
                         ))}
                       </Input>
-                      {errors.reasonStopped !== '' ? (
+                      {errors.reasonStopped !== "" ? (
                         <span className={classes.error}>
                           {errors.reasonStopped}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
-                  {objValues.reasonStopped === 'Others (Pls specify)' && (
+                  {objValues.reasonStopped === "Others (Pls specify)" && (
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <Label for="uniqueId">Other Reason Stopped </Label>
@@ -550,24 +499,24 @@ const PrEPEligibiltyScreeningForm = props => {
                           type="text"
                           name="reasonStoppedOthers"
                           id="reasonStoppedOthers"
-                          max={moment(new Date()).format('YYYY-MM-DD')}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
                           onChange={handleInputChange}
                           value={objValues.reasonStoppedOthers}
                           disabled={disabledField}
                         ></Input>
-                        {errors.reasonStoppedOther !== '' ? (
+                        {errors.reasonStoppedOther !== "" ? (
                           <span className={classes.error}>
                             {errors.reasonStopped}
                           </span>
                         ) : (
-                          ''
+                          ""
                         )}
                       </FormGroup>
                     </div>
                   )}
                 </>
               )}
-              {objValues.interruptionType === 'PREP_STATUS_TRANSFER_OUT' && (
+              {objValues.interruptionType === "PREP_STATUS_TRANSFER_OUT" && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
@@ -580,9 +529,9 @@ const PrEPEligibiltyScreeningForm = props => {
                         min={
                           patientDto && patientDto.dateEnrolled
                             ? patientDto.dateEnrolled
-                            : ''
+                            : ""
                         }
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                         onChange={handleInputChange}
                         value={
                           objValues.dateClientReferredOut ||
@@ -591,12 +540,12 @@ const PrEPEligibiltyScreeningForm = props => {
                         required
                         disabled={disabledField}
                       />
-                      {errors.dateClientReferredOut !== '' ? (
+                      {errors.dateClientReferredOut !== "" ? (
                         <span className={classes.error}>
                           {errors.dateClientReferredOut}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
@@ -607,24 +556,24 @@ const PrEPEligibiltyScreeningForm = props => {
                         type="text"
                         name="facilityReferredTo"
                         id="facilityReferredTo"
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                         onChange={handleInputChange}
                         value={objValues.facilityReferredTo}
                         required
                         disabled={disabledField}
                       />
-                      {errors.facilityReferredTo !== '' ? (
+                      {errors.facilityReferredTo !== "" ? (
                         <span className={classes.error}>
                           {errors.facilityReferredTo}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
                 </>
               )}
-              {objValues.interruptionType === 'PREP_STATUS_DEAD' && (
+              {objValues.interruptionType === "PREP_STATUS_DEAD" && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
@@ -637,9 +586,9 @@ const PrEPEligibiltyScreeningForm = props => {
                         min={
                           patientDto && patientDto.dateEnrolled
                             ? patientDto.dateEnrolled
-                            : ''
+                            : ""
                         }
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                         onChange={handleInputChange}
                         value={
                           objValues.dateClientDied || objValues.interruptionDate
@@ -647,12 +596,12 @@ const PrEPEligibiltyScreeningForm = props => {
                         required
                         disabled={disabledField}
                       />
-                      {errors.dateClientDied !== '' ? (
+                      {errors.dateClientDied !== "" ? (
                         <span className={classes.error}>
                           {errors.dateClientDied}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
@@ -666,27 +615,27 @@ const PrEPEligibiltyScreeningForm = props => {
                         min={
                           patientDto && patientDto.dateEnrolled
                             ? patientDto.dateEnrolled
-                            : ''
+                            : ""
                         }
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                         onChange={handleInputChange}
                         value={objValues.causeOfDeath}
                         required
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        {causeOfDeath.map(value => (
+                        {codeset?.CAUSE_DEATH?.map(value => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
                         ))}
                       </Input>
-                      {errors.causeOfDeath !== '' ? (
+                      {errors.causeOfDeath !== "" ? (
                         <span className={classes.error}>
                           {errors.causeOfDeath}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
@@ -697,24 +646,24 @@ const PrEPEligibiltyScreeningForm = props => {
                         type="text"
                         name="sourceOfDeathInfo"
                         id="sourceOfDeathInfo"
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                         onChange={handleInputChange}
                         value={objValues.sourceOfDeathInfo}
                         required
                         disabled={disabledField}
                       />
-                      {errors.sourceOfDeathInfo !== '' ? (
+                      {errors.sourceOfDeathInfo !== "" ? (
                         <span className={classes.error}>
                           {errors.sourceOfDeathInfo}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
                 </>
               )}
-              {objValues.interruptionType === 'PREP_STATUS_RESTART' && (
+              {objValues.interruptionType === "PREP_STATUS_RESTART" && (
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
                     <Label>Date of restart if placed back on medication</Label>
@@ -727,28 +676,28 @@ const PrEPEligibiltyScreeningForm = props => {
                       min={
                         patientDto && patientDto.dateEnrolled
                           ? patientDto.dateEnrolled
-                          : ''
+                          : ""
                       }
-                      max={moment(new Date()).format('YYYY-MM-DD')}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
                       value={objValues.dateRestartPlacedBackMedication}
                       onChange={handleInputChange}
                       disabled={disabledField}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                     />
-                    {errors.dateRestartPlacedBackMedication !== '' ? (
+                    {errors.dateRestartPlacedBackMedication !== "" ? (
                       <span className={classes.error}>
                         {errors.dateRestartPlacedBackMedication}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
               )}
-              {objValues.interruptionType === 'PREP_STATUS_SEROCONVERTED' && (
+              {objValues.interruptionType === "PREP_STATUS_SEROCONVERTED" && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
@@ -761,9 +710,9 @@ const PrEPEligibiltyScreeningForm = props => {
                         min={
                           patientDto && patientDto.dateEnrolled
                             ? patientDto.dateEnrolled
-                            : ''
+                            : ""
                         }
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                         onChange={handleInputChange}
                         value={
                           objValues.dateSeroconverted ||
@@ -772,12 +721,12 @@ const PrEPEligibiltyScreeningForm = props => {
                         required
                         disabled={disabledField}
                       />
-                      {errors.dateSeroconverted !== '' ? (
+                      {errors.dateSeroconverted !== "" ? (
                         <span className={classes.error}>
                           {errors.dateSeroconverted}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
@@ -796,16 +745,16 @@ const PrEPEligibiltyScreeningForm = props => {
                         <option value="true">Yes </option>
                         <option value="false"> No</option>
                       </Input>
-                      {errors.linkToArt !== '' ? (
+                      {errors.linkToArt !== "" ? (
                         <span className={classes.error}>
                           {errors.linkToArt}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
-                  {objValues.linkToArt === 'true' && (
+                  {objValues.linkToArt === "true" && (
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <Label>Date link to ART</Label>
@@ -818,23 +767,23 @@ const PrEPEligibiltyScreeningForm = props => {
                           min={
                             patientDto && patientDto.dateEnrolled
                               ? patientDto.dateEnrolled
-                              : ''
+                              : ""
                           }
-                          max={moment(new Date()).format('YYYY-MM-DD')}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
                           value={objValues.dateLinkToArt}
                           onChange={handleInputChange}
                           disabled={disabledField}
                           style={{
-                            border: '1px solid #014D88',
-                            borderRadius: '0.2rem',
+                            border: "1px solid #014D88",
+                            borderRadius: "0.2rem",
                           }}
                         />
-                        {errors.dateLinkToArt !== '' ? (
+                        {errors.dateLinkToArt !== "" ? (
                           <span className={classes.error}>
                             {errors.dateLinkToArt}
                           </span>
                         ) : (
-                          ''
+                          ""
                         )}
                       </FormGroup>
                     </div>
@@ -870,9 +819,9 @@ const PrEPEligibiltyScreeningForm = props => {
                 </div>
               ) : null} */}
             </div>
-            {saving ? <Spinner /> : ''}
+            {saving ? <Spinner /> : ""}
             <br />
-            {props.activeContent.actionType !== 'view' && (
+            {props.activeContent.actionType !== "view" && (
               <>
                 <MatButton
                   type="submit"
@@ -881,12 +830,12 @@ const PrEPEligibiltyScreeningForm = props => {
                   className={classes.button}
                   startIcon={<SaveIcon />}
                   onClick={handleSubmit}
-                  style={{ backgroundColor: '#014d88', fontWeight: 'bolder' }}
+                  style={{ backgroundColor: "#014d88", fontWeight: "bolder" }}
                 >
                   {!saving ? (
-                    <span style={{ textTransform: 'capitalize' }}>Save</span>
+                    <span style={{ textTransform: "capitalize" }}>Save</span>
                   ) : (
-                    <span style={{ textTransform: 'capitalize' }}>
+                    <span style={{ textTransform: "capitalize" }}>
                       Saving...
                     </span>
                   )}
@@ -896,11 +845,11 @@ const PrEPEligibiltyScreeningForm = props => {
                   className={classes.button}
                   startIcon={<CancelIcon />}
                   onClick={props.toggle}
-                  style={{ backgroundColor: '#992E62' }}
+                  style={{ backgroundColor: "#992E62" }}
                 >
-                  <span style={{ textTransform: 'capitalize', color: '#fff' }}>
-                    {' '}
-                    Cancel{' '}
+                  <span style={{ textTransform: "capitalize", color: "#fff" }}>
+                    {" "}
+                    Cancel{" "}
                   </span>
                 </MatButton>
               </>

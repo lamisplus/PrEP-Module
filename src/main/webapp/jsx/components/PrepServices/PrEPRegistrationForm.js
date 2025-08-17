@@ -1,105 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Row, Card, CardBody, FormGroup, Label, Input } from 'reactstrap';
-import MatButton from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
-import SaveIcon from '@material-ui/icons/Save';
-import CancelIcon from '@material-ui/icons/Cancel';
-// import { Alert } from 'reactstrap';
-// import { Spinner } from 'reactstrap';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { url as baseUrl, token } from '../../../api';
-import { useHistory } from 'react-router-dom';
-//import {  Modal, Button } from "react-bootstrap";
-import 'react-widgets/dist/css/react-widgets.css';
-//import { DateTimePicker } from "react-widgets";
-import PhoneInput from 'react-phone-input-2';
-// import momentLocalizer from "react-widgets-moment";
-import moment from 'moment';
-import { Spinner } from 'reactstrap';
+import React, { useState, useEffect } from "react";
+import { Form, Row, Card, CardBody, FormGroup, Label, Input } from "reactstrap";
+import MatButton from "@material-ui/core/Button";
+import SaveIcon from "@material-ui/icons/Save";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { url as baseUrl, token } from "../../../api";
+import "react-widgets/dist/css/react-widgets.css";
+import PhoneInput from "react-phone-input-2";
+import moment from "moment";
+import { Spinner } from "reactstrap";
+import { useStyles } from "../../../hooks/styles/prepRegistration/useStyle";
 
-const useStyles = makeStyles(theme => ({
-  card: {
-    margin: theme.spacing(20),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(3),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-  cardBottom: {
-    marginBottom: 20,
-  },
-  Select: {
-    height: 45,
-    width: 350,
-  },
-  button: {
-    margin: theme.spacing(1),
-  },
-  root: {
-    flexGrow: 1,
-    '& .card-title': {
-      color: '#fff',
-      fontWeight: 'bold',
-    },
-    '& .form-control': {
-      borderRadius: '0.25rem',
-      height: '2.5625em',
-    },
-    '& .card-header:first-child': {
-      borderRadius: 'calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0',
-    },
-    '& .dropdown-toggle::after': {
-      display: ' block !important',
-    },
-    '& select': {
-      '-webkit-appearance': 'listbox !important',
-    },
-    '& p': {
-      color: 'red',
-    },
-    '& label': {
-      fontSize: '14px',
-      color: '#014d88',
-      fontWeight: 'bold',
-    },
-  },
-  input: {
-    display: 'none',
-  },
-  error: {
-    color: '#f85032',
-    fontSize: '11px',
-  },
-  success: {
-    color: '#4BB543 ',
-    fontSize: '11px',
-  },
-}));
+const CODESET_KEYS = ["HTS_ENTRY_POINT", "RELATIONSHIP", "PREP_RISK_TYPE"];
 
 const PrEPRegistrationForm = props => {
   const [entryPoint, setEntryPoint] = useState([]);
   const classes = useStyles();
   const [objValues, setObjValues] = useState({
-    dateEnrolled: '',
-    dateReferred: '',
+    dateEnrolled: "",
+    dateReferred: "",
     extra: {},
     personId: 0,
-    prepEligibilityUuid: '',
-    riskType: '',
-    supporterName: '',
-    supporterPhone: '',
-    supporterRelationshipType: '',
-    uniqueId: '',
-    hivTestingPoint: '',
-    dateOfLastHivNegativeTest: '',
-    targetGroup: '',
+    prepEligibilityUuid: "",
+    riskType: "",
+    supporterName: "",
+    supporterPhone: "",
+    supporterRelationshipType: "",
+    uniqueId: "",
+    hivTestingPoint: "",
+    dateOfLastHivNegativeTest: "",
+    targetGroup: "",
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -107,23 +37,45 @@ const PrEPRegistrationForm = props => {
   const [relatives, setRelatives] = useState([]);
   const [patientDto, setPatientDto] = useState();
   const [disabledField, setSisabledField] = useState(false);
-  const [targetGroupValue, setTargetGroupValue] = useState('');
+  const [targetGroupValue, setTargetGroupValue] = useState("");
+  const [codeset, setCodeset] = useState({});
+
+  useEffect(() => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/codeSets`, {
+        params: { codes: CODESET_KEYS },
+        paramsSerializer: params =>
+          params.codes
+            .map(code => `codes=${encodeURIComponent(code)}`)
+            .join("&"),
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(({ data }) => {
+        setCodeset(data);
+        // Sync local state with fetched codesets for backward compatibility
+        setEntryPoint(data.HTS_ENTRY_POINT || []);
+        setRelatives(data.RELATIONSHIP || []);
+        setPrepRisk(data.PREP_RISK_TYPE || []);
+      })
+      .catch(error => {
+        //console.log(error);
+      });
+  }, []);
+
   useEffect(() => {
     GetPatientDTOObj();
-    RELATIONSHIP();
-    PREP_RISK_TYPE();
-    EntryPoint();
     if (
       props.activeContent.id &&
-      props.activeContent.id !== '' &&
+      props.activeContent.id !== "" &&
       props.activeContent.id !== null
     ) {
       GetPatientPrepEnrollment(props.activeContent.id);
       setSisabledField(
-        props.activeContent.actionType === 'view' ? true : false
+        props.activeContent.actionType === "view" ? true : false
       );
     }
   }, []);
+
   const getTargetGroupvalue = () => {
     axios
       .get(`${baseUrl}hts/persons/${props.patientObj.personId}`, {
@@ -136,42 +88,7 @@ const PrEPRegistrationForm = props => {
         //console.log(error);
       });
   };
-  const EntryPoint = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/HTS_ENTRY_POINT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setEntryPoint(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-  const RELATIONSHIP = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/RELATIONSHIP`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setRelatives(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-  const PREP_RISK_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_RISK_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepRisk(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
+
   const GetPatientDTOObj = () => {
     axios
       .get(
@@ -208,14 +125,14 @@ const PrEPRegistrationForm = props => {
 
   const validate = () => {
     let temp = { ...errors };
-    temp.dateEnrolled = objValues.dateEnrolled ? '' : 'This field is required⚠';
-    temp.dateReferred = objValues.dateReferred ? '' : 'This field is required⚠';
-    temp.riskType = objValues.riskType ? '' : 'This field is required⚠';
-    temp.uniqueId = objValues.uniqueId ? '' : 'This field is required⚠';
+    temp.dateEnrolled = objValues.dateEnrolled ? "" : "This field is required⚠";
+    temp.dateReferred = objValues.dateReferred ? "" : "This field is required⚠";
+    temp.riskType = objValues.riskType ? "" : "This field is required⚠";
+    temp.uniqueId = objValues.uniqueId ? "" : "This field is required⚠";
     setErrors({
       ...temp,
     });
-    return Object.values(temp).every(x => x == '');
+    return Object.values(temp).every(x => x == "");
   };
   const handleSubmit = e => {
     e.preventDefault();
@@ -233,19 +150,19 @@ const PrEPRegistrationForm = props => {
           )
           .then(response => {
             setSaving(false);
-            props.patientObj.prepCount = '1';
+            props.patientObj.prepCount = "1";
             props.PatientObject();
-            toast.success('PrEP enrolment saved successfully!✔', {
+            toast.success("PrEP enrolment saved successfully!✔", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
-              route: 'recent-history',
+              route: "recent-history",
             });
           })
           .catch(error => {
             setSaving(false);
-            toast.error('Something went wrong❌');
+            toast.error("Something went wrong❌");
           });
       } else {
         axios
@@ -254,22 +171,22 @@ const PrEPRegistrationForm = props => {
           })
           .then(response => {
             setSaving(false);
-            props.patientObj.prepCount = '1';
-            toast.success('PrEP enrolment saved successfully!✔', {
+            props.patientObj.prepCount = "1";
+            toast.success("PrEP enrolment saved successfully!✔", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
-              route: 'recent-history',
+              route: "recent-history",
             });
           })
           .catch(error => {
             setSaving(false);
-            toast.error('Something went wrong❌');
+            toast.error("Something went wrong❌");
           });
       }
     } else {
-      toast.error('All fields are required❌', {
+      toast.error("All fields are required❌", {
         position: toast.POSITION.BOTTOM_CENTER,
       });
     }
@@ -285,7 +202,7 @@ const PrEPRegistrationForm = props => {
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label for="uniqueId">
-                    Unique Client's ID <span style={{ color: 'red' }}> *</span>{' '}
+                    Unique Client's ID <span style={{ color: "red" }}> *</span>{" "}
                   </Label>
                   <Input
                     type="text"
@@ -294,12 +211,12 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     value={objValues.uniqueId}
                     disabled={disabledField}
-                    style={{ border: '1px solid #014D88' }}
+                    style={{ border: "1px solid #014D88" }}
                   />
-                  {errors.uniqueId !== '' ? (
+                  {errors.uniqueId !== "" ? (
                     <span className={classes.error}>{errors.uniqueId}</span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -313,22 +230,22 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     value={objValues.ancUniqueArtNo}
                     disabled={disabledField}
-                    style={{ border: '1px solid #014D88' }}
+                    style={{ border: "1px solid #014D88" }}
                   />
-                  {errors.ancUniqueArtNo !== '' ? (
+                  {errors.ancUniqueArtNo !== "" ? (
                     <span className={classes.error}>
                       {errors.ancUniqueArtNo}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label>
-                    Date enrolled in PrEP{' '}
-                    <span style={{ color: 'red' }}> *</span>
+                    Date enrolled in PrEP{" "}
+                    <span style={{ color: "red" }}> *</span>
                   </Label>
                   <Input
                     className="form-control"
@@ -339,21 +256,21 @@ const PrEPRegistrationForm = props => {
                     value={objValues.dateEnrolled}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     min={
                       patientDto && patientDto.visitDate
                         ? patientDto.visitDate
-                        : ''
+                        : ""
                     }
-                    max={moment(new Date()).format('YYYY-MM-DD')}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
                     disabled={disabledField}
                   />
-                  {errors.dateEnrolled !== '' ? (
+                  {errors.dateEnrolled !== "" ? (
                     <span className={classes.error}>{errors.dateEnrolled}</span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -361,7 +278,7 @@ const PrEPRegistrationForm = props => {
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label for="entryPointId">
-                    PrEP Risk Type <span style={{ color: 'red' }}> *</span>
+                    PrEP Risk Type <span style={{ color: "red" }}> *</span>
                   </Label>
                   <Input
                     type="select"
@@ -370,19 +287,19 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     value={objValues.riskType}
                     disabled={disabledField}
-                    style={{ border: '1px solid #014D88' }}
+                    style={{ border: "1px solid #014D88" }}
                   >
                     <option value=""> Select</option>
-                    {prepRisk.map(value => (
+                    {codeset?.PREP_RISK_TYPE?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
                     ))}
                   </Input>
-                  {errors.riskType !== '' ? (
+                  {errors.riskType !== "" ? (
                     <span className={classes.error}>{errors.riskType}</span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -397,10 +314,10 @@ const PrEPRegistrationForm = props => {
                     onChange={handleInputChange}
                     value={objValues.hivTestingPoint}
                     disabled={disabledField}
-                    style={{ border: '1px solid #014D88' }}
+                    style={{ border: "1px solid #014D88" }}
                   >
                     <option value=""> Select</option>
-                    {entryPoint.map(value => (
+                    {codeset?.HTS_ENTRY_POINT?.map(value => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -421,18 +338,18 @@ const PrEPRegistrationForm = props => {
                     value={objValues.dateOfLastHivNegativeTest}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
-                    max={moment(new Date()).format('YYYY-MM-DD')}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
                     disabled={disabledField}
                   />
-                  {errors.dateOfLastHivNegativeTest !== '' ? (
+                  {errors.dateOfLastHivNegativeTest !== "" ? (
                     <span className={classes.error}>
                       {errors.dateOfLastHivNegativeTest}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -440,8 +357,8 @@ const PrEPRegistrationForm = props => {
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label>
-                    Date Referred for PrEP{' '}
-                    <span style={{ color: 'red' }}> *</span>{' '}
+                    Date Referred for PrEP{" "}
+                    <span style={{ color: "red" }}> *</span>{" "}
                   </Label>
                   <Input
                     className="form-control"
@@ -452,21 +369,21 @@ const PrEPRegistrationForm = props => {
                     value={objValues.dateReferred}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     min={
                       patientDto && patientDto.visitDate
                         ? patientDto.visitDate
-                        : ''
+                        : ""
                     }
-                    max={moment(new Date()).format('YYYY-MM-DD')}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
                     disabled={disabledField}
                   />
-                  {errors.dateReferred !== '' ? (
+                  {errors.dateReferred !== "" ? (
                     <span className={classes.error}>{errors.dateReferred}</span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -482,17 +399,17 @@ const PrEPRegistrationForm = props => {
                     value={objValues.supporterName}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem !important',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem !important",
                     }}
                     disabled={disabledField}
                   />
-                  {errors.supporterName !== '' ? (
+                  {errors.supporterName !== "" ? (
                     <span className={classes.error}>
                       {errors.supporterName}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -507,25 +424,24 @@ const PrEPRegistrationForm = props => {
                     value={objValues.supporterRelationshipType}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
                     <option value=""> Select</option>
-
-                    {relatives.map(value => (
+                    {codeset?.RELATIONSHIP?.map(value => (
                       <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
                     ))}
                   </Input>
-                  {errors.supporterRelationshipType !== '' ? (
+                  {errors.supporterRelationshipType !== "" ? (
                     <span className={classes.error}>
                       {errors.supporterRelationshipType}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -534,42 +450,42 @@ const PrEPRegistrationForm = props => {
                   <Label>PrEP Supporter Phone Number</Label>
                   <PhoneInput
                     containerStyle={{
-                      width: '100%',
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem !important',
+                      width: "100%",
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem !important",
                     }}
-                    style={{ borderRadius: '0.25rem !important' }}
+                    style={{ borderRadius: "0.25rem !important" }}
                     inputStyle={{
-                      width: '100%',
-                      borderRadius: '0.25rem !important',
+                      width: "100%",
+                      borderRadius: "0.25rem !important",
                     }}
-                    country={'ng'}
+                    country={"ng"}
                     placeholder="(234)7099999999"
                     maxLength={5}
                     name="supporterPhone"
                     id="supporterPhone"
-                    masks={{ ng: '...-...-....', at: '(....) ...-....' }}
+                    masks={{ ng: "...-...-....", at: "(....) ...-...." }}
                     value={objValues.supporterPhone}
                     onChange={e => {
-                      checkPhoneNumberBasic(e, 'supporterPhone');
+                      checkPhoneNumberBasic(e, "supporterPhone");
                     }}
                     disabled={disabledField}
                   />
-                  {errors.supporterPhone !== '' ? (
+                  {errors.supporterPhone !== "" ? (
                     <span className={classes.error}>
                       {errors.supporterPhone}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
             </div>
 
-            {saving ? <Spinner /> : ''}
+            {saving ? <Spinner /> : ""}
             <br />
             {props.activeContent &&
-            props.activeContent.actionType === 'update' ? (
+            props.activeContent.actionType === "update" ? (
               <>
                 <MatButton
                   type="submit"
@@ -579,16 +495,16 @@ const PrEPRegistrationForm = props => {
                   className={classes.button}
                   startIcon={<SaveIcon />}
                   style={{
-                    backgroundColor: '#014d88',
-                    border: '1px solid #014D88',
+                    backgroundColor: "#014d88",
+                    border: "1px solid #014D88",
                   }}
                   onClick={handleSubmit}
                   disabled={saving}
                 >
                   {!saving ? (
-                    <span style={{ textTransform: 'capitalize' }}>Update</span>
+                    <span style={{ textTransform: "capitalize" }}>Update</span>
                   ) : (
-                    <span style={{ textTransform: 'capitalize' }}>
+                    <span style={{ textTransform: "capitalize" }}>
                       Updating...
                     </span>
                   )}
@@ -603,14 +519,14 @@ const PrEPRegistrationForm = props => {
                     color="primary"
                     className={classes.button}
                     startIcon={<SaveIcon />}
-                    style={{ backgroundColor: '#014d88' }}
+                    style={{ backgroundColor: "#014d88" }}
                     onClick={handleSubmit}
                     disabled={saving}
                   >
                     {!saving ? (
-                      <span style={{ textTransform: 'capitalize' }}>Save</span>
+                      <span style={{ textTransform: "capitalize" }}>Save</span>
                     ) : (
-                      <span style={{ textTransform: 'capitalize' }}>
+                      <span style={{ textTransform: "capitalize" }}>
                         Saving...
                       </span>
                     )}

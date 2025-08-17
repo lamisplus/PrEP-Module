@@ -1,38 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { FormGroup, Label, CardBody, Spinner, Input } from 'reactstrap';
-import DualListBox from 'react-dual-listbox';
-import 'react-dual-listbox/lib/react-dual-listbox.css';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { FormGroup, Label, CardBody, Spinner, Input } from "reactstrap";
+import DualListBox from "react-dual-listbox";
+import "react-dual-listbox/lib/react-dual-listbox.css";
 import {
   Card,
   FormLabel,
   makeStyles,
   Button as MatButton,
-} from '@material-ui/core';
-import { toast } from 'react-toastify';
-import 'react-widgets/dist/css/react-widgets.css';
-import { token, url as baseUrl } from '../../../api';
-import 'react-phone-input-2/lib/style.css';
-import { Message, Dropdown } from 'semantic-ui-react';
-import 'react-toastify/dist/ReactToastify.css';
-import 'react-widgets/dist/css/react-widgets.css';
-import * as moment from 'moment';
-import SaveIcon from '@material-ui/icons/Save';
-
-import {
-  savePrepEligibility,
-  getCounselingType,
-  getPatientPrepEligibility,
-  getVisitType,
-  getRecentActivities,
-  getPregnancyStatus,
-  getReasonForDecline,
-  getLiverFunctionTestResult,
-} from '../../../apiCalls/eligibility';
-import '../../index.css';
-import { getPopulationType } from '../../../apiCalls/eligibility';
-import { useStyles } from './useStyles';
-
+} from "@material-ui/core";
+import { toast } from "react-toastify";
+import "react-widgets/dist/css/react-widgets.css";
+import { token, url as baseUrl } from "../../../api";
+import "react-phone-input-2/lib/style.css";
+import { Message, Dropdown } from "semantic-ui-react";
+import "react-toastify/dist/ReactToastify.css";
+import "react-widgets/dist/css/react-widgets.css";
+import * as moment from "moment";
+import SaveIcon from "@material-ui/icons/Save";
+import "../../index.css";
+import { useLocation } from "react-router-dom/cjs/react-router-dom";
+import { useStyles } from "../../../hooks/styles/prepEligibilityScreeningForm/useStyles";
 export const DateInputWrapper = ({ children }) => {
   const handleKeyDown = event => {
     event.preventDefault();
@@ -58,7 +46,7 @@ export const LiverFunctionTest = ({
   const handleChange = selected => {
     setSelectedValues(selected);
     handleInputChange({
-      target: { name: 'liverFunctionTestResults', value: selected },
+      target: { name: "liverFunctionTestResults", value: selected },
     });
   };
 
@@ -66,9 +54,11 @@ export const LiverFunctionTest = ({
     value: value?.code,
     label: value?.display,
   }));
+
   useEffect(() => {
     setSelectedValues(objValues.liverFunctionTestResults);
   }, [objValues.liverFunctionTestResults]);
+
   return (
     <DualListBox
       options={options || []}
@@ -80,120 +70,127 @@ export const LiverFunctionTest = ({
   );
 };
 
+const CODESET_KEYS = [
+  "COUNSELING_TYPE",
+  "LIVER_FUNCTION_TEST_RESULT",
+  "REASON_METHOD_SWITCH",
+  "REASON_PREP_DECLINED",
+  "POPULATION_TYPE",
+  "PREGNANCY_STATUS",
+  "PrEP_VISIT_TYPE",
+  "PrEP_TYPE",
+];
+
 const BasicInfo = props => {
   const classes = useStyles();
   const [disabledField, setSisabledField] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [counselingType, setCounselingType] = useState([]);
-  const [visitType, setVisitType] = useState([]);
   const [reasonForSwitchOptions, setReasonForSwitchOptions] = useState([]);
-  const [reasonForDecline, setReasonForDecline] = useState([]);
-  const [populationType, setPopulationType] = useState([]);
-  const [pregnancyStatus, setPregnancyStatus] = useState([]);
-  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
-
+  const history = useLocation;
+  const patientObj = history?.state?.patientObj || props?.patientObj;
+  const [codeset, setCodeset] = useState({});
   let temp = { ...errors };
 
   const [objValues, setObjValues] = useState({
-    counselingType: '',
+    counselingType: "",
     drugUseHistory: {},
     extra: {},
     firstTimeVisit: true,
     hivRisk: {},
-    numChildrenLessThanFive: '',
-    numWives: '',
-    personId: '',
+    numChildrenLessThanFive: "",
+    numWives: "",
+    personId: "",
     personalHivRiskAssessment: {},
-    sexPartner: 'TARGET_GROUP_GEN_POP',
+    sexPartner: "TARGET_GROUP_GEN_POP",
     sexPartnerRisk: {},
     stiScreening: {},
-    targetGroup: 'TARGET_GROUP_GEN_POP',
-    uniqueId: '',
-    visitDate: '',
-    visitType: '',
-    reasonForSwitch: '',
-    populationType: '',
-    pregnancyStatus: '',
-    lftConducted: '',
+    targetGroup: "TARGET_GROUP_GEN_POP",
+    uniqueId: "",
+    visitDate: "",
+    visitType: "",
+    reasonForSwitch: "",
+    populationType: "",
+    pregnancyStatus: "",
+    lftConducted: "",
     liverFunctionTestResults: [],
-    dateLiverFunctionTestResults: '',
+    dateLiverFunctionTestResults: "",
     score: 0,
   });
   const [riskAssessment, setRiskAssessment] = useState({
-    unprotectedVaginalSexCasual: '',
-    unprotectedVaginalSexRegular: '',
-    uprotectedAnalSexWithCasual: '',
-    uprotectedAnalSexWithRegular: '',
-    stiHistory: '',
-    sharedNeedles: '',
-    moreThan1SexPartner: '',
-    analSexWithPartner: '',
-    unprotectedAnalSexWithPartner: '',
-    haveYouPaidForSex: '',
-    haveSexWithoutCondom: '',
-    experienceCondomBreakage: '',
-    takenPartInSexualOrgy: '',
+    unprotectedVaginalSexCasual: "",
+    unprotectedVaginalSexRegular: "",
+    uprotectedAnalSexWithCasual: "",
+    uprotectedAnalSexWithRegular: "",
+    stiHistory: "",
+    sharedNeedles: "",
+    moreThan1SexPartner: "",
+    analSexWithPartner: "",
+    unprotectedAnalSexWithPartner: "",
+    haveYouPaidForSex: "",
+    haveSexWithoutCondom: "",
+    experienceCondomBreakage: "",
+    takenPartInSexualOrgy: "",
   });
   const [riskAssessmentPartner, setRiskAssessmentPartner] = useState({
-    haveSexWithHIVPositive: '',
-    haveSexWithPartnerInjectDrug: '',
-    haveSexWithPartnerWhoHasSexWithMen: '',
-    haveSexWithPartnerTransgender: '',
-    sexWithPartnersWithoutCondoms: '',
+    haveSexWithHIVPositive: "",
+    haveSexWithPartnerInjectDrug: "",
+    haveSexWithPartnerWhoHasSexWithMen: "",
+    haveSexWithPartnerTransgender: "",
+    sexWithPartnersWithoutCondoms: "",
   });
   const [stiScreening, setStiScreening] = useState({
-    vaginalDischarge: '',
-    lowerAbdominalPains: '',
-    urethralDischarge: '',
-    complaintsOfScrotal: '',
-    complaintsGenitalSore: '',
-    analDischarge: '',
-    analItching: '',
-    analpain: '',
-    swollenIguinal: '',
-    genitalScore: '',
+    vaginalDischarge: "",
+    lowerAbdominalPains: "",
+    urethralDischarge: "",
+    complaintsOfScrotal: "",
+    complaintsGenitalSore: "",
+    analDischarge: "",
+    analItching: "",
+    analpain: "",
+    swollenIguinal: "",
+    genitalScore: "",
   });
 
   const [drugHistory, setDrugHistory] = useState({
-    useAnyOfTheseDrugs: '',
-    inject: '',
-    sniff: '',
-    smoke: '',
-    Snort: '',
-    useDrugSexualPerformance: '',
-    hivTestedBefore: '',
-    recommendHivRetest: '',
-    clinicalSetting: '',
-    reportHivRisk: '',
-    hivExposure: '',
-    hivTestResultAtvisit: '',
-    lastTest: '',
+    useAnyOfTheseDrugs: "",
+    inject: "",
+    sniff: "",
+    smoke: "",
+    Snort: "",
+    useDrugSexualPerformance: "",
+    hivTestedBefore: "",
+    recommendHivRetest: "",
+    clinicalSetting: "",
+    reportHivRisk: "",
+    hivExposure: "",
+    hivTestResultAtvisit: "",
+    lastTest: "",
   });
   const [assessmentForPepIndication, setAssessmentForPepIndication] = useState({
-    unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours: '',
-    sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours: '',
+    unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours: "",
+    sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours: "",
   });
   const [servicesReceivedByClient, setServicesReceivedByClient] = useState({
-    willingToCommencePrep: '',
+    willingToCommencePrep: "",
     reasonsForDecline: [],
-    otherReasonsForDecline: '',
+    otherReasonsForDecline: "",
   });
   const [assessmentForAcuteHivInfection, setAssessmentForAcuteHivInfection] =
     useState({
-      acuteHivSymptomsLasttwoWeeks: '',
-      unprotectedAnalOrVaginalOrSharedNeedlesLast28Days: '',
+      acuteHivSymptomsLasttwoWeeks: "",
+      unprotectedAnalOrVaginalOrSharedNeedlesLast28Days: "",
     });
   const [assessmentForPrepEligibility, setAssessmentForPrepEligibility] =
     useState({
-      hivNegative: '',
-      hivRiskScore: '',
-      noIndicationForPep: '',
-      hasNoProteinuria: '',
-      noHistoryOrSignsOfLiverAbnormalitiesCabLa: '',
-      noHistoryOfDrugToDrugInteractionCabLa: '',
-      noHistoryOfDrugHypersensitivityCabLa: '',
+      hivNegative: "",
+      hivRiskScore: "",
+      noIndicationForPep: "",
+      hasNoProteinuria: "",
+      noHistoryOrSignsOfLiverAbnormalitiesCabLa: "",
+      noHistoryOfDrugToDrugInteractionCabLa: "",
+      noHistoryOfDrugHypersensitivityCabLa: "",
     });
 
   const handleLftInputChange = event => {
@@ -205,18 +202,29 @@ const BasicInfo = props => {
   };
 
   useEffect(async () => {
-    setCounselingType((await getCounselingType()).data);
-    setReasonForDecline((await getReasonForDecline()).data);
-    setPopulationType((await getPopulationType()).data);
-    setPregnancyStatus((await getPregnancyStatus()).data);
-    setVisitType((await getVisitType()).data);
+    axios
+      .get(`${baseUrl}application-codesets/v2/codeSets`, {
+        params: { codes: CODESET_KEYS },
+        paramsSerializer: params =>
+          params.codes
+            .map(code => `codes=${encodeURIComponent(code)}`)
+            .join("&"),
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(({ data }) =>
+        //console.log(res)
+        setCodeset(data)
+      );
+  }, []);
+
+  useEffect(async () => {
     if (
       props.activeContent.id &&
-      props.activeContent.id !== '' &&
+      props.activeContent.id !== "" &&
       props.activeContent.id !== null
     ) {
       getPatientPrepEligibility(props.activeContent.id);
-      setSisabledField(props.activeContent.actionType === 'view');
+      setSisabledField(props.activeContent.actionType === "view");
     }
   }, [props.activeContent]);
 
@@ -247,22 +255,12 @@ const BasicInfo = props => {
         setAssessmentForPrepEligibility(assessmentForPrepEligibility);
       })
       .catch(error => {
-        console.error('Error fetching patient eligibility data:', error);
+        console.error("Error fetching patient eligibility data:", error);
       });
-  };
-  const getReasonForSwitch = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/REASON_METHOD_SWITCH`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setReasonForSwitchOptions(response.data);
-      })
-      .catch(error => {});
   };
 
   const handleInputChange = e => {
-    setErrors({ ...temp, [e.target.name]: '' });
+    setErrors({ ...temp, [e.target.name]: "" });
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
   };
 
@@ -271,10 +269,10 @@ const BasicInfo = props => {
   };
 
   const actualRiskCountTrue = Object.values(riskAssessment);
-  const riskCount = actualRiskCountTrue.filter(x => x === 'true');
+  const riskCount = actualRiskCountTrue.filter(x => x === "true");
 
   const handleInputChangeRiskAssessmentPartner = e => {
-    setErrors({ ...temp, [e.target.name]: '' });
+    setErrors({ ...temp, [e.target.name]: "" });
     setRiskAssessmentPartner({
       ...riskAssessmentPartner,
       [e.target.name]: e.target.value,
@@ -282,26 +280,26 @@ const BasicInfo = props => {
   };
 
   const actualSexPartRiskCountTrue = Object.values(riskAssessmentPartner);
-  const sexPartRiskCount = actualSexPartRiskCountTrue.filter(x => x === 'true');
+  const sexPartRiskCount = actualSexPartRiskCountTrue.filter(x => x === "true");
 
   const handleInputChangeStiScreening = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
+    setErrors({ ...errors, [e.target.name]: "" });
     setStiScreening({ ...stiScreening, [e.target.name]: e.target.value });
   };
 
   const actualStiTrue = Object.values(stiScreening);
-  const stiCount = actualStiTrue.filter(x => x === 'true');
+  const stiCount = actualStiTrue.filter(x => x === "true");
 
   const handleInputChangeDrugHistory = e => {
-    setErrors({ ...temp, [e.target.name]: '' });
-    if (drugHistory.hivTestedBefore === 'true') {
-      setDrugHistory({ ...drugHistory, lastTest: '' });
+    setErrors({ ...temp, [e.target.name]: "" });
+    if (drugHistory.hivTestedBefore === "true") {
+      setDrugHistory({ ...drugHistory, lastTest: "" });
     }
     setDrugHistory({ ...drugHistory, [e.target.name]: e.target.value });
   };
 
   const handleInputChangeAssessmentForPepIndication = e => {
-    setErrors({ ...temp, [e.target.name]: '' });
+    setErrors({ ...temp, [e.target.name]: "" });
     setAssessmentForPepIndication({
       ...assessmentForPepIndication,
       [e.target.name]: e.target.value,
@@ -309,7 +307,7 @@ const BasicInfo = props => {
   };
 
   const handleInputChangeAssessmentForAcuteHivInfection = e => {
-    setErrors({ ...temp, [e.target.name]: '' });
+    setErrors({ ...temp, [e.target.name]: "" });
     setAssessmentForAcuteHivInfection({
       ...assessmentForAcuteHivInfection,
       [e.target.name]: e.target.value,
@@ -317,7 +315,7 @@ const BasicInfo = props => {
   };
 
   const handleInputChangeAssessmentForPrepEligibility = e => {
-    setErrors({ ...temp, [e.target.name]: '' });
+    setErrors({ ...temp, [e.target.name]: "" });
     setAssessmentForPrepEligibility({
       ...assessmentForPrepEligibility,
       [e.target.name]: e.target.value,
@@ -325,9 +323,9 @@ const BasicInfo = props => {
   };
 
   const handleInputChangeServicesReceivedByClient = (e, data) => {
-    setErrors({ ...temp, [e.target.name]: '' });
+    setErrors({ ...temp, [e.target.name]: "" });
 
-    if (e.target.name === 'willingToCommencePrep') {
+    if (e.target.name === "willingToCommencePrep") {
       setServicesReceivedByClient({
         ...servicesReceivedByClient,
         [e.target.name]: e.target.value,
@@ -349,37 +347,34 @@ const BasicInfo = props => {
   };
 
   const validate = () => {
-    temp.visitDate = objValues.visitDate ? '' : '⚠ This field is required.';
-    temp.populationType = objValues.populationType
-      ? ''
-      : '⚠ This field is required';
+    temp.visitDate = objValues.visitDate ? "" : "⚠ This field is required.";
     temp.lftConducted = objValues.lftConducted
-      ? ''
-      : '⚠ This field is required';
+      ? ""
+      : "⚠ This field is required";
     temp.liverFunctionTestResults =
-      objValues.lftConducted === 'true' &&
+      objValues.lftConducted === "true" &&
       objValues.liverFunctionTestResults.length === 0
-        ? '⚠ LFT is required'
-        : '';
+        ? "⚠ LFT is required"
+        : "";
     temp.dateLiverFunctionTestResults =
-      objValues.lftConducted === 'true' &&
+      objValues.lftConducted === "true" &&
       !objValues.dateLiverFunctionTestResults
-        ? '⚠ This field is required.'
-        : '';
-    temp.sexPartner = objValues.sexPartner ? '' : '⚠ This field is required.';
+        ? "⚠ This field is required."
+        : "";
+    temp.sexPartner = objValues.sexPartner ? "" : "⚠ This field is required.";
     temp.hivTestResultAtvisit = drugHistory.hivTestResultAtvisit
-      ? ''
-      : '⚠ This field is required.';
-    if (objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH') {
+      ? ""
+      : "⚠ This field is required.";
+    if (objValues.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH") {
       temp.reasonForSwitch = objValues.reasonForSwitch
-        ? ''
-        : '⚠ This field is required';
+        ? ""
+        : "⚠ This field is required";
     } else {
-      temp.reasonForSwitch = '';
+      temp.reasonForSwitch = "";
     }
     setErrors({ ...temp });
 
-    return Object.values(temp).every(x => x === '');
+    return Object.values(temp).every(x => x === "");
   };
 
   const handleSubmit = e => {
@@ -391,14 +386,14 @@ const BasicInfo = props => {
       objValues.personalHivRiskAssessment = riskAssessment;
       objValues.sexPartnerRisk = riskAssessmentPartner;
       objValues.stiScreening = stiScreening;
-      objValues.personId = props?.patientObj?.personId;
+      objValues.personId = props?.patientObj?.personId || props?.patientObj?.id;
       objValues.uniqueId = props?.patientObj?.uniqueId;
       objValues.assessmentForAcuteHivInfection = assessmentForAcuteHivInfection;
       objValues.assessmentForPepIndication = assessmentForPepIndication;
       objValues.assessmentForPrepEligibility = assessmentForPrepEligibility;
       objValues.servicesReceivedByClient = servicesReceivedByClient;
       objValues.score = getPrepEligibilityScore();
-      if (props.activeContent && props.activeContent.actionType === 'update') {
+      if (props.activeContent && props.activeContent.actionType === "update") {
         axios
           .put(
             `${baseUrl}prep-eligibility/${props.activeContent.id}`,
@@ -408,25 +403,28 @@ const BasicInfo = props => {
           .then(response => {
             setSaving(false);
             props.patientObj.eligibilityCount = 1;
+            patientObj.eligibilityCount = 1;
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
-            props.PatientObject();
-            toast.success('Prep eligilibility saved successfully! ✔', {
+            props.patientObj.hivresultAtVisit =
+              drugHistory.hivTestResultAtvisit;
+            toast.success("Prep eligilibility saved successfully! ✔", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
-              route: 'recent-history',
+              route: "recent-history",
             });
+            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);
             if (error.response && error.response.data) {
               let errorMessage =
                 error.response.data.apierror &&
-                error.response.data.apierror.message !== ''
+                error.response.data.apierror.message !== ""
                   ? error.response.data.apierror.message
-                  : 'Something went wrong ❌ please try again';
+                  : "Something went wrong ❌ please try again";
               if (error.response.data.apierror) {
                 toast.error(error.response.data.apierror.message, {
                   position: toast.POSITION.BOTTOM_CENTER,
@@ -437,7 +435,7 @@ const BasicInfo = props => {
                 });
               }
             } else {
-              toast.error('Something went wrong ❌ please try again...', {
+              toast.error("Something went wrong ❌ please try again...", {
                 position: toast.POSITION.BOTTOM_CENTER,
               });
             }
@@ -452,22 +450,23 @@ const BasicInfo = props => {
             props.patientObj.eligibilityCount = 1;
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
-            toast.success('Prep eligilibility saved successfull! ✔', {
+            toast.success("Prep eligilibility saved successfull! ✔", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
-              route: 'recent-history',
+              route: "recent-history",
             });
+            props.PatientObject();
           })
           .catch(error => {
             setSaving(false);
             if (error.response && error.response.data) {
               let errorMessage =
                 error.response.data.apierror &&
-                error.response.data.apierror.message !== ''
+                error.response.data.apierror.message !== ""
                   ? error.response.data.apierror.message
-                  : 'Something went wrong ❌ please try again';
+                  : "Something went wrong ❌ please try again";
               if (error.response.data.apierror) {
                 toast.error(error.response.data.apierror.message, {
                   position: toast.POSITION.BOTTOM_CENTER,
@@ -478,7 +477,7 @@ const BasicInfo = props => {
                 });
               }
             } else {
-              toast.error('Something went wrong ❌ please try again...', {
+              toast.error("Something went wrong ❌ please try again...", {
                 position: toast.POSITION.BOTTOM_CENTER,
               });
             }
@@ -486,14 +485,17 @@ const BasicInfo = props => {
       }
     } else {
       setSaving(false);
-      toast.error('All field are required ⚠', {
+      toast.error("All field are required ⚠", {
         position: toast.POSITION.BOTTOM_CENTER,
       });
     }
   };
 
   const isFemale = () => {
-    return props.patientObj.gender.toLowerCase() === 'female';
+    return (
+      (props?.patientObj?.gender?.toLowerCase() ||
+        patientObj.sex?.toLowerCase()) === "female"
+    );
   };
 
   const is30AndAbove = () => {
@@ -506,7 +508,7 @@ const BasicInfo = props => {
       assessmentForPepIndication !== undefined
     ) {
       return Object.values(assessmentForPepIndication).filter(
-        each => each === 'true'
+        each => each === "true"
       ).length > 0
         ? 0
         : 1;
@@ -519,7 +521,7 @@ const BasicInfo = props => {
       assessmentForAcuteHivInfection !== undefined
     ) {
       return Object.values(assessmentForAcuteHivInfection).filter(
-        each => each === 'true'
+        each => each === "true"
       ).length > 0
         ? 0
         : 1;
@@ -528,27 +530,27 @@ const BasicInfo = props => {
 
   const getPrepEligibilityScore = () => {
     var score = 0;
-    score += drugHistory.hivTestResultAtvisit === 'Negative' ? 1 : 0;
+    score += drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0;
     score += riskCount.length > 0 ? 1 : 0;
     score += getAcuteHivResult();
     score += getIndicationForPepResult();
     if (is30AndAbove() && isFemale() === false) {
       score +=
-        assessmentForPrepEligibility?.hasNoProteinuria === 'true' ? 1 : 0;
+        assessmentForPrepEligibility?.hasNoProteinuria === "true" ? 1 : 0;
     }
     score +=
       assessmentForPrepEligibility?.noHistoryOrSignsOfLiverAbnormalitiesCabLa ===
-      'true'
+      "true"
         ? 1
         : 0;
     score +=
       assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa ===
-      'true'
+      "true"
         ? 1
         : 0;
     score +=
       assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa ===
-      'true'
+      "true"
         ? 1
         : 0;
 
@@ -562,7 +564,9 @@ const BasicInfo = props => {
   const getRecentActivities = () => {
     axios
       .get(
-        `${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
+        `${baseUrl}prep/activities/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }?full=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -573,37 +577,24 @@ const BasicInfo = props => {
       });
   };
 
-  const getLiverFunctionTestResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setLiverFunctionTestResult(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
   useEffect(() => {
     getRecentActivities();
-    getLiverFunctionTestResult();
-    getReasonForSwitch();
   }, []);
   useEffect(() => {
-    if (objValues.lftConducted === 'false') {
+    if (objValues.lftConducted === "false") {
       setObjValues(prevValues => ({
         ...prevValues,
         liverFunctionTestResults: [],
-        dateLiverFunctionTestResults: '',
+        dateLiverFunctionTestResults: "",
       }));
     }
   }, [objValues.lftConducted]);
+
   useEffect(() => {
-    if (drugHistory.hivTestedBefore === 'false') {
+    if (drugHistory.hivTestedBefore === "false") {
       setDrugHistory(prevHistory => ({
         ...prevHistory,
-        lastTest: '',
+        lastTest: "",
       }));
     }
   }, [drugHistory.hivTestedBefore]);
@@ -612,7 +603,7 @@ const BasicInfo = props => {
     <>
       <Card className={classes.root}>
         <CardBody>
-          <h1 style={{ fontSize: '1.1rem' }}>
+          <h1 style={{ fontSize: "1.1rem" }}>
             PrEP Eligibility Screening Form
           </h1>
           <form>
@@ -620,7 +611,7 @@ const BasicInfo = props => {
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
                   <Label>
-                    Visit Date <span style={{ color: 'red' }}> *</span>
+                    Visit Date <span style={{ color: "red" }}> *</span>
                   </Label>
                   <input
                     type="date"
@@ -636,17 +627,17 @@ const BasicInfo = props => {
                         ? props.patientDetail.dateHivPositive
                         : props.patientObj.dateOfRegistration
                     }
-                    max={moment(new Date()).format('YYYY-MM-DD')}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   />
-                  {errors.visitDate !== '' ? (
+                  {errors.visitDate !== "" ? (
                     <span className={classes.error}>{errors.visitDate}</span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -654,7 +645,7 @@ const BasicInfo = props => {
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
                   <Label>
-                    Visit type <span style={{ color: 'red' }}> *</span>
+                    Visit type <span style={{ color: "red" }}> *</span>
                   </Label>
                   <select
                     className="form-control"
@@ -663,31 +654,31 @@ const BasicInfo = props => {
                     value={objValues.visitType}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
-                    {visitType.map(value => (
+                    <option value={""}>Select</option>
+                    {codeset?.PrEP_VISIT_TYPE?.map(value => (
                       <option key={value.code} value={value.code}>
-                        {' '}
-                        {value.display}{' '}
+                        {" "}
+                        {value.display}{" "}
                       </option>
                     ))}
                   </select>
-                  {errors.visitType !== '' ? (
+                  {errors.visitType !== "" ? (
                     <span className={classes.error}>{errors.visitType}</span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
-              {objValues.visitType === 'PREP_VISIT_TYPE_METHOD_SWITCH' && (
+              {objValues.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH" && (
                 <div className="form-group col-md-4 p-2">
                   <FormGroup className="p-2">
                     <Label>Reason for switch</Label>
-                    <span style={{ color: 'red' }}> *</span>
+                    <span style={{ color: "red" }}> *</span>
                     <Input
                       type="select"
                       name="reasonForSwitch"
@@ -695,33 +686,33 @@ const BasicInfo = props => {
                       value={objValues.reasonForSwitch}
                       onChange={handleInputChange}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.25rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
                       }}
                       disabled={disabledField}
                     >
                       <option value="">Select</option>
 
-                      {reasonForSwitchOptions?.map(value => (
+                      {codeset?.REASON_METHOD_SWITCH?.map(value => (
                         <option key={value.id} value={value.code}>
                           {value.display}
                         </option>
                       ))}
                     </Input>
                   </FormGroup>
-                  {errors.reasonForSwitch !== '' ? (
+                  {errors.reasonForSwitch !== "" ? (
                     <span className={classes.error}>
                       {errors.reasonForSwitch}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </div>
               )}
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
                   <Label>
-                    Population type <span style={{ color: 'red' }}> *</span>
+                    Population type <span style={{ color: "red" }}> *</span>
                   </Label>
                   <select
                     className="form-control"
@@ -730,25 +721,30 @@ const BasicInfo = props => {
                     value={objValues.populationType}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
-                    {populationType.map(value => (
+                    <option value={""}>Select</option>
+                    {codeset?.POPULATION_TYPE?.map(value => (
                       <option key={value.code} value={value.code}>
-                        {' '}
-                        {value.display}{' '}
+                        {" "}
+                        {value.display}{" "}
                       </option>
                     ))}
+                    {!codeset?.POPULATION_TYPE?.find(
+                      pType => pType.display === "GenPop"
+                    ) && (
+                      <option value="POPULATION_TYPE_GEN_POP">GenPop</option>
+                    )}
                   </select>
-                  {errors.populationType !== '' ? (
+                  {errors.populationType !== "" ? (
                     <span className={classes.error}>
                       {errors.populationType}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -757,7 +753,7 @@ const BasicInfo = props => {
                 <div className="form-group col-md-4 p-2">
                   <FormGroup className="p-2">
                     <Label>
-                      Pregnancy Status <span style={{ color: 'red' }}> *</span>
+                      Pregnancy Status <span style={{ color: "red" }}> *</span>
                     </Label>
                     <select
                       className="form-control"
@@ -766,25 +762,25 @@ const BasicInfo = props => {
                       value={objValues.pregnancyStatus}
                       onChange={handleInputChange}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
-                      {pregnancyStatus.map(value => (
+                      <option value={""}>Select</option>
+                      {codeset?.PREGNANCY_STATUS?.map(value => (
                         <option key={value.code} value={value.code}>
-                          {' '}
-                          {value.display}{' '}
+                          {" "}
+                          {value.display}{" "}
                         </option>
                       ))}
                     </select>
-                    {errors.pregnancyStatus !== '' ? (
+                    {errors.pregnancyStatus !== "" ? (
                       <span className={classes.error}>
                         {errors.pregnancyStatus}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -793,7 +789,7 @@ const BasicInfo = props => {
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
                   <Label>
-                    Sex partners <span style={{ color: 'red' }}> *</span>
+                    Sex partners <span style={{ color: "red" }}> *</span>
                   </Label>
                   <select
                     className="form-control"
@@ -802,26 +798,26 @@ const BasicInfo = props => {
                     value={objValues.sexPartner}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Both">Both</option>
                   </select>
-                  {errors.sexPartner !== '' ? (
+                  {errors.sexPartner !== "" ? (
                     <span className={classes.error}>{errors.sexPartner}</span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
 
-              {props.patientObj.gender === 'Male' ||
-                (props.patientObj.gender === 'male' && (
+              {props?.patientObj?.gender === "Male" ||
+                (props?.patientObj?.gender === "male" && (
                   <div className="form-group col-md-4 p-2">
                     <FormGroup className="p-2">
                       <Label>Number of wives </Label>
@@ -832,15 +828,15 @@ const BasicInfo = props => {
                         value={objValues.numWives}
                         onChange={handleInputChange}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.2rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.2rem",
                         }}
                         disabled={disabledField}
                       />
-                      {errors.numWives !== '' ? (
+                      {errors.numWives !== "" ? (
                         <span className={classes.error}>{errors.numWives}</span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
@@ -849,7 +845,7 @@ const BasicInfo = props => {
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
                   <Label>
-                    Type of counseling <span style={{ color: 'red' }}> *</span>
+                    Type of counseling <span style={{ color: "red" }}> *</span>
                   </Label>
                   <select
                     className="form-control"
@@ -858,32 +854,32 @@ const BasicInfo = props => {
                     value={objValues.counselingType}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
-                    {counselingType.map(value => (
+                    <option value={""}>Select</option>
+                    {codeset?.COUNSELING_TYPE?.map(value => (
                       <option key={value.id} value={value.id}>
-                        {' '}
-                        {value.display}{' '}
+                        {" "}
+                        {value.display}{" "}
                       </option>
                     ))}
                   </select>
-                  {errors.counselingType !== '' ? (
+                  {errors.counselingType !== "" ? (
                     <span className={classes.error}>
                       {errors.counselingType}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
               <div className="form-group mb-3 col-md-4 p-2">
                 <FormGroup className="p-2">
                   <FormLabel>Liver Function Test conducted</FormLabel>
-                  <span style={{ color: 'red' }}> *</span>
+                  <span style={{ color: "red" }}> *</span>
                   <Input
                     type="select"
                     name="lftConducted"
@@ -891,8 +887,8 @@ const BasicInfo = props => {
                     value={objValues.lftConducted}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                     disabled={disabledField}
                   >
@@ -901,40 +897,42 @@ const BasicInfo = props => {
                     <option value={false}>No</option>
                   </Input>
                 </FormGroup>
-                {errors.lftConducted !== '' ? (
+                {errors.lftConducted !== "" ? (
                   <span className={classes.error}>{errors.lftConducted}</span>
                 ) : (
-                  ''
+                  ""
                 )}
               </div>
-              {objValues.lftConducted === 'true' && (
+              {objValues.lftConducted === "true" && (
                 <>
                   <div className="form-group mb-3 col-md-8">
                     <FormGroup className="p-2">
                       <Label for="liverFunctionTestResults">
                         Liver Function Tests Result
-                        <span style={{ color: 'red' }}> *</span>
+                        <span style={{ color: "red" }}> *</span>
                       </Label>
                       <LiverFunctionTest
                         objValues={objValues}
                         handleInputChange={handleLftInputChange}
-                        liverFunctionTestResult={liverFunctionTestResult}
+                        liverFunctionTestResult={
+                          codeset?.LIVER_FUNCTION_TEST_RESULT
+                        }
                         disabledField={disabledField}
                       />
-                      {errors.liverFunctionTestResults !== '' ? (
+                      {errors.liverFunctionTestResults !== "" ? (
                         <span className={classes.error}>
                           {errors.liverFunctionTestResults}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
                   <div className="form-group mb-3 col-md-8 p-2">
                     <FormGroup className="p-2">
                       <Label for="dateLiverFunctionTestResults">
-                        Date of Liver Function Tests Result{' '}
-                        <span style={{ color: 'red' }}> *</span>
+                        Date of Liver Function Tests Result{" "}
+                        <span style={{ color: "red" }}> *</span>
                       </Label>
                       <Input
                         className="form-control"
@@ -942,21 +940,21 @@ const BasicInfo = props => {
                         onKeyDown={e => e.preventDefault()}
                         name="dateLiverFunctionTestResults"
                         id="dateLiverFunctionTestResults"
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                         value={objValues.dateLiverFunctionTestResults}
                         onChange={handleInputChange}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
                         }}
                         disabled={disabledField}
                       />
-                      {errors.dateLiverFunctionTestResults !== '' ? (
+                      {errors.dateLiverFunctionTestResults !== "" ? (
                         <span className={classes.error}>
                           {errors.dateLiverFunctionTestResults}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
@@ -965,11 +963,11 @@ const BasicInfo = props => {
               <div
                 className="form-group my-4 col-md-12 text-center pt-2 mb-4"
                 style={{
-                  backgroundColor: '#992E62',
-                  width: '125%',
-                  height: '35px',
-                  color: '#fff',
-                  fontWeight: 'bold',
+                  backgroundColor: "#992E62",
+                  width: "125%",
+                  height: "35px",
+                  color: "#fff",
+                  fontWeight: "bold",
                 }}
               >
                 HIV Risk Assessment (Last 3 months)
@@ -985,21 +983,21 @@ const BasicInfo = props => {
                     value={riskAssessment.unprotectedVaginalSexCasual}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.unprotectedVaginalSexCasual !== '' ? (
+                  {errors.unprotectedVaginalSexCasual !== "" ? (
                     <span className={classes.error}>
                       {errors.unprotectedVaginalSexCasual}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1014,21 +1012,21 @@ const BasicInfo = props => {
                     value={riskAssessment.unprotectedVaginalSexRegular}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.unprotectedVaginalSexRegular !== '' ? (
+                  {errors.unprotectedVaginalSexRegular !== "" ? (
                     <span className={classes.error}>
                       {errors.unprotectedVaginalSexRegular}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1043,21 +1041,21 @@ const BasicInfo = props => {
                     value={riskAssessment.uprotectedAnalSexWithRegular}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.uprotectedAnalSexWithRegular !== '' ? (
+                  {errors.uprotectedAnalSexWithRegular !== "" ? (
                     <span className={classes.error}>
                       {errors.uprotectedAnalSexWithRegular}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1072,19 +1070,19 @@ const BasicInfo = props => {
                     value={riskAssessment.stiHistory}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.stiHistory !== '' ? (
+                  {errors.stiHistory !== "" ? (
                     <span className={classes.error}>{errors.stiHistory}</span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1099,21 +1097,21 @@ const BasicInfo = props => {
                     value={riskAssessment.sharedNeedles}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.sharedNeedles !== '' ? (
+                  {errors.sharedNeedles !== "" ? (
                     <span className={classes.error}>
                       {errors.sharedNeedles}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1128,21 +1126,21 @@ const BasicInfo = props => {
                     value={riskAssessment.moreThan1SexPartner}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.moreThan1SexPartner !== '' ? (
+                  {errors.moreThan1SexPartner !== "" ? (
                     <span className={classes.error}>
                       {errors.moreThan1SexPartner}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1157,21 +1155,21 @@ const BasicInfo = props => {
                     value={riskAssessment.analSexWithPartner}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.analSexWithPartner !== '' ? (
+                  {errors.analSexWithPartner !== "" ? (
                     <span className={classes.error}>
                       {errors.analSexWithPartner}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1186,21 +1184,21 @@ const BasicInfo = props => {
                     value={riskAssessment.unprotectedAnalSexWithPartner}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.unprotectedAnalSexWithPartner !== '' ? (
+                  {errors.unprotectedAnalSexWithPartner !== "" ? (
                     <span className={classes.error}>
                       {errors.unprotectedAnalSexWithPartner}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1215,21 +1213,21 @@ const BasicInfo = props => {
                     value={riskAssessment.haveYouPaidForSex}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.haveYouPaidForSex !== '' ? (
+                  {errors.haveYouPaidForSex !== "" ? (
                     <span className={classes.error}>
                       {errors.haveYouPaidForSex}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1246,21 +1244,21 @@ const BasicInfo = props => {
                     value={riskAssessment.moreThanOneSexPartnerLastThreeMonths}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.moreThanOneSexPartnerLastThreeMonths !== '' ? (
+                  {errors.moreThanOneSexPartnerLastThreeMonths !== "" ? (
                     <span className={classes.error}>
                       {errors.moreThanOneSexPartnerLastThreeMonths}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1275,21 +1273,21 @@ const BasicInfo = props => {
                     value={riskAssessment.experienceCondomBreakage}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.experienceCondomBreakage !== '' ? (
+                  {errors.experienceCondomBreakage !== "" ? (
                     <span className={classes.error}>
                       {errors.experienceCondomBreakage}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1304,21 +1302,21 @@ const BasicInfo = props => {
                     value={riskAssessment.takenPartInSexualOrgy}
                     onChange={handleInputChangeRiskAssessment}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.takenPartInSexualOrgy !== '' ? (
+                  {errors.takenPartInSexualOrgy !== "" ? (
                     <span className={classes.error}>
                       {errors.takenPartInSexualOrgy}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1334,11 +1332,11 @@ const BasicInfo = props => {
               <div
                 className="form-group  col-md-12 text-center pt-2 mb-4"
                 style={{
-                  backgroundColor: '#992E62',
-                  width: '125%',
-                  height: '35px',
-                  color: '#fff',
-                  fontWeight: 'bold',
+                  backgroundColor: "#992E62",
+                  width: "125%",
+                  height: "35px",
+                  color: "#fff",
+                  fontWeight: "bold",
                 }}
               >
                 Sex Partner Risk Assessment (Last 3 months)
@@ -1355,21 +1353,21 @@ const BasicInfo = props => {
                     value={riskAssessmentPartner.haveSexWithHIVPositive}
                     onChange={handleInputChangeRiskAssessmentPartner}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.haveSexWithHIVPositive !== '' ? (
+                  {errors.haveSexWithHIVPositive !== "" ? (
                     <span className={classes.error}>
                       {errors.haveSexWithHIVPositive}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1386,21 +1384,21 @@ const BasicInfo = props => {
                     value={riskAssessmentPartner.haveSexWithPartnerInjectDrug}
                     onChange={handleInputChangeRiskAssessmentPartner}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.haveSexWithPartnerInjectDrug !== '' ? (
+                  {errors.haveSexWithPartnerInjectDrug !== "" ? (
                     <span className={classes.error}>
                       {errors.haveSexWithPartnerInjectDrug}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1419,21 +1417,21 @@ const BasicInfo = props => {
                     }
                     onChange={handleInputChangeRiskAssessmentPartner}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.haveSexWithPartnerWhoHasSexWithMen !== '' ? (
+                  {errors.haveSexWithPartnerWhoHasSexWithMen !== "" ? (
                     <span className={classes.error}>
                       {errors.haveSexWithPartnerWhoHasSexWithMen}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1450,21 +1448,21 @@ const BasicInfo = props => {
                     value={riskAssessmentPartner.haveSexWithPartnerTransgender}
                     onChange={handleInputChangeRiskAssessmentPartner}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.haveSexWithPartnerTransgender !== '' ? (
+                  {errors.haveSexWithPartnerTransgender !== "" ? (
                     <span className={classes.error}>
                       {errors.haveSexWithPartnerTransgender}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1482,21 +1480,21 @@ const BasicInfo = props => {
                     value={riskAssessmentPartner.sexWithPartnersWithoutCondoms}
                     onChange={handleInputChangeRiskAssessmentPartner}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.sexWithPartnersWithoutCondoms !== '' ? (
+                  {errors.sexWithPartnersWithoutCondoms !== "" ? (
                     <span className={classes.error}>
                       {errors.sexWithPartnersWithoutCondoms}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1514,10 +1512,10 @@ const BasicInfo = props => {
               <div
                 className="form-group col-md-12 text-center p-2 mb-4"
                 style={{
-                  backgroundColor: '#014D88',
-                  width: '125%',
-                  color: '#fff',
-                  fontWeight: 'bold',
+                  backgroundColor: "#014D88",
+                  width: "125%",
+                  color: "#fff",
+                  fontWeight: "bold",
                 }}
               >
                 Assessment for PEP Indication
@@ -1538,24 +1536,24 @@ const BasicInfo = props => {
                     }
                     onChange={handleInputChangeAssessmentForPepIndication}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
                   {errors.unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours !==
-                  '' ? (
+                  "" ? (
                     <span className={classes.error}>
                       {
                         errors.unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours
                       }
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1575,24 +1573,24 @@ const BasicInfo = props => {
                     }
                     onChange={handleInputChangeAssessmentForPepIndication}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
                   {errors.sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours !==
-                  '' ? (
+                  "" ? (
                     <span className={classes.error}>
                       {
                         errors.sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours
                       }
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1601,11 +1599,11 @@ const BasicInfo = props => {
               <div
                 className="form-group  col-md-12 text-center pt-2 mb-4"
                 style={{
-                  backgroundColor: '#992E62',
-                  width: '125%',
-                  height: '35px',
-                  color: '#fff',
-                  fontWeight: 'bold',
+                  backgroundColor: "#992E62",
+                  width: "125%",
+                  height: "35px",
+                  color: "#fff",
+                  fontWeight: "bold",
                 }}
               >
                 Assessment for Acute HIV Infection
@@ -1626,21 +1624,21 @@ const BasicInfo = props => {
                     }
                     onChange={handleInputChangeAssessmentForAcuteHivInfection}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.acuteHivSymptomsLasttwoWeeks !== '' ? (
+                  {errors.acuteHivSymptomsLasttwoWeeks !== "" ? (
                     <span className={classes.error}>
                       {errors.acuteHivSymptomsLasttwoWeeks}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1659,22 +1657,22 @@ const BasicInfo = props => {
                     }
                     onChange={handleInputChangeAssessmentForAcuteHivInfection}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
                   {errors.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days !==
-                  '' ? (
+                  "" ? (
                     <span className={classes.error}>
                       {errors.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1683,11 +1681,11 @@ const BasicInfo = props => {
               <div
                 className="form-group  col-md-12 text-center pt-2 mb-4"
                 style={{
-                  backgroundColor: '#000',
-                  width: '125%',
-                  height: '35px',
-                  color: '#fff',
-                  fontWeight: 'bold',
+                  backgroundColor: "#000",
+                  width: "125%",
+                  height: "35px",
+                  color: "#fff",
+                  fontWeight: "bold",
                 }}
               >
                 Drug Use History
@@ -1707,19 +1705,19 @@ const BasicInfo = props => {
                       value={drugHistory.inject}
                       onChange={handleInputChangeDrugHistory}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
+                      <option value={""}>Select</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
                     </select>
-                    {errors.inject !== '' ? (
+                    {errors.inject !== "" ? (
                       <span className={classes.error}>{errors.inject}</span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -1734,19 +1732,19 @@ const BasicInfo = props => {
                       value={drugHistory.sniff}
                       onChange={handleInputChangeDrugHistory}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
+                      <option value={""}>Select</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
                     </select>
-                    {errors.sniff !== '' ? (
+                    {errors.sniff !== "" ? (
                       <span className={classes.error}>{errors.sniff}</span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -1761,19 +1759,19 @@ const BasicInfo = props => {
                       value={drugHistory.fever}
                       onChange={handleInputChangeDrugHistory}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
+                      <option value={""}>Select</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
                     </select>
-                    {errors.Snort !== '' ? (
+                    {errors.Snort !== "" ? (
                       <span className={classes.error}>{errors.Snort}</span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -1788,19 +1786,19 @@ const BasicInfo = props => {
                       value={drugHistory.smoke}
                       onChange={handleInputChangeDrugHistory}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
+                      <option value={""}>Select</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
                     </select>
-                    {errors.smoke !== '' ? (
+                    {errors.smoke !== "" ? (
                       <span className={classes.error}>{errors.smoke}</span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -1819,21 +1817,21 @@ const BasicInfo = props => {
                       value={drugHistory.useDrugSexualPerformance}
                       onChange={handleInputChangeDrugHistory}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
+                      <option value={""}>Select</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
                     </select>
-                    {errors.useDrugSexualPerformance !== '' ? (
+                    {errors.useDrugSexualPerformance !== "" ? (
                       <span className={classes.error}>
                         {errors.useDrugSexualPerformance}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -1848,26 +1846,26 @@ const BasicInfo = props => {
                       value={drugHistory.hivTestedBefore}
                       onChange={handleInputChangeDrugHistory}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
+                      <option value={""}>Select</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
                     </select>
-                    {errors.hivTestedBefore !== '' ? (
+                    {errors.hivTestedBefore !== "" ? (
                       <span className={classes.error}>
                         {errors.hivTestedBefore}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
 
-                {drugHistory.hivTestedBefore === 'true' && (
+                {drugHistory.hivTestedBefore === "true" && (
                   <div className="form-group col-md-4 p-3">
                     <FormGroup>
                       <Label>When was your last test?</Label>
@@ -1878,21 +1876,21 @@ const BasicInfo = props => {
                         value={drugHistory.lastTest}
                         onChange={handleInputChangeDrugHistory}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.2rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.2rem",
                         }}
                         disabled={disabledField}
                       >
-                        <option value={''}>Select</option>
-                        <option value="1 Month">{'<'}1 Month</option>
+                        <option value={""}>Select</option>
+                        <option value="1 Month">{"<"}1 Month</option>
                         <option value="1-3 Months">1-3 Months</option>
                         <option value="4-6Months">4-6 Months</option>
-                        <option value="6Months">{'>'}6 months</option>
+                        <option value="6Months">{">"}6 months</option>
                       </select>
-                      {errors.lastTest !== '' ? (
+                      {errors.lastTest !== "" ? (
                         <span className={classes.error}>{errors.lastTest}</span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
@@ -1901,8 +1899,8 @@ const BasicInfo = props => {
                 <div className="form-group col-md-4 p-3">
                   <FormGroup>
                     <Label>
-                      HIV test result at visit{' '}
-                      <span style={{ color: 'red' }}> *</span>
+                      HIV test result at visit{" "}
+                      <span style={{ color: "red" }}> *</span>
                     </Label>
                     <select
                       className="form-control"
@@ -1911,21 +1909,21 @@ const BasicInfo = props => {
                       value={drugHistory.hivTestResultAtvisit}
                       onChange={handleInputChangeDrugHistory}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
+                      <option value={""}>Select</option>
                       <option value="Positive">Positive</option>
                       <option value="Negative">Negative</option>
                     </select>
-                    {errors.hivTestResultAtvisit !== '' ? (
+                    {errors.hivTestResultAtvisit !== "" ? (
                       <span className={classes.error}>
                         {errors.hivTestResultAtvisit}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -1940,21 +1938,21 @@ const BasicInfo = props => {
                       value={drugHistory.recommendHivRetest}
                       onChange={handleInputChangeDrugHistory}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
+                      <option value={""}>Select</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
                     </select>
-                    {errors.recommendHivRetest !== '' ? (
+                    {errors.recommendHivRetest !== "" ? (
                       <span className={classes.error}>
                         {errors.recommendHivRetest}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -1970,21 +1968,21 @@ const BasicInfo = props => {
                       value={drugHistory.clinicalSetting}
                       onChange={handleInputChangeDrugHistory}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
+                      <option value={""}>Select</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
                     </select>
-                    {errors.clinicalSetting !== '' ? (
+                    {errors.clinicalSetting !== "" ? (
                       <span className={classes.error}>
                         {errors.clinicalSetting}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -1998,21 +1996,21 @@ const BasicInfo = props => {
                       value={drugHistory.reportHivRisk}
                       onChange={handleInputChangeDrugHistory}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
+                      <option value={""}>Select</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
                     </select>
-                    {errors.reportHivRisk !== '' ? (
+                    {errors.reportHivRisk !== "" ? (
                       <span className={classes.error}>
                         {errors.reportHivRisk}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -2028,21 +2026,21 @@ const BasicInfo = props => {
                       value={drugHistory.hivExposure}
                       onChange={handleInputChangeDrugHistory}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     >
-                      <option value={''}>Select</option>
+                      <option value={""}>Select</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
                     </select>
-                    {errors.hivExposure !== '' ? (
+                    {errors.hivExposure !== "" ? (
                       <span className={classes.error}>
                         {errors.hivExposure}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -2053,17 +2051,17 @@ const BasicInfo = props => {
               <div
                 className="col-md-12 text-center pt-2 mb-4"
                 style={{
-                  backgroundColor: '#014D88',
-                  width: '125%',
-                  height: '35px',
-                  color: '#fff',
-                  fontWeight: 'bold',
+                  backgroundColor: "#014D88",
+                  width: "125%",
+                  height: "35px",
+                  color: "#fff",
+                  fontWeight: "bold",
                 }}
               >
                 Syndromic STI Screening
               </div>
               {props.patientDetail &&
-                props.patientDetail.personResponseDto.sex === 'Female' && (
+                props.patientDetail.personResponseDto?.sex === "Female" && (
                   <>
                     <div className="form-group  col-md-4 p-3">
                       <FormGroup>
@@ -2078,21 +2076,21 @@ const BasicInfo = props => {
                           value={stiScreening.vaginalDischarge}
                           onChange={handleInputChangeStiScreening}
                           style={{
-                            border: '1px solid #014D88',
-                            borderRadius: '0.2rem',
+                            border: "1px solid #014D88",
+                            borderRadius: "0.2rem",
                           }}
                           disabled={disabledField}
                         >
-                          <option value={''}>Select</option>
+                          <option value={""}>Select</option>
                           <option value="true">Yes</option>
                           <option value="false">No</option>
                         </select>
-                        {errors.vaginalDischarge !== '' ? (
+                        {errors.vaginalDischarge !== "" ? (
                           <span className={classes.error}>
                             {errors.vaginalDischarge}
                           </span>
                         ) : (
-                          ''
+                          ""
                         )}
                       </FormGroup>
                     </div>
@@ -2110,28 +2108,28 @@ const BasicInfo = props => {
                           value={stiScreening.lowerAbdominalPains}
                           onChange={handleInputChangeStiScreening}
                           style={{
-                            border: '1px solid #014D88',
-                            borderRadius: '0.2rem',
+                            border: "1px solid #014D88",
+                            borderRadius: "0.2rem",
                           }}
                           disabled={disabledField}
                         >
-                          <option value={''}>Select</option>
+                          <option value={""}>Select</option>
                           <option value="true">Yes</option>
                           <option value="false">No</option>
                         </select>
-                        {errors.lowerAbdominalPains !== '' ? (
+                        {errors.lowerAbdominalPains !== "" ? (
                           <span className={classes.error}>
                             {errors.lowerAbdominalPains}
                           </span>
                         ) : (
-                          ''
+                          ""
                         )}
                       </FormGroup>
                     </div>
                   </>
                 )}
-              {props.patientObj.personResponseDto &&
-                props.patientDetail.personResponseDto.sex === 'Male' && (
+              {props.patientObj?.personResponseDto &&
+                props.patientDetail?.personResponseDto.sex === "Male" && (
                   <>
                     <div className="form-group  col-md-4 p-3">
                       <FormGroup>
@@ -2146,21 +2144,21 @@ const BasicInfo = props => {
                           value={stiScreening.urethralDischarge}
                           onChange={handleInputChangeStiScreening}
                           style={{
-                            border: '1px solid #014D88',
-                            borderRadius: '0.2rem',
+                            border: "1px solid #014D88",
+                            borderRadius: "0.2rem",
                           }}
                           disabled={disabledField}
                         >
-                          <option value={''}>Select</option>
+                          <option value={""}>Select</option>
                           <option value="true">Yes</option>
                           <option value="false">No</option>
                         </select>
-                        {errors.urethralDischarge !== '' ? (
+                        {errors.urethralDischarge !== "" ? (
                           <span className={classes.error}>
                             {errors.urethralDischarge}
                           </span>
                         ) : (
-                          ''
+                          ""
                         )}
                       </FormGroup>
                     </div>
@@ -2174,21 +2172,21 @@ const BasicInfo = props => {
                           value={stiScreening.complaintsOfScrotal}
                           onChange={handleInputChangeStiScreening}
                           style={{
-                            border: '1px solid #014D88',
-                            borderRadius: '0.2rem',
+                            border: "1px solid #014D88",
+                            borderRadius: "0.2rem",
                           }}
                           disabled={disabledField}
                         >
-                          <option value={''}>Select</option>
+                          <option value={""}>Select</option>
                           <option value="true">Yes</option>
                           <option value="false">No</option>
                         </select>
-                        {errors.complaintsOfScrotal !== '' ? (
+                        {errors.complaintsOfScrotal !== "" ? (
                           <span className={classes.error}>
                             {errors.complaintsOfScrotal}
                           </span>
                         ) : (
-                          ''
+                          ""
                         )}
                       </FormGroup>
                     </div>
@@ -2205,21 +2203,21 @@ const BasicInfo = props => {
                           value={stiScreening.complaintsGenitalSore}
                           onChange={handleInputChangeStiScreening}
                           style={{
-                            border: '1px solid #014D88',
-                            borderRadius: '0.2rem',
+                            border: "1px solid #014D88",
+                            borderRadius: "0.2rem",
                           }}
                           disabled={disabledField}
                         >
-                          <option value={''}>Select</option>
+                          <option value={""}>Select</option>
                           <option value="true">Yes</option>
                           <option value="false">No</option>
                         </select>
-                        {errors.complaintsGenitalSore !== '' ? (
+                        {errors.complaintsGenitalSore !== "" ? (
                           <span className={classes.error}>
                             {errors.complaintsGenitalSore}
                           </span>
                         ) : (
-                          ''
+                          ""
                         )}
                       </FormGroup>
                     </div>
@@ -2235,19 +2233,19 @@ const BasicInfo = props => {
                     value={stiScreening.genitalScore}
                     onChange={handleInputChangeStiScreening}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.genitalScore !== '' ? (
+                  {errors.genitalScore !== "" ? (
                     <span className={classes.error}>{errors.genitalScore}</span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -2261,21 +2259,21 @@ const BasicInfo = props => {
                     value={stiScreening.swollenIguinal}
                     onChange={handleInputChangeStiScreening}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.swollenIguinal !== '' ? (
+                  {errors.swollenIguinal !== "" ? (
                     <span className={classes.error}>
                       {errors.swollenIguinal}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -2289,19 +2287,19 @@ const BasicInfo = props => {
                     value={stiScreening.analpain}
                     onChange={handleInputChangeStiScreening}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.analpain !== '' ? (
+                  {errors.analpain !== "" ? (
                     <span className={classes.error}>{errors.analpain}</span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -2315,19 +2313,19 @@ const BasicInfo = props => {
                     value={stiScreening.analItching}
                     onChange={handleInputChangeStiScreening}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.analItching !== '' ? (
+                  {errors.analItching !== "" ? (
                     <span className={classes.error}>{errors.analItching}</span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -2341,28 +2339,28 @@ const BasicInfo = props => {
                     value={stiScreening.analDischarge}
                     onChange={handleInputChangeStiScreening}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.analDischarge !== '' ? (
+                  {errors.analDischarge !== "" ? (
                     <span className={classes.error}>
                       {errors.analDischarge}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
               <Message warning>
                 <h4>
-                  Calculate the sum of the STI screening. If {'>= '}1, should be
-                  referred for STI test{' '}
+                  Calculate the sum of the STI screening. If {">= "}1, should be
+                  referred for STI test{" "}
                 </h4>
                 <b>Score :{stiCount.length}</b>
               </Message>
@@ -2371,11 +2369,11 @@ const BasicInfo = props => {
               <div
                 className="form-group  col-md-12 text-center pt-2 mb-4 p-3"
                 style={{
-                  backgroundColor: '#014D88',
-                  width: '125%',
-                  height: '35px',
-                  color: '#fff',
-                  fontWeight: 'bold',
+                  backgroundColor: "#014D88",
+                  width: "125%",
+                  height: "35px",
+                  color: "#fff",
+                  fontWeight: "bold",
                 }}
               >
                 Assessment for PrEP Eligibilty
@@ -2386,18 +2384,18 @@ const BasicInfo = props => {
                   <div style={{ flex: 1 }}>
                     <FormGroup>
                       <Label>
-                        HIV Negative:{' '}
+                        HIV Negative:{" "}
                         <span className="badge badge-info">{`${
-                          drugHistory.hivTestResultAtvisit === 'Negative'
+                          drugHistory.hivTestResultAtvisit === "Negative"
                             ? 1
                             : 0
-                        }`}</span>{' '}
+                        }`}</span>{" "}
                       </Label>
                     </FormGroup>
                   </div>
                   <div style={{ flex: 1 }}>
                     <Label>
-                      HIV Risk Score &gt; 1:{' '}
+                      HIV Risk Score &gt; 1:{" "}
                       <span className="badge badge-info">{`${
                         riskCount.length > 0 ? 1 : 0
                       }`}</span>
@@ -2416,21 +2414,21 @@ const BasicInfo = props => {
                         value={assessmentForPrepEligibility?.hasNoProteinuria}
                         onChange={handleInputChangeAssessmentForPrepEligibility}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.2rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.2rem",
                         }}
                         disabled={disabledField}
                       >
-                        <option value={''}>Select</option>
+                        <option value={""}>Select</option>
                         <option value="true">Yes</option>
                         <option value="false">No</option>
                       </select>
-                      {errors.hasNoProteinuria !== '' ? (
+                      {errors.hasNoProteinuria !== "" ? (
                         <span className={classes.error}>
                           {errors.hasNoProteinuria}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
@@ -2450,21 +2448,21 @@ const BasicInfo = props => {
                     }
                     onChange={handleInputChangeAssessmentForPrepEligibility}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.noHistoryOrSignsOfLiverAbnormalitiesCabLa !== '' ? (
+                  {errors.noHistoryOrSignsOfLiverAbnormalitiesCabLa !== "" ? (
                     <span className={classes.error}>
                       {errors.noHistoryOrSignsOfLiverAbnormalitiesCabLa}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -2480,21 +2478,21 @@ const BasicInfo = props => {
                     }
                     onChange={handleInputChangeAssessmentForPrepEligibility}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.noHistoryOfDrugToDrugInteractionCabLa !== '' ? (
+                  {errors.noHistoryOfDrugToDrugInteractionCabLa !== "" ? (
                     <span className={classes.error}>
                       {errors.noHistoryOfDrugToDrugInteractionCabLa}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -2510,32 +2508,32 @@ const BasicInfo = props => {
                     }
                     onChange={handleInputChangeAssessmentForPrepEligibility}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.noHistoryOfDrugHypersensitivityCabLa !== '' ? (
+                  {errors.noHistoryOfDrugHypersensitivityCabLa !== "" ? (
                     <span className={classes.error}>
                       {errors.noHistoryOfDrugHypersensitivityCabLa}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
               <Message warning>
                 <h4>
-                  Calculate the sum of PrEP Eligibility. If {'>= '}1 client is
+                  Calculate the sum of PrEP Eligibility. If {">= "}1 client is
                   Eligible for PrEP. (Score: Count Yes=1, No=0).
                 </h4>
                 {/* <b>Score :{stiCount.length}</b> */}
                 <h5>{`HIV Negative: ${
-                  drugHistory.hivTestResultAtvisit === 'Negative' ? 1 : 0
+                  drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0
                 }`}</h5>
                 <h5>{`HIV risk score >=1 : ${
                   riskCount.length > 0 ? 1 : 0
@@ -2544,7 +2542,7 @@ const BasicInfo = props => {
                 <h5>{`No Indication for PEP: ${getIndicationForPepResult()}`}</h5>
                 {is30AndAbove() && isFemale() === false && (
                   <h5>{`Has no proteinuria: ${
-                    assessmentForPrepEligibility?.hasNoProteinuria === 'true'
+                    assessmentForPrepEligibility?.hasNoProteinuria === "true"
                       ? 1
                       : 0
                   }`}</h5>
@@ -2553,25 +2551,25 @@ const BasicInfo = props => {
               <Message warning>
                 <h4>
                   Calculate the sum of PrEP Eligibility for CAB-LA regimen. If
-                  the following below =1 client is Eligible for CAB-LA.{' '}
+                  the following below =1 client is Eligible for CAB-LA.{" "}
                   {`(Score: Count Yes=1, No=0)`}
                 </h4>
                 {/* <b>Score :{stiCount.length}</b> */}
                 <h5>{`No history / signs & symptoms of Liver abnormalities (CAB-LA): ${
                   assessmentForPrepEligibility?.noHistoryOrSignsOfLiverAbnormalitiesCabLa ===
-                  'true'
+                  "true"
                     ? 1
                     : 0
                 }`}</h5>
                 <h5>{`No history of PrEP drug interaction (CAB-LA): ${
                   assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa ===
-                  'true'
+                  "true"
                     ? 1
                     : 0
                 }`}</h5>
                 <h5>{`No history of drug hypersensitivity (CAB-LA): ${
                   assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa ===
-                  'true'
+                  "true"
                     ? 1
                     : 0
                 }`}</h5>
@@ -2584,10 +2582,10 @@ const BasicInfo = props => {
               <div
                 className="form-group  col-md-12 text-center mb-4 p-2"
                 style={{
-                  backgroundColor: '#014D88',
-                  width: '125%',
-                  color: '#fff',
-                  fontWeight: 'bold',
+                  backgroundColor: "#014D88",
+                  width: "125%",
+                  color: "#fff",
+                  fontWeight: "bold",
                 }}
               >
                 Services Received by Client
@@ -2602,26 +2600,27 @@ const BasicInfo = props => {
                     value={servicesReceivedByClient?.willingToCommencePrep}
                     onChange={handleInputChangeServicesReceivedByClient}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.2rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
                   >
-                    <option value={''}>Select</option>
+                    <option value={""}>Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
                   </select>
-                  {errors.willingToCommencePrep !== '' ? (
+                  {errors.willingToCommencePrep !== "" ? (
                     <span className={classes.error}>
                       {errors.willingToCommencePrep}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
 
-              {servicesReceivedByClient?.willingToCommencePrep === 'false' && (
+              {/* <Dropdown placeholder='Skills' fluid multiple selection options={reasonForDecline} /> */}
+              {servicesReceivedByClient?.willingToCommencePrep === "false" && (
                 <div className="form-group  col-md-4">
                   <FormGroup>
                     <Label>Reasons for Declining PrEP</Label>
@@ -2632,7 +2631,7 @@ const BasicInfo = props => {
                       fluid
                       multiple
                       selection
-                      options={reasonForDecline.map(each => {
+                      options={codeset?.REASON_PREP_DECLINED?.map(each => {
                         return {
                           key: each.code,
                           text: each.display,
@@ -2640,18 +2639,18 @@ const BasicInfo = props => {
                         };
                       })}
                     />
-                    {errors.reasonsForDecline !== '' ? (
+                    {errors.reasonsForDecline !== "" ? (
                       <span className={classes.error}>
                         {errors.reasonsForDecline}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
               )}
               {servicesReceivedByClient?.reasonsForDecline?.find(
-                one => one === 'REASON_PREP_DECLINED_OTHERS_(SPECIFY)'
+                one => one === "REASON_PREP_DECLINED_OTHERS_(SPECIFY)"
               ) !== (null || undefined) && (
                 <div className="form-group  col-md-12 p-3">
                   <FormGroup>
@@ -2663,29 +2662,29 @@ const BasicInfo = props => {
                       value={servicesReceivedByClient?.otherReasonsForDecline}
                       onChange={handleInputChangeServicesReceivedByClient}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
                       }}
                       disabled={disabledField}
                     />
 
-                    {errors.reasonsForDecline !== '' ? (
+                    {errors.reasonsForDecline !== "" ? (
                       <span className={classes.error}>
                         {errors.reasonsForDecline}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
               )}
 
-              {saving ? <Spinner /> : ''}
+              {saving ? <Spinner /> : ""}
               <br />
               <div className="row">
                 <div className="form-group mb-3 col-md-12 p-3">
                   {props.activeContent &&
-                  props.activeContent.actionType === 'update' ? (
+                  props.activeContent.actionType === "update" ? (
                     <>
                       <MatButton
                         type="submit"
@@ -2694,16 +2693,16 @@ const BasicInfo = props => {
                         hidden={disabledField}
                         className={classes.button}
                         startIcon={<SaveIcon />}
-                        style={{ backgroundColor: '#014d88' }}
+                        style={{ backgroundColor: "#014d88" }}
                         onClick={handleSubmit}
                         disabled={saving}
                       >
                         {!saving ? (
-                          <span style={{ textTransform: 'capitalize' }}>
+                          <span style={{ textTransform: "capitalize" }}>
                             Update
                           </span>
                         ) : (
-                          <span style={{ textTransform: 'capitalize' }}>
+                          <span style={{ textTransform: "capitalize" }}>
                             Updating...
                           </span>
                         )}
@@ -2717,16 +2716,16 @@ const BasicInfo = props => {
                         color="primary"
                         className={classes.button}
                         startIcon={<SaveIcon />}
-                        style={{ backgroundColor: '#014d88' }}
+                        style={{ backgroundColor: "#014d88" }}
                         onClick={handleSubmit}
                         disabled={saving}
                       >
                         {!saving ? (
-                          <span style={{ textTransform: 'capitalize' }}>
+                          <span style={{ textTransform: "capitalize" }}>
                             Save
                           </span>
                         ) : (
-                          <span style={{ textTransform: 'capitalize' }}>
+                          <span style={{ textTransform: "capitalize" }}>
                             Saving...
                           </span>
                         )}
