@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { usePermissions } from '../../hooks/usePermissions';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+} from "react";
+import { usePermissions } from "../../hooks/usePermissions";
 import {
   useCommencementConditions,
   useDiscontinuationConditions,
@@ -8,7 +14,8 @@ import {
   usePatientVisitsConditions,
   useRegistrationConditions,
   useVisitConditions,
-} from '../../hooks/useFormConditions';
+} from "../../hooks/useFormConditions";
+import { useRoles } from "../../hooks/useRoles";
 
 const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
@@ -21,34 +28,49 @@ export const AuthProvider = ({ children }) => {
   const isDiscontinuationAccessible = useDiscontinuationConditions();
   const isEligibilityAccessible = useEligibilityConditions();
   const isPatientVisitsAccessible = usePatientVisitsConditions();
+  const { hasRole } = useRoles();
 
   const getFormPermissions = () => {
+    const hasRdePermission = hasRole("RDE");
     const formPermissions = {
       registration:
-        (hasAnyPermission('prep_care_card') || true) &&
-        isRegistrationAccessible,
+        hasRdePermission ||
+        (hasAnyPermission("prep_care_card") && isRegistrationAccessible),
+
       eligibility:
-        (hasAnyPermission('prep_care_card', 'prep_eligibility_forms') ||
-          true) &&
-        isEligibilityAccessible,
+        hasRdePermission ||
+        (hasAnyPermission("prep_care_card", "prep_eligibility_forms") &&
+          isEligibilityAccessible),
+
       enrollment:
-        (hasAnyPermission('prep_care_card', 'prep_register') || true) &&
-        isEnrollmentAccessible,
+        hasRdePermission ||
+        (hasAnyPermission("prep_care_card", "prep_register") &&
+          isEnrollmentAccessible),
+
       commencement:
-        (hasPermission('prep_care_card') || true) && isCommencementAccessible,
-      visit: (hasPermission('prep_care_card') || true) && isVisitAccessible,
+        hasRdePermission ||
+        (hasPermission("prep_care_card") && isCommencementAccessible),
+
+      visit:
+        hasRdePermission ||
+        (hasPermission("prep_care_card") && isVisitAccessible),
+
       discontinuation:
-        (hasPermission('prep_care_card') || true) &&
-        isDiscontinuationAccessible,
-      patientVisits:
-        hasAnyPermission('view_patient', 'all_permissions') &&
-        isPatientVisitsAccessible,
+        hasRdePermission ||
+        (hasPermission("prep_care_card") && isDiscontinuationAccessible),
+
+      patientVisits: hasRdePermission
+        ? false
+        : hasAnyPermission("view_patient", "all_permissions") &&
+          isPatientVisitsAccessible,
     };
+
     return formPermissions;
   };
 
   useEffect(() => {
-    setUserPermissions(getFormPermissions());
+    const permissions = getFormPermissions();
+    setUserPermissions(permissions);
   }, [
     hasPermission,
     hasAnyPermission,
@@ -59,6 +81,7 @@ export const AuthProvider = ({ children }) => {
     isDiscontinuationAccessible,
     isEligibilityAccessible,
     isPatientVisitsAccessible,
+    hasRole("RDE"),
   ]);
 
   return (

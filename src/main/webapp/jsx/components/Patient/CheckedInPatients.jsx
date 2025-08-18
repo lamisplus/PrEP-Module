@@ -1,37 +1,37 @@
-import { useState, useMemo, memo } from 'react';
-import { url as baseUrl, token, wsUrl } from './../../../api';
-import { forwardRef } from 'react';
-import 'semantic-ui-css/semantic.min.css';
-import { Link } from 'react-router-dom';
-import AddBox from '@material-ui/icons/AddBox';
-import ArrowUpward from '@material-ui/icons/ArrowUpward';
-import Check from '@material-ui/icons/Check';
-import ChevronLeft from '@material-ui/icons/ChevronLeft';
-import ChevronRight from '@material-ui/icons/ChevronRight';
-import Clear from '@material-ui/icons/Clear';
-import DeleteOutline from '@material-ui/icons/DeleteOutline';
-import Edit from '@material-ui/icons/Edit';
-import FilterList from '@material-ui/icons/FilterList';
-import FirstPage from '@material-ui/icons/FirstPage';
-import LastPage from '@material-ui/icons/LastPage';
-import Remove from '@material-ui/icons/Remove';
-import SaveAlt from '@material-ui/icons/SaveAlt';
-import Search from '@material-ui/icons/Search';
-import ViewColumn from '@material-ui/icons/ViewColumn';
-import { Card, CardBody } from 'reactstrap';
-import 'react-toastify/dist/ReactToastify.css';
-import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
-import { MdDashboard } from 'react-icons/md';
-import '@reach/menu-button/styles.css';
-import { Label } from 'semantic-ui-react';
-import SockJsClient from 'react-stomp';
-import CustomTable from '../../../Reusables/CustomTable.js';
-import { usePermissions } from '../../../hooks/usePermissions.js';
-import { useCheckedInPatientData } from '../../../hooks/useCheckedInPatientData.jsx';
-import { ArrowForward } from '@mui/icons-material';
-import { TiArrowForward } from 'react-icons/ti';
-import { Dashboard } from '@material-ui/icons';
+import { useState, useMemo, memo } from "react";
+import { url as baseUrl, token, wsUrl } from "../../../api.js";
+import { forwardRef } from "react";
+import "semantic-ui-css/semantic.min.css";
+import { Link } from "react-router-dom";
+import AddBox from "@material-ui/icons/AddBox";
+import ArrowUpward from "@material-ui/icons/ArrowUpward";
+import Check from "@material-ui/icons/Check";
+import ChevronLeft from "@material-ui/icons/ChevronLeft";
+import ChevronRight from "@material-ui/icons/ChevronRight";
+import Clear from "@material-ui/icons/Clear";
+import DeleteOutline from "@material-ui/icons/DeleteOutline";
+import Edit from "@material-ui/icons/Edit";
+import FilterList from "@material-ui/icons/FilterList";
+import FirstPage from "@material-ui/icons/FirstPage";
+import LastPage from "@material-ui/icons/LastPage";
+import Remove from "@material-ui/icons/Remove";
+import SaveAlt from "@material-ui/icons/SaveAlt";
+import Search from "@material-ui/icons/Search";
+import ViewColumn from "@material-ui/icons/ViewColumn";
+import { Card, CardBody } from "reactstrap";
+import "react-toastify/dist/ReactToastify.css";
+import Button from "@material-ui/core/Button";
+import ButtonGroup from "@material-ui/core/ButtonGroup";
+import { MdDashboard } from "react-icons/md";
+import "@reach/menu-button/styles.css";
+import { Label } from "semantic-ui-react";
+import SockJsClient from "react-stomp";
+import CustomTable from "../../../Reusables/CustomTable.js";
+import { usePermissions } from "../../../hooks/usePermissions.js";
+import { useCheckedInPatientData } from "../../../hooks/useCheckedInPatientData.jsx";
+import { ArrowForward } from "@mui/icons-material";
+import { TiArrowForward } from "react-icons/ti";
+import { Dashboard } from "@material-ui/icons";
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -81,7 +81,7 @@ const CheckedInPatients = props => {
 
   const permissions = useMemo(
     () => ({
-      canSeeEnrollButton: hasPermission('HIV Enrollment Register'),
+      canSeeEnrollButton: hasPermission("HIV Enrollment Register"),
     }),
     [hasPermission]
   );
@@ -90,7 +90,7 @@ const CheckedInPatients = props => {
   const [tableRefreshTrigger, setTableRefreshTrigger] = useState(0);
 
   const onMessageReceived = msg => {
-    if (msg && msg?.toLowerCase()?.includes('check')) {
+    if (msg && msg?.toLowerCase()?.includes("check")) {
       setTableRefreshTrigger(prev => prev + 1);
     }
   };
@@ -102,106 +102,146 @@ const CheckedInPatients = props => {
   const columns = useMemo(
     () => [
       {
-        title: 'Patient Name',
-        field: 'name',
+        title: "Patient Name",
+        field: "name",
         hidden: showPPI,
         render: rowData => rowData.fullname.trim(),
       },
       {
-        title: 'Hospital Number',
-        field: 'hospitalNumber',
+        title: "Hospital Number",
+        field: "hospitalNumber",
         filtering: false,
       },
       {
-        title: 'Sex',
-        field: 'sex',
+        title: "Sex",
+        field: "sex",
         filtering: false,
       },
       {
-        title: 'Date of Birth',
-        field: 'dateOfBirth',
+        title: "Date of Birth",
+        field: "dateOfBirth",
         filtering: false,
       },
       {
-        title: 'Age',
-        field: 'age',
+        title: "Age",
+        field: "age",
         filtering: false,
       },
       {
-        title: 'Actions',
-        field: 'actions',
+        title: "Actions",
+        field: "actions",
         filtering: false,
         render: rowData => (
           <div>
             <Link
               to={{
-                pathname: '/patient-dashboard',
+                pathname: "/patient-dashboard",
                 state: { patientObj: rowData },
               }}
             >
-              <ButtonGroup
-                variant="contained"
-                aria-label="split button"
-                size="large"
-                style={{
-                  width: '200px', // Set a fixed width for the ButtonGroup
-                }}
-              >
-                {rowData?.isOnPrep ? (
+              {rowData.isOnPrep === undefined ? (
+                <ButtonGroup
+                  variant="contained"
+                  aria-label="split button"
+                  style={{
+                    width: "200px",
+                  }}
+                >
                   <Button
-                    startIcon={
-                      <Dashboard
-                        color="inherit"
-                        style={{
-                          color: '#fff',
-                          fontSize: '1em',
-                        }}
-                      />
-                    }
                     style={{
-                      backgroundColor: 'rgb(153, 46, 98)',
-                      width: '100%', // Ensure the button takes the full width of the ButtonGroup
+                      backgroundColor: "rgb(153, 46, 98)",
+                      minWidth: "50px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
                     }}
                   >
-                    <span
+                    <Dashboard
                       style={{
-                        fontSize: '12px',
-                        color: '#fff',
-                        fontWeight: 'bolder',
+                        color: "#fff",
                       }}
-                    >
-                      Patient Dashboard
-                    </span>
+                    />
                   </Button>
-                ) : (
                   <Button
-                    startIcon={
-                      <TiArrowForward
-                        style={{
-                          color: '#fff',
-                          fontSize: '1em',
-                        }}
-                      />
-                    }
                     style={{
-                      backgroundColor: 'rgb(153, 46, 98)',
-                      width: '100%', // Ensure the button takes the full width of the ButtonGroup
-                      color: '#fff',
-                      fontSize: '1em',
+                      backgroundColor: "rgb(153, 46, 98)",
+                      width: "100%",
+                      color: "#fff",
+                      fontWeight: "bolder",
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: '12px',
-                        color: '#fff',
-                        fontWeight: 'bolder',
-                      }}
-                    >
-                      Enroll patient
-                    </span>
+                    Patient Dashboard
                   </Button>
-                )}
-              </ButtonGroup>
+                </ButtonGroup>
+              ) : rowData.isOnPrep ? (
+                <ButtonGroup
+                  variant="contained"
+                  aria-label="split button"
+                  style={{
+                    width: "200px",
+                  }}
+                >
+                  <Button
+                    style={{
+                      backgroundColor: "rgb(153, 46, 98)",
+                      minWidth: "50px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Dashboard
+                      style={{
+                        color: "#fff",
+                      }}
+                    />
+                  </Button>
+                  <Button
+                    style={{
+                      backgroundColor: "rgb(153, 46, 98)",
+                      width: "100%",
+                      color: "#fff",
+                      fontWeight: "bolder",
+                    }}
+                  >
+                    Patient Dashboard
+                  </Button>
+                </ButtonGroup>
+              ) : (
+                <ButtonGroup
+                  variant="contained"
+                  aria-label="split button"
+                  style={{
+                    width: "200px",
+                  }}
+                >
+                  <Button
+                    style={{
+                      backgroundColor: "rgb(153, 46, 98)",
+                      minWidth: "50px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <TiArrowForward
+                      style={{
+                        color: "#fff",
+                      }}
+                    />
+                  </Button>
+                  <Button
+                    style={{
+                      backgroundColor: "rgb(153, 46, 98)",
+                      width: "100%",
+                      color: "#fff",
+                      fontWeight: "bolder",
+                    }}
+                  >
+                    Enroll patient
+                  </Button>
+                </ButtonGroup>
+              )}
             </Link>
           </div>
         ),
@@ -213,7 +253,7 @@ const CheckedInPatients = props => {
     <div>
       <SockJsClient
         url={wsUrl}
-        topics={['/topic/checking-in-out-process']}
+        topics={["/topic/checking-in-out-process"]}
         onMessage={onMessageReceived}
         debug={true}
       />

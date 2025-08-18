@@ -1,5 +1,5 @@
 export const useAlphabetOnly = value => {
-  return value.replace(/[^a-z]/gi, '');
+  return value.replace(/[^a-z]/gi, "");
 };
 //hooks will be added or modified when extra conditions are required for access
 

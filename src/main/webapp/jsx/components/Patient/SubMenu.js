@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
-import { Menu, Popup } from 'semantic-ui-react';
+import React, { useState, useEffect } from "react";
+import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import { Menu, Popup } from "semantic-ui-react";
+import ProtectedComponent from "../PrepServices/ProtectedComponent";
+import { useAuth } from "../../../context/AuthProvider/AuthProvider";
 
 function SubMenu(props) {
+  const { userPermissions } = useAuth();
   const patientObj = props.patientObj;
   useEffect(() => {
     //Observation();
@@ -11,43 +14,49 @@ function SubMenu(props) {
   const loadPrEPDiscontinuationsInterruptions = row => {
     props.setActiveContent({
       ...props.activeContent,
-      route: 'prep-interruptions',
+      route: "prep-interruptions",
     });
   };
   const loadPrEPRegistrationForm = row => {
     props.setActiveContent({
       ...props.activeContent,
-      route: 'prep-registration',
+      route: "prep-registration",
     });
   };
   const loadPrEPCommencementForm = row => {
     props.setActiveContent({
       ...props.activeContent,
-      route: 'prep-commencement',
+      route: "prep-commencement",
     });
   };
   const loadPrEPEligibiltyScreeningForm = row => {
-    props.setActiveContent({ ...props.activeContent, route: 'prep-screening' });
+    props.setActiveContent({ ...props.activeContent, route: "prep-screening" });
   };
 
   const onClickConsultation = row => {
-    props.setActiveContent({ ...props.activeContent, route: 'consultation' });
+    props.setActiveContent({ ...props.activeContent, route: "consultation" });
   };
   const onClickHome = row => {
-    props.setActiveContent({ ...props.activeContent, route: 'recent-history' });
+    props.setActiveContent({ ...props.activeContent, route: "recent-history" });
   };
   const loadPatientHistory = () => {
     props.setActiveContent({
       ...props.activeContent,
-      route: 'patient-history',
+      route: "patient-history",
+    });
+  };
+  const loadPatientVisits = () => {
+    props.setActiveContent({
+      ...props.activeContent,
+      route: "patient-visits",
     });
   };
   const history = useHistory();
   useEffect(() => {});
   return (
     <div>
-      <Menu size="large" color={'black'} inverted>
-        {patientObj?.createdBy !== 'ETL' ? ( //The menu will show if the patient is not migrated
+      <Menu size="large" color={"black"} inverted>
+        {patientObj?.createdBy !== "ETL" ? ( //The menu will show if the patient is not migrated
           <>
             <Menu.Item
               onClick={() => {
@@ -59,70 +68,112 @@ function SubMenu(props) {
 
             {patientObj?.eligibilityCount <= 0 ||
             patientObj?.eligibilityCount === null ? (
-              <>
-                <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()}>
-                  PrEP Eligibility Screening
-                </Menu.Item>
-              </>
+              <ProtectedComponent
+                isAuthorized={userPermissions.eligibility}
+                privateComponent={() => (
+                  <Menu.Item onClick={loadPrEPEligibiltyScreeningForm}>
+                    PrEP Eligibility Screening
+                  </Menu.Item>
+                )}
+              />
             ) : (
               <>
                 {/* check if the patient has done prep commencement */}
-                {patientObj?.prepCount === '0' ||
+                {patientObj?.prepCount === "0" ||
                 patientObj?.commencementCount === null ? (
                   <>
-                    {patientObj?.prepCount === '0' &&
-                      patientObj?.hivresultAtVisit === 'Negative' && (
-                        <Menu.Item onClick={() => loadPrEPRegistrationForm()}>
-                          PrEP Enrollment
-                        </Menu.Item>
+                    {patientObj?.prepCount === "0" &&
+                      patientObj?.hivresultAtVisit === "Negative" && (
+                        <ProtectedComponent
+                          isAuthorized={userPermissions.enrollment}
+                          privateComponent={() => (
+                            <Menu.Item onClick={loadPrEPRegistrationForm}>
+                              PrEP Enrollment
+                            </Menu.Item>
+                          )}
+                        />
                       )}
                     {(patientObj?.commencementCount === null ||
                       patientObj?.commencementCount <= 0) &&
-                      patientObj?.hivresultAtVisit === 'Negative' && (
-                        <Menu.Item onClick={() => loadPrEPCommencementForm()}>
-                          PrEP Commencement
-                        </Menu.Item>
+                      patientObj?.hivresultAtVisit === "Negative" && (
+                        <ProtectedComponent
+                          isAuthorized={userPermissions.commencement}
+                          privateComponent={() => (
+                            <Menu.Item onClick={loadPrEPCommencementForm}>
+                              PrEP Commencement
+                            </Menu.Item>
+                          )}
+                        />
                       )}
                   </>
                 ) : (
                   <>
-                    <Menu.Item
-                      onClick={() => loadPrEPEligibiltyScreeningForm()}
-                    >
-                      {' '}
-                      PrEP Eligibility Screening{' '}
-                    </Menu.Item>
+                    <ProtectedComponent
+                      isAuthorized={userPermissions.eligibility}
+                      privateComponent={() => (
+                        <Menu.Item onClick={loadPrEPEligibiltyScreeningForm}>
+                          PrEP Eligibility Screening
+                        </Menu.Item>
+                      )}
+                    />
                     {(patientObj?.prepCount === null ||
                       patientObj?.prepCount < 0) &&
-                      patientObj?.hivresultAtVisit === 'Negative' && (
-                        <Menu.Item onClick={() => loadPrEPRegistrationForm()}>
-                          PrEP Enrollment
-                        </Menu.Item>
+                      patientObj?.hivresultAtVisit === "Negative" && (
+                        <ProtectedComponent
+                          isAuthorized={userPermissions.enrollment}
+                          privateComponent={() => (
+                            <Menu.Item onClick={loadPrEPRegistrationForm}>
+                              PrEP Enrollment
+                            </Menu.Item>
+                          )}
+                        />
                       )}
                     {(patientObj?.commencementCount === null ||
                       patientObj?.commencementCount <= 0) &&
-                      patientObj?.hivresultAtVisit === 'Negative' && (
-                        <Menu.Item onClick={() => loadPrEPCommencementForm()}>
-                          PrEP Commencement
-                        </Menu.Item>
+                      patientObj?.hivresultAtVisit === "Negative" && (
+                        <ProtectedComponent
+                          isAuthorized={userPermissions.commencement}
+                          privateComponent={() => (
+                            <Menu.Item onClick={loadPrEPCommencementForm}>
+                              PrEP Commencement
+                            </Menu.Item>
+                          )}
+                        />
                       )}
-                    {patientObj?.hivresultAtVisit === 'Negative' && (
-                      <Menu.Item onClick={() => onClickConsultation()}>
-                        {' '}
-                        PrEP Visit
-                      </Menu.Item>
+                    {patientObj?.hivresultAtVisit === "Negative" && (
+                      <ProtectedComponent
+                        isAuthorized={userPermissions.visit}
+                        privateComponent={() => (
+                          <Menu.Item onClick={onClickConsultation}>
+                            PrEP Visit
+                          </Menu.Item>
+                        )}
+                      />
                     )}
-                    {patientObj?.hivresultAtVisit === 'Negative' && (
-                      <Menu.Item
-                        onClick={() => loadPrEPDiscontinuationsInterruptions()}
-                      >
-                        PrEP Discontinuations & Interruptions
-                      </Menu.Item>
+                    {patientObj?.hivresultAtVisit === "Negative" && (
+                      <ProtectedComponent
+                        isAuthorized={userPermissions.discontinuation}
+                        privateComponent={() => (
+                          <Menu.Item
+                            onClick={loadPrEPDiscontinuationsInterruptions}
+                          >
+                            PrEP Discontinuations & Interruptions
+                          </Menu.Item>
+                        )}
+                      />
                     )}
                   </>
                 )}
               </>
             )}
+            <ProtectedComponent
+              isAuthorized={userPermissions.patientVisits}
+              privateComponent={() => (
+                <Menu.Item onClick={loadPatientVisits}>
+                  Patient Visits
+                </Menu.Item>
+              )}
+            />
             <Menu.Item onClick={() => loadPatientHistory(patientObj)}>
               History
             </Menu.Item>
@@ -131,42 +182,72 @@ function SubMenu(props) {
           <>
             {/* This menu will show only if the patient is migrated  and check if the patient last HIV test result is not positive*/}
             <Menu.Item onClick={() => onClickHome()}>Home</Menu.Item>
-            {(patientObj?.hivresultAtVisit === 'Negative' ||
+            {(patientObj?.hivresultAtVisit === "Negative" ||
               patientObj?.hivresultAtVisit === null) && (
-              <Menu.Item onClick={() => loadPrEPEligibiltyScreeningForm()}>
-                PrEP Eligibility Screening
-              </Menu.Item>
+              <ProtectedComponent
+                isAuthorized={userPermissions.eligibility}
+                privateComponent={() => (
+                  <Menu.Item onClick={loadPrEPEligibiltyScreeningForm}>
+                    PrEP Eligibility Screening
+                  </Menu.Item>
+                )}
+              />
             )}
-            {(patientObj?.hivresultAtVisit === 'Negative' ||
+            {(patientObj?.hivresultAtVisit === "Negative" ||
               patientObj?.hivresultAtVisit === null) &&
-              patientObj?.prepCount === '0' && (
-                <Menu.Item onClick={() => loadPrEPRegistrationForm()}>
-                  PrEP Enrollment
-                </Menu.Item>
+              patientObj?.prepCount === "0" && (
+                <ProtectedComponent
+                  isAuthorized={userPermissions.enrollment}
+                  privateComponent={() => (
+                    <Menu.Item onClick={loadPrEPRegistrationForm}>
+                      PrEP Enrollment
+                    </Menu.Item>
+                  )}
+                />
               )}
-            {(patientObj?.hivresultAtVisit === 'Negative' ||
+            {(patientObj?.hivresultAtVisit === "Negative" ||
               patientObj?.hivresultAtVisit === null) &&
               (patientObj?.commencementCount === null ||
                 patientObj?.commencementCount <= 0) && (
-                <Menu.Item onClick={() => loadPrEPCommencementForm()}>
-                  PrEP Commencement
+                <ProtectedComponent
+                  isAuthorized={userPermissions.commencement}
+                  privateComponent={() => (
+                    <Menu.Item onClick={loadPrEPCommencementForm}>
+                      PrEP Commencement
+                    </Menu.Item>
+                  )}
+                />
+              )}
+            {(patientObj?.hivresultAtVisit === "Negative" ||
+              patientObj?.hivresultAtVisit === null) && (
+              <ProtectedComponent
+                isAuthorized={userPermissions.visit}
+                privateComponent={() => (
+                  <Menu.Item onClick={onClickConsultation}>
+                    PrEP Visit
+                  </Menu.Item>
+                )}
+              />
+            )}
+            {(patientObj?.hivresultAtVisit === "Negative" ||
+              patientObj?.hivresultAtVisit === null) && (
+              <ProtectedComponent
+                isAuthorized={userPermissions.discontinuation}
+                privateComponent={() => (
+                  <Menu.Item onClick={loadPrEPDiscontinuationsInterruptions}>
+                    PrEP Discontinuations & Interruptions
+                  </Menu.Item>
+                )}
+              />
+            )}
+            <ProtectedComponent
+              isAuthorized={userPermissions.patientVisits}
+              privateComponent={() => (
+                <Menu.Item onClick={loadPatientVisits}>
+                  Patient Visits
                 </Menu.Item>
               )}
-            {(patientObj?.hivresultAtVisit === 'Negative' ||
-              patientObj?.hivresultAtVisit === null) && (
-              <Menu.Item onClick={() => onClickConsultation()}>
-                {' '}
-                PrEP Visit
-              </Menu.Item>
-            )}
-            {(patientObj?.hivresultAtVisit === 'Negative' ||
-              patientObj?.hivresultAtVisit === null) && (
-              <Menu.Item
-                onClick={() => loadPrEPDiscontinuationsInterruptions()}
-              >
-                PrEP Discontinuations & Interruptions
-              </Menu.Item>
-            )}
+            />
             <Menu.Item onClick={() => loadPatientHistory(patientObj)}>
               History
             </Menu.Item>

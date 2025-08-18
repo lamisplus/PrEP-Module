@@ -1,18 +1,47 @@
-import React, { useState, Fragment } from 'react';
-import { Row, Col, Card, Tab, Tabs } from 'react-bootstrap';
-import PatientList from './Patient/PatientList';
+import React, { useState, Fragment, useEffect, Suspense,useMemo, memo } from "react";
+import { Row, Col, Card, Tab, Tabs } from "react-bootstrap";
+import PatientList from "./Patient/PatientList";
+import CheckedInPatients from "./Patient/CheckedInPatients";
+import { useRoles } from "../../hooks/useRoles";
 
 const divStyle = {
-  borderRadius: '2px',
+  borderRadius: "2px",
   fontSize: 14,
 };
 
 const Home = () => {
-  const [key, setKey] = useState('home');
+  const { hasRole, loading: rolesLoading } = useRoles();
+  const [key, setKey] = useState("home");
+  const [activeTab, setActiveTab] = useState("home");
+
+  const handleTabSelect = k => {
+    setKey(k);
+    setActiveTab(k);
+  };
+
+  const isRDE = hasRole("RDE");
+
+  useEffect(() => {
+    if (!rolesLoading) {
+      const defaultTab = isRDE ? "home" : "checkedIn";
+      setKey(defaultTab);
+      setActiveTab(defaultTab);
+    }
+  }, [rolesLoading, isRDE]);
+
+  const permissions = useMemo(
+    () => ({
+      canSeeCheckedInPatients: !isRDE, // POC users see this
+      canSeeFindPatients: isRDE, // RDE users see this
+      canSeeArtPatients: isRDE, // RDE users see this
+      canSeeOvcLinkage: isRDE, // RDE users see this
+    }),
+    [isRDE]
+  );
 
   return (
     <Fragment>
-      <div style={{ marginTop: '3em' }} className="page-titles">
+      <div style={{ marginTop: "3em" }} className="page-titles">
         <ol className="breadcrumb">
           <li className="breadcrumb-item active">
             <h4>PrEP</h4>
@@ -30,9 +59,20 @@ const Home = () => {
                   onSelect={k => setKey(k)}
                   className="mb-3"
                 >
-                  <Tab eventKey="home" title="Find Patients">
-                    <PatientList />
-                  </Tab>
+                  {permissions.canSeeFindPatients && (
+                    <Tab eventKey="home" title="Find Patients">
+                      <Suspense>
+                      <PatientList />
+                      </Suspense>
+                    </Tab>
+                  )}
+                  {permissions.canSeeCheckedInPatients && (
+                    <Tab eventKey="checkedIn" title="Checked-In Patients">
+                      <Suspense>
+                      {activeTab === "checkedIn" && <CheckedInPatients />}
+                      </Suspense>
+                    </Tab>
+                  )}
                 </Tabs>
               </div>
             </Card.Body>

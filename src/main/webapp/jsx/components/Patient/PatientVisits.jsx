@@ -30,7 +30,7 @@ import { Label } from "semantic-ui-react";
 import CustomTable from "../../../Reusables/CustomTable";
 import { token as token, url as baseUrl } from "./../../../api";
 import { toast } from "react-toastify";
-import ProtectedComponent from "../PrepServices/PrivateComponent";
+import ProtectedComponent from "../PrepServices/ProtectedComponent";
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -60,11 +60,8 @@ const PatientVisits = props => {
   const { patientObj } = props;
   const { hasAnyPermission } = usePermissions();
   const [checkinStatus, setCheckinStatus] = useState(false);
-  const [isCheckinModalOpen, setIsCheckinModalOpen] = useState(false);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
-  const [checkinDate, setCheckinDate] = useState(new Date());
   const [checkoutDate, setCheckoutDate] = useState(new Date());
-  const [selectedServices, setSelectedServices] = useState({ selected: [] });
   const [services, setServices] = useState([]);
   const [patientVisits, setPatientVisits] = useState([]);
   const [allServices, setAllServices] = useState([]);
@@ -131,7 +128,7 @@ const PatientVisits = props => {
       setPatientVisits(prepVisits);
 
       const hasActiveVisit = prepVisits.some(
-        visit => !visit.checkOutTime || visit.status === "PENDING"
+        visit => !visit.checkOutDate || visit.status === "PENDING"
       );
       setCheckinStatus(hasActiveVisit);
     } catch (error) {
