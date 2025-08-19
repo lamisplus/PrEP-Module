@@ -174,13 +174,7 @@ const CheckedInPatients = props => {
                   </Button>
                 </ButtonGroup>
               ) : rowData.isOnPrep ? (
-                <ButtonGroup
-                  variant="contained"
-                  aria-label="split button"
-                  style={{
-                    width: "200px",
-                  }}
-                >
+                <ButtonGroup variant="contained" aria-label="split button">
                   <Button
                     style={{
                       backgroundColor: "rgb(153, 46, 98)",
@@ -208,13 +202,7 @@ const CheckedInPatients = props => {
                   </Button>
                 </ButtonGroup>
               ) : (
-                <ButtonGroup
-                  variant="contained"
-                  aria-label="split button"
-                  style={{
-                    width: "200px",
-                  }}
-                >
+                <ButtonGroup variant="contained" aria-label="split button">
                   <Button
                     style={{
                       backgroundColor: "rgb(153, 46, 98)",

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Grid, Segment, Label, List, Card } from 'semantic-ui-react';
+import React, { useState, useEffect } from "react";
+import { Grid, Segment, Label, List, Card } from "semantic-ui-react";
 // Page titie
 import {
   FormGroup,
@@ -7,26 +7,26 @@ import {
   InputGroup,
   InputGroupText,
   Input,
-} from 'reactstrap';
-import { url as baseUrl, token } from '../../../api';
-import MatButton from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
-import SaveIcon from '@material-ui/icons/Save';
-import axios from 'axios';
-import moment from 'moment';
-import { toast } from 'react-toastify';
-import { Accordion, Alert } from 'react-bootstrap';
-import PerfectScrollbar from 'react-perfect-scrollbar';
+} from "reactstrap";
+import { url as baseUrl, token } from "../../../api";
+import MatButton from "@material-ui/core/Button";
+import { makeStyles } from "@material-ui/core/styles";
+import SaveIcon from "@material-ui/icons/Save";
+import axios from "axios";
+import moment from "moment";
+import { toast } from "react-toastify";
+import { Accordion, Alert } from "react-bootstrap";
+import PerfectScrollbar from "react-perfect-scrollbar";
 
 const useStyles = makeStyles(theme => ({
   card: {
     margin: theme.spacing(20),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
   },
   form: {
-    width: '100%', // Fix IE 11 issue.
+    width: "100%", // Fix IE 11 issue.
     marginTop: theme.spacing(3),
   },
   submit: {
@@ -45,42 +45,42 @@ const useStyles = makeStyles(theme => ({
 
   root: {
     flexGrow: 1,
-    '& .card-title': {
-      color: '#fff',
-      fontWeight: 'bold',
+    "& .card-title": {
+      color: "#fff",
+      fontWeight: "bold",
     },
-    '& .form-control': {
-      borderRadius: '0.25rem',
-      height: '2.5625em',
+    "& .form-control": {
+      borderRadius: "0.25rem",
+      height: "2.5625em",
     },
-    '& .card-header:first-child': {
-      borderRadius: 'calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0',
+    "& .card-header:first-child": {
+      borderRadius: "calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0",
     },
-    '& .dropdown-toggle::after': {
-      display: ' block !important',
+    "& .dropdown-toggle::after": {
+      display: " block !important",
     },
-    '& select': {
-      '-webkit-appearance': 'listbox !important',
+    "& select": {
+      "-webkit-appearance": "listbox !important",
     },
-    '& p': {
-      color: 'red',
+    "& p": {
+      color: "red",
     },
-    '& label': {
-      fontSize: '14px',
-      color: '#014d88',
-      fontWeight: 'bold',
+    "& label": {
+      fontSize: "14px",
+      color: "#014d88",
+      fontWeight: "bold",
     },
   },
   input: {
-    display: 'none',
+    display: "none",
   },
   error: {
-    color: '#f85032',
-    fontSize: '11px',
+    color: "#f85032",
+    fontSize: "11px",
   },
   success: {
-    color: '#4BB543 ',
-    fontSize: '11px',
+    color: "#4BB543 ",
+    fontSize: "11px",
   },
 }));
 
@@ -103,68 +103,68 @@ const ClinicVisit = props => {
   const [whyAdherenceLevelPoor, setWhyAdherenceLevelPoor] = useState([]);
   //Vital signs clinical decision support
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
-    weight: '',
-    diastolic: '',
-    height: '',
-    systolic: '',
-    pulse: '',
-    temperature: '',
-    respiratoryRate: '',
+    weight: "",
+    diastolic: "",
+    height: "",
+    systolic: "",
+    pulse: "",
+    temperature: "",
+    respiratoryRate: "",
   });
   //console.log(props.patientObj)
   const [objValues, setObjValues] = useState({
-    adherenceLevel: '',
-    dateInitialAdherenceCounseling: '',
-    datePrepGiven: '',
-    datePrepStart: '',
-    dateReferre: '',
-    diastolic: '',
-    encounterDate: '',
+    adherenceLevel: "",
+    dateInitialAdherenceCounseling: "",
+    datePrepGiven: "",
+    datePrepStart: "",
+    dateReferre: "",
+    diastolic: "",
+    encounterDate: "",
     extra: {},
-    height: '',
+    height: "",
     hepatitis: {},
-    nextAppointment: '',
-    notedSideEffects: '',
+    nextAppointment: "",
+    notedSideEffects: "",
     otherTestsDone: {},
-    personId: props.patientObj.personId,
-    pregnant: '',
-    prepEnrollmentUuid: '',
-    pulse: '',
-    referred: '',
-    regimenId: '',
-    respiratoryRate: '',
-    riskReductionServices: '',
-    stiScreening: '',
-    syndromicStiScreening: '',
+    personId: props.patientObj.personId || props.patientObj.id,
+    pregnant: "",
+    prepEnrollmentUuid: "",
+    pulse: "",
+    referred: "",
+    regimenId: "",
+    respiratoryRate: "",
+    riskReductionServices: "",
+    stiScreening: "",
+    syndromicStiScreening: "",
     syphilis: {},
-    systolic: '',
-    temperature: '',
+    systolic: "",
+    temperature: "",
     urinalysis: {},
-    urinalysisResult: '',
-    weight: '',
-    why: '',
-    otherDrugs: '',
+    urinalysisResult: "",
+    weight: "",
+    why: "",
+    otherDrugs: "",
   });
   const [urinalysisTest, setUrinalysisTest] = useState({
-    urinalysisTest: 'No',
-    testDate: '',
-    result: '',
+    urinalysisTest: "No",
+    testDate: "",
+    result: "",
   });
 
   const [syphilisTest, setSyphilisTest] = useState({
-    syphilisTest: 'No',
-    testDate: '',
-    result: '',
+    syphilisTest: "No",
+    testDate: "",
+    result: "",
   });
   const [hepatitisTest, setHepatitisTest] = useState({
-    hepatitisTest: 'No',
-    testDate: '',
-    result: '',
+    hepatitisTest: "No",
+    testDate: "",
+    result: "",
   });
   const [otherTest, setOtherTest] = useState({
-    otherTest: 'No',
-    testDate: '',
-    result: '',
+    otherTest: "No",
+    testDate: "",
+    result: "",
   });
 
   useEffect(() => {
@@ -182,7 +182,9 @@ const ClinicVisit = props => {
   const GetPatientDTOObj = () => {
     axios
       .get(
-        `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+        `${baseUrl}prep/enrollment/open/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -195,12 +197,14 @@ const ClinicVisit = props => {
   const PrepEligibilityObj = () => {
     axios
       .get(
-        `${baseUrl}prep/eligibility/open/patients/${props.patientObj.personId}`,
+        `${baseUrl}prep/eligibility/open/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
         //setPrepStatus(response.data);
-        objValues.prepEnrollmentUuid = '';
+        objValues.prepEnrollmentUuid = "";
       })
       .catch(error => {
         //console.log(error);
@@ -299,138 +303,138 @@ const ClinicVisit = props => {
   //Handle CheckBox
   const handleCheckBoxSyphilisTest = e => {
     if (e.target.checked) {
-      setSyphilisTest({ ...syphilisTest, ['syphilisTest']: 'Yes' });
+      setSyphilisTest({ ...syphilisTest, ["syphilisTest"]: "Yes" });
     } else {
-      setSyphilisTest({ ...syphilisTest, ['syphilisTest']: 'No' });
+      setSyphilisTest({ ...syphilisTest, ["syphilisTest"]: "No" });
     }
   };
   const handleCheckBoxHepatitisTest = e => {
     if (e.target.checked) {
-      setHepatitisTest({ ...hepatitisTest, ['hepatitisTest']: 'Yes' });
+      setHepatitisTest({ ...hepatitisTest, ["hepatitisTest"]: "Yes" });
     } else {
-      setHepatitisTest({ ...syphilisTest, ['syphilisTest']: 'No' });
+      setHepatitisTest({ ...syphilisTest, ["syphilisTest"]: "No" });
     }
   };
   const handleCheckBoxOtherTest = e => {
     if (e.target.checked) {
-      setOtherTest({ ...otherTest, ['otherTest']: 'Yes' });
+      setOtherTest({ ...otherTest, ["otherTest"]: "Yes" });
     } else {
-      setOtherTest({ ...otherTest, ['otherTest']: 'No' });
+      setOtherTest({ ...otherTest, ["otherTest"]: "No" });
     }
   };
   const handleCheckBoxUrinalysisTest = e => {
     if (e.target.checked) {
-      setUrinalysisTest({ ...urinalysisTest, ['urinalysisTest']: 'Yes' });
+      setUrinalysisTest({ ...urinalysisTest, ["urinalysisTest"]: "Yes" });
     } else {
-      setUrinalysisTest({ ...otherTest, ['urinalysisTest']: 'No' });
+      setUrinalysisTest({ ...otherTest, ["urinalysisTest"]: "No" });
     }
   };
   //to check the input value for clinical decision
   const handleInputValueCheckHeight = e => {
     if (
-      e.target.name === 'height' &&
+      e.target.name === "height" &&
       (e.target.value < 48.26 || e.target.value > 216.408)
     ) {
       const message =
-        'Height cannot be greater than 216.408 and less than 48.26';
+        "Height cannot be greater than 216.408 and less than 48.26";
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: message });
     } else {
-      setVitalClinicalSupport({ ...vitalClinicalSupport, height: '' });
+      setVitalClinicalSupport({ ...vitalClinicalSupport, height: "" });
     }
   };
   const handleInputValueCheckweight = e => {
     if (
-      e.target.name === 'weight' &&
+      e.target.name === "weight" &&
       (e.target.value < 3 || e.target.value > 150)
     ) {
       const message =
-        'Body weight must not be greater than 150 and less than 3';
+        "Body weight must not be greater than 150 and less than 3";
       setVitalClinicalSupport({ ...vitalClinicalSupport, weight: message });
     } else {
-      setVitalClinicalSupport({ ...vitalClinicalSupport, weight: '' });
+      setVitalClinicalSupport({ ...vitalClinicalSupport, weight: "" });
     }
   };
   const handleInputValueCheckSystolic = e => {
     if (
-      e.target.name === 'systolic' &&
+      e.target.name === "systolic" &&
       (e.target.value < 90 || e.target.value > 240)
     ) {
       const message =
-        'Blood Pressure systolic must not be greater than 240 and less than 90';
+        "Blood Pressure systolic must not be greater than 240 and less than 90";
       setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: message });
     } else {
-      setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: '' });
+      setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: "" });
     }
   };
   const handleInputValueCheckDiastolic = e => {
     if (
-      e.target.name === 'diastolic' &&
+      e.target.name === "diastolic" &&
       (e.target.value < 60 || e.target.value > 140)
     ) {
       const message =
-        'Blood Pressure diastolic must not be greater than 140 and less than 60';
+        "Blood Pressure diastolic must not be greater than 140 and less than 60";
       setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: message });
     } else {
-      setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: '' });
+      setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: "" });
     }
   };
   const handleInputValueCheckPulse = e => {
     if (
-      e.target.name === 'pulse' &&
+      e.target.name === "pulse" &&
       (e.target.value < 40 || e.target.value > 120)
     ) {
-      const message = 'Pulse must not be greater than 120 and less than 40';
+      const message = "Pulse must not be greater than 120 and less than 40";
       setVitalClinicalSupport({ ...vitalClinicalSupport, pulse: message });
     } else {
-      setVitalClinicalSupport({ ...vitalClinicalSupport, pulse: '' });
+      setVitalClinicalSupport({ ...vitalClinicalSupport, pulse: "" });
     }
   };
   const handleInputValueCheckRespiratoryRate = e => {
     if (
-      e.target.name === 'respiratoryRate' &&
+      e.target.name === "respiratoryRate" &&
       (e.target.value < 10 || e.target.value > 70)
     ) {
       const message =
-        'Respiratory Rate must not be greater than 70 and less than 10';
+        "Respiratory Rate must not be greater than 70 and less than 10";
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
         respiratoryRate: message,
       });
     } else {
-      setVitalClinicalSupport({ ...vitalClinicalSupport, respiratoryRate: '' });
+      setVitalClinicalSupport({ ...vitalClinicalSupport, respiratoryRate: "" });
     }
   };
   const handleInputValueCheckTemperature = e => {
     if (
-      e.target.name === 'temperature' &&
+      e.target.name === "temperature" &&
       (e.target.value < 35 || e.target.value > 47)
     ) {
       const message =
-        'Temperature must not be greater than 47 and less than 35';
+        "Temperature must not be greater than 47 and less than 35";
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
         temperature: message,
       });
     } else {
-      setVitalClinicalSupport({ ...vitalClinicalSupport, temperature: '' });
+      setVitalClinicalSupport({ ...vitalClinicalSupport, temperature: "" });
     }
   };
   //Validations of the forms
   const validate = () => {
     temp.encounterDate = objValues.encounterDate
-      ? ''
-      : 'This field is required';
+      ? ""
+      : "This field is required";
 
     //temp.functionalStatusId = objValues.functionalStatusId ? "" : "This field is required"
     // temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
 
-    temp.systolic = objValues.systolic ? '' : 'This field is required';
-    temp.height = objValues.height ? '' : 'This field is required';
-    temp.weight = objValues.weight ? '' : 'This field is required';
+    temp.systolic = objValues.systolic ? "" : "This field is required";
+    temp.height = objValues.height ? "" : "This field is required";
+    temp.weight = objValues.weight ? "" : "This field is required";
     setErrors({
       ...temp,
     });
-    return Object.values(temp).every(x => x == '');
+    return Object.values(temp).every(x => x == "");
   };
   /**** Submit Button Processing  */
   const handleSubmit = e => {
@@ -449,12 +453,12 @@ const ClinicVisit = props => {
         .then(response => {
           //PatientDetaild();
           setSaving(false);
-          toast.success('Clinic Visit save successful', {
+          toast.success("Clinic Visit save successful", {
             position: toast.POSITION.BOTTOM_CENTER,
           });
           props.setActiveContent({
             ...props.activeContent,
-            route: 'recent-history',
+            route: "recent-history",
           });
         })
         .catch(error => {
@@ -462,20 +466,20 @@ const ClinicVisit = props => {
           if (error.response && error.response.data) {
             let errorMessage =
               error.response.data.apierror &&
-              error.response.data.apierror.message !== ''
+              error.response.data.apierror.message !== ""
                 ? error.response.data.apierror.message
-                : 'Something went wrong, please try again';
+                : "Something went wrong, please try again";
             if (
               error.response.data.apierror &&
-              error.response.data.apierror.message !== '' &&
+              error.response.data.apierror.message !== "" &&
               error.response.data.apierror &&
-              error.response.data.apierror.subErrors[0].message !== ''
+              error.response.data.apierror.subErrors[0].message !== ""
             ) {
               toast.error(
                 error.response.data.apierror.message +
-                  ' : ' +
+                  " : " +
                   error.response.data.apierror.subErrors[0].field +
-                  ' ' +
+                  " " +
                   error.response.data.apierror.subErrors[0].message,
                 { position: toast.POSITION.BOTTOM_CENTER }
               );
@@ -485,7 +489,7 @@ const ClinicVisit = props => {
               });
             }
           } else {
-            toast.error('Something went wrong. Please try again...', {
+            toast.error("Something went wrong. Please try again...", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
           }
@@ -507,15 +511,15 @@ const ClinicVisit = props => {
             <Label
               as="a"
               color="blue"
-              style={{ width: '110%', height: '35px' }}
+              style={{ width: "110%", height: "35px" }}
               ribbon
             >
-              <h4 style={{ color: '#fff' }}>Vital Signs</h4>
+              <h4 style={{ color: "#fff" }}>Vital Signs</h4>
             </Label>
             <br />
 
             <PerfectScrollbar
-              style={{ height: '370px' }}
+              style={{ height: "370px" }}
               id="DZ_W_Todo1"
               className="widget-media dz-scroll ps ps--active-y"
             >
@@ -534,20 +538,20 @@ const ClinicVisit = props => {
                             eventKey={`${i}`}
                             className={`accordion-header ${
                               activeAccordionHeaderShadow === 1
-                                ? ''
-                                : 'collapsed'
+                                ? ""
+                                : "collapsed"
                             } accordion-header-info`}
                             onClick={() =>
                               setActiveAccordionHeaderShadow(
                                 activeAccordionHeaderShadow === 1 ? -1 : i
                               )
                             }
-                            style={{ width: '100%' }}
+                            style={{ width: "100%" }}
                           >
                             <span className="accordion-header-icon"></span>
                             <span className="accordion-header-text float-start">
-                              Visit Date :{' '}
-                              <span className="">{visit.visitDate}</span>{' '}
+                              Visit Date :{" "}
+                              <span className="">{visit.visitDate}</span>{" "}
                             </span>
                             <span className="accordion-header-indicator"></span>
                           </Accordion.Toggle>
@@ -556,20 +560,20 @@ const ClinicVisit = props => {
                             className="accordion__body"
                           >
                             <div className="accordion-body-text">
-                              <List celled style={{ width: '100%' }}>
+                              <List celled style={{ width: "100%" }}>
                                 {visit.vitalSignDto &&
                                   visit.vitalSignDto.pulse !== null && (
                                     <List.Item
                                       style={{
-                                        paddingBottom: '10px',
-                                        paddingTop: '10px',
-                                        borderTop: '1px solid #fff',
-                                        marginTop: '-5px',
+                                        paddingBottom: "10px",
+                                        paddingTop: "10px",
+                                        borderTop: "1px solid #fff",
+                                        marginTop: "-5px",
                                       }}
                                     >
-                                      Pulse{' '}
+                                      Pulse{" "}
                                       <span
-                                        style={{ color: 'rgb(153, 46, 98)' }}
+                                        style={{ color: "rgb(153, 46, 98)" }}
                                         className="float-end"
                                       >
                                         <b>{visit.vitalSignDto.pulse} bpm</b>
@@ -581,16 +585,16 @@ const ClinicVisit = props => {
                                     null && (
                                     <List.Item
                                       style={{
-                                        paddingBottom: '10px',
-                                        paddingTop: '10px',
+                                        paddingBottom: "10px",
+                                        paddingTop: "10px",
                                       }}
                                     >
-                                      Respiratory Rate{' '}
+                                      Respiratory Rate{" "}
                                       <span className="float-end">
                                         <b
-                                          style={{ color: 'rgb(153, 46, 98)' }}
+                                          style={{ color: "rgb(153, 46, 98)" }}
                                         >
-                                          {visit.vitalSignDto.respiratoryRate}{' '}
+                                          {visit.vitalSignDto.respiratoryRate}{" "}
                                           bpm
                                         </b>
                                       </span>
@@ -600,16 +604,16 @@ const ClinicVisit = props => {
                                   visit.vitalSignDto.temperature !== null && (
                                     <List.Item
                                       style={{
-                                        paddingBottom: '10px',
-                                        paddingTop: '10px',
+                                        paddingBottom: "10px",
+                                        paddingTop: "10px",
                                       }}
                                     >
-                                      Temperature{' '}
+                                      Temperature{" "}
                                       <span className="float-end">
                                         <b
-                                          style={{ color: 'rgb(153, 46, 98)' }}
+                                          style={{ color: "rgb(153, 46, 98)" }}
                                         >
-                                          {visit.vitalSignDto.temperature}{' '}
+                                          {visit.vitalSignDto.temperature}{" "}
                                           <sup>0</sup>C
                                         </b>
                                       </span>
@@ -620,14 +624,14 @@ const ClinicVisit = props => {
                                   visit.vitalSignDto.diastolic !== null && (
                                     <List.Item
                                       style={{
-                                        paddingBottom: '10px',
-                                        paddingTop: '10px',
+                                        paddingBottom: "10px",
+                                        paddingTop: "10px",
                                       }}
                                     >
-                                      Blood Pressure{' '}
+                                      Blood Pressure{" "}
                                       <span className="float-end">
                                         <b
-                                          style={{ color: 'rgb(153, 46, 98)' }}
+                                          style={{ color: "rgb(153, 46, 98)" }}
                                         >
                                           {visit.vitalSignDto.systolic}/
                                           {visit.vitalSignDto.diastolic}
@@ -639,14 +643,14 @@ const ClinicVisit = props => {
                                   visit.vitalSignDto.height !== null && (
                                     <List.Item
                                       style={{
-                                        paddingBottom: '10px',
-                                        paddingTop: '10px',
+                                        paddingBottom: "10px",
+                                        paddingTop: "10px",
                                       }}
                                     >
-                                      Height{' '}
+                                      Height{" "}
                                       <span className="float-end">
                                         <b
-                                          style={{ color: 'rgb(153, 46, 98)' }}
+                                          style={{ color: "rgb(153, 46, 98)" }}
                                         >
                                           {visit.vitalSignDto.height} cm
                                         </b>
@@ -657,14 +661,14 @@ const ClinicVisit = props => {
                                   visit.vitalSignDto.weight !== null && (
                                     <List.Item
                                       style={{
-                                        paddingBottom: '10px',
-                                        paddingTop: '10px',
+                                        paddingBottom: "10px",
+                                        paddingTop: "10px",
                                       }}
                                     >
-                                      Weight{' '}
+                                      Weight{" "}
                                       <span className="float-end">
                                         <b
-                                          style={{ color: 'rgb(153, 46, 98)' }}
+                                          style={{ color: "rgb(153, 46, 98)" }}
                                         >
                                           {visit.vitalSignDto.weight} kg
                                         </b>
@@ -676,19 +680,19 @@ const ClinicVisit = props => {
                                   visit.vitalSignDto.height !== null && (
                                     <List.Item
                                       style={{
-                                        paddingBottom: '10px',
-                                        paddingTop: '10px',
+                                        paddingBottom: "10px",
+                                        paddingTop: "10px",
                                       }}
                                     >
-                                      BMI{' '}
+                                      BMI{" "}
                                       <span className="float-end">
                                         <b
-                                          style={{ color: 'rgb(153, 46, 98)' }}
+                                          style={{ color: "rgb(153, 46, 98)" }}
                                         >
                                           {Math.round(
                                             visit.vitalSignDto.weight /
                                               (visit.vitalSignDto.height / 100)
-                                          )}{' '}
+                                          )}{" "}
                                           kg
                                         </b>
                                       </span>
@@ -721,10 +725,10 @@ const ClinicVisit = props => {
             <Label
               as="a"
               color="blue"
-              style={{ width: '106%', height: '35px' }}
+              style={{ width: "106%", height: "35px" }}
               ribbon
             >
-              <h4 style={{ color: '#fff' }}>VITAL SIGNS</h4>
+              <h4 style={{ color: "#fff" }}>VITAL SIGNS</h4>
             </Label>
             <br />
             <br />
@@ -739,24 +743,24 @@ const ClinicVisit = props => {
                     id="encounterDate"
                     value={objValues.encounterDate}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                     onChange={handleInputChange}
                     min={
                       patientDto && patientDto.dateEnrolled
                         ? patientDto.dateEnrolled
-                        : ''
+                        : ""
                     }
-                    max={moment(new Date()).format('YYYY-MM-DD')}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
                     required
                   />
-                  {errors.encounterDate !== '' ? (
+                  {errors.encounterDate !== "" ? (
                     <span className={classes.error}>
                       {errors.encounterDate}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -775,33 +779,33 @@ const ClinicVisit = props => {
                         value={objValues.pulse}
                         onKeyUp={handleInputValueCheckPulse}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       />
                       <InputGroupText
                         addonType="append"
                         style={{
-                          backgroundColor: '#014D88',
-                          color: '#fff',
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       >
                         bmp
                       </InputGroupText>
                     </InputGroup>
-                    {vitalClinicalSupport.pulse !== '' ? (
+                    {vitalClinicalSupport.pulse !== "" ? (
                       <span className={classes.error}>
                         {vitalClinicalSupport.pulse}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
-                    {errors.pulse !== '' ? (
+                    {errors.pulse !== "" ? (
                       <span className={classes.error}>{errors.pulse}</span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -819,35 +823,35 @@ const ClinicVisit = props => {
                         value={objValues.respiratoryRate}
                         onKeyUp={handleInputValueCheckRespiratoryRate}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       />
                       <InputGroupText
                         addonType="append"
                         style={{
-                          backgroundColor: '#014D88',
-                          color: '#fff',
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       >
                         bmp
                       </InputGroupText>
                     </InputGroup>
-                    {vitalClinicalSupport.respiratoryRate !== '' ? (
+                    {vitalClinicalSupport.respiratoryRate !== "" ? (
                       <span className={classes.error}>
                         {vitalClinicalSupport.respiratoryRate}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
-                    {errors.respiratoryRate !== '' ? (
+                    {errors.respiratoryRate !== "" ? (
                       <span className={classes.error}>
                         {errors.respiratoryRate}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -865,35 +869,35 @@ const ClinicVisit = props => {
                         value={objValues.temperature}
                         onKeyUp={handleInputValueCheckTemperature}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       />
                       <InputGroupText
                         addonType="append"
                         style={{
-                          backgroundColor: '#014D88',
-                          color: '#fff',
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       >
                         <sup>o</sup>c
                       </InputGroupText>
                     </InputGroup>
-                    {vitalClinicalSupport.temperature !== '' ? (
+                    {vitalClinicalSupport.temperature !== "" ? (
                       <span className={classes.error}>
                         {vitalClinicalSupport.temperature}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
-                    {errors.temperature !== '' ? (
+                    {errors.temperature !== "" ? (
                       <span className={classes.error}>
                         {errors.temperature}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -912,33 +916,33 @@ const ClinicVisit = props => {
                         value={objValues.weight}
                         onKeyUp={handleInputValueCheckweight}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       />
                       <InputGroupText
                         addonType="append"
                         style={{
-                          backgroundColor: '#014D88',
-                          color: '#fff',
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       >
                         kg
                       </InputGroupText>
                     </InputGroup>
-                    {vitalClinicalSupport.weight !== '' ? (
+                    {vitalClinicalSupport.weight !== "" ? (
                       <span className={classes.error}>
                         {vitalClinicalSupport.weight}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
-                    {errors.weight !== '' ? (
+                    {errors.weight !== "" ? (
                       <span className={classes.error}>{errors.weight}</span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -949,10 +953,10 @@ const ClinicVisit = props => {
                       <InputGroupText
                         addonType="append"
                         style={{
-                          backgroundColor: '#014D88',
-                          color: '#fff',
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       >
                         cm
@@ -967,53 +971,53 @@ const ClinicVisit = props => {
                         max="216.408"
                         onKeyUp={handleInputValueCheckHeight}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       />
                       <InputGroupText
                         addonType="append"
                         style={{
-                          backgroundColor: '#992E62',
-                          color: '#fff',
-                          border: '1px solid #992E62',
-                          borderRadius: '0rem',
+                          backgroundColor: "#992E62",
+                          color: "#fff",
+                          border: "1px solid #992E62",
+                          borderRadius: "0rem",
                         }}
                       >
-                        {objValues.height !== ''
-                          ? (objValues.height / 100).toFixed(2) + 'm'
-                          : 'm'}
+                        {objValues.height !== ""
+                          ? (objValues.height / 100).toFixed(2) + "m"
+                          : "m"}
                       </InputGroupText>
                     </InputGroup>
-                    {vitalClinicalSupport.height !== '' ? (
+                    {vitalClinicalSupport.height !== "" ? (
                       <span className={classes.error}>
                         {vitalClinicalSupport.height}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
-                    {errors.height !== '' ? (
+                    {errors.height !== "" ? (
                       <span className={classes.error}>{errors.height}</span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
                 <div className="form-group mb-3 mt-2 col-md-2">
-                  {objValues.weight !== '' && objValues.height !== '' && (
+                  {objValues.weight !== "" && objValues.height !== "" && (
                     <FormGroup>
                       <Label> </Label>
                       <InputGroup>
                         <InputGroupText
                           addonType="append"
                           style={{
-                            backgroundColor: '#014D88',
-                            color: '#fff',
-                            border: '1px solid #014D88',
-                            borderRadius: '0rem',
+                            backgroundColor: "#014D88",
+                            color: "#fff",
+                            border: "1px solid #014D88",
+                            borderRadius: "0rem",
                           }}
                         >
-                          BMI :{' '}
+                          BMI :{" "}
                           {(
                             objValues.weight /
                             ((objValues.height / 100) *
@@ -1033,10 +1037,10 @@ const ClinicVisit = props => {
                       <InputGroupText
                         addonType="append"
                         style={{
-                          backgroundColor: '#014D88',
-                          color: '#fff',
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       >
                         systolic(mmHg)
@@ -1051,17 +1055,17 @@ const ClinicVisit = props => {
                         value={objValues.systolic}
                         onKeyUp={handleInputValueCheckSystolic}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       />
                       <InputGroupText
                         addonType="append"
                         style={{
-                          backgroundColor: '#014D88',
-                          color: '#fff',
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       >
                         diastolic(mmHg)
@@ -1076,34 +1080,34 @@ const ClinicVisit = props => {
                         value={objValues.diastolic}
                         onKeyUp={handleInputValueCheckDiastolic}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
                         }}
                       />
                     </InputGroup>
-                    {vitalClinicalSupport.systolic !== '' ? (
+                    {vitalClinicalSupport.systolic !== "" ? (
                       <span className={classes.error}>
                         {vitalClinicalSupport.systolic}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
-                    {errors.systolic !== '' ? (
+                    {errors.systolic !== "" ? (
                       <span className={classes.error}>{errors.systolic}</span>
                     ) : (
-                      ''
+                      ""
                     )}
-                    {vitalClinicalSupport.diastolic !== '' ? (
+                    {vitalClinicalSupport.diastolic !== "" ? (
                       <span className={classes.error}>
                         {vitalClinicalSupport.diastolic}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
-                    {errors.diastolic !== '' ? (
+                    {errors.diastolic !== "" ? (
                       <span className={classes.error}>{errors.diastolic}</span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
@@ -1112,10 +1116,10 @@ const ClinicVisit = props => {
             <Label
               as="a"
               color="black"
-              style={{ width: '106%', height: '35px' }}
+              style={{ width: "106%", height: "35px" }}
               ribbon
             >
-              <h4 style={{ color: '#fff' }}></h4>
+              <h4 style={{ color: "#fff" }}></h4>
             </Label>
             <br />
             <br />
@@ -1131,8 +1135,8 @@ const ClinicVisit = props => {
                     value={objValues.hivTestResult}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                     required
                   >
@@ -1155,8 +1159,8 @@ const ClinicVisit = props => {
                     value={objValues.sideEffect}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                     required
                   >
@@ -1199,8 +1203,8 @@ const ClinicVisit = props => {
                     value={objValues.stiScreening}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                     required
                   >
@@ -1210,7 +1214,7 @@ const ClinicVisit = props => {
                   </Input>
                 </FormGroup>
               </div>
-              {objValues.stiScreening === 'true' && (
+              {objValues.stiScreening === "true" && (
                 <div className=" mb-3 col-md-6">
                   <FormGroup>
                     <FormLabelName>Syndromic STI Screening </FormLabelName>
@@ -1221,8 +1225,8 @@ const ClinicVisit = props => {
                       value={objValues.syndromicStiScreening}
                       onChange={handleInputChange}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.25rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
                       }}
                       required
                     >
@@ -1246,8 +1250,8 @@ const ClinicVisit = props => {
                     value={objValues.adherenceLevel}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                     required
                   >
@@ -1262,7 +1266,7 @@ const ClinicVisit = props => {
                 </FormGroup>
               </div>
               {objValues.adherenceLevel ===
-                'PREP_LEVEL_OF_ADHERENCE_(POOR)_≥_7_DOSES' && (
+                "PREP_LEVEL_OF_ADHERENCE_(POOR)_≥_7_DOSES" && (
                 <div className=" mb-3 col-md-6">
                   <FormGroup>
                     <FormLabelName>Why Poor/Fair Adherence </FormLabelName>
@@ -1273,8 +1277,8 @@ const ClinicVisit = props => {
                       value={objValues.whyAdherenceLevelPoor}
                       onChange={handleInputChange}
                       style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.25rem',
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
                       }}
                       required
                     >
@@ -1300,8 +1304,8 @@ const ClinicVisit = props => {
                     value={objValues.prepGiven}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                     required
                   >
@@ -1311,7 +1315,7 @@ const ClinicVisit = props => {
                   </Input>
                 </FormGroup>
               </div>
-              {objValues.prepGiven === 'Yes' && (
+              {objValues.prepGiven === "Yes" && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
@@ -1327,12 +1331,12 @@ const ClinicVisit = props => {
                         <option value="30">TDF/3TC</option>
                         <option value="30"> TDF/FTC</option>
                       </Input>
-                      {errors.regimenId !== '' ? (
+                      {errors.regimenId !== "" ? (
                         <span className={classes.error}>
                           {errors.regimenId}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
@@ -1347,15 +1351,15 @@ const ClinicVisit = props => {
                         value={objValues.datePrepGiven}
                         onChange={handleInputChange}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
                         }}
                         min={
                           patientDto && patientDto.dateEnrolled
                             ? patientDto.dateEnrolled
-                            : ''
+                            : ""
                         }
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                         required
                       />
                     </FormGroup>
@@ -1372,8 +1376,8 @@ const ClinicVisit = props => {
                     value={objValues.otherDrugs}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                     required
                   />
@@ -1389,8 +1393,8 @@ const ClinicVisit = props => {
                     value={objValues.prepStatus}
                     onChange={handleInputChange}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                     required
                   >
@@ -1408,25 +1412,25 @@ const ClinicVisit = props => {
               <Label
                 as="a"
                 color="teal"
-                style={{ width: '106%', height: '35px' }}
+                style={{ width: "106%", height: "35px" }}
                 ribbon
               >
-                <h4 style={{ color: '#fff' }}>
+                <h4 style={{ color: "#fff" }}>
                   <input
                     type="checkbox"
                     name="urinalysisTest"
                     value="Yes"
                     onChange={handleCheckBoxUrinalysisTest}
                     checked={
-                      urinalysisTest.urinalysisTest == 'Yes' ? true : false
+                      urinalysisTest.urinalysisTest == "Yes" ? true : false
                     }
-                  />{' '}
+                  />{" "}
                   Urinalysis Test
                 </h4>
               </Label>
               <br />
               <br />
-              {urinalysisTest.urinalysisTest === 'Yes' && (
+              {urinalysisTest.urinalysisTest === "Yes" && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -1439,10 +1443,10 @@ const ClinicVisit = props => {
                         value={urinalysisTest.testDate}
                         onChange={handleInputChangeUrinalysisTest}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
                         }}
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                         required
                       />
                     </FormGroup>
@@ -1457,8 +1461,8 @@ const ClinicVisit = props => {
                         value={urinalysisTest.result}
                         onChange={handleInputChangeUrinalysisTest}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
                         }}
                         required
                       />
@@ -1471,25 +1475,25 @@ const ClinicVisit = props => {
               <Label
                 as="a"
                 color="blue"
-                style={{ width: '106%', height: '35px' }}
+                style={{ width: "106%", height: "35px" }}
                 ribbon
               >
-                <h4 style={{ color: '#fff' }}>
+                <h4 style={{ color: "#fff" }}>
                   <input
                     type="checkbox"
                     name="hepatitisTest"
                     value="Yes"
                     onChange={handleCheckBoxHepatitisTest}
                     checked={
-                      hepatitisTest.hepatitisTest === 'Yes' ? true : false
+                      hepatitisTest.hepatitisTest === "Yes" ? true : false
                     }
-                  />{' '}
-                  Hepatitis Test{' '}
+                  />{" "}
+                  Hepatitis Test{" "}
                 </h4>
               </Label>
               <br />
               <br />
-              {hepatitisTest.hepatitisTest === 'Yes' && (
+              {hepatitisTest.hepatitisTest === "Yes" && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -1502,10 +1506,10 @@ const ClinicVisit = props => {
                         value={hepatitisTest.testDate}
                         onChange={handleInputChangeHepatitisTest}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
                         }}
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                         required
                       />
                     </FormGroup>
@@ -1520,8 +1524,8 @@ const ClinicVisit = props => {
                         value={hepatitisTest.result}
                         onChange={handleInputChangeHepatitisTest}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
                         }}
                         required
                       >
@@ -1538,23 +1542,23 @@ const ClinicVisit = props => {
               <Label
                 as="a"
                 color="red"
-                style={{ width: '106%', height: '35px' }}
+                style={{ width: "106%", height: "35px" }}
                 ribbon
               >
-                <h4 style={{ color: '#fff' }}>
+                <h4 style={{ color: "#fff" }}>
                   <input
                     type="checkbox"
                     name="syphilisTest"
                     value="Yes"
                     onChange={handleCheckBoxSyphilisTest}
-                    checked={syphilisTest.syphilisTest === 'Yes' ? true : false}
-                  />{' '}
-                  Syphilis Test{' '}
+                    checked={syphilisTest.syphilisTest === "Yes" ? true : false}
+                  />{" "}
+                  Syphilis Test{" "}
                 </h4>
               </Label>
               <br />
               <br />
-              {syphilisTest.syphilisTest === 'Yes' && (
+              {syphilisTest.syphilisTest === "Yes" && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -1567,11 +1571,11 @@ const ClinicVisit = props => {
                         value={syphilisTest.testDate}
                         onChange={handleInputChangeSyphilisTest}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
                         }}
                         required
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                       />
                     </FormGroup>
                   </div>
@@ -1585,8 +1589,8 @@ const ClinicVisit = props => {
                         value={syphilisTest.result}
                         onChange={handleInputChangeSyphilisTest}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
                         }}
                         required
                       >
@@ -1603,23 +1607,23 @@ const ClinicVisit = props => {
               <Label
                 as="a"
                 color="black"
-                style={{ width: '106%', height: '35px' }}
+                style={{ width: "106%", height: "35px" }}
                 ribbon
               >
-                <h4 style={{ color: '#fff' }}>
+                <h4 style={{ color: "#fff" }}>
                   <input
                     type="checkbox"
                     name="otherTest"
                     value="Yes"
                     onChange={handleCheckBoxOtherTest}
-                    checked={otherTest.otherTest === 'Yes' ? true : false}
-                  />{' '}
-                  Other Test{' '}
+                    checked={otherTest.otherTest === "Yes" ? true : false}
+                  />{" "}
+                  Other Test{" "}
                 </h4>
               </Label>
               <br />
               <br />
-              {otherTest.otherTest === 'Yes' && (
+              {otherTest.otherTest === "Yes" && (
                 <>
                   <div className=" mb-3 col-md-6">
                     <FormGroup>
@@ -1631,11 +1635,11 @@ const ClinicVisit = props => {
                         value={otherTest.testDate}
                         onChange={handleInputChangeOtherTest}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
                         }}
                         required
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
                       />
                     </FormGroup>
                   </div>
@@ -1649,8 +1653,8 @@ const ClinicVisit = props => {
                         value={otherTest.prepGiven}
                         onChange={handleInputChangeOtherTest}
                         style={{
-                          border: '1px solid #014D88',
-                          borderRadius: '0.25rem',
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
                         }}
                         required
                       >
@@ -1667,10 +1671,10 @@ const ClinicVisit = props => {
               <Label
                 as="a"
                 color="blue"
-                style={{ width: '106%', height: '35px' }}
+                style={{ width: "106%", height: "35px" }}
                 ribbon
               >
-                <h4 style={{ color: '#fff' }}>NEXT APPOINTMENT DATE </h4>
+                <h4 style={{ color: "#fff" }}>NEXT APPOINTMENT DATE </h4>
               </Label>
               <br />
               <br />
@@ -1685,17 +1689,17 @@ const ClinicVisit = props => {
                   value={objValues.nextAppointment}
                   onChange={handleInputChange}
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                   // min={vital.encounterDate}
                 />
-                {errors.nextAppointment !== '' ? (
+                {errors.nextAppointment !== "" ? (
                   <span className={classes.error}>
                     {errors.nextAppointment}
                   </span>
                 ) : (
-                  ''
+                  ""
                 )}
               </div>
             </div>
@@ -1707,13 +1711,13 @@ const ClinicVisit = props => {
               className={classes.button}
               disabled={saving}
               startIcon={<SaveIcon />}
-              style={{ backgroundColor: '#014d88' }}
+              style={{ backgroundColor: "#014d88" }}
               onClick={handleSubmit}
             >
               {!saving ? (
-                <span style={{ textTransform: 'capitalize' }}>Save</span>
+                <span style={{ textTransform: "capitalize" }}>Save</span>
               ) : (
-                <span style={{ textTransform: 'capitalize' }}>Saving...</span>
+                <span style={{ textTransform: "capitalize" }}>Saving...</span>
               )}
             </MatButton>
           </Segment>

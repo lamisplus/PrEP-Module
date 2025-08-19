@@ -82,16 +82,21 @@ function PatientCard(props) {
       : {};
 
   const { userPermissions } = useAuth();
-  console.log("userPermissions: ", userPermissions);
+
   useEffect(() => {
     PatientObject();
   }, []);
 
   async function PatientObject() {
     axios
-      .get(`${baseUrl}prep/persons/${patientObjLocation.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(
+        `${baseUrl}prep/persons/${
+          patientObjLocation.personId || patientObjLocation.id
+        }`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .then(response => {
         setPatientDetail(response.data);
       })

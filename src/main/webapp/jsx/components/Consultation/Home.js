@@ -134,7 +134,7 @@ const ClinicVisit = props => {
     notedSideEffects: "",
     wasPrepAdministered: "",
     otherTestsDone: [],
-    personId: props.patientObj.personId,
+    personId: props.patientObj.personId || props.patientObj.id,
     pregnant: "",
     prepEnrollmentUuid: "",
     pulse: "",
@@ -245,7 +245,9 @@ const ClinicVisit = props => {
     if (currentDate) {
       await axios
         .get(
-          `${baseUrl}prep-clinic/checkEnableCab/${props.patientObj.personId}/${currentDate}`,
+          `${baseUrl}prep-clinic/checkEnableCab/${
+            props.patientObj.personId || props.patientObj.id
+          }/${currentDate}`,
           { headers: { Authorization: `Bearer ${token}` } }
         )
         .then(response => {
@@ -296,9 +298,14 @@ const ClinicVisit = props => {
 
   const getHivResult = () => {
     axios
-      .get(`${baseUrl}prep-clinic/hts-record/${props.patientObj.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(
+        `${baseUrl}prep-clinic/hts-record/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .then(response => {
         if (response.data?.length === 0) {
           toast.error(
@@ -315,7 +322,9 @@ const ClinicVisit = props => {
   const getPatientDtoObj = () => {
     axios
       .get(
-        `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+        `${baseUrl}prep/enrollment/open/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -326,7 +335,9 @@ const ClinicVisit = props => {
   const getPrepEligibilityObj = () => {
     axios
       .get(
-        `${baseUrl}prep/eligibility/open/patients/${props.patientObj.personId}`,
+        `${baseUrl}prep/eligibility/open/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -354,9 +365,14 @@ const ClinicVisit = props => {
   }
   const getLatestFromEligibility = async () => {
     axios
-      .get(`${baseUrl}prep-eligibility/person/${objValues?.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(
+        `${baseUrl}prep-eligibility/person/${
+          objValues?.personId || props.patientObj.id
+        }`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .then(async response => {
         const latestEligibility = sortByVisitDateDescending(response?.data)[0];
         setLatestFromEligibility(latestEligibility);
@@ -619,7 +635,7 @@ const ClinicVisit = props => {
       notedSideEffects: "",
       prepNotedSideEffects: "",
       otherTestsDone: [],
-      personId: props.patientObj.personId,
+      personId: props.patientObj.personId || props.patientObj.id,
       pregnant: "",
       prepEnrollmentUuid: "",
       pulse: "",
@@ -652,7 +668,10 @@ const ClinicVisit = props => {
     setOtherTest([]);
   };
   const isFemale = () => {
-    return props.patientObj.gender.toLowerCase() === "female";
+    return (
+      props.patientObj.gender?.toLowerCase() === "female" ||
+      props.patientObj.sex?.toLowerCase() === "female"
+    );
   };
   const validate = () => {
     temp.lastHts = hivTestValue
@@ -773,7 +792,9 @@ const ClinicVisit = props => {
   const getRecentActivities = () => {
     axios
       .get(
-        `${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
+        `${baseUrl}prep/activities/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }?full=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {

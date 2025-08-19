@@ -28,7 +28,7 @@ const PrEPEligibiltyScreeningForm = props => {
     why: "",
     interruptionType: "",
     dateRestartPlacedBackMedication: "",
-    personId: patientObj.personId,
+    personId: patientObj.personId || props.patientObj.id,
     causeOfDeath: "",
     dateClientDied: "",
     dateClientReferredOut: "",
@@ -85,7 +85,9 @@ const PrEPEligibiltyScreeningForm = props => {
   const GetPatientDTOObj = () => {
     axios
       .get(
-        `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+        `${baseUrl}prep/enrollment/open/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

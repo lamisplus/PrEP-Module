@@ -6,7 +6,8 @@ import { useAuth } from "../../../context/AuthProvider/AuthProvider";
 
 function SubMenu(props) {
   const { userPermissions } = useAuth();
-  const patientObj = props.patientObj;
+  let { patientObj, patientDetail } = props;
+
   useEffect(() => {
     //Observation();
   }, [props.patientObj]);
@@ -51,8 +52,18 @@ function SubMenu(props) {
       route: "patient-visits",
     });
   };
+  console.log("patientObj,patientDetail: ", patientObj, patientDetail);
   const history = useHistory();
-  useEffect(() => {});
+  let patientDetailCopy = { ...patientDetail };
+  patientObj = {
+    ...patientObj,
+    hivresultAtVisit:
+      patientDetailCopy.hivPositive === false ? "Negative" : "Positive",
+    prepCount: patientDetailCopy.prepEnrollmentCount?.toString() ?? "0",
+    eligibilityCount: patientDetailCopy.prepEligibilityCount?.toString() ?? "0",
+    commencementCount: patientDetailCopy.prepCommencementCount ?? 0,
+  };
+
   return (
     <div>
       <Menu size="large" color={"black"} inverted>

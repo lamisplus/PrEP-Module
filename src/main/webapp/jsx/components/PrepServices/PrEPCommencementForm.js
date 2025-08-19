@@ -55,7 +55,7 @@ const CODESET_KEYS = [
 ];
 
 const PrEPCommencementForm = props => {
-  const patientObj = props.patientObj;
+  const { patientObj } = props;
   const classes = useStyles();
   const [disabledField, setDisabledField] = useState(false);
   const [prepRegimen, setPrepRegimen] = useState([]);
@@ -63,7 +63,7 @@ const PrEPCommencementForm = props => {
     dateInitialAdherenceCounseling: "",
     datePrepStart: "",
     height: "",
-    personId: patientObj.personId,
+    personId: patientObj.personId || patientObj.id,
     prepClientId: props.prepId,
     regimenId: "",
     urinalysisResult: "",
@@ -137,9 +137,14 @@ const PrEPCommencementForm = props => {
 
   const getPatientCommencement = id => {
     axios
-      .get(`${baseUrl}prep/commencement/person/${props.patientObj.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(
+        `${baseUrl}prep/commencement/person/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .then(response => {
         let data = response.data.find(x => x.id === id);
         data = {
@@ -157,7 +162,9 @@ const PrEPCommencementForm = props => {
   const getPatientDTOObj = () => {
     axios
       .get(
-        `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+        `${baseUrl}prep/enrollment/open/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -568,7 +575,8 @@ const PrEPCommencementForm = props => {
                 </FormGroup>
               )}
             </div>
-            {props.patientObj.gender.toLowerCase() === "female" && (
+            {(props.patientObj.gender?.toLowerCase() === "female" ||
+              props.patientObj.sex?.toLowerCase()) === "female" && (
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label>Pregnancy Status</Label>
