@@ -36,6 +36,24 @@ public class PrepController {
         return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
     }
 
+    @GetMapping(PREP_URL_VERSION_ONE + "/persons/interrupted-prep-status")
+    @ApiOperation("Get enrolled Prep Persons with optimized api")
+    public ResponseEntity<PageDTO> getAllEnrolledPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,
+                                                         @RequestParam(required = false, defaultValue = "20") int pageSize,
+                                                         @RequestParam(required = false, defaultValue = "0") int pageNo) {
+        Page<PrepClient> page = prepService.findAllInterruptedPrepPersonPage(searchValue, pageNo, pageSize);
+        return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
+    }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/persons/not-enrolled")
+    @ApiOperation("Get enrolled Prep Persons with optimized api")
+    public ResponseEntity<PageDTO> getAllNotEnrolledPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,
+                                                            @RequestParam(required = false, defaultValue = "20") int pageSize,
+                                                            @RequestParam(required = false, defaultValue = "0") int pageNo) {
+        Page<PrepClient> page = prepService.findAllNotEnrolledPrepPersonPage(searchValue, pageNo, pageSize);
+        return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
+    }
+
     @GetMapping(PREP_URL_VERSION_ONE + "/only/persons")
     @ApiOperation("Get Only Prep Persons with optimized api")
     public ResponseEntity<PageDTO> getOnlyPrepPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,

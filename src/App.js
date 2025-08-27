@@ -1,6 +1,5 @@
 import React from "react";
 import { MemoryRouter as Router, Switch, Route } from "react-router-dom";
-
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./main/webapp/vendor/bootstrap-select/dist/css/bootstrap-select.min.css";
@@ -12,6 +11,12 @@ import UpdatePatientEnrollment from "./main/webapp/jsx/components/Patient/Update
 import { AuthProvider } from "./main/webapp/context/AuthProvider/AuthProvider";
 import CheckedInPatientsAlert from "./Globals/CheckedInPatientAlert/CheckedInPatientAlert";
 
+const routes = [
+  { path: "/patient-dashboard", component: () => <PatientDetail /> },
+  { path: "/update-patient", component: () => <UpdatePatientEnrollment /> },
+  { path: "/", component: () => <Home /> },
+];
+
 export default function App() {
   return (
     <div style={{ marginTop: "3em" }}>
@@ -20,15 +25,11 @@ export default function App() {
           <CheckedInPatientsAlert />
           <ToastContainer />
           <Switch>
-            <Route path="/patient-dashboard">
-              <PatientDetail />
-            </Route>
-            <Route path="/update-patient">
-              <UpdatePatientEnrollment />
-            </Route>
-            <Route path="/">
-              <Home />
-            </Route>
+            {routes.map(({ path, component: ComponentPage }, index) => (
+              <Route key={path} path={path}>
+                <ComponentPage />
+              </Route>
+            ))}
           </Switch>
         </AuthProvider>
       </Router>

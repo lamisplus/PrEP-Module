@@ -1,8 +1,17 @@
-import React, { useState, Fragment, useEffect, Suspense,useMemo, memo } from "react";
+import React, {
+  useState,
+  Fragment,
+  useEffect,
+  Suspense,
+  useMemo,
+  memo,
+} from "react";
 import { Row, Col, Card, Tab, Tabs } from "react-bootstrap";
 import PatientList from "./Patient/PatientList";
 import CheckedInPatients from "./Patient/CheckedInPatients";
 import { useRoles } from "../../hooks/useRoles";
+import NotEnrolledPatients from "./Patient/NotEnrolledPatientList";
+import PatientsWithInterruptedPrepStatus from "./Patient/PatientsWithInterruptedPrepStatus";
 
 const divStyle = {
   borderRadius: "2px",
@@ -60,16 +69,30 @@ const Home = () => {
                   className="mb-3"
                 >
                   {permissions.canSeeFindPatients && (
-                    <Tab eventKey="home" title="Find Patients">
+                    <Tab eventKey="home" title="Patients">
                       <Suspense>
-                      <PatientList />
+                        <PatientList />
+                      </Suspense>
+                    </Tab>
+                  )}
+                  {permissions.canSeeFindPatients && (
+                    <Tab eventKey="not-enrolled" title="Pending Enrollments">
+                      <Suspense>
+                        <NotEnrolledPatients />
+                      </Suspense>
+                    </Tab>
+                  )}
+                  {permissions.canSeeFindPatients && (
+                    <Tab eventKey="enrolled" title="Interrupted PrEP Clients">
+                      <Suspense>
+                        <PatientsWithInterruptedPrepStatus />
                       </Suspense>
                     </Tab>
                   )}
                   {permissions.canSeeCheckedInPatients && (
                     <Tab eventKey="checkedIn" title="Checked-In Patients">
                       <Suspense>
-                      {activeTab === "checkedIn" && <CheckedInPatients />}
+                        {activeTab === "checkedIn" && <CheckedInPatients />}
                       </Suspense>
                     </Tab>
                   )}
