@@ -88,7 +88,7 @@ const PrEPCommencementForm = props => {
   const [errors, setErrors] = useState({});
   const [patientDto, setPatientDto] = useState();
   const [codeset, setCodeset] = useState({});
-
+  const [availableRegimens, setAvailableRegimens] = useState([]);
   useEffect(() => {
     fetchAllCodesets();
     fetchPrepRegimen();
@@ -129,6 +129,7 @@ const PrEPCommencementForm = props => {
       })
       .then(response => {
         setPrepRegimen(response.data);
+        setAvailableRegimens(response.data);
       })
       .catch(error => {
         console.error("Error fetching prep regimen:", error);
@@ -314,7 +315,13 @@ const PrEPCommencementForm = props => {
       e.target.value === "PREP_TYPE_OTHERS" ||
       e.target.value === "PREP_TYPE_ED_PREP"
     ) {
-      fetchPrepRegimen();
+      setPrepRegimen([...availableRegimens]);
+    } else if (e.target.value === "PREP_TYPE_INJECTIBLES") {
+      const regimens = [...availableRegimens]?.filter(({ id }) => id == 2);
+      setPrepRegimen(regimens);
+    } else if (e.target.value === "PREP_TYPE_ORAL") {
+      const regimens = [...availableRegimens]?.filter(({ id }) => id == 1);
+      setPrepRegimen(regimens);
     } else {
       axios
         .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`, {
