@@ -201,9 +201,6 @@ const BasicInfo = props => {
       hivRiskScore: "",
       noIndicationForPep: "",
       hasNoProteinuria: "",
-      noHistoryOrSignsOfLiverAbnormalitiesCabLa: "",
-      noHistoryOfDrugToDrugInteractionCabLa: "",
-      noHistoryOfDrugHypersensitivityCabLa: "",
     });
 
   const handleLftInputChange = event => {
@@ -523,33 +520,18 @@ const BasicInfo = props => {
   const getPrepEligibilityScore = () => {
     var score = 0;
     score += drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0;
-    score += riskCount.length > 0 ? 1 : 0;
+    score += riskCount.length >= 1 ? 1 : 0;
     score += getAcuteHivResult();
     score += getIndicationForPepResult();
-    if (is30AndAbove() && isFemale() === false) {
+    if (is30AndAbove()) {
       score +=
         assessmentForPrepEligibility?.hasNoProteinuria === "true" ? 1 : 0;
     }
-    score +=
-      assessmentForPrepEligibility?.noHistoryOrSignsOfLiverAbnormalitiesCabLa ===
-      "true"
-        ? 1
-        : 0;
-    score +=
-      assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa ===
-      "true"
-        ? 1
-        : 0;
-    score +=
-      assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa ===
-      "true"
-        ? 1
-        : 0;
 
-    if (is30AndAbove() && isFemale() === false) {
-      return score >= 8 ? 1 : 0;
+    if (is30AndAbove()) {
+      return score >= 5 ? 1 : 0;
     } else {
-      return score >= 7 ? 1 : 0;
+      return score >= 4 ? 1 : 0;
     }
   };
 
@@ -2246,15 +2228,32 @@ const BasicInfo = props => {
                   </div>
                   <div style={{ flex: 1 }}>
                     <Label>
-                      HIV Risk Score &gt; 1:{" "}
+                      {`HIV Risk Score >= 1:`}{" "}
                       <span className="badge badge-info">{`${
-                        riskCount.length > 0 ? 1 : 0
+                        riskCount.length >= 1 ? 1 : 0
                       }`}</span>
                     </Label>
                   </div>
                 </div>
 
-                {true && (
+                <div className="d-flex">
+                  <div style={{ flex: 1 }}>
+                    <FormGroup>
+                      <Label>
+                        No signs and symptoms of Acute HIV Infection:{" "}
+                        <span className="badge badge-info">{`${getAcuteHivResult()}`}</span>
+                      </Label>
+                    </FormGroup>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <Label>
+                      No Indication for PEP:{" "}
+                      <span className="badge badge-info">{`${getIndicationForPepResult()}`}</span>
+                    </Label>
+                  </div>
+                </div>
+
+                {is30AndAbove() && (
                   <div className="form-group  col-md-4 p-3">
                     <FormGroup>
                       <Label>{`Has no proteinuria (>30 Years)`}</Label>
@@ -2285,145 +2284,26 @@ const BasicInfo = props => {
                   </div>
                 )}
               </div>
-              <div className="form-group  col-md-6 p-3">
-                <FormGroup>
-                  <Label>
-                    {`No history/signs & symptoms of Liver abnormalities (CAB-LA)`}
-                  </Label>
-                  <select
-                    className="form-control"
-                    name="noHistoryOrSignsOfLiverAbnormalitiesCabLa"
-                    id="noHistoryOrSignsOfLiverAbnormalitiesCabLa"
-                    value={
-                      assessmentForPrepEligibility?.noHistoryOrSignsOfLiverAbnormalitiesCabLa
-                    }
-                    onChange={handleInputChangeAssessmentForPrepEligibility}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.noHistoryOrSignsOfLiverAbnormalitiesCabLa !== "" ? (
-                    <span className={classes.error}>
-                      {errors.noHistoryOrSignsOfLiverAbnormalitiesCabLa}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-              <div className="form-group  col-md-4 p-3">
-                <FormGroup>
-                  <Label>{`No history of PrEP drug interaction (CAB-LA)`}</Label>
-                  <select
-                    className="form-control"
-                    name="noHistoryOfDrugToDrugInteractionCabLa"
-                    id="noHistoryOfDrugToDrugInteractionCabLa"
-                    value={
-                      assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa
-                    }
-                    onChange={handleInputChangeAssessmentForPrepEligibility}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.noHistoryOfDrugToDrugInteractionCabLa !== "" ? (
-                    <span className={classes.error}>
-                      {errors.noHistoryOfDrugToDrugInteractionCabLa}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-              <div className="form-group  col-md-8 p-3">
-                <FormGroup>
-                  <Label>{`No history of drug hypersensitivity (CAB-LA)`}</Label>
-                  <select
-                    className="form-control"
-                    name="noHistoryOfDrugHypersensitivityCabLa"
-                    id="noHistoryOfDrugHypersensitivityCabLa"
-                    value={
-                      assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa
-                    }
-                    onChange={handleInputChangeAssessmentForPrepEligibility}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.noHistoryOfDrugHypersensitivityCabLa !== "" ? (
-                    <span className={classes.error}>
-                      {errors.noHistoryOfDrugHypersensitivityCabLa}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
               <Message warning>
                 <h4>
                   Calculate the sum of PrEP Eligibility. If {">= "}1 client is
                   Eligible for PrEP. (Score: Count Yes=1, No=0).
                 </h4>
-                {/* <b>Score :{stiCount.length}</b> */}
                 <h5>{`HIV Negative: ${
                   drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0
                 }`}</h5>
                 <h5>{`HIV risk score >=1 : ${
-                  riskCount.length > 0 ? 1 : 0
+                  riskCount.length >= 1 ? 1 : 0
                 }`}</h5>
-                <h5>{`No signs & symptoms of acute HIV infection: ${getAcuteHivResult()}`}</h5>
+                <h5>{`No signs and symptoms of Acute HIV Infection: ${getAcuteHivResult()}`}</h5>
                 <h5>{`No Indication for PEP: ${getIndicationForPepResult()}`}</h5>
-                {is30AndAbove() && isFemale() === false && (
-                  <h5>{`Has no proteinuria: ${
+                {is30AndAbove() && (
+                  <h5>{`Has no proteinuria (>30 Years): ${
                     assessmentForPrepEligibility?.hasNoProteinuria === "true"
                       ? 1
                       : 0
                   }`}</h5>
                 )}
-              </Message>
-              <Message warning>
-                <h4>
-                  Calculate the sum of PrEP Eligibility for CAB-LA regimen. If
-                  the following below =1 client is Eligible for CAB-LA.{" "}
-                  {`(Score: Count Yes=1, No=0)`}
-                </h4>
-                {/* <b>Score :{stiCount.length}</b> */}
-                <h5>{`No history / signs & symptoms of Liver abnormalities (CAB-LA): ${
-                  assessmentForPrepEligibility?.noHistoryOrSignsOfLiverAbnormalitiesCabLa ===
-                  "true"
-                    ? 1
-                    : 0
-                }`}</h5>
-                <h5>{`No history of PrEP drug interaction (CAB-LA): ${
-                  assessmentForPrepEligibility?.noHistoryOfDrugToDrugInteractionCabLa ===
-                  "true"
-                    ? 1
-                    : 0
-                }`}</h5>
-                <h5>{`No history of drug hypersensitivity (CAB-LA): ${
-                  assessmentForPrepEligibility?.noHistoryOfDrugHypersensitivityCabLa ===
-                  "true"
-                    ? 1
-                    : 0
-                }`}</h5>
               </Message>
               {/* <Message warning>
                                 <h3>{`Final Prep Eligibility Score: ${getPrepEligibilityScore()}`}</h3>
