@@ -6,10 +6,12 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
 import "react-widgets/dist/css/react-widgets.css";
+import "react-dual-listbox/lib/react-dual-listbox.css";
 import PhoneInput from "react-phone-input-2";
 import moment from "moment";
 import { Spinner } from "reactstrap";
 import { useStyles } from "../../../hooks/styles/prepRegistration/useStyle";
+import { LiverFunctionTest } from "./PrEPEligibiltyScreeningForm";
 
 const CODESET_KEYS = [
   "HTS_ENTRY_POINT",
@@ -46,7 +48,7 @@ const PrEPRegistrationForm = props => {
     historyOfDrugAllergies: "",
     historyOfDrugToDrugInteraction: "",
     urinalysisResult: "",
-    liverFunctionTest: "",
+    liverFunctionTestResults: [],
     dateOfHivTest: "",
     resultOfHivTest: "",
     dateOfInitialAdherenceCounseling: "",
@@ -80,7 +82,6 @@ const PrEPRegistrationForm = props => {
       })
       .then(({ data }) => {
         setCodeset(data);
-        // Sync local state with fetched codesets for backward compatibility
         setEntryPoint(data.HTS_ENTRY_POINT || []);
         setRelatives(data.RELATIONSHIP || []);
         setPrepRisk(data.PREP_RISK_TYPE || []);
@@ -169,9 +170,19 @@ const PrEPRegistrationForm = props => {
         //console.log(error);
       });
   };
+
   const handleInputChange = e => {
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
   };
+
+  const handleLftInputChange = event => {
+    const { name, value } = event.target;
+    setObjValues(prevValues => ({
+      ...prevValues,
+      [name]: value,
+    }));
+  };
+
   const checkPhoneNumberBasic = (e, inputName) => {
     const limit = 10;
     setObjValues({ ...objValues, [inputName]: e.slice(0, limit) });
@@ -198,8 +209,7 @@ const PrEPRegistrationForm = props => {
     ) {
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
-        height:
-          "Height cannot be greater than 216.408 and less than 48.26",
+        height: "Height cannot be greater than 216.408 and less than 48.26",
       });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: "" });
@@ -282,20 +292,24 @@ const PrEPRegistrationForm = props => {
             <div className="row">
               <h2>{`PrEP/PEP Initial Visit`}</h2>
 
-              {/* Unique ID */}
+              {/* 1. Unique ID */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label for="uniqueId">
                     Unique ID <span style={{ color: "red" }}> *</span>
                   </Label>
-                  <Input
+                  <input
                     type="text"
+                    className="form-control"
                     name="uniqueId"
                     id="uniqueId"
                     onChange={handleInputChange}
                     value={objValues.uniqueId}
                     disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
                   />
                   {errors.uniqueId !== "" ? (
                     <span className={classes.error}>{errors.uniqueId}</span>
@@ -305,15 +319,15 @@ const PrEPRegistrationForm = props => {
                 </FormGroup>
               </div>
 
-              {/* Date Enrolled */}
+              {/* 2. Date Enrolled */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>
                     Date Enrolled <span style={{ color: "red" }}> *</span>
                   </Label>
-                  <Input
-                    className="form-control"
+                  <input
                     type="date"
+                    className="form-control"
                     onKeyDown={e => e.preventDefault()}
                     name="dateEnrolled"
                     id="dateEnrolled"
@@ -339,38 +353,44 @@ const PrEPRegistrationForm = props => {
                 </FormGroup>
               </div>
 
-              {/* Enrollment Type */}
+              {/* 3. Enrollment Type */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>Enrollment Type</Label>
-                  <Input
-                    type="select"
+                  <select
+                    className="form-control"
                     name="enrollmentType"
                     id="enrollmentType"
                     onChange={handleInputChange}
                     value={objValues.enrollmentType}
                     disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
                   >
                     <option value="">Select</option>
                     <option value="PrEP">PrEP</option>
                     <option value="PEP">PEP</option>
-                  </Input>
+                  </select>
                 </FormGroup>
               </div>
 
-              {/* Population Type */}
+              {/* 4. Population Type */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>Population Type</Label>
-                  <Input
-                    type="select"
+                  <select
+                    className="form-control"
                     name="populationType"
                     id="populationType"
                     onChange={handleInputChange}
                     value={objValues.populationType}
                     disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
                   >
                     <option value="">Select</option>
                     <option value="Serodiscordant Couples(SDC)">Serodiscordant Couples(SDC)</option>
@@ -380,12 +400,248 @@ const PrEPRegistrationForm = props => {
                     <option value="Individuals who engage in anal sex on a prolonged and regular basis">Individuals who engage in anal sex on a prolonged and regular basis</option>
                     <option value="Exposed adolescents and young people">Exposed adolescents and young people</option>
                     <option value="Transgender">Transgender</option>
-                    <option value="At risk Pregnant & Breastfeeding Women">At risk Pregnant & Breastfeeding Women</option>
-                  </Input>
+                    <option value="At risk Pregnant & Breastfeeding Women">{`At risk Pregnant & Breastfeeding Women`}</option>
+                  </select>
                 </FormGroup>
               </div>
 
-              {/* Weight */}
+              {/* 5. Date Referred for PrEP */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Date Referred for PrEP</Label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    onKeyDown={e => e.preventDefault()}
+                    name="dateReferred"
+                    id="dateReferred"
+                    value={objValues.dateReferred}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    min={
+                      patientDto && patientDto.visitDate
+                        ? patientDto.visitDate
+                        : ""
+                    }
+                    max={moment(new Date()).format("YYYY-MM-DD")}
+                    disabled={disabledField}
+                  />
+                  {errors.dateReferred !== "" ? (
+                    <span className={classes.error}>{errors.dateReferred}</span>
+                  ) : (
+                    ""
+                  )}
+                </FormGroup>
+              </div>
+
+              {/* 6. HIV Testing Point */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>HIV Testing Point</Label>
+                  <select
+                    className="form-control"
+                    name="hivTestingPoint"
+                    id="hivTestingPoint"
+                    onChange={handleInputChange}
+                    value={objValues.hivTestingPoint}
+                    disabled={disabledField}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                  >
+                    <option value="">Select</option>
+                    <option value="Facility">Facility</option>
+                    <option value="Community">Community</option>
+                    <option value="Others">Others</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              {/* 7. Date of HIV Test */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Date of HIV Test</Label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    onKeyDown={e => e.preventDefault()}
+                    name="dateOfHivTest"
+                    id="dateOfHivTest"
+                    value={objValues.dateOfHivTest}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
+              {/* 8. Result of HIV test */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Result of HIV test</Label>
+                  <select
+                    className="form-control"
+                    name="resultOfHivTest"
+                    id="resultOfHivTest"
+                    onChange={handleInputChange}
+                    value={objValues.resultOfHivTest}
+                    disabled={disabledField}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                  >
+                    <option value="">Select</option>
+                    <option value="Positive">Positive</option>
+                    <option value="Negative">Negative</option>
+                    <option value="Early Detect">Early Detect</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              {/* 9. PrEP Supporter */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>PrEP Supporter</Label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="supporterName"
+                    id="supporterName"
+                    value={objValues.supporterName}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
+              {/* 10. Relationship */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Relationship</Label>
+                  <select
+                    className="form-control"
+                    name="supporterRelationshipType"
+                    id="supporterRelationshipType"
+                    value={objValues.supporterRelationshipType}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value="">Select</option>
+                    {codeset?.RELATIONSHIP?.map(value => (
+                      <option key={value.id} value={value.code}>
+                        {value.display}
+                      </option>
+                    ))}
+                  </select>
+                </FormGroup>
+              </div>
+
+              {/* 11. Telephone number (supporter) */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Telephone number (supporter)</Label>
+                  <PhoneInput
+                    containerStyle={{
+                      width: "100%",
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                    }}
+                    style={{ borderRadius: "0.25rem" }}
+                    inputStyle={{
+                      width: "100%",
+                      borderRadius: "0.25rem",
+                    }}
+                    country={"ng"}
+                    placeholder="(234)7099999999"
+                    maxLength={5}
+                    name="supporterPhone"
+                    id="supporterPhone"
+                    masks={{ ng: "...-...-....", at: "(....) ...-...." }}
+                    value={objValues.supporterPhone}
+                    onChange={e => {
+                      checkPhoneNumberBasic(e, "supporterPhone");
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
+              {/* ====== Section B: PrEP/PEP Initiation ====== */}
+              <div
+                className="form-group col-md-12 text-center pt-2 mb-4 p-3"
+                style={{
+                  backgroundColor: "#014D88",
+                  width: "125%",
+                  height: "35px",
+                  color: "#fff",
+                  fontWeight: "bold",
+                }}
+              >
+                {`PrEP/PEP Initiation`}
+              </div>
+
+              {/* 12. Date of Initial Adherence Counseling */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Date of Initial Adherence Counseling</Label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    onKeyDown={e => e.preventDefault()}
+                    name="dateOfInitialAdherenceCounseling"
+                    id="dateOfInitialAdherenceCounseling"
+                    value={objValues.dateOfInitialAdherenceCounseling}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
+              {/* 13. Date PrEP started */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Date PrEP started</Label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    onKeyDown={e => e.preventDefault()}
+                    name="datePrepStarted"
+                    id="datePrepStarted"
+                    value={objValues.datePrepStarted}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
+              {/* 14. Weight */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>Body Weight</Label>
@@ -429,7 +685,7 @@ const PrEPRegistrationForm = props => {
                 </FormGroup>
               </div>
 
-              {/* Height */}
+              {/* 15. Height */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>Height</Label>
@@ -486,18 +742,21 @@ const PrEPRegistrationForm = props => {
                 </FormGroup>
               </div>
 
-              {/* Pregnancy Status */}
+              {/* 16. Pregnancy Status */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>Pregnancy Status</Label>
-                  <Input
-                    type="select"
+                  <select
+                    className="form-control"
                     name="pregnancyStatus"
                     id="pregnancyStatus"
                     onChange={handleInputChange}
                     value={objValues.pregnancyStatus}
                     disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
                   >
                     <option value="">Select</option>
                     {codeset?.PREGNANCY_STATUS?.map(value => (
@@ -505,364 +764,50 @@ const PrEPRegistrationForm = props => {
                         {value.display}
                       </option>
                     ))}
-                  </Input>
+                  </select>
                 </FormGroup>
               </div>
 
-              {/* History of Drug Allergies */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>History of Drug Allergies</Label>
-                  <Input
-                    type="select"
-                    name="historyOfDrugAllergies"
-                    id="historyOfDrugAllergies"
-                    onChange={handleInputChange}
-                    value={objValues.historyOfDrugAllergies}
-                    disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
-                  >
-                    <option value="">Select</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                  </Input>
-                </FormGroup>
-              </div>
-
-              {/* History of Drug-Drug Interaction */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>History of Drug-Drug Interaction</Label>
-                  <Input
-                    type="select"
-                    name="historyOfDrugToDrugInteraction"
-                    id="historyOfDrugToDrugInteraction"
-                    onChange={handleInputChange}
-                    value={objValues.historyOfDrugToDrugInteraction}
-                    disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
-                  >
-                    <option value="">Select</option>
-                    {codeset?.PREP_HISTORY_OF_DRUG_INTERACTIONS?.map(value => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-              </div>
-
-              {/* Urinalysis Result */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>Urinalysis Result</Label>
-                  <Input
-                    type="select"
-                    name="urinalysisResult"
-                    id="urinalysisResult"
-                    onChange={handleInputChange}
-                    value={objValues.urinalysisResult}
-                    disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
-                  >
-                    <option value="">Select</option>
-                    {codeset?.PREP_URINALYSIS_RESULT?.map(value => (
-                      <option key={value.id} value={value.display}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-              </div>
-
-              {/* Liver Function Test */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>Liver Function Test</Label>
-                  <Input
-                    type="select"
-                    name="liverFunctionTest"
-                    id="liverFunctionTest"
-                    onChange={handleInputChange}
-                    value={objValues.liverFunctionTest}
-                    disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
-                  >
-                    <option value="">Select</option>
-                    {codeset?.LIVER_FUNCTION_TEST_RESULT?.map(value => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-              </div>
-
-              {/* HIV Testing Point */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>HIV Testing Point</Label>
-                  <Input
-                    type="select"
-                    name="hivTestingPoint"
-                    id="hivTestingPoint"
-                    onChange={handleInputChange}
-                    value={objValues.hivTestingPoint}
-                    disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
-                  >
-                    <option value="">Select</option>
-                    <option value="Facility">Facility</option>
-                    <option value="Community">Community</option>
-                    <option value="Others">Others</option>
-                  </Input>
-                </FormGroup>
-              </div>
-
-              {/* Date of HIV Test */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>Date of HIV Test</Label>
-                  <Input
-                    className="form-control"
-                    type="date"
-                    onKeyDown={e => e.preventDefault()}
-                    name="dateOfHivTest"
-                    id="dateOfHivTest"
-                    value={objValues.dateOfHivTest}
-                    onChange={handleInputChange}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    max={moment(new Date()).format("YYYY-MM-DD")}
-                    disabled={disabledField}
-                  />
-                </FormGroup>
-              </div>
-
-              {/* Result of HIV test */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>Result of HIV test</Label>
-                  <Input
-                    type="select"
-                    name="resultOfHivTest"
-                    id="resultOfHivTest"
-                    onChange={handleInputChange}
-                    value={objValues.resultOfHivTest}
-                    disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
-                  >
-                    <option value="">Select</option>
-                    <option value="Positive">Positive</option>
-                    <option value="Negative">Negative</option>
-                    <option value="Early Detect">Early Detect</option>
-                  </Input>
-                </FormGroup>
-              </div>
-
-              {/* Date Referred for PrEP */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>Date Referred for PrEP</Label>
-                  <Input
-                    className="form-control"
-                    type="date"
-                    onKeyDown={e => e.preventDefault()}
-                    name="dateReferred"
-                    id="dateReferred"
-                    value={objValues.dateReferred}
-                    onChange={handleInputChange}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    min={
-                      patientDto && patientDto.visitDate
-                        ? patientDto.visitDate
-                        : ""
-                    }
-                    max={moment(new Date()).format("YYYY-MM-DD")}
-                    disabled={disabledField}
-                  />
-                  {errors.dateReferred !== "" ? (
-                    <span className={classes.error}>{errors.dateReferred}</span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              {/* PrEP Supporter */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>PrEP Supporter</Label>
-                  <Input
-                    className="form-control"
-                    type="text"
-                    name="supporterName"
-                    id="supporterName"
-                    value={objValues.supporterName}
-                    onChange={handleInputChange}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.25rem",
-                    }}
-                    disabled={disabledField}
-                  />
-                </FormGroup>
-              </div>
-
-              {/* Relationship */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>Relationship</Label>
-                  <Input
-                    className="form-control"
-                    type="select"
-                    name="supporterRelationshipType"
-                    id="supporterRelationshipType"
-                    value={objValues.supporterRelationshipType}
-                    onChange={handleInputChange}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value="">Select</option>
-                    {codeset?.RELATIONSHIP?.map(value => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-              </div>
-
-              {/* Telephone number (supporter) */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>Telephone number (supporter)</Label>
-                  <PhoneInput
-                    containerStyle={{
-                      width: "100%",
-                      border: "1px solid #014D88",
-                      borderRadius: "0.25rem",
-                    }}
-                    style={{ borderRadius: "0.25rem" }}
-                    inputStyle={{
-                      width: "100%",
-                      borderRadius: "0.25rem",
-                    }}
-                    country={"ng"}
-                    placeholder="(234)7099999999"
-                    maxLength={5}
-                    name="supporterPhone"
-                    id="supporterPhone"
-                    masks={{ ng: "...-...-....", at: "(....) ...-...." }}
-                    value={objValues.supporterPhone}
-                    onChange={e => {
-                      checkPhoneNumberBasic(e, "supporterPhone");
-                    }}
-                    disabled={disabledField}
-                  />
-                </FormGroup>
-              </div>
-
-              {/* ====== Section B: PrEP/PEP Initiation ====== */}
-              <div
-                className="form-group col-md-12 text-center pt-2 mb-4 p-3"
-                style={{
-                  backgroundColor: "#014D88",
-                  width: "125%",
-                  height: "35px",
-                  color: "#fff",
-                  fontWeight: "bold",
-                }}
-              >
-                {`PrEP/PEP Initiation`}
-              </div>
-
-              {/* Date of Initial Adherence Counseling */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>Date of Initial Adherence Counseling</Label>
-                  <Input
-                    className="form-control"
-                    type="date"
-                    onKeyDown={e => e.preventDefault()}
-                    name="dateOfInitialAdherenceCounseling"
-                    id="dateOfInitialAdherenceCounseling"
-                    value={objValues.dateOfInitialAdherenceCounseling}
-                    onChange={handleInputChange}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    max={moment(new Date()).format("YYYY-MM-DD")}
-                    disabled={disabledField}
-                  />
-                </FormGroup>
-              </div>
-
-              {/* Date PrEP started */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>Date PrEP started</Label>
-                  <Input
-                    className="form-control"
-                    type="date"
-                    onKeyDown={e => e.preventDefault()}
-                    name="datePrepStarted"
-                    id="datePrepStarted"
-                    value={objValues.datePrepStarted}
-                    onChange={handleInputChange}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    max={moment(new Date()).format("YYYY-MM-DD")}
-                    disabled={disabledField}
-                  />
-                </FormGroup>
-              </div>
-
-              {/* PrEP Type at Start */}
+              {/* 17. PrEP Type at Start */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>PrEP Type at Start</Label>
-                  <Input
-                    type="select"
+                  <select
+                    className="form-control"
                     name="prepTypeAtStart"
                     id="prepTypeAtStart"
                     onChange={handleInputChange}
                     value={objValues.prepTypeAtStart}
                     disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
                   >
                     <option value="">Select</option>
                     <option value="Oral">Oral</option>
                     <option value="Injectable">Injectable</option>
                     <option value="Ring">Ring</option>
                     <option value="Others">Others</option>
-                  </Input>
+                  </select>
                 </FormGroup>
               </div>
 
-              {/* PrEP Regimen */}
+              {/* 18. PrEP Regimen */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>PrEP Regimen</Label>
-                  <Input
-                    type="select"
+                  <select
+                    className="form-control"
                     name="prepRegimen"
                     id="prepRegimen"
                     onChange={handleInputChange}
                     value={objValues.prepRegimen}
                     disabled={disabledField}
-                    style={{ border: "1px solid #014D88" }}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
                   >
                     <option value="">Select</option>
                     {prepRegimen.map(value => (
@@ -870,7 +815,96 @@ const PrEPRegistrationForm = props => {
                         {value.regimen}
                       </option>
                     ))}
-                  </Input>
+                  </select>
+                </FormGroup>
+              </div>
+
+              {/* 19. History of Drug Allergies */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>History of Drug Allergies</Label>
+                  <select
+                    className="form-control"
+                    name="historyOfDrugAllergies"
+                    id="historyOfDrugAllergies"
+                    onChange={handleInputChange}
+                    value={objValues.historyOfDrugAllergies}
+                    disabled={disabledField}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                  >
+                    <option value="">Select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              {/* 20. History of Drug-Drug Interaction */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>History of Drug-Drug Interaction</Label>
+                  <select
+                    className="form-control"
+                    name="historyOfDrugToDrugInteraction"
+                    id="historyOfDrugToDrugInteraction"
+                    onChange={handleInputChange}
+                    value={objValues.historyOfDrugToDrugInteraction}
+                    disabled={disabledField}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                  >
+                    <option value="">Select</option>
+                    {codeset?.PREP_HISTORY_OF_DRUG_INTERACTIONS?.map(value => (
+                      <option key={value.id} value={value.code}>
+                        {value.display}
+                      </option>
+                    ))}
+                  </select>
+                </FormGroup>
+              </div>
+
+              {/* 21. Urinalysis Result */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Urinalysis Result</Label>
+                  <select
+                    className="form-control"
+                    name="urinalysisResult"
+                    id="urinalysisResult"
+                    onChange={handleInputChange}
+                    value={objValues.urinalysisResult}
+                    disabled={disabledField}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                  >
+                    <option value="">Select</option>
+                    {codeset?.PREP_URINALYSIS_RESULT?.map(value => (
+                      <option key={value.id} value={value.display}>
+                        {value.display}
+                      </option>
+                    ))}
+                  </select>
+                </FormGroup>
+              </div>
+
+              {/* 22. Liver Function Test (DualListBox) */}
+              <div className="form-group mb-3 col-md-6">
+                <FormGroup>
+                  <Label>Liver Function Test</Label>
+                  <LiverFunctionTest
+                    objValues={objValues}
+                    handleInputChange={handleLftInputChange}
+                    liverFunctionTestResult={codeset?.LIVER_FUNCTION_TEST_RESULT}
+                    disabledField={disabledField}
+                    isAutoPop={false}
+                  />
                 </FormGroup>
               </div>
             </div>
