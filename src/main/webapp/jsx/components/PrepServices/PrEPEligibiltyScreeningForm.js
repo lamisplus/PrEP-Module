@@ -1204,7 +1204,9 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Have you been paid for sex in the last 3 months?</Label>
+                  <Label>
+                    Have you been paid for sex in the last 3 months?
+                  </Label>
                   <select
                     className="form-control"
                     name="haveYouBeenPaidForSex"
@@ -1395,7 +1397,8 @@ const BasicInfo = props => {
                   marginBottom: "0.5rem",
                 }}
               >
-                Do you use any of these drugs/substances_Route of Administration?
+                Do you use any of these drugs/substances_Route of
+                Administration?
               </h5>
 
               <div className="form-group col-md-4 p-3">
@@ -1488,7 +1491,9 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Have you used drugs to enhance sexual performance?</Label>
+                  <Label>
+                    Have you used drugs to enhance sexual performance?
+                  </Label>
                   <select
                     className="form-control"
                     name="useDrugSexualPerformance"
@@ -2075,7 +2080,9 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Tested in other clinical settings such as STI clinic</Label>
+                  <Label>
+                    Tested in other clinical settings such as STI clinic
+                  </Label>
                   <input
                     type="text"
                     className="form-control"
@@ -2148,7 +2155,9 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Report a specific HIV exposure within the last 3 months?</Label>
+                  <Label>
+                    Report a specific HIV exposure within the last 3 months?
+                  </Label>
                   <select
                     className="form-control"
                     name="hivExposure"
@@ -2178,16 +2187,16 @@ const BasicInfo = props => {
                   drugHistory.reportHivRisk === "true"
                     ? "Yes"
                     : drugHistory.reportHivRisk === "false"
-                    ? "No"
-                    : "Not provided"
+                      ? "No"
+                      : "Not provided"
                 }`}</b>
                 <br />
                 <b>{`HIV exposure in last 3 months: ${
                   drugHistory.hivExposure === "true"
                     ? "Yes"
                     : drugHistory.hivExposure === "false"
-                    ? "No"
-                    : "Not provided"
+                      ? "No"
+                      : "Not provided"
                 }`}</b>
               </Message>
 
@@ -2196,14 +2205,12 @@ const BasicInfo = props => {
                   "true" ||
                   assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days ===
                     "true") && (
-                  <Message
-                    negative
-                    style={{ width: "100%" }}
-                  >
+                  <Message negative style={{ width: "100%" }}>
                     <h4>HIV Re-Testing Recommended</h4>
                     <p>
                       Client tested HIV Negative but has signs/symptoms of acute
-                      HIV infection. HIV re-testing is recommended after 1 month.
+                      HIV infection. HIV re-testing is recommended after 1
+                      month.
                     </p>
                   </Message>
                 )}
@@ -2220,7 +2227,7 @@ const BasicInfo = props => {
                   fontWeight: "bold",
                 }}
               >
-                Assessment for PrEP Eligibilty
+                PrEP Eligibilty scoring
               </div>
 
               <div className="col-md-6 p-3">
@@ -2250,7 +2257,7 @@ const BasicInfo = props => {
                 {true && (
                   <div className="form-group  col-md-4 p-3">
                     <FormGroup>
-                      <Label>{`Has no proteinuria (>=30 Years)`}</Label>
+                      <Label>{`Has no proteinuria (>30 Years)`}</Label>
                       <select
                         className="form-control"
                         name="hasNoProteinuria"
