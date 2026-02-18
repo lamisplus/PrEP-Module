@@ -186,9 +186,23 @@ const BasicInfo = props => {
     sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours: "",
   });
   const [servicesReceivedByClient, setServicesReceivedByClient] = useState({
+    prepOffered: "",
     willingToCommencePrep: "",
+    prepAccepted: "",
+    clientReferredToOtherServices: "",
+    othersSpecify: "",
     reasonsForDecline: [],
     otherReasonsForDecline: "",
+  });
+  const [reasonForDecliningPrep, setReasonForDecliningPrep] = useState({
+    noNeedForPrep: "",
+    doesNotWishDailyMedication: "",
+    concernsAboutSideEffects: "",
+    concernsAboutWhatOthersThink: "",
+    concernsAboutTimeForClinicFollowUp: "",
+    concernsAboutSafetyOfMedication: "",
+    concernsAboutEffectivenessOfMedication: "",
+    othersSpecify: "",
   });
   const [assessmentForAcuteHivInfection, setAssessmentForAcuteHivInfection] =
     useState({
@@ -203,6 +217,11 @@ const BasicInfo = props => {
       noIndicationForPep: "",
       hasNoProteinuria: "",
     });
+  const [considerationForInjections, setConsiderationForInjections] = useState({
+    noHistoryOrSignsOfLiverAbnormalitiesInjectable: "",
+    noHistoryOfDrugToDrugInteractionInjectable: "",
+    noHistoryOfDrugHypersensitivityInjectable: "",
+  });
 
   const handleLftInputChange = event => {
     const { name, value } = event.target;
@@ -254,6 +273,8 @@ const BasicInfo = props => {
           assessmentForAcuteHivInfection,
           servicesReceivedByClient,
           assessmentForPrepEligibility,
+          considerationForInjections,
+          reasonForDecliningPrep,
         } = response.data;
         setObjValues(response.data);
         setRiskAssessment(personalHivRiskAssessment);
@@ -264,6 +285,8 @@ const BasicInfo = props => {
         setAssessmentForAcuteHivInfection(assessmentForAcuteHivInfection);
         setServicesReceivedByClient(servicesReceivedByClient);
         setAssessmentForPrepEligibility(assessmentForPrepEligibility);
+        if (considerationForInjections) setConsiderationForInjections(considerationForInjections);
+        if (reasonForDecliningPrep) setReasonForDecliningPrep(reasonForDecliningPrep);
       })
       .catch(error => {
         console.error("Error fetching patient eligibility data:", error);
@@ -333,6 +356,22 @@ const BasicInfo = props => {
     });
   };
 
+  const handleInputChangeConsiderationForInjections = e => {
+    setErrors({ ...temp, [e.target.name]: "" });
+    setConsiderationForInjections({
+      ...considerationForInjections,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleInputChangeReasonForDecliningPrep = e => {
+    setErrors({ ...temp, [e.target.name]: "" });
+    setReasonForDecliningPrep({
+      ...reasonForDecliningPrep,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handleInputChangeServicesReceivedByClient = (e, data) => {
     setErrors({ ...temp, [e.target.name]: "" });
 
@@ -381,7 +420,9 @@ const BasicInfo = props => {
       objValues.assessmentForAcuteHivInfection = assessmentForAcuteHivInfection;
       objValues.assessmentForPepIndication = assessmentForPepIndication;
       objValues.assessmentForPrepEligibility = assessmentForPrepEligibility;
+      objValues.considerationForInjections = considerationForInjections;
       objValues.servicesReceivedByClient = servicesReceivedByClient;
+      objValues.reasonForDecliningPrep = reasonForDecliningPrep;
       objValues.score = getPrepEligibilityScore();
       if (props.activeContent && props.activeContent.actionType === "update") {
         axios
@@ -2344,18 +2385,120 @@ const BasicInfo = props => {
               <hr />
               <br />
               <div
-                className="form-group  col-md-12 text-center mb-4 p-2"
+                className="form-group  col-md-12 text-center pt-2 mb-4 p-3"
                 style={{
                   backgroundColor: "#014D88",
                   width: "125%",
+                  height: "35px",
                   color: "#fff",
                   fontWeight: "bold",
                 }}
               >
-                Services Received by Client
+                Consideration for Injections
               </div>
-              <div className="form-group  col-md-6">
-                <FormGroup>
+
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>{`No history / signs & symptoms of Liver abnormalities (Injectable)`}</Label>
+                  <select
+                    className="form-control"
+                    name="noHistoryOrSignsOfLiverAbnormalitiesInjectable"
+                    id="noHistoryOrSignsOfLiverAbnormalitiesInjectable"
+                    value={considerationForInjections?.noHistoryOrSignsOfLiverAbnormalitiesInjectable}
+                    onChange={handleInputChangeConsiderationForInjections}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>{`No history of drug-drug interaction (Injectable)`}</Label>
+                  <select
+                    className="form-control"
+                    name="noHistoryOfDrugToDrugInteractionInjectable"
+                    id="noHistoryOfDrugToDrugInteractionInjectable"
+                    value={considerationForInjections?.noHistoryOfDrugToDrugInteractionInjectable}
+                    onChange={handleInputChangeConsiderationForInjections}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>{`No history of drug hypersensitivity (Injectable)`}</Label>
+                  <select
+                    className="form-control"
+                    name="noHistoryOfDrugHypersensitivityInjectable"
+                    id="noHistoryOfDrugHypersensitivityInjectable"
+                    value={considerationForInjections?.noHistoryOfDrugHypersensitivityInjectable}
+                    onChange={handleInputChangeConsiderationForInjections}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <hr />
+              <br />
+              <div
+                className="form-group  col-md-12 text-center pt-2 mb-4 p-3"
+                style={{
+                  backgroundColor: "#014D88",
+                  width: "125%",
+                  height: "35px",
+                  color: "#fff",
+                  fontWeight: "bold",
+                }}
+              >
+                PrEP Initiation
+              </div>
+
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>PrEP Offered</Label>
+                  <select
+                    className="form-control"
+                    name="prepOffered"
+                    id="prepOffered"
+                    value={servicesReceivedByClient?.prepOffered}
+                    onChange={handleInputChangeServicesReceivedByClient}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
                   <Label>Willing to commence PrEP</Label>
                   <select
                     className="form-control"
@@ -2382,66 +2525,245 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>PrEP Accepted</Label>
+                  <select
+                    className="form-control"
+                    name="prepAccepted"
+                    id="prepAccepted"
+                    value={servicesReceivedByClient?.prepAccepted}
+                    onChange={handleInputChangeServicesReceivedByClient}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Client referred to other services</Label>
+                  <select
+                    className="form-control"
+                    name="clientReferredToOtherServices"
+                    id="clientReferredToOtherServices"
+                    value={servicesReceivedByClient?.clientReferredToOtherServices}
+                    onChange={handleInputChangeServicesReceivedByClient}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Others (Specify)</Label>
+                  <Input
+                    className="form-control"
+                    name="othersSpecify"
+                    id="othersSpecify"
+                    value={servicesReceivedByClient?.othersSpecify}
+                    onChange={handleInputChangeServicesReceivedByClient}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
 
-              {/* <Dropdown placeholder='Skills' fluid multiple selection options={reasonForDecline} /> */}
-              {servicesReceivedByClient?.willingToCommencePrep === "false" && (
-                <div className="form-group  col-md-4">
-                  <FormGroup>
-                    <Label>Reasons for Declining PrEP</Label>
-                    <Dropdown
-                      value={servicesReceivedByClient?.reasonsForDecline}
-                      placeholder="select reasons for decline"
-                      onChange={handleInputReasonsForDecline}
-                      fluid
-                      multiple
-                      selection
-                      options={codeset?.REASON_PREP_DECLINED?.map(each => {
-                        return {
-                          key: each.code,
-                          text: each.display,
-                          value: each.code,
-                        };
-                      })}
-                    />
-                    {errors.reasonsForDecline !== "" ? (
-                      <span className={classes.error}>
-                        {errors.reasonsForDecline}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-              )}
-              {servicesReceivedByClient?.reasonsForDecline?.find(
-                one => one === "REASON_PREP_DECLINED_OTHERS_(SPECIFY)"
-              ) !== (null || undefined) && (
-                <div className="form-group  col-md-12 p-3">
-                  <FormGroup>
-                    <Label>{`Other Reasons for Declining PrEP (Specify)`}</Label>
-                    <Input
-                      className="form-control"
-                      name="otherReasonsForDecline"
-                      id="otherReasonsForDecline"
-                      value={servicesReceivedByClient?.otherReasonsForDecline}
-                      onChange={handleInputChangeServicesReceivedByClient}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    />
+              <hr />
+              <br />
+              <div
+                className="form-group  col-md-12 text-center pt-2 mb-4 p-3"
+                style={{
+                  backgroundColor: "#014D88",
+                  width: "125%",
+                  height: "35px",
+                  color: "#fff",
+                  fontWeight: "bold",
+                }}
+              >
+                Reason for Declining PrEP
+              </div>
 
-                    {errors.reasonsForDecline !== "" ? (
-                      <span className={classes.error}>
-                        {errors.reasonsForDecline}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-              )}
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>No need for PrEP</Label>
+                  <select
+                    className="form-control"
+                    name="noNeedForPrep"
+                    id="noNeedForPrep"
+                    value={reasonForDecliningPrep?.noNeedForPrep}
+                    onChange={handleInputChangeReasonForDecliningPrep}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Does not wish to take a daily medication</Label>
+                  <select
+                    className="form-control"
+                    name="doesNotWishDailyMedication"
+                    id="doesNotWishDailyMedication"
+                    value={reasonForDecliningPrep?.doesNotWishDailyMedication}
+                    onChange={handleInputChangeReasonForDecliningPrep}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Concerns about side effects</Label>
+                  <select
+                    className="form-control"
+                    name="concernsAboutSideEffects"
+                    id="concernsAboutSideEffects"
+                    value={reasonForDecliningPrep?.concernsAboutSideEffects}
+                    onChange={handleInputChangeReasonForDecliningPrep}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Concerns about what others think</Label>
+                  <select
+                    className="form-control"
+                    name="concernsAboutWhatOthersThink"
+                    id="concernsAboutWhatOthersThink"
+                    value={reasonForDecliningPrep?.concernsAboutWhatOthersThink}
+                    onChange={handleInputChangeReasonForDecliningPrep}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Concerns about time required for clinic follow-up</Label>
+                  <select
+                    className="form-control"
+                    name="concernsAboutTimeForClinicFollowUp"
+                    id="concernsAboutTimeForClinicFollowUp"
+                    value={reasonForDecliningPrep?.concernsAboutTimeForClinicFollowUp}
+                    onChange={handleInputChangeReasonForDecliningPrep}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Concerns about safety of medication</Label>
+                  <select
+                    className="form-control"
+                    name="concernsAboutSafetyOfMedication"
+                    id="concernsAboutSafetyOfMedication"
+                    value={reasonForDecliningPrep?.concernsAboutSafetyOfMedication}
+                    onChange={handleInputChangeReasonForDecliningPrep}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Concerns about effectiveness of medication</Label>
+                  <select
+                    className="form-control"
+                    name="concernsAboutEffectivenessOfMedication"
+                    id="concernsAboutEffectivenessOfMedication"
+                    value={reasonForDecliningPrep?.concernsAboutEffectivenessOfMedication}
+                    onChange={handleInputChangeReasonForDecliningPrep}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Others (Specify)</Label>
+                  <Input
+                    className="form-control"
+                    name="othersSpecify"
+                    id="reasonForDecliningPrepOthersSpecify"
+                    value={reasonForDecliningPrep?.othersSpecify}
+                    onChange={handleInputChangeReasonForDecliningPrep}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
 
               {saving ? <Spinner /> : ""}
               <br />
