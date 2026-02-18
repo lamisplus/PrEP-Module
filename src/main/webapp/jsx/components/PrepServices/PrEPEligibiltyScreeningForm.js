@@ -199,6 +199,7 @@ const BasicInfo = props => {
     useState({
       hivNegative: "",
       hivRiskScore: "",
+      noSignsAndSymptomsOfAcuteHivInfection: "",
       noIndicationForPep: "",
       hasNoProteinuria: "",
     });
@@ -521,8 +522,10 @@ const BasicInfo = props => {
     var score = 0;
     score += drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0;
     score += riskCount.length >= 1 ? 1 : 0;
-    score += getAcuteHivResult();
-    score += getIndicationForPepResult();
+    score +=
+      assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection === "true" ? 1 : 0;
+    score +=
+      assessmentForPrepEligibility?.noIndicationForPep === "true" ? 1 : 0;
     if (is30AndAbove()) {
       score +=
         assessmentForPrepEligibility?.hasNoProteinuria === "true" ? 1 : 0;
@@ -2239,17 +2242,45 @@ const BasicInfo = props => {
                 <div className="d-flex">
                   <div style={{ flex: 1 }}>
                     <FormGroup>
-                      <Label>
-                        No signs and symptoms of Acute HIV Infection:{" "}
-                        <span className="badge badge-info">{`${getAcuteHivResult()}`}</span>
-                      </Label>
+                      <Label>No signs and symptoms of Acute HIV Infection</Label>
+                      <select
+                        className="form-control"
+                        name="noSignsAndSymptomsOfAcuteHivInfection"
+                        id="noSignsAndSymptomsOfAcuteHivInfection"
+                        value={assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection}
+                        onChange={handleInputChangeAssessmentForPrepEligibility}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.2rem",
+                        }}
+                        disabled={disabledField}
+                      >
+                        <option value={""}>Select</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
                     </FormGroup>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <Label>
-                      No Indication for PEP:{" "}
-                      <span className="badge badge-info">{`${getIndicationForPepResult()}`}</span>
-                    </Label>
+                    <FormGroup>
+                      <Label>No Indication for PEP</Label>
+                      <select
+                        className="form-control"
+                        name="noIndicationForPep"
+                        id="noIndicationForPep"
+                        value={assessmentForPrepEligibility?.noIndicationForPep}
+                        onChange={handleInputChangeAssessmentForPrepEligibility}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.2rem",
+                        }}
+                        disabled={disabledField}
+                      >
+                        <option value={""}>Select</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                    </FormGroup>
                   </div>
                 </div>
 
@@ -2295,8 +2326,16 @@ const BasicInfo = props => {
                 <h5>{`HIV risk score >=1 : ${
                   riskCount.length >= 1 ? 1 : 0
                 }`}</h5>
-                <h5>{`No signs and symptoms of Acute HIV Infection: ${getAcuteHivResult()}`}</h5>
-                <h5>{`No Indication for PEP: ${getIndicationForPepResult()}`}</h5>
+                <h5>{`No signs and symptoms of Acute HIV Infection: ${
+                  assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection === "true"
+                    ? 1
+                    : 0
+                }`}</h5>
+                <h5>{`No Indication for PEP: ${
+                  assessmentForPrepEligibility?.noIndicationForPep === "true"
+                    ? 1
+                    : 0
+                }`}</h5>
                 {is30AndAbove() && (
                   <h5>{`Has no proteinuria (>30 Years): ${
                     assessmentForPrepEligibility?.hasNoProteinuria === "true"
