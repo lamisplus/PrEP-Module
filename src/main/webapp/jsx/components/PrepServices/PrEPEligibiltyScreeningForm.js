@@ -2215,106 +2215,100 @@ const BasicInfo = props => {
                 PrEP Eligibilty scoring
               </div>
 
-              <div className="col-md-6 p-3">
-                <div className="d-flex">
-                  <div style={{ flex: 1 }}>
-                    <FormGroup>
-                      <Label>
-                        HIV Negative:{" "}
-                        <span className="badge badge-info">{`${
-                          drugHistory.hivTestResultAtvisit === "Negative"
-                            ? 1
-                            : 0
-                        }`}</span>{" "}
-                      </Label>
-                    </FormGroup>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <Label>
-                      {`HIV Risk Score >= 1:`}{" "}
-                      <span className="badge badge-info">{`${
-                        riskCount.length >= 1 ? 1 : 0
-                      }`}</span>
-                    </Label>
-                  </div>
-                </div>
-
-                <div className="d-flex">
-                  <div style={{ flex: 1 }}>
-                    <FormGroup>
-                      <Label>No signs and symptoms of Acute HIV Infection</Label>
-                      <select
-                        className="form-control"
-                        name="noSignsAndSymptomsOfAcuteHivInfection"
-                        id="noSignsAndSymptomsOfAcuteHivInfection"
-                        value={assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection}
-                        onChange={handleInputChangeAssessmentForPrepEligibility}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.2rem",
-                        }}
-                        disabled={disabledField}
-                      >
-                        <option value={""}>Select</option>
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                      </select>
-                    </FormGroup>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <FormGroup>
-                      <Label>No Indication for PEP</Label>
-                      <select
-                        className="form-control"
-                        name="noIndicationForPep"
-                        id="noIndicationForPep"
-                        value={assessmentForPrepEligibility?.noIndicationForPep}
-                        onChange={handleInputChangeAssessmentForPrepEligibility}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.2rem",
-                        }}
-                        disabled={disabledField}
-                      >
-                        <option value={""}>Select</option>
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                      </select>
-                    </FormGroup>
-                  </div>
-                </div>
-
-                {is30AndAbove() && (
-                  <div className="form-group  col-md-4 p-3">
-                    <FormGroup>
-                      <Label>{`Has no proteinuria (>30 Years)`}</Label>
-                      <select
-                        className="form-control"
-                        name="hasNoProteinuria"
-                        id="hasNoProteinuria"
-                        value={assessmentForPrepEligibility?.hasNoProteinuria}
-                        onChange={handleInputChangeAssessmentForPrepEligibility}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.2rem",
-                        }}
-                        disabled={disabledField}
-                      >
-                        <option value={""}>Select</option>
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                      </select>
-                      {errors.hasNoProteinuria !== "" ? (
-                        <span className={classes.error}>
-                          {errors.hasNoProteinuria}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                )}
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>
+                    HIV Negative:{" "}
+                    <span className="badge badge-info">{`${
+                      drugHistory.hivTestResultAtvisit === "Negative"
+                        ? 1
+                        : 0
+                    }`}</span>
+                  </Label>
+                </FormGroup>
               </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>
+                    {`HIV Risk Score >= 1:`}{" "}
+                    <span className="badge badge-info">{`${
+                      riskCount.length >= 1 ? 1 : 0
+                    }`}</span>
+                  </Label>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>No signs and symptoms of Acute HIV Infection</Label>
+                  <select
+                    className="form-control"
+                    name="noSignsAndSymptomsOfAcuteHivInfection"
+                    id="noSignsAndSymptomsOfAcuteHivInfection"
+                    value={assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection}
+                    onChange={handleInputChangeAssessmentForPrepEligibility}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>No Indication for PEP</Label>
+                  <select
+                    className="form-control"
+                    name="noIndicationForPep"
+                    id="noIndicationForPep"
+                    value={assessmentForPrepEligibility?.noIndicationForPep}
+                    onChange={handleInputChangeAssessmentForPrepEligibility}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+              {is30AndAbove() && (
+                <div className="form-group col-md-4 p-2">
+                  <FormGroup className="p-2">
+                    <Label>{`Has no proteinuria (>30 Years)`}</Label>
+                    <select
+                      className="form-control"
+                      name="hasNoProteinuria"
+                      id="hasNoProteinuria"
+                      value={assessmentForPrepEligibility?.hasNoProteinuria}
+                      onChange={handleInputChangeAssessmentForPrepEligibility}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                      }}
+                      disabled={disabledField}
+                    >
+                      <option value={""}>Select</option>
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
+                    {errors.hasNoProteinuria !== "" ? (
+                      <span className={classes.error}>
+                        {errors.hasNoProteinuria}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+              )}
               <Message warning>
                 <h4>
                   Calculate the sum of PrEP Eligibility. If {">= "}1 client is
