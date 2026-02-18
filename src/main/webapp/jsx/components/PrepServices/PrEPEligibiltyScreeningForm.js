@@ -2013,6 +2013,203 @@ const BasicInfo = props => {
 
               <hr />
               <br />
+
+              {/* ===== Main Header: HIV Testing ===== */}
+              <div
+                className="form-group my-4 col-md-12 text-center pt-2 mb-4"
+                style={{
+                  backgroundColor: "#992E62",
+                  width: "125%",
+                  height: "35px",
+                  color: "#fff",
+                  fontWeight: "bold",
+                }}
+              >
+                HIV Testing
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>When was your last test?</Label>
+                  <select
+                    className="form-control"
+                    name="lastTest"
+                    id="lastTest"
+                    value={drugHistory.lastTest}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="<1 month">{"<"}1 month</option>
+                    <option value="1-3 months">1–3 months</option>
+                    <option value="4-6 months">4–6 months</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Recommended for HIV Retest?</Label>
+                  <select
+                    className="form-control"
+                    name="recommendHivRetest"
+                    id="recommendHivRetest"
+                    value={drugHistory.recommendHivRetest}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Tested in other clinical settings such as STI clinic</Label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="clinicalSetting"
+                    id="clinicalSetting"
+                    value={drugHistory.clinicalSetting}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>
+                    HIV Test Result at Visit{" "}
+                    <span style={{ color: "red" }}> *</span>
+                  </Label>
+                  <select
+                    className="form-control"
+                    name="hivTestResultAtvisit"
+                    id="hivTestResultAtvisit"
+                    value={drugHistory.hivTestResultAtvisit}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="Negative">Negative</option>
+                    <option value="Positive">Positive</option>
+                  </select>
+                  {errors.hivTestResultAtvisit !== "" ? (
+                    <span className={classes.error}>
+                      {errors.hivTestResultAtvisit}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Report ongoing HIV risk behaviors?</Label>
+                  <select
+                    className="form-control"
+                    name="reportHivRisk"
+                    id="reportHivRisk"
+                    value={drugHistory.reportHivRisk}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Report a specific HIV exposure within the last 3 months?</Label>
+                  <select
+                    className="form-control"
+                    name="hivExposure"
+                    id="hivExposure"
+                    value={drugHistory.hivExposure}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <Message warning>
+                <h4>HIV Testing Summary</h4>
+                <b>{`HIV Test Result at Visit: ${
+                  drugHistory.hivTestResultAtvisit || "Not provided"
+                }`}</b>
+                <br />
+                <b>{`Ongoing HIV risk behaviors: ${
+                  drugHistory.reportHivRisk === "true"
+                    ? "Yes"
+                    : drugHistory.reportHivRisk === "false"
+                    ? "No"
+                    : "Not provided"
+                }`}</b>
+                <br />
+                <b>{`HIV exposure in last 3 months: ${
+                  drugHistory.hivExposure === "true"
+                    ? "Yes"
+                    : drugHistory.hivExposure === "false"
+                    ? "No"
+                    : "Not provided"
+                }`}</b>
+              </Message>
+
+              {drugHistory.hivTestResultAtvisit === "Negative" &&
+                (assessmentForAcuteHivInfection?.acuteHivSymptomsLasttwoWeeks ===
+                  "true" ||
+                  assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days ===
+                    "true") && (
+                  <Message
+                    negative
+                    style={{ width: "100%" }}
+                  >
+                    <h4>HIV Re-Testing Recommended</h4>
+                    <p>
+                      Client tested HIV Negative but has signs/symptoms of acute
+                      HIV infection. HIV re-testing is recommended after 1 month.
+                    </p>
+                  </Message>
+                )}
+
+              <hr />
+              <br />
               <div
                 className="form-group  col-md-12 text-center pt-2 mb-4 p-3"
                 style={{
