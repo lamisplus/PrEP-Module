@@ -94,6 +94,8 @@ const BasicInfo = props => {
   let temp = { ...errors };
 
   const [objValues, setObjValues] = useState({
+    uniqueClientId: "",
+    clientHtsCode: "",
     counselingType: "",
     drugUseHistory: {},
     extra: {},
@@ -103,7 +105,7 @@ const BasicInfo = props => {
     numWives: "",
     personId: "",
     personalHivRiskAssessment: {},
-    sexPartner: "TARGET_GROUP_GEN_POP",
+    sexPartner: "",
     sexPartnerRisk: {},
     stiScreening: {},
     targetGroup: "TARGET_GROUP_GEN_POP",
@@ -113,6 +115,10 @@ const BasicInfo = props => {
     reasonForSwitch: "",
     populationType: "",
     pregnancyStatus: "",
+    referredFrom: "",
+    setting: "",
+    serviceStatus: "",
+    typeOfSession: "",
     lftConducted: "",
     liverFunctionTestResults: [],
     dateLiverFunctionTestResults: "",
@@ -348,30 +354,9 @@ const BasicInfo = props => {
 
   const validate = () => {
     temp.visitDate = objValues.visitDate ? "" : "⚠ This field is required.";
-    temp.lftConducted = objValues.lftConducted
-      ? ""
-      : "⚠ This field is required";
-    temp.liverFunctionTestResults =
-      objValues.lftConducted === "true" &&
-      objValues.liverFunctionTestResults.length === 0
-        ? "⚠ LFT is required"
-        : "";
-    temp.dateLiverFunctionTestResults =
-      objValues.lftConducted === "true" &&
-      !objValues.dateLiverFunctionTestResults
-        ? "⚠ This field is required."
-        : "";
-    temp.sexPartner = objValues.sexPartner ? "" : "⚠ This field is required.";
     temp.hivTestResultAtvisit = drugHistory.hivTestResultAtvisit
       ? ""
       : "⚠ This field is required.";
-    if (objValues.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH") {
-      temp.reasonForSwitch = objValues.reasonForSwitch
-        ? ""
-        : "⚠ This field is required";
-    } else {
-      temp.reasonForSwitch = "";
-    }
     setErrors({ ...temp });
 
     return Object.values(temp).every(x => x === "");
@@ -610,8 +595,46 @@ const BasicInfo = props => {
             <div className="row">
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
+                  <Label>Unique Client ID</Label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="uniqueClientId"
+                    id="uniqueClientId"
+                    value={objValues.uniqueClientId}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Client HTS Code</Label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="clientHtsCode"
+                    id="clientHtsCode"
+                    value={objValues.clientHtsCode}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
                   <Label>
-                    Visit Date <span style={{ color: "red" }}> *</span>
+                    Date of Visit <span style={{ color: "red" }}> *</span>
                   </Label>
                   <input
                     type="date"
@@ -644,9 +667,26 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
-                  <Label>
-                    Visit type <span style={{ color: "red" }}> *</span>
-                  </Label>
+                  <Label>Referred From</Label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="referredFrom"
+                    id="referredFrom"
+                    value={objValues.referredFrom}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Visit Type</Label>
                   <select
                     className="form-control"
                     name="visitType"
@@ -662,58 +702,35 @@ const BasicInfo = props => {
                     <option value={""}>Select</option>
                     {codeset?.PrEP_VISIT_TYPE?.map(value => (
                       <option key={value.code} value={value.code}>
-                        {" "}
-                        {value.display}{" "}
+                        {value.display}
                       </option>
                     ))}
                   </select>
-                  {errors.visitType !== "" ? (
-                    <span className={classes.error}>{errors.visitType}</span>
-                  ) : (
-                    ""
-                  )}
                 </FormGroup>
               </div>
-              {objValues.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH" && (
-                <div className="form-group col-md-4 p-2">
-                  <FormGroup className="p-2">
-                    <Label>Reason for switch</Label>
-                    <span style={{ color: "red" }}> *</span>
-                    <Input
-                      type="select"
-                      name="reasonForSwitch"
-                      id="reasonForSwitch"
-                      value={objValues.reasonForSwitch}
-                      onChange={handleInputChange}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value="">Select</option>
 
-                      {codeset?.REASON_METHOD_SWITCH?.map(value => (
-                        <option key={value.id} value={value.code}>
-                          {value.display}
-                        </option>
-                      ))}
-                    </Input>
-                  </FormGroup>
-                  {errors.reasonForSwitch !== "" ? (
-                    <span className={classes.error}>
-                      {errors.reasonForSwitch}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </div>
-              )}
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
-                  <Label>
-                    Population type <span style={{ color: "red" }}> *</span>
-                  </Label>
+                  <Label>Setting</Label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="setting"
+                    id="setting"
+                    value={objValues.setting}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Population Type</Label>
                   <select
                     className="form-control"
                     name="populationType"
@@ -729,8 +746,7 @@ const BasicInfo = props => {
                     <option value={""}>Select</option>
                     {codeset?.POPULATION_TYPE?.map(value => (
                       <option key={value.code} value={value.code}>
-                        {" "}
-                        {value.display}{" "}
+                        {value.display}
                       </option>
                     ))}
                     {!codeset?.POPULATION_TYPE?.find(
@@ -739,58 +755,81 @@ const BasicInfo = props => {
                       <option value="POPULATION_TYPE_GEN_POP">GenPop</option>
                     )}
                   </select>
-                  {errors.populationType !== "" ? (
-                    <span className={classes.error}>
-                      {errors.populationType}
-                    </span>
-                  ) : (
-                    ""
-                  )}
                 </FormGroup>
               </div>
 
-              {isFemale() && (
-                <div className="form-group col-md-4 p-2">
-                  <FormGroup className="p-2">
-                    <Label>
-                      Pregnancy Status <span style={{ color: "red" }}> *</span>
-                    </Label>
-                    <select
-                      className="form-control"
-                      name="pregnancyStatus"
-                      id="pregnancyStatus"
-                      value={objValues.pregnancyStatus}
-                      onChange={handleInputChange}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      {codeset?.PREGNANCY_STATUS?.map(value => (
-                        <option key={value.code} value={value.code}>
-                          {" "}
-                          {value.display}{" "}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.pregnancyStatus !== "" ? (
-                      <span className={classes.error}>
-                        {errors.pregnancyStatus}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-              )}
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>No. of Own Children &lt;5 years</Label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    name="numChildrenLessThanFive"
+                    id="numChildrenLessThanFive"
+                    min="0"
+                    value={objValues.numChildrenLessThanFive}
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (val === "" || Number(val) >= 0) {
+                        handleInputChange(e);
+                      }
+                    }}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
 
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
-                  <Label>
-                    Sex partners <span style={{ color: "red" }}> *</span>
-                  </Label>
+                  <Label>Service Status</Label>
+                  <select
+                    className="form-control"
+                    name="serviceStatus"
+                    id="serviceStatus"
+                    value={objValues.serviceStatus}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="Civilian">Civilian</option>
+                    <option value="Military">Military</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Type of Session</Label>
+                  <select
+                    className="form-control"
+                    name="typeOfSession"
+                    id="typeOfSession"
+                    value={objValues.typeOfSession}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="Individual">Individual</option>
+                    <option value="Couple">Couple</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>Sex Partners</Label>
                   <select
                     className="form-control"
                     name="sexPartner"
@@ -808,50 +847,17 @@ const BasicInfo = props => {
                     <option value="Female">Female</option>
                     <option value="Both">Both</option>
                   </select>
-                  {errors.sexPartner !== "" ? (
-                    <span className={classes.error}>{errors.sexPartner}</span>
-                  ) : (
-                    ""
-                  )}
                 </FormGroup>
               </div>
 
-              {props?.patientObj?.gender === "Male" ||
-                (props?.patientObj?.gender === "male" && (
-                  <div className="form-group col-md-4 p-2">
-                    <FormGroup className="p-2">
-                      <Label>Number of wives </Label>
-                      <input
-                        className="form-control"
-                        name="numWives"
-                        id="numWives"
-                        value={objValues.numWives}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.2rem",
-                        }}
-                        disabled={disabledField}
-                      />
-                      {errors.numWives !== "" ? (
-                        <span className={classes.error}>{errors.numWives}</span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                ))}
-
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
-                  <Label>
-                    Type of counseling <span style={{ color: "red" }}> *</span>
-                  </Label>
+                  <Label>Pregnancy Status</Label>
                   <select
                     className="form-control"
-                    name="counselingType"
-                    id="counselingType"
-                    value={objValues.counselingType}
+                    name="pregnancyStatus"
+                    id="pregnancyStatus"
+                    value={objValues.pregnancyStatus}
                     onChange={handleInputChange}
                     style={{
                       border: "1px solid #014D88",
@@ -860,106 +866,12 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    {codeset?.COUNSELING_TYPE?.map(value => (
-                      <option key={value.id} value={value.id}>
-                        {" "}
-                        {value.display}{" "}
-                      </option>
-                    ))}
+                    <option value="Pregnant">Pregnant</option>
+                    <option value="Breastfeeding">Breastfeeding</option>
+                    <option value="Not pregnant">Not pregnant</option>
                   </select>
-                  {errors.counselingType !== "" ? (
-                    <span className={classes.error}>
-                      {errors.counselingType}
-                    </span>
-                  ) : (
-                    ""
-                  )}
                 </FormGroup>
               </div>
-              <div className="form-group mb-3 col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <FormLabel>Liver Function Test conducted</FormLabel>
-                  <span style={{ color: "red" }}> *</span>
-                  <Input
-                    type="select"
-                    name="lftConducted"
-                    id="lftConducted"
-                    value={objValues.lftConducted}
-                    onChange={handleInputChange}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.25rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value="">Select</option>
-                    <option value={true}>Yes</option>
-                    <option value={false}>No</option>
-                  </Input>
-                </FormGroup>
-                {errors.lftConducted !== "" ? (
-                  <span className={classes.error}>{errors.lftConducted}</span>
-                ) : (
-                  ""
-                )}
-              </div>
-              {objValues.lftConducted === "true" && (
-                <>
-                  <div className="form-group mb-3 col-md-8">
-                    <FormGroup className="p-2">
-                      <Label for="liverFunctionTestResults">
-                        Liver Function Tests Result
-                        <span style={{ color: "red" }}> *</span>
-                      </Label>
-                      <LiverFunctionTest
-                        objValues={objValues}
-                        handleInputChange={handleLftInputChange}
-                        liverFunctionTestResult={
-                          codeset?.LIVER_FUNCTION_TEST_RESULT
-                        }
-                        disabledField={disabledField}
-                      />
-                      {errors.liverFunctionTestResults !== "" ? (
-                        <span className={classes.error}>
-                          {errors.liverFunctionTestResults}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                  <div className="form-group mb-3 col-md-8 p-2">
-                    <FormGroup className="p-2">
-                      <Label for="dateLiverFunctionTestResults">
-                        Date of Liver Function Tests Result{" "}
-                        <span style={{ color: "red" }}> *</span>
-                      </Label>
-                      <Input
-                        className="form-control"
-                        type="date"
-                        onKeyDown={e => e.preventDefault()}
-                        name="dateLiverFunctionTestResults"
-                        id="dateLiverFunctionTestResults"
-                        max={moment(new Date()).format("YYYY-MM-DD")}
-                        value={objValues.dateLiverFunctionTestResults}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        disabled={disabledField}
-                      />
-                      {errors.dateLiverFunctionTestResults !== "" ? (
-                        <span className={classes.error}>
-                          {errors.dateLiverFunctionTestResults}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                </>
-              )}
               <div
                 className="form-group my-4 col-md-12 text-center pt-2 mb-4"
                 style={{
