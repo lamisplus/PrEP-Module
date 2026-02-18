@@ -135,6 +135,7 @@ const BasicInfo = props => {
     analSexWithPartner: "",
     unprotectedAnalSexWithPartner: "",
     haveYouPaidForSex: "",
+    haveYouBeenPaidForSex: "",
     haveSexWithoutCondom: "",
     experienceCondomBreakage: "",
     takenPartInSexualOrgy: "",
@@ -161,6 +162,12 @@ const BasicInfo = props => {
 
   const [drugHistory, setDrugHistory] = useState({
     useAnyOfTheseDrugs: "",
+    cocaine: "",
+    heroine: "",
+    marijuana: "",
+    amphetamine: "",
+    codeineSyrup: "",
+    othersSpecify: "",
     inject: "",
     sniff: "",
     smoke: "",
@@ -872,387 +879,32 @@ const BasicInfo = props => {
                   </select>
                 </FormGroup>
               </div>
+              {/* ===== Main Header: Pre-Test Counselling / Risk Assessment ===== */}
               <div
                 className="form-group my-4 col-md-12 text-center pt-2 mb-4"
                 style={{
-                  backgroundColor: "#992E62",
+                  backgroundColor: "#014D88",
                   width: "125%",
                   height: "35px",
                   color: "#fff",
                   fontWeight: "bold",
                 }}
               >
-                HIV Risk Assessment (Last 3 months)
+                Pre-Test Counselling / Risk Assessment
               </div>
 
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>Unprotected Vaginal sex with casual partner</Label>
-                  <select
-                    className="form-control"
-                    name="unprotectedVaginalSexCasual"
-                    id="unprotectedVaginalSexCasual"
-                    value={riskAssessment.unprotectedVaginalSexCasual}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.unprotectedVaginalSexCasual !== "" ? (
-                    <span className={classes.error}>
-                      {errors.unprotectedVaginalSexCasual}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>Unprotected Vaginal sex with regular partner </Label>
-                  <select
-                    className="form-control"
-                    name="unprotectedVaginalSexRegular"
-                    id="unprotectedVaginalSexRegular"
-                    value={riskAssessment.unprotectedVaginalSexRegular}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.unprotectedVaginalSexRegular !== "" ? (
-                    <span className={classes.error}>
-                      {errors.unprotectedVaginalSexRegular}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Unprotected Anal sex with regular partner</Label>
-                  <select
-                    className="form-control"
-                    name="uprotectedAnalSexWithRegular"
-                    id="uprotectedAnalSexWithRegular"
-                    value={riskAssessment.uprotectedAnalSexWithRegular}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.uprotectedAnalSexWithRegular !== "" ? (
-                    <span className={classes.error}>
-                      {errors.uprotectedAnalSexWithRegular}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>History of STI</Label>
-                  <select
-                    className="form-control"
-                    name="stiHistory"
-                    id="stiHistory"
-                    value={riskAssessment.stiHistory}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.stiHistory !== "" ? (
-                    <span className={classes.error}>{errors.stiHistory}</span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Shared needles/injecting materials</Label>
-                  <select
-                    className="form-control"
-                    name="sharedNeedles"
-                    id="sharedNeedles"
-                    value={riskAssessment.sharedNeedles}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.sharedNeedles !== "" ? (
-                    <span className={classes.error}>
-                      {errors.sharedNeedles}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>More than 1 sex partner</Label>
-                  <select
-                    className="form-control"
-                    name="moreThan1SexPartner"
-                    id="moreThan1SexPartner"
-                    value={riskAssessment.moreThan1SexPartner}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.moreThan1SexPartner !== "" ? (
-                    <span className={classes.error}>
-                      {errors.moreThan1SexPartner}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Anal sex with Male/Female partner</Label>
-                  <select
-                    className="form-control"
-                    name="analSexWithPartner"
-                    id="analSexWithPartner"
-                    value={riskAssessment.analSexWithPartner}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.analSexWithPartner !== "" ? (
-                    <span className={classes.error}>
-                      {errors.analSexWithPartner}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Unprotected Anal sex with male/female partner</Label>
-                  <select
-                    className="form-control"
-                    name="unprotectedAnalSexWithPartner"
-                    id="unprotectedAnalSexWithPartner"
-                    value={riskAssessment.unprotectedAnalSexWithPartner}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.unprotectedAnalSexWithPartner !== "" ? (
-                    <span className={classes.error}>
-                      {errors.unprotectedAnalSexWithPartner}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Have you paid for sex in the last 6 months?</Label>
-                  <select
-                    className="form-control"
-                    name="haveYouPaidForSex"
-                    id="haveYouPaidForSex"
-                    value={riskAssessment.haveYouPaidForSex}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.haveYouPaidForSex !== "" ? (
-                    <span className={classes.error}>
-                      {errors.haveYouPaidForSex}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>
-                    Have you been paid for sex in the last 6 months?
-                  </Label>
-                  <select
-                    className="form-control"
-                    name="moreThanOneSexPartnerLastThreeMonths"
-                    id="moreThanOneSexPartnerLastThreeMonths"
-                    value={riskAssessment.moreThanOneSexPartnerLastThreeMonths}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.moreThanOneSexPartnerLastThreeMonths !== "" ? (
-                    <span className={classes.error}>
-                      {errors.moreThanOneSexPartnerLastThreeMonths}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Have you experienced condom breakage?</Label>
-                  <select
-                    className="form-control"
-                    name="experienceCondomBreakage"
-                    id="experienceCondomBreakage"
-                    value={riskAssessment.experienceCondomBreakage}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.experienceCondomBreakage !== "" ? (
-                    <span className={classes.error}>
-                      {errors.experienceCondomBreakage}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              <div className="form-group  col-md-4 p-3">
-                <FormGroup>
-                  <Label>Have you taken part in sexual orgy?</Label>
-                  <select
-                    className="form-control"
-                    name="takenPartInSexualOrgy"
-                    id="takenPartInSexualOrgy"
-                    value={riskAssessment.takenPartInSexualOrgy}
-                    onChange={handleInputChangeRiskAssessment}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                  {errors.takenPartInSexualOrgy !== "" ? (
-                    <span className={classes.error}>
-                      {errors.takenPartInSexualOrgy}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-              <Message warning>
-                <h4>
-                  Personal HIV Risk assessment score (sum of all 7 answers)
-                </h4>
-                <b>Score : {riskCount.length}</b>
-              </Message>
-              <hr />
-              <br />
-
-              <div
-                className="form-group  col-md-12 text-center pt-2 mb-4"
+              {/* --- Subsection: Sex Partner Risk --- */}
+              <h4
                 style={{
-                  backgroundColor: "#992E62",
-                  width: "125%",
-                  height: "35px",
-                  color: "#fff",
                   fontWeight: "bold",
+                  width: "100%",
+                  paddingLeft: "0.5rem",
+                  marginBottom: "0.5rem",
                 }}
               >
-                Sex Partner Risk Assessment (Last 3 months)
-              </div>
+                Sex Partner Risk
+              </h4>
+
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
                   <Label>
@@ -1419,19 +1071,447 @@ const BasicInfo = props => {
               </Message>
 
               <hr />
-              <br />
 
-              <div
-                className="form-group col-md-12 text-center p-2 mb-4"
+              {/* --- Subsection: Personal HIV Risk Assessment (Last 3 months) --- */}
+              <h4
                 style={{
-                  backgroundColor: "#014D88",
-                  width: "125%",
-                  color: "#fff",
                   fontWeight: "bold",
+                  width: "100%",
+                  paddingLeft: "0.5rem",
+                  marginTop: "1rem",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Personal HIV Risk Assessment (Last 3 months)
+              </h4>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Unprotected Vaginal Sex with Casual Partner?</Label>
+                  <select
+                    className="form-control"
+                    name="unprotectedVaginalSexCasual"
+                    id="unprotectedVaginalSexCasual"
+                    value={riskAssessment.unprotectedVaginalSexCasual}
+                    onChange={handleInputChangeRiskAssessment}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Unprotected Anal Sex?</Label>
+                  <select
+                    className="form-control"
+                    name="uprotectedAnalSexWithCasual"
+                    id="uprotectedAnalSexWithCasual"
+                    value={riskAssessment.uprotectedAnalSexWithCasual}
+                    onChange={handleInputChangeRiskAssessment}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Shared needles/injecting materials?</Label>
+                  <select
+                    className="form-control"
+                    name="sharedNeedles"
+                    id="sharedNeedles"
+                    value={riskAssessment.sharedNeedles}
+                    onChange={handleInputChangeRiskAssessment}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>More than 1 sex partner?</Label>
+                  <select
+                    className="form-control"
+                    name="moreThan1SexPartner"
+                    id="moreThan1SexPartner"
+                    value={riskAssessment.moreThan1SexPartner}
+                    onChange={handleInputChangeRiskAssessment}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Have you paid for sex in the last 3 months?</Label>
+                  <select
+                    className="form-control"
+                    name="haveYouPaidForSex"
+                    id="haveYouPaidForSex"
+                    value={riskAssessment.haveYouPaidForSex}
+                    onChange={handleInputChangeRiskAssessment}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Have you been paid for sex in the last 3 months?</Label>
+                  <select
+                    className="form-control"
+                    name="haveYouBeenPaidForSex"
+                    id="haveYouBeenPaidForSex"
+                    value={riskAssessment.haveYouBeenPaidForSex}
+                    onChange={handleInputChangeRiskAssessment}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <Message warning>
+                <h4>
+                  Personal HIV Risk assessment score (sum of all 6 answers)
+                </h4>
+                <b>Score : {riskCount.length}</b>
+              </Message>
+
+              <hr />
+
+              {/* --- Subsection: Drug Use History --- */}
+              <h4
+                style={{
+                  fontWeight: "bold",
+                  width: "100%",
+                  paddingLeft: "0.5rem",
+                  marginTop: "1rem",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Drug Use History
+              </h4>
+              <h5
+                style={{
+                  width: "100%",
+                  paddingLeft: "0.5rem",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Do you use any of these drugs/substances?
+              </h5>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Cocaine</Label>
+                  <select
+                    className="form-control"
+                    name="cocaine"
+                    id="cocaine"
+                    value={drugHistory.cocaine}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Heroine</Label>
+                  <select
+                    className="form-control"
+                    name="heroine"
+                    id="heroine"
+                    value={drugHistory.heroine}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Marijuana</Label>
+                  <select
+                    className="form-control"
+                    name="marijuana"
+                    id="marijuana"
+                    value={drugHistory.marijuana}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Amphetamine</Label>
+                  <select
+                    className="form-control"
+                    name="amphetamine"
+                    id="amphetamine"
+                    value={drugHistory.amphetamine}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Codeine/syrup</Label>
+                  <select
+                    className="form-control"
+                    name="codeineSyrup"
+                    id="codeineSyrup"
+                    value={drugHistory.codeineSyrup}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Others(Specify)</Label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="othersSpecify"
+                    id="othersSpecify"
+                    value={drugHistory.othersSpecify}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
+              <h5
+                style={{
+                  width: "100%",
+                  paddingLeft: "0.5rem",
+                  marginTop: "1rem",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Do you use any of these drugs/substances_Route of Administration?
+              </h5>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Inject</Label>
+                  <select
+                    className="form-control"
+                    name="inject"
+                    id="inject"
+                    value={drugHistory.inject}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Sniff</Label>
+                  <select
+                    className="form-control"
+                    name="sniff"
+                    id="sniff"
+                    value={drugHistory.sniff}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Snort</Label>
+                  <select
+                    className="form-control"
+                    name="Snort"
+                    id="Snort"
+                    value={drugHistory.Snort}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Smoke</Label>
+                  <select
+                    className="form-control"
+                    name="smoke"
+                    id="smoke"
+                    value={drugHistory.smoke}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-3">
+                <FormGroup>
+                  <Label>Have you used drugs to enhance sexual performance?</Label>
+                  <select
+                    className="form-control"
+                    name="useDrugSexualPerformance"
+                    id="useDrugSexualPerformance"
+                    value={drugHistory.useDrugSexualPerformance}
+                    onChange={handleInputChangeDrugHistory}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </FormGroup>
+              </div>
+
+              <hr />
+
+              {/* --- Subsection: Assessment for PEP Indication --- */}
+              <h4
+                style={{
+                  fontWeight: "bold",
+                  width: "100%",
+                  paddingLeft: "0.5rem",
+                  marginTop: "1rem",
+                  marginBottom: "0.5rem",
                 }}
               >
                 Assessment for PEP Indication
-              </div>
+              </h4>
 
               <div className="form-group col-md-6 p-3">
                 <FormGroup>
@@ -1506,21 +1586,23 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
+
               <hr />
-              <br />
-              <div
-                className="form-group  col-md-12 text-center pt-2 mb-4"
+
+              {/* --- Subsection: Assessment Acute HIV Infection --- */}
+              <h4
                 style={{
-                  backgroundColor: "#992E62",
-                  width: "125%",
-                  height: "35px",
-                  color: "#fff",
                   fontWeight: "bold",
+                  width: "100%",
+                  paddingLeft: "0.5rem",
+                  marginTop: "1rem",
+                  marginBottom: "0.5rem",
                 }}
               >
-                Assessment for Acute HIV Infection
-              </div>
-              <div className="form-group  col-md-6 p-3">
+                Assessment Acute HIV Infection
+              </h4>
+
+              <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>
                     In the past 2 weeks: Have you had a cold or flu such as
@@ -1554,10 +1636,11 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group  col-md-6 p-3">
+
+              <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>
-                    Have you had condomless anal or vaginal sex or shared
+                    Have you had anal or vaginal sex without a condom or shared
                     injection materials and/or equipment in the past 28 days?
                   </Label>
                   <select
@@ -1588,394 +1671,26 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
+
               <hr />
-              <br />
-              <div
-                className="form-group  col-md-12 text-center pt-2 mb-4"
+
+              {/* --- Subsection: STI Screening --- */}
+              <h4
                 style={{
-                  backgroundColor: "#000",
-                  width: "125%",
-                  height: "35px",
-                  color: "#fff",
                   fontWeight: "bold",
+                  width: "100%",
+                  paddingLeft: "0.5rem",
+                  marginTop: "1rem",
+                  marginBottom: "0.5rem",
                 }}
               >
-                Drug Use History
-              </div>
-              <hr />
-              <h3>Route of Administration</h3>
-              <h4>Do you use any of these drugs/substances ?</h4>
-              <br />
-              <div className="row">
-                <div className="form-group col-md-6 p-3">
-                  <FormGroup>
-                    <Label>Inject</Label>
-                    <select
-                      className="form-control"
-                      name="inject"
-                      id="inject"
-                      value={drugHistory.inject}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                    {errors.inject !== "" ? (
-                      <span className={classes.error}>{errors.inject}</span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
+                STI Screening
+              </h4>
 
-                <div className="form-group col-md-6 p-3">
-                  <FormGroup>
-                    <Label>Sniff</Label>
-                    <select
-                      className="form-control"
-                      name="sniff"
-                      id="sniff"
-                      value={drugHistory.sniff}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                    {errors.sniff !== "" ? (
-                      <span className={classes.error}>{errors.sniff}</span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-
-                <div className="form-group col-md-6 p-3">
-                  <FormGroup>
-                    <Label>Snort</Label>
-                    <select
-                      className="form-control"
-                      name="Snort"
-                      id="Snort"
-                      value={drugHistory.fever}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                    {errors.Snort !== "" ? (
-                      <span className={classes.error}>{errors.Snort}</span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-
-                <div className="form-group col-md-6 p-3">
-                  <FormGroup>
-                    <Label>Smoke</Label>
-                    <select
-                      className="form-control"
-                      name="smoke"
-                      id="smoke"
-                      value={drugHistory.smoke}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                    {errors.smoke !== "" ? (
-                      <span className={classes.error}>{errors.smoke}</span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-              </div>
-              <hr />
-              <div className="row">
-                <div className="form-group col-md-4 p-3">
-                  <FormGroup>
-                    <Label>
-                      Have you used drugs to enhance sexual performance ?
-                    </Label>
-                    <select
-                      className="form-control"
-                      name="useDrugSexualPerformance"
-                      id="useDrugSexualPerformance"
-                      value={drugHistory.useDrugSexualPerformance}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                    {errors.useDrugSexualPerformance !== "" ? (
-                      <span className={classes.error}>
-                        {errors.useDrugSexualPerformance}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-
-                <div className="form-group col-md-4 p-3">
-                  <FormGroup>
-                    <Label>Have you had HIV testing before ?</Label>
-                    <select
-                      className="form-control"
-                      name="hivTestedBefore"
-                      id="hivTestedBefore"
-                      value={drugHistory.hivTestedBefore}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                    {errors.hivTestedBefore !== "" ? (
-                      <span className={classes.error}>
-                        {errors.hivTestedBefore}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-
-                {drugHistory.hivTestedBefore === "true" && (
-                  <div className="form-group col-md-4 p-3">
-                    <FormGroup>
-                      <Label>When was your last test?</Label>
-                      <select
-                        className="form-control"
-                        name="lastTest"
-                        id="lastTest"
-                        value={drugHistory.lastTest}
-                        onChange={handleInputChangeDrugHistory}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.2rem",
-                        }}
-                        disabled={disabledField}
-                      >
-                        <option value={""}>Select</option>
-                        <option value="1 Month">{"<"}1 Month</option>
-                        <option value="1-3 Months">1-3 Months</option>
-                        <option value="4-6Months">4-6 Months</option>
-                        <option value="6Months">{">"}6 months</option>
-                      </select>
-                      {errors.lastTest !== "" ? (
-                        <span className={classes.error}>{errors.lastTest}</span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                )}
-
-                <div className="form-group col-md-4 p-3">
-                  <FormGroup>
-                    <Label>
-                      HIV test result at visit{" "}
-                      <span style={{ color: "red" }}> *</span>
-                    </Label>
-                    <select
-                      className="form-control"
-                      name="hivTestResultAtvisit"
-                      id="hivTestResultAtvisit"
-                      value={drugHistory.hivTestResultAtvisit}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="Positive">Positive</option>
-                      <option value="Negative">Negative</option>
-                    </select>
-                    {errors.hivTestResultAtvisit !== "" ? (
-                      <span className={classes.error}>
-                        {errors.hivTestResultAtvisit}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-
-                <div className="form-group  col-md-4 p-3">
-                  <FormGroup>
-                    <Label>Recommended for HIV Retest ?</Label>
-                    <select
-                      className="form-control"
-                      name="recommendHivRetest"
-                      id="recommendHivRetest"
-                      value={drugHistory.recommendHivRetest}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                    {errors.recommendHivRetest !== "" ? (
-                      <span className={classes.error}>
-                        {errors.recommendHivRetest}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-                <div className="form-group  col-md-4 p-3">
-                  <FormGroup>
-                    <Label>
-                      Tested in certain Clinical settings, such as STI clinics?
-                    </Label>
-                    <select
-                      className="form-control"
-                      name="clinicalSetting"
-                      id="clinicalSetting"
-                      value={drugHistory.clinicalSetting}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                    {errors.clinicalSetting !== "" ? (
-                      <span className={classes.error}>
-                        {errors.clinicalSetting}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-                <div className="form-group  col-md-4 p-3">
-                  <FormGroup>
-                    <Label>Report ongoing HIV risk behaviors?</Label>
-                    <select
-                      className="form-control"
-                      name="reportHivRisk"
-                      id="reportHivRisk"
-                      value={drugHistory.reportHivRisk}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                    {errors.reportHivRisk !== "" ? (
-                      <span className={classes.error}>
-                        {errors.reportHivRisk}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-                <div className="form-group  col-md-4 p-3">
-                  <FormGroup>
-                    <Label>
-                      Report a specific HIV exposure within the last 3 months
-                    </Label>
-                    <select
-                      className="form-control"
-                      name="hivExposure"
-                      id="hivExposure"
-                      value={drugHistory.hivExposure}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                    {errors.hivExposure !== "" ? (
-                      <span className={classes.error}>
-                        {errors.hivExposure}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-              </div>
-
-              <hr />
-              <br />
-              <div
-                className="col-md-12 text-center pt-2 mb-4"
-                style={{
-                  backgroundColor: "#014D88",
-                  width: "125%",
-                  height: "35px",
-                  color: "#fff",
-                  fontWeight: "bold",
-                }}
-              >
-                Syndromic STI Screening
-              </div>
               {props.patientDetail &&
                 props.patientDetail.personResponseDto?.sex === "Female" && (
                   <>
-                    <div className="form-group  col-md-4 p-3">
+                    <div className="form-group col-md-4 p-3">
                       <FormGroup>
                         <Label>
                           Complaints of vaginal discharge or burning when
@@ -2007,7 +1722,7 @@ const BasicInfo = props => {
                       </FormGroup>
                     </div>
 
-                    <div className="form-group  col-md-4 p-3">
+                    <div className="form-group col-md-4 p-3">
                       <FormGroup>
                         <Label>
                           Complaints of lower abdominal pains with or without
@@ -2043,7 +1758,7 @@ const BasicInfo = props => {
               {props.patientObj?.personResponseDto &&
                 props.patientDetail?.personResponseDto.sex === "Male" && (
                   <>
-                    <div className="form-group  col-md-4 p-3">
+                    <div className="form-group col-md-4 p-3">
                       <FormGroup>
                         <Label>
                           Complaints of urethral discharge or burning when
@@ -2074,7 +1789,7 @@ const BasicInfo = props => {
                         )}
                       </FormGroup>
                     </div>
-                    <div className="form-group  col-md-4 p-3">
+                    <div className="form-group col-md-4 p-3">
                       <FormGroup>
                         <Label>Complaints of scrotal swelling and pain</Label>
                         <select
@@ -2102,7 +1817,7 @@ const BasicInfo = props => {
                         )}
                       </FormGroup>
                     </div>
-                    <div className="form-group  col-md-4 p-3">
+                    <div className="form-group col-md-4 p-3">
                       <FormGroup>
                         <Label>
                           Complaints of genital sore(s) or swollen inguinal
@@ -2135,7 +1850,7 @@ const BasicInfo = props => {
                     </div>
                   </>
                 )}
-              <div className="form-group  col-md-4 p-3">
+              <div className="form-group col-md-4 p-3">
                 <FormGroup>
                   <Label>Genital sore +/-pains?</Label>
                   <select
@@ -2161,7 +1876,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group  col-md-4 p-3">
+              <div className="form-group col-md-4 p-3">
                 <FormGroup>
                   <Label>Swollen iguinal lymph node +/-pains?</Label>
                   <select
@@ -2189,7 +1904,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group  col-md-4 p-3">
+              <div className="form-group col-md-4 p-3">
                 <FormGroup>
                   <Label>Anal pain on stooling?</Label>
                   <select
@@ -2215,7 +1930,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group  col-md-4 p-3">
+              <div className="form-group col-md-4 p-3">
                 <FormGroup>
                   <Label>Anal itching?</Label>
                   <select
@@ -2241,7 +1956,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group  col-md-6 p-3">
+              <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>Anal discharge?</Label>
                   <select
@@ -2276,6 +1991,7 @@ const BasicInfo = props => {
                 </h4>
                 <b>Score :{stiCount.length}</b>
               </Message>
+
               <hr />
               <br />
               <div
