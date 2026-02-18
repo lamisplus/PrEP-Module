@@ -894,16 +894,20 @@ const BasicInfo = props => {
               </div>
 
               {/* --- Subsection: Sex Partner Risk --- */}
-              <h4
+              <div
                 style={{
-                  fontWeight: "bold",
                   width: "100%",
-                  paddingLeft: "0.5rem",
-                  marginBottom: "0.5rem",
+                  borderLeft: "4px solid #014D88",
+                  backgroundColor: "#f0f4f8",
+                  padding: "0.5rem 1rem",
+                  marginBottom: "0.75rem",
+                  marginTop: "0.5rem",
                 }}
               >
-                Sex Partner Risk
-              </h4>
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
+                  Sex Partner Risk
+                </h4>
+              </div>
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
@@ -1073,17 +1077,20 @@ const BasicInfo = props => {
               <hr />
 
               {/* --- Subsection: Personal HIV Risk Assessment (Last 3 months) --- */}
-              <h4
+              <div
                 style={{
-                  fontWeight: "bold",
                   width: "100%",
-                  paddingLeft: "0.5rem",
-                  marginTop: "1rem",
-                  marginBottom: "0.5rem",
+                  borderLeft: "4px solid #014D88",
+                  backgroundColor: "#f0f4f8",
+                  padding: "0.5rem 1rem",
+                  marginBottom: "0.75rem",
+                  marginTop: "0.5rem",
                 }}
               >
-                Personal HIV Risk Assessment (Last 3 months)
-              </h4>
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
+                  Personal HIV Risk Assessment (Last 3 months)
+                </h4>
+              </div>
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
@@ -1227,17 +1234,20 @@ const BasicInfo = props => {
               <hr />
 
               {/* --- Subsection: Drug Use History --- */}
-              <h4
+              <div
                 style={{
-                  fontWeight: "bold",
                   width: "100%",
-                  paddingLeft: "0.5rem",
-                  marginTop: "1rem",
-                  marginBottom: "0.5rem",
+                  borderLeft: "4px solid #014D88",
+                  backgroundColor: "#f0f4f8",
+                  padding: "0.5rem 1rem",
+                  marginBottom: "0.75rem",
+                  marginTop: "0.5rem",
                 }}
               >
-                Drug Use History
-              </h4>
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
+                  Drug Use History
+                </h4>
+              </div>
               <h5
                 style={{
                   width: "100%",
@@ -1501,17 +1511,20 @@ const BasicInfo = props => {
               <hr />
 
               {/* --- Subsection: Assessment for PEP Indication --- */}
-              <h4
+              <div
                 style={{
-                  fontWeight: "bold",
                   width: "100%",
-                  paddingLeft: "0.5rem",
-                  marginTop: "1rem",
-                  marginBottom: "0.5rem",
+                  borderLeft: "4px solid #014D88",
+                  backgroundColor: "#f0f4f8",
+                  padding: "0.5rem 1rem",
+                  marginBottom: "0.75rem",
+                  marginTop: "0.5rem",
                 }}
               >
-                Assessment for PEP Indication
-              </h4>
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
+                  Assessment for PEP Indication
+                </h4>
+              </div>
 
               <div className="form-group col-md-6 p-3">
                 <FormGroup>
@@ -1590,17 +1603,20 @@ const BasicInfo = props => {
               <hr />
 
               {/* --- Subsection: Assessment Acute HIV Infection --- */}
-              <h4
+              <div
                 style={{
-                  fontWeight: "bold",
                   width: "100%",
-                  paddingLeft: "0.5rem",
-                  marginTop: "1rem",
-                  marginBottom: "0.5rem",
+                  borderLeft: "4px solid #014D88",
+                  backgroundColor: "#f0f4f8",
+                  padding: "0.5rem 1rem",
+                  marginBottom: "0.75rem",
+                  marginTop: "0.5rem",
                 }}
               >
-                Assessment Acute HIV Infection
-              </h4>
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
+                  Assessment Acute HIV Infection
+                </h4>
+              </div>
 
               <div className="form-group col-md-6 p-3">
                 <FormGroup>
@@ -1675,17 +1691,20 @@ const BasicInfo = props => {
               <hr />
 
               {/* --- Subsection: STI Screening --- */}
-              <h4
+              <div
                 style={{
-                  fontWeight: "bold",
                   width: "100%",
-                  paddingLeft: "0.5rem",
-                  marginTop: "1rem",
-                  marginBottom: "0.5rem",
+                  borderLeft: "4px solid #014D88",
+                  backgroundColor: "#f0f4f8",
+                  padding: "0.5rem 1rem",
+                  marginBottom: "0.75rem",
+                  marginTop: "0.5rem",
                 }}
               >
-                STI Screening
-              </h4>
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
+                  STI Screening
+                </h4>
+              </div>
 
               {props.patientDetail &&
                 props.patientDetail.personResponseDto?.sex === "Female" && (
