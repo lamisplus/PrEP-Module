@@ -38,6 +38,7 @@ const PrEPRegistrationForm = props => {
     supporterRelationshipType: "",
     uniqueId: "",
     hivTestingPoint: "",
+    hivTestingPointOthersSpecify: "",
     dateOfLastHivNegativeTest: "",
     targetGroup: "",
     enrollmentType: "",
@@ -54,6 +55,7 @@ const PrEPRegistrationForm = props => {
     dateOfInitialAdherenceCounseling: "",
     datePrepStarted: "",
     prepTypeAtStart: "",
+    prepTypeAtStartOthersSpecify: "",
     prepRegimen: "",
   });
   const [saving, setSaving] = useState(false);
@@ -460,6 +462,26 @@ const PrEPRegistrationForm = props => {
                   </select>
                 </FormGroup>
               </div>
+              {objValues.hivTestingPoint === "Others" && (
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>Specify</Label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="hivTestingPointOthersSpecify"
+                      id="hivTestingPointOthersSpecify"
+                      value={objValues.hivTestingPointOthersSpecify}
+                      onChange={handleInputChange}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                      }}
+                      disabled={disabledField}
+                    />
+                  </FormGroup>
+                </div>
+              )}
 
               {/* 7. Date of HIV Test */}
               <div className="form-group mb-3 col-md-4">
@@ -792,6 +814,26 @@ const PrEPRegistrationForm = props => {
                   </select>
                 </FormGroup>
               </div>
+              {objValues.prepTypeAtStart === "Others" && (
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>Specify</Label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="prepTypeAtStartOthersSpecify"
+                      id="prepTypeAtStartOthersSpecify"
+                      value={objValues.prepTypeAtStartOthersSpecify}
+                      onChange={handleInputChange}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                      }}
+                      disabled={disabledField}
+                    />
+                  </FormGroup>
+                </div>
+              )}
 
               {/* 18. PrEP Regimen */}
               <div className="form-group mb-3 col-md-4">
