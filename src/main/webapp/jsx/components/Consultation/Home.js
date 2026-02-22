@@ -123,8 +123,8 @@ const buildValidationSchema = (isFemalePatient) =>
     nextAppointment: Yup.string().required("This field is required"),
     whyAdherenceLevelPoor: Yup.string().when("adherenceLevel", {
       is: val =>
-        val === "PREP_LEVEL_OF_ADHERENCE_(POOR)_≥_7_DOSES" ||
-        val === "PREP_LEVEL_OF_ADHERENCE_(FAIR)_3-7_DOSES",
+        val?.toUpperCase()?.includes("POOR") ||
+        val?.toUpperCase()?.includes("FAIR"),
       then: schema => schema.required("This field is required"),
       otherwise: schema => schema,
     }),
@@ -230,6 +230,7 @@ const ClinicVisit = props => {
     result: "",
   });
   const [otherTest, setOtherTest] = useState([]);
+  const [liverFunctionTestEnabled, setLiverFunctionTestEnabled] = useState(false);
 
   const [formInitialValues, setFormInitialValues] = useState({
     ...INITIAL_VALUES,
@@ -553,6 +554,10 @@ const ClinicVisit = props => {
     }
   };
 
+  const handleCheckBoxLiverFunctionTest = () => {
+    setLiverFunctionTestEnabled(prev => !prev);
+  };
+
   const handleCheckBoxOtherTest = () => {
     if (otherTest.length > 0) {
       setOtherTest([]);
@@ -734,6 +739,12 @@ const ClinicVisit = props => {
         "dateLiverFunctionTestResults",
         latestFromEligibility.dateLiverFunctionTestResults || ""
       );
+      if (
+        latestFromEligibility.liverFunctionTestResults?.length > 0 ||
+        latestFromEligibility.dateLiverFunctionTestResults
+      ) {
+        setLiverFunctionTestEnabled(true);
+      }
     }
   }, [latestFromEligibility, eligibilityVisitDateSync]);
 
@@ -827,6 +838,8 @@ const ClinicVisit = props => {
     payload.prepNotedSideEffects = notedSideEffects;
     payload.notedSideEffects = "";
     payload.previousPrepStatus = props.patientObj?.prepStatus;
+    // Derive stiScreening from syndromicStiScreening for API compatibility
+    payload.stiScreening = payload.syndromicStiScreening ? "true" : "false";
     // Map otherDrugsPrescribed back to otherDrugs for API compatibility
     if (payload.hasOtherDrugs === "true") {
       payload.otherDrugs = payload.otherDrugsPrescribed || "";
@@ -898,10 +911,8 @@ const ClinicVisit = props => {
           errors,
           touched,
           handleChange,
-          handleBlur,
           handleSubmit,
           setFieldValue,
-          isValid,
         }) => {
           // Auto-calculate next appointment when encounterDate or monthsOfRefill changes
           const autoCalcNextAppointment = () => {
@@ -917,14 +928,9 @@ const ClinicVisit = props => {
           };
           autoCalcNextAppointment();
 
-          // Reset monthsOfRefill when regimenId changes (only for new entries)
-          const handleRegimenEffect = () => {
-            // This is handled inline
-          };
-
           const showReasonField =
-            values.adherenceLevel === "PREP_LEVEL_OF_ADHERENCE_(POOR)_≥_7_DOSES" ||
-            values.adherenceLevel === "PREP_LEVEL_OF_ADHERENCE_(FAIR)_3-7_DOSES";
+            values.adherenceLevel?.toUpperCase()?.includes("POOR") ||
+            values.adherenceLevel?.toUpperCase()?.includes("FAIR");
 
           const getError = (field) => {
             return touched[field] && errors[field] ? errors[field] : "";
@@ -934,23 +940,12 @@ const ClinicVisit = props => {
             <Grid>
               <Grid.Column>
                 <Segment>
-                  {/* ── SECTION 1: VITAL SIGNS ── */}
-                  <Label
-                    as="a"
-                    color="blue"
-                    style={{ width: "106%", height: "35px" }}
-                    ribbon
-                  >
-                    <h4 style={{ color: "#fff" }}>VITAL SIGNS</h4>
-                  </Label>
-                  <br />
-                  <br />
                   <div className="row">
-                    {/* Visit Date */}
+                    {/* 1. Visit Date */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
-                          Date of Visit <span style={{ color: "red" }}> *</span>
+                          Visit Date <span style={{ color: "red" }}> *</span>
                         </FormLabelName>
                         <Input
                           className="form-control"
@@ -985,7 +980,7 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* Visit Type */}
+                    {/* 2. Visit Type */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
@@ -1015,10 +1010,10 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* Duration on PrEP - read only from eligibility */}
+                    {/* 3. Duration on PrEP (Months) */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Duration on PrEP</FormLabelName>
+                        <FormLabelName>Duration on PrEP (Months)</FormLabelName>
                         <Input
                           type="text"
                           name="durationOnPrep"
@@ -1032,7 +1027,7 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* Pregnancy Status (female only) */}
+                    {/* 4. Pregnancy Status (female only) */}
                     {isFemale() && (
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
@@ -1065,7 +1060,7 @@ const ClinicVisit = props => {
                       </div>
                     )}
 
-                    {/* Weight */}
+                    {/* 5. Weight (kg) */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
@@ -1110,16 +1105,16 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* Blood Pressure */}
+                    {/* 6. Blood Pressure (mmHg) */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Blood Pressure</FormLabelName>
+                        <FormLabelName>Blood Pressure (mmHg)</FormLabelName>
                         <InputGroup>
                           <InputGroupText
                             addonType="append"
                             style={inputGroupLeftStyle}
                           >
-                            systolic(mmHg)
+                            systolic
                           </InputGroupText>
                           <Input
                             type="number"
@@ -1144,7 +1139,7 @@ const ClinicVisit = props => {
                               borderRadius: "0rem",
                             }}
                           >
-                            diastolic(mmHg)
+                            diastolic
                           </InputGroupText>
                           <Input
                             type="number"
@@ -1177,25 +1172,12 @@ const ClinicVisit = props => {
                         )}
                       </FormGroup>
                     </div>
-                  </div>
 
-                  {/* ── SECTION 2: Clinical ── */}
-                  <Label
-                    as="a"
-                    color="black"
-                    style={{ width: "106%", height: "35px" }}
-                    ribbon
-                  >
-                    <h4 style={{ color: "#fff" }}></h4>
-                  </Label>
-                  <br />
-                  <br />
-                  <div className="row">
-                    {/* HTS Result */}
+                    {/* 7. HTS Result */}
                     <div className="mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
-                          Result of Last HIV Test{" "}
+                          HTS Result{" "}
                           <span style={{ color: "red" }}> *</span>
                         </FormLabelName>
                         <Input
@@ -1213,28 +1195,8 @@ const ClinicVisit = props => {
                         )}
                       </FormGroup>
                     </div>
-                    <div className="mb-3 col-md-6">
-                      <FormGroup>
-                        <FormLabelName>
-                          Date of Last HIV Test{" "}
-                          <span style={{ color: "red" }}> *</span>
-                        </FormLabelName>
-                        <Input
-                          type={hivTestValue === "NOT DONE" ? "text" : "date"}
-                          name="hivTestResultDate"
-                          id="hivTestResultDate"
-                          value={
-                            hivTestValue === "NOT DONE"
-                              ? "NOT APPLICABLE"
-                              : hivTestResultDate
-                          }
-                          style={inputStyle}
-                          disabled
-                        />
-                      </FormGroup>
-                    </div>
 
-                    {/* Noted Side Effects */}
+                    {/* 8. Noted Side Effects */}
                     {codeset?.PREP_SIDE_EFFECTS && (
                       <div className="mb-3 col-md-6">
                         <FormGroup>
@@ -1252,50 +1214,30 @@ const ClinicVisit = props => {
                       </div>
                     )}
 
-                    {/* Syndromic STI Screening */}
+                    {/* 9. Syndromic STI Screening */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>STI Screening</FormLabelName>
+                        <FormLabelName>Syndromic STI Screening</FormLabelName>
                         <Input
                           type="select"
-                          name="stiScreening"
-                          id="stiScreening"
-                          value={values.stiScreening}
+                          name="syndromicStiScreening"
+                          id="syndromicStiScreening"
+                          value={values.syndromicStiScreening || ""}
                           onChange={handleChange}
                           style={inputStyle}
                           disabled={disabledField}
                         >
                           <option value="">Select</option>
-                          <option value="true">Yes</option>
-                          <option value="false">No</option>
+                          {codeset?.SYNDROMIC_STI_SCREENING?.map(value => (
+                            <option key={value.id} value={value.id}>
+                              {value.display}
+                            </option>
+                          ))}
                         </Input>
                       </FormGroup>
                     </div>
-                    {values.stiScreening === "true" && (
-                      <div className="mb-3 col-md-6">
-                        <FormGroup>
-                          <FormLabelName>Syndromic STI Screening</FormLabelName>
-                          <Input
-                            type="select"
-                            name="syndromicStiScreening"
-                            id="syndromicStiScreening"
-                            value={values.syndromicStiScreening}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            disabled={disabledField}
-                          >
-                            <option value="">Select</option>
-                            {codeset?.SYNDROMIC_STI_SCREENING?.map(value => (
-                              <option key={value.id} value={value.id}>
-                                {value.display}
-                              </option>
-                            ))}
-                          </Input>
-                        </FormGroup>
-                      </div>
-                    )}
 
-                    {/* Risk Reduction Services */}
+                    {/* 10. Risk Reduction Services */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>Risk Reduction Services</FormLabelName>
@@ -1318,10 +1260,10 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* Adherence */}
+                    {/* 11. Adherence */}
                     <div className="mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Level of Adherence</FormLabelName>
+                        <FormLabelName>Adherence</FormLabelName>
                         <Input
                           type="select"
                           name="adherenceLevel"
@@ -1329,10 +1271,9 @@ const ClinicVisit = props => {
                           value={values.adherenceLevel}
                           onChange={e => {
                             handleChange(e);
-                            // Clear reason when adherence changes to Good
                             if (
-                              e.target.value ===
-                              "PREP_LEVEL_OF_ADHERENCE_(GOOD)_≤_2_DOSES"
+                              !e.target.value?.toUpperCase()?.includes("POOR") &&
+                              !e.target.value?.toUpperCase()?.includes("FAIR")
                             ) {
                               setFieldValue("whyAdherenceLevelPoor", "");
                             }
@@ -1350,7 +1291,7 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* Reason for Poor/Fair Adherence (conditional) */}
+                    {/* 12. Reason for Poor/Fair Adherence (conditional) */}
                     {showReasonField && (
                       <div className="mb-3 col-md-6">
                         <FormGroup>
@@ -1382,21 +1323,8 @@ const ClinicVisit = props => {
                         </FormGroup>
                       </div>
                     )}
-                  </div>
 
-                  {/* ── SECTION 3: PrEP DRUGS ── */}
-                  <Label
-                    as="a"
-                    color="blue"
-                    style={{ width: "106%", height: "35px" }}
-                    ribbon
-                  >
-                    <h4 style={{ color: "#fff" }}>PrEP DRUGS</h4>
-                  </Label>
-                  <br />
-                  <br />
-                  <div className="row">
-                    {/* PrEP Type */}
+                    {/* 13. PrEP Type */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
@@ -1426,11 +1354,11 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* PrEP Regimen */}
+                    {/* 14. Prep Regimen */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
-                          PrEP Regimen <span style={{ color: "red" }}> *</span>
+                          Prep Regimen <span style={{ color: "red" }}> *</span>
                         </FormLabelName>
                         <Input
                           type="select"
@@ -1438,7 +1366,6 @@ const ClinicVisit = props => {
                           id="regimenId"
                           onChange={e => {
                             handleChange(e);
-                            // Reset monthsOfRefill when regimen changes (new entries only)
                             if (
                               !["update", "view"].includes(
                                 props.activeContent.actionType
@@ -1485,12 +1412,12 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* Duration of Refill (Months of Refill) */}
+                    {/* 15. Months of Refill */}
                     {values.regimenId && (
                       <div className="mb-3 col-md-6">
                         <FormGroup>
                           <FormLabelName>
-                            Duration of refill (days){" "}
+                            Months of Refill{" "}
                             <span style={{ color: "red" }}> *</span>
                           </FormLabelName>
                           <DurationWrapper
@@ -1512,7 +1439,6 @@ const ClinicVisit = props => {
                             }}
                             disabledField={disabledField}
                             setObjValues={fn => {
-                              // Compatibility shim: DurationWrapper passes a function updater
                               if (typeof fn === "function") {
                                 const result = fn(values);
                                 Object.keys(result).forEach(key => {
@@ -1532,7 +1458,7 @@ const ClinicVisit = props => {
                       </div>
                     )}
 
-                    {/* Other Drugs Prescribed */}
+                    {/* 16. Other Drugs Prescribed */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>Other Drugs Prescribed</FormLabelName>
@@ -1577,7 +1503,7 @@ const ClinicVisit = props => {
                     )}
                   </div>
 
-                  {/* ── SECTION 4: Urinalysis Test ── */}
+                  {/* ── Result of Urinalysis Test ── */}
                   <Label
                     as="a"
                     color="teal"
@@ -1593,7 +1519,7 @@ const ClinicVisit = props => {
                         checked={urinalysisTest?.urinalysisTest === "Yes"}
                         disabled={disabledField}
                       />{" "}
-                      Urinalysis Test
+                      Result of Urinalysis Test
                     </h4>
                   </Label>
                   <br />
@@ -1602,7 +1528,7 @@ const ClinicVisit = props => {
                     <div className="row">
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Urinalysis Test Date</FormLabelName>
+                          <FormLabelName>Date of Urinalysis</FormLabelName>
                           <Input
                             type="date"
                             onKeyDown={e => e.preventDefault()}
@@ -1619,7 +1545,7 @@ const ClinicVisit = props => {
                       </div>
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Urinalysis Test Result</FormLabelName>
+                          <FormLabelName>Client urinalysis test</FormLabelName>
                           <Input
                             type="select"
                             name="result"
@@ -1641,7 +1567,7 @@ const ClinicVisit = props => {
                     </div>
                   )}
 
-                  {/* ── SECTION 5: Hepatitis Test ── */}
+                  {/* ── Result of Hepatitis Test ── */}
                   <Label
                     as="a"
                     color="blue"
@@ -1657,7 +1583,7 @@ const ClinicVisit = props => {
                         checked={hepatitisTest.hepatitisTest === "Yes"}
                         disabled={disabledField}
                       />{" "}
-                      Hepatitis Test
+                      Result of Hepatitis Test
                     </h4>
                   </Label>
                   <br />
@@ -1666,7 +1592,7 @@ const ClinicVisit = props => {
                     <div className="row">
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Hepatitis Test Date</FormLabelName>
+                          <FormLabelName>Date of Hepatitis</FormLabelName>
                           <Input
                             type="date"
                             onKeyDown={e => e.preventDefault()}
@@ -1683,7 +1609,7 @@ const ClinicVisit = props => {
                       </div>
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Hepatitis Test Result</FormLabelName>
+                          <FormLabelName>Client hepatitis test</FormLabelName>
                           <Input
                             type="select"
                             name="result"
@@ -1707,7 +1633,7 @@ const ClinicVisit = props => {
                     </div>
                   )}
 
-                  {/* ── SECTION 6: Syphilis Test ── */}
+                  {/* ── Result of Syphilis Test ── */}
                   <Label
                     as="a"
                     color="red"
@@ -1723,7 +1649,7 @@ const ClinicVisit = props => {
                         checked={syphilisTest?.syphilisTest === "Yes"}
                         disabled={disabledField}
                       />{" "}
-                      Syphilis Test
+                      Result of Syphilis Test
                     </h4>
                   </Label>
                   <br />
@@ -1732,7 +1658,7 @@ const ClinicVisit = props => {
                     <div className="row">
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Syphilis Test Date</FormLabelName>
+                          <FormLabelName>Date of Syphilis Test</FormLabelName>
                           <Input
                             type="date"
                             onKeyDown={e => e.preventDefault()}
@@ -1749,7 +1675,7 @@ const ClinicVisit = props => {
                       </div>
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Syphilis Test Result</FormLabelName>
+                          <FormLabelName>Client syphilis test</FormLabelName>
                           <Input
                             type="select"
                             name="result"
@@ -1772,7 +1698,7 @@ const ClinicVisit = props => {
                         <div className="mb-3 col-md-6">
                           <FormGroup>
                             <FormLabelName>
-                              Syphilis Test Result (Others)
+                              Client syphilis test (Others)
                             </FormLabelName>
                             <Input
                               type="text"
@@ -1789,56 +1715,68 @@ const ClinicVisit = props => {
                     </div>
                   )}
 
-                  {/* ── SECTION 7: Liver Function Test ── */}
+                  {/* ── Result of Liver Function Test ── */}
                   <Label
                     as="a"
                     color="olive"
                     style={{ width: "106%", height: "35px" }}
                     ribbon
                   >
-                    <h4 style={{ color: "#fff" }}>Liver Function Test</h4>
+                    <h4 style={{ color: "#fff" }}>
+                      <input
+                        type="checkbox"
+                        name="liverFunctionTest"
+                        value="Yes"
+                        onChange={handleCheckBoxLiverFunctionTest}
+                        checked={liverFunctionTestEnabled}
+                        disabled={disabledField}
+                      />{" "}
+                      Result of Liver Function Test
+                    </h4>
                   </Label>
                   <br />
                   <br />
-                  <div className="row">
-                    <div className="form-group mb-3 col-md-6">
-                      <FormGroup>
-                        <FormLabelName>
-                          Liver Function Tests Result
-                        </FormLabelName>
-                        <LiverFunctionTest
-                          objValues={values}
-                          handleInputChange={handleLftInputChange}
-                          liverFunctionTestResult={
-                            codeset?.LIVER_FUNCTION_TEST_RESULT
-                          }
-                          disabledField={true}
-                          isAutoPop={true}
-                        />
-                      </FormGroup>
+                  {liverFunctionTestEnabled && (
+                    <div className="row">
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>
+                            Date of Liver Function Test
+                          </FormLabelName>
+                          <Input
+                            className="form-control"
+                            type="date"
+                            onKeyDown={e => e.preventDefault()}
+                            name="dateLiverFunctionTestResults"
+                            id="dateLiverFunctionTestResults"
+                            max={moment(new Date()).format("YYYY-MM-DD")}
+                            value={values.dateLiverFunctionTestResults}
+                            onChange={handleChange}
+                            style={inputStyle}
+                            disabled={disabledField}
+                          />
+                        </FormGroup>
+                      </div>
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>
+                            Client liver function test
+                          </FormLabelName>
+                          <LiverFunctionTest
+                            objValues={values}
+                            handleInputChange={handleLftInputChange}
+                            liverFunctionTestResult={
+                              codeset?.LIVER_FUNCTION_TEST_RESULT
+                            }
+                            disabledField={disabledField}
+                            isAutoPop={true}
+                          />
+                        </FormGroup>
+                      </div>
                     </div>
-                    <div className="form-group mb-3 col-md-6">
-                      <FormGroup>
-                        <FormLabelName>
-                          Date of Liver Function Tests Result
-                        </FormLabelName>
-                        <Input
-                          className="form-control"
-                          type="date"
-                          onKeyDown={e => e.preventDefault()}
-                          name="dateLiverFunctionTestResults"
-                          id="dateLiverFunctionTestResults"
-                          max={moment(new Date()).format("YYYY-MM-DD")}
-                          value={values.dateLiverFunctionTestResults}
-                          onChange={handleChange}
-                          style={inputStyle}
-                          disabled
-                        />
-                      </FormGroup>
-                    </div>
-                  </div>
+                  )}
 
-                  {/* ── SECTION 8: Other Test ── */}
+                  {/* ── Result of Other Tests ── */}
                   <Label
                     as="a"
                     color="black"
@@ -1855,7 +1793,7 @@ const ClinicVisit = props => {
                         checked={otherTest.length > 0}
                         disabled={disabledField}
                       />{" "}
-                      Other Test
+                      Result of Other Tests
                     </h4>
                   </Label>
                   <br />
@@ -1865,7 +1803,7 @@ const ClinicVisit = props => {
                       <div className="row" key={eachTest.localId}>
                         <div className="mb-1 col-md-3">
                           <FormGroup>
-                            <FormLabelName>Test Name</FormLabelName>
+                            <FormLabelName>Client other indication for PrEP test</FormLabelName>
                             <Input
                               type="select"
                               name="otherTestsDone"
@@ -1912,7 +1850,7 @@ const ClinicVisit = props => {
 
                         <div className="mb-1 col-md-3">
                           <FormGroup>
-                            <FormLabelName>Test Date</FormLabelName>
+                            <FormLabelName>Date of Other Tests</FormLabelName>
                             <Input
                               type="date"
                               onKeyDown={e => e.preventDefault()}
@@ -1989,20 +1927,9 @@ const ClinicVisit = props => {
                     </div>
                   )}
 
-                  {/* ── SECTION 9: NEXT APPOINTMENT ── */}
-                  <br />
-                  <Label
-                    as="a"
-                    color="blue"
-                    style={{ width: "106%", height: "35px" }}
-                    ribbon
-                  >
-                    <h4 style={{ color: "#fff" }}>NEXT APPOINTMENT</h4>
-                  </Label>
-                  <br />
-                  <br />
                   <br />
                   <div className="row">
+                    {/* 22. Next Appointment Date */}
                     <div className="mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
@@ -2027,11 +1954,11 @@ const ClinicVisit = props => {
                         )}
                       </FormGroup>
                     </div>
+
+                    {/* 23. Signature */}
                     <div className="mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>
-                          Healthcare Worker Signature
-                        </FormLabelName>
+                        <FormLabelName>Signature</FormLabelName>
                         <Input
                           name="healthCareWorkerSignature"
                           id="healthCareWorkerSignature"
