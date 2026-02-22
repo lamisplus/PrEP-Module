@@ -18,7 +18,7 @@ function SubMenu(props) {
       route: "prep-interruptions",
     });
   };
-  const loadPrEPRegistrationForm = row => {
+  const loadPrEPInitialVisitForm = row => {
     props.setActiveContent({
       ...props.activeContent,
       route: "prep-registration",
@@ -30,7 +30,7 @@ function SubMenu(props) {
       route: "prep-commencement",
     });
   };
-  const loadPrEPEligibiltyScreeningForm = row => {
+  const loadPrEPEligibilityScreeningForm = row => {
     props.setActiveContent({ ...props.activeContent, route: "prep-screening" });
   };
 
@@ -82,7 +82,7 @@ function SubMenu(props) {
               <ProtectedComponent
                 isAuthorized={userPermissions.eligibility}
                 privateComponent={() => (
-                  <Menu.Item onClick={loadPrEPEligibiltyScreeningForm}>
+                  <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
                     PrEP Eligibility Screening
                   </Menu.Item>
                 )}
@@ -98,8 +98,8 @@ function SubMenu(props) {
                         <ProtectedComponent
                           isAuthorized={userPermissions.enrollment}
                           privateComponent={() => (
-                            <Menu.Item onClick={loadPrEPRegistrationForm}>
-                              PrEP Enrollment
+                            <Menu.Item onClick={loadPrEPInitialVisitForm}>
+                              PrEP/PEP Initial
                             </Menu.Item>
                           )}
                         />
@@ -122,7 +122,7 @@ function SubMenu(props) {
                     <ProtectedComponent
                       isAuthorized={userPermissions.eligibility}
                       privateComponent={() => (
-                        <Menu.Item onClick={loadPrEPEligibiltyScreeningForm}>
+                        <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
                           PrEP Eligibility Screening
                         </Menu.Item>
                       )}
@@ -133,8 +133,8 @@ function SubMenu(props) {
                         <ProtectedComponent
                           isAuthorized={userPermissions.enrollment}
                           privateComponent={() => (
-                            <Menu.Item onClick={loadPrEPRegistrationForm}>
-                              PrEP Enrollment
+                            <Menu.Item onClick={loadPrEPInitialVisitForm}>
+                              PrEP/PEP Initial
                             </Menu.Item>
                           )}
                         />
@@ -156,7 +156,7 @@ function SubMenu(props) {
                         isAuthorized={userPermissions.visit}
                         privateComponent={() => (
                           <Menu.Item onClick={onClickConsultation}>
-                            PrEP Visit
+                            PrEP Follow-up Visit
                           </Menu.Item>
                         )}
                       />
@@ -198,7 +198,7 @@ function SubMenu(props) {
               <ProtectedComponent
                 isAuthorized={userPermissions.eligibility}
                 privateComponent={() => (
-                  <Menu.Item onClick={loadPrEPEligibiltyScreeningForm}>
+                  <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
                     PrEP Eligibility Screening
                   </Menu.Item>
                 )}
@@ -210,8 +210,8 @@ function SubMenu(props) {
                 <ProtectedComponent
                   isAuthorized={userPermissions.enrollment}
                   privateComponent={() => (
-                    <Menu.Item onClick={loadPrEPRegistrationForm}>
-                      PrEP Enrollment
+                    <Menu.Item onClick={loadPrEPInitialVisitForm}>
+                      PrEP/PEP Initial
                     </Menu.Item>
                   )}
                 />
@@ -235,7 +235,7 @@ function SubMenu(props) {
                 isAuthorized={userPermissions.visit}
                 privateComponent={() => (
                   <Menu.Item onClick={onClickConsultation}>
-                    PrEP Visit
+                    PrEP Follow-up Visit
                   </Menu.Item>
                 )}
               />

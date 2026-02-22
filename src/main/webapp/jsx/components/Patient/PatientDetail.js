@@ -13,9 +13,8 @@ import PatientHistory from "./../History/PatientHistory";
 import ClinicVisit from "../Consultation/Index";
 import PrEPCommencementForm from "./../PrepServices/PrEPCommencementForm";
 import PrEPDiscontinuationsInterruptions from "./../PrepServices/PrEPDiscontinuationsInterruptions";
-import PrEPEligibiltyScreeningForm from "./../PrepServices/PrEPEligibiltyScreeningForm";
-import PrEPVisit from "./../PrepServices/PrEPVisit";
-import PrEPRegistrationForm from "./../PrepServices/PrEPRegistrationForm";
+import PrEPEligibilityScreeningForm from "./../PrepServices/PrEPEligibilityScreeningForm";
+import PrEPInitialVisitForm from "./../PrepServices/PrEPInitialVisitForm";
 import Biometrics from "./Biometric";
 import axios from "axios";
 import { url as baseUrl, token } from "./../../../api";
@@ -186,20 +185,8 @@ function PatientCard(props) {
           )}
           {activeContent.route === "prep-screening" && (
             <ProtectedComponent
-              privateComponent={PrEPEligibiltyScreeningForm}
+              privateComponent={PrEPEligibilityScreeningForm}
               isAuthorized={userPermissions?.eligibility}
-              patientObj={patientObjLocation || location?.state?.patientObj}
-              setActiveContent={setActiveContent}
-              activeContent={activeContent}
-              prepId={prepId}
-              patientDetail={patientDetail}
-              PatientObject={() => PatientObject()}
-            />
-          )}
-          {activeContent.route === "patient-visits" && (
-            <ProtectedComponent
-              privateComponent={PatientVisits}
-              isAuthorized={userPermissions?.patientVisits}
               patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -222,7 +209,7 @@ function PatientCard(props) {
           )}
           {activeContent.route === "prep-registration" && (
             <ProtectedComponent
-              privateComponent={PrEPRegistrationForm}
+              privateComponent={PrEPInitialVisitForm}
               isAuthorized={userPermissions.registration}
               patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}

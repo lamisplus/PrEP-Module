@@ -18,7 +18,7 @@ import Divider from "@mui/material/Divider";
 import { TiTrash } from "react-icons/ti";
 import DualListBox from "react-dual-listbox";
 import "react-dual-listbox/lib/react-dual-listbox.css";
-import { LiverFunctionTest } from "../PrepServices/PrEPEligibiltyScreeningForm";
+import { LiverFunctionTest } from "../PrepServices/PrEPEligibilityScreeningForm";
 import DurationWrapper from "./DurationWrapper/DurationWrapper";
 import { useStyles } from "../../../hooks/styles/prepVisit/useStyle";
 import { Formik } from "formik";
@@ -186,6 +186,9 @@ const INITIAL_VALUES = {
   dateLiverFunctionTestResults: "",
   liverFunctionTestResults: [],
   whyAdherenceLevelPoor: "",
+  otherReasonForPoorFairAdherence: "",
+  otherSyndromicStiScreening: "",
+  otherNotedSideEffects: "",
   comment: "",
   duration: "",
 };
@@ -1214,6 +1217,25 @@ const ClinicVisit = props => {
                       </div>
                     )}
 
+                    {/* 8b. Noted Side Effects - Other specify */}
+                    {notedSideEffects?.includes("PREP_SIDE_EFFECTS_OTHER") && (
+                      <div className="mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>Specify Other Side Effect</FormLabelName>
+                          <Input
+                            type="text"
+                            name="otherNotedSideEffects"
+                            id="otherNotedSideEffects"
+                            value={values.otherNotedSideEffects}
+                            onChange={handleChange}
+                            style={inputStyle}
+                            disabled={disabledField}
+                            placeholder="Specify..."
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
+
                     {/* 9. Syndromic STI Screening */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
@@ -1236,6 +1258,28 @@ const ClinicVisit = props => {
                         </Input>
                       </FormGroup>
                     </div>
+
+                    {/* 9b. Syndromic STI Screening - Other specify */}
+                    {values.syndromicStiScreening &&
+                      codeset?.SYNDROMIC_STI_SCREENING?.find(
+                        v => v.id === Number(values.syndromicStiScreening)
+                      )?.display?.toLowerCase()?.includes("other") && (
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>Specify Other STI Screening</FormLabelName>
+                          <Input
+                            type="text"
+                            name="otherSyndromicStiScreening"
+                            id="otherSyndromicStiScreening"
+                            value={values.otherSyndromicStiScreening}
+                            onChange={handleChange}
+                            style={inputStyle}
+                            disabled={disabledField}
+                            placeholder="Specify..."
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
 
                     {/* 10. Risk Reduction Services */}
                     <div className="form-group mb-3 col-md-6">
@@ -1324,6 +1368,26 @@ const ClinicVisit = props => {
                       </div>
                     )}
 
+                    {/* 12b. Reason for Poor/Fair Adherence - Other specify */}
+                    {showReasonField &&
+                      values.whyAdherenceLevelPoor?.toUpperCase()?.includes("OTHER") && (
+                      <div className="mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>Specify Other Reason</FormLabelName>
+                          <Input
+                            type="text"
+                            name="otherReasonForPoorFairAdherence"
+                            id="otherReasonForPoorFairAdherence"
+                            value={values.otherReasonForPoorFairAdherence}
+                            onChange={handleChange}
+                            style={inputStyle}
+                            disabled={disabledField}
+                            placeholder="Specify..."
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
+
                     {/* 13. PrEP Type */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
@@ -1353,6 +1417,25 @@ const ClinicVisit = props => {
                         )}
                       </FormGroup>
                     </div>
+
+                    {/* 13b. PrEP Type - Other specify */}
+                    {values.prepType === "PREP_TYPE_OTHERS" && (
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>Specify Other PrEP Type</FormLabelName>
+                          <Input
+                            type="text"
+                            name="otherPrepType"
+                            id="otherPrepType"
+                            value={values.otherPrepType}
+                            onChange={handleChange}
+                            style={inputStyle}
+                            disabled={disabledField}
+                            placeholder="Specify..."
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
 
                     {/* 14. Prep Regimen */}
                     <div className="form-group mb-3 col-md-6">
@@ -1800,105 +1883,110 @@ const ClinicVisit = props => {
                   <br />
                   {otherTest.length > 0 &&
                     otherTest?.map(eachTest => (
-                      <div className="row" key={eachTest.localId}>
-                        <div className="mb-1 col-md-3">
-                          <FormGroup>
-                            <FormLabelName>Client other indication for PrEP test</FormLabelName>
-                            <Input
-                              type="select"
-                              name="otherTestsDone"
-                              id={`otherTestsDone_${eachTest.localId}`}
-                              onChange={e =>
-                                handleInputChangeOtherTest(e, eachTest.localId)
-                              }
-                              value={eachTest.otherTestsDone}
-                              style={inputStyle}
-                              disabled={disabledField}
-                            >
-                              <option value="">Select</option>
-                              {codeset?.PREP_OTHER_TEST?.map(value => (
-                                <option key={value.id} value={value.code}>
-                                  {value.display}
-                                </option>
-                              ))}
-                            </Input>
-                          </FormGroup>
-                        </div>
+                      <React.Fragment key={eachTest.localId}>
+                        <div className="row">
+                          <div className="mb-1 col-md-4">
+                            <FormGroup>
+                              <FormLabelName>Client other indication for PrEP test</FormLabelName>
+                              <Input
+                                type="select"
+                                name="otherTestsDone"
+                                id={`otherTestsDone_${eachTest.localId}`}
+                                onChange={e =>
+                                  handleInputChangeOtherTest(e, eachTest.localId)
+                                }
+                                value={eachTest.otherTestsDone}
+                                style={inputStyle}
+                                disabled={disabledField}
+                              >
+                                <option value="">Select</option>
+                                {codeset?.PREP_OTHER_TEST?.map(value => (
+                                  <option key={value.id} value={value.code}>
+                                    {value.display}
+                                  </option>
+                                ))}
+                              </Input>
+                            </FormGroup>
+                          </div>
 
-                        {eachTest.name ===
-                          "PREP_OTHER_TEST_OTHER_(SPECIFY)" && (
                           <div className="mb-1 col-md-3">
                             <FormGroup>
-                              <FormLabelName>Other Test Name</FormLabelName>
+                              <FormLabelName>Date of Other Tests</FormLabelName>
+                              <Input
+                                type="date"
+                                onKeyDown={e => e.preventDefault()}
+                                name="testDate"
+                                id={`otherTestDate_${eachTest.localId}`}
+                                value={eachTest.testDate}
+                                onChange={e =>
+                                  handleInputChangeOtherTest(e, eachTest.localId)
+                                }
+                                style={inputStyle}
+                                disabled={disabledField}
+                                min={values.encounterDate}
+                                max={moment(new Date()).format("YYYY-MM-DD")}
+                              />
+                            </FormGroup>
+                          </div>
+
+                          <div className="mb-1 col-md-4">
+                            <FormGroup>
+                              <FormLabelName>Test Result</FormLabelName>
                               <Input
                                 type="text"
-                                name="otherTestName"
-                                id={`otherTestName_${eachTest.localId}`}
-                                value={eachTest.otherTestName}
+                                name="result"
+                                id={`otherTestResult_${eachTest.localId}`}
+                                value={eachTest.result}
                                 onChange={e =>
-                                  handleInputChangeOtherTest(
-                                    e,
-                                    eachTest.localId
-                                  )
+                                  handleInputChangeOtherTest(e, eachTest.localId)
                                 }
                                 style={inputStyle}
                                 disabled={disabledField}
                               />
                             </FormGroup>
                           </div>
+
+                          <div className="mb-1 col-md-1 d-flex align-items-end">
+                            <button
+                              className={`${classes.button} btn btn-danger`}
+                              style={{
+                                display: "block",
+                                margin: 0,
+                                fontSize: "1.2em",
+                              }}
+                              disabled={disabledField}
+                              onClick={() => handleRemoveTest(eachTest.localId)}
+                            >
+                              <TiTrash />
+                            </button>
+                          </div>
+                        </div>
+
+                        {eachTest.name ===
+                          "PREP_OTHER_TEST_OTHER_(SPECIFY)" && (
+                          <div className="row">
+                            <div className="mb-1 col-md-6">
+                              <FormGroup>
+                                <FormLabelName>Specify Other Test Name</FormLabelName>
+                                <Input
+                                  type="text"
+                                  name="otherTestName"
+                                  id={`otherTestName_${eachTest.localId}`}
+                                  value={eachTest.otherTestName}
+                                  onChange={e =>
+                                    handleInputChangeOtherTest(
+                                      e,
+                                      eachTest.localId
+                                    )
+                                  }
+                                  style={inputStyle}
+                                  disabled={disabledField}
+                                  placeholder="Specify the other test..."
+                                />
+                              </FormGroup>
+                            </div>
+                          </div>
                         )}
-
-                        <div className="mb-1 col-md-3">
-                          <FormGroup>
-                            <FormLabelName>Date of Other Tests</FormLabelName>
-                            <Input
-                              type="date"
-                              onKeyDown={e => e.preventDefault()}
-                              name="testDate"
-                              id={`otherTestDate_${eachTest.localId}`}
-                              value={eachTest.testDate}
-                              onChange={e =>
-                                handleInputChangeOtherTest(e, eachTest.localId)
-                              }
-                              style={inputStyle}
-                              disabled={disabledField}
-                              min={values.encounterDate}
-                              max={moment(new Date()).format("YYYY-MM-DD")}
-                            />
-                          </FormGroup>
-                        </div>
-
-                        <div className="mb-1 col-md-3">
-                          <FormGroup>
-                            <FormLabelName>Test Result</FormLabelName>
-                            <Input
-                              type="text"
-                              name="result"
-                              id={`otherTestResult_${eachTest.localId}`}
-                              value={eachTest.result}
-                              onChange={e =>
-                                handleInputChangeOtherTest(e, eachTest.localId)
-                              }
-                              style={inputStyle}
-                              disabled={disabledField}
-                            />
-                          </FormGroup>
-                        </div>
-
-                        <div className="mb-1 col-md-3 d-flex align-items-end">
-                          <button
-                            className={`${classes.button} btn btn-danger`}
-                            style={{
-                              display: "block",
-                              margin: 0,
-                              fontSize: "1.2em",
-                            }}
-                            disabled={disabledField}
-                            onClick={() => handleRemoveTest(eachTest.localId)}
-                          >
-                            <TiTrash />
-                          </button>
-                        </div>
 
                         {otherTest.length > 1 && (
                           <Divider
@@ -1906,7 +1994,7 @@ const ClinicVisit = props => {
                             style={{ marginBottom: "10px" }}
                           />
                         )}
-                      </div>
+                      </React.Fragment>
                     ))}
                   {otherTest.length > 0 && (
                     <div className="p-2">

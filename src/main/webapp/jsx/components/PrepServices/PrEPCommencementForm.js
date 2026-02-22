@@ -18,7 +18,7 @@ import { url as baseUrl, token } from "../../../api";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import { Spinner } from "reactstrap";
-import { LiverFunctionTest } from "./PrEPEligibiltyScreeningForm";
+import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 import DurationWrapper from "../Consultation/DurationWrapper/DurationWrapper";
 import { useStyles } from "../../../hooks/styles/prepCommencement/useStyles";
 

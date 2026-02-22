@@ -76,7 +76,7 @@ const ClinicVisitPage = props => {
                   onSelect={k => setKey(k)}
                   className="mb-3"
                 >
-                  <Tab eventKey="home" title="CLINIC VISIT ">
+                  <Tab eventKey="home" title="PrEP FOLLOW-UP VISIT">
                     <ConsultationPage
                       encounters={encounters}
                       recentActivities={recentActivities}

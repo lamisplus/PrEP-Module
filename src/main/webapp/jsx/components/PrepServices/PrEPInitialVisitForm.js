@@ -11,7 +11,7 @@ import PhoneInput from "react-phone-input-2";
 import moment from "moment";
 import { Spinner } from "reactstrap";
 import { useStyles } from "../../../hooks/styles/prepRegistration/useStyle";
-import { LiverFunctionTest } from "./PrEPEligibiltyScreeningForm";
+import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 
 const CODESET_KEYS = [
   "HTS_ENTRY_POINT",
@@ -23,7 +23,7 @@ const CODESET_KEYS = [
   "LIVER_FUNCTION_TEST_RESULT",
 ];
 
-const PrEPRegistrationForm = props => {
+const PrEPInitialVisitForm = props => {
   const [entryPoint, setEntryPoint] = useState([]);
   const classes = useStyles();
   const [objValues, setObjValues] = useState({
@@ -57,6 +57,7 @@ const PrEPRegistrationForm = props => {
     prepTypeAtStart: "",
     prepTypeAtStartOthersSpecify: "",
     prepRegimen: "",
+    monthsOfRefill: "",
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -861,6 +862,27 @@ const PrEPRegistrationForm = props => {
                 </FormGroup>
               </div>
 
+              {/* 18b. Months of Refill */}
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Months of Refill</Label>
+                  <Input
+                    type="number"
+                    className="form-control"
+                    name="monthsOfRefill"
+                    id="monthsOfRefill"
+                    min="0"
+                    value={objValues.monthsOfRefill}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  />
+                </FormGroup>
+              </div>
+
               {/* 19. History of Drug Allergies */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
@@ -1010,4 +1032,4 @@ const PrEPRegistrationForm = props => {
   );
 };
 
-export default PrEPRegistrationForm;
+export default PrEPInitialVisitForm;

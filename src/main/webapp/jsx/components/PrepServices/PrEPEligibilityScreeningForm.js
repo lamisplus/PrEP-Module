@@ -622,7 +622,7 @@ const BasicInfo = props => {
       <Card className={classes.root}>
         <CardBody>
           <h1 style={{ fontSize: "1.1rem" }}>
-            PrEP Eligibility Screening Form
+            PrEP Eligibility Screening
           </h1>
           <form>
             <div className="row">
