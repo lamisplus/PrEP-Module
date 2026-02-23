@@ -189,6 +189,50 @@ export function getOtherTestOptions() {
 }
 
 // ---------------------------------------------------------------------------
+// PEP-specific codeset helpers
+// ---------------------------------------------------------------------------
+
+export function getPepModeOfExposureOptions() {
+  return [
+    { value: "PEP_MODE_OF_EXPOSURE_OCCUPATIONAL", label: "Occupational" },
+    { value: "PEP_MODE_OF_EXPOSURE_NON_OCCUPATIONAL", label: "Non-Occupational" },
+    { value: "PEP_MODE_OF_EXPOSURE_SUSPECTED_ACUTE_HIV", label: "Suspected Acute HIV Infection" },
+  ];
+}
+
+export function getPepDurationBeforePepOptions() {
+  return [
+    { value: "PEP_DURATION_BEFORE_PEP_LT_24", label: "<24 Hrs" },
+    { value: "PEP_DURATION_BEFORE_PEP_LT_48", label: "<48 Hrs" },
+    { value: "PEP_DURATION_BEFORE_PEP_LT_72", label: "<72 Hrs" },
+    { value: "PEP_DURATION_BEFORE_PEP_GT_72", label: ">72 Hrs" },
+  ];
+}
+
+export function getPepHivStatusAtExposureOptions() {
+  return [
+    { value: "PEP_HIV_STATUS_POSITIVE", label: "Positive" },
+    { value: "PEP_HIV_STATUS_NEGATIVE", label: "Negative" },
+  ];
+}
+
+export function getPepRegimenOptions() {
+  return [
+    { value: "PEP_REGIMEN_TDF_3TC_DTG", label: "TDF/3TC/DTG" },
+    { value: "PEP_REGIMEN_OTHERS", label: "Others" },
+  ];
+}
+
+export function getPepFollowupHivTestResultOptions() {
+  return [
+    { value: "PEP_FOLLOWUP_HIV_1ST_VISIT_6_WEEKS", label: "1st Visit (6 Weeks)" },
+    { value: "PEP_FOLLOWUP_HIV_2ND_VISIT_3_MONTHS", label: "2nd Visit (3 Months)" },
+    { value: "PEP_FOLLOWUP_HIV_3RD_VISIT_6_MONTHS", label: "3rd Visit (6 Months)" },
+    { value: "PEP_FOLLOWUP_HIV_REFER_IF_POSITIVE", label: "Refer (If Positive)" },
+  ];
+}
+
+// ---------------------------------------------------------------------------
 // Async abstractions — shaped to match the API responses exactly
 // ---------------------------------------------------------------------------
 
@@ -280,6 +324,12 @@ export function fetchAllCodesets() {
       { value: "POPULATION_TYPE_KEY_POP", label: "Key Population" },
       { value: "POPULATION_TYPE_PRIORITY_POP", label: "Priority Population" },
     ]),
+    // Codesets used by PEP Follow-up Visit form
+    PEP_MODE_OF_EXPOSURE: toApiShape(getPepModeOfExposureOptions()),
+    PEP_DURATION_BEFORE_PEP: toApiShape(getPepDurationBeforePepOptions()),
+    PEP_HIV_STATUS_AT_EXPOSURE: toApiShape(getPepHivStatusAtExposureOptions()),
+    PEP_REGIMEN: toApiShape(getPepRegimenOptions()),
+    PEP_FOLLOWUP_HIV_TEST_RESULT: toApiShape(getPepFollowupHivTestResultOptions()),
     // Other keys referenced by various forms
     REASON_METHOD_SWITCH: [],
     CREATININE_TEST_RESULT: [],

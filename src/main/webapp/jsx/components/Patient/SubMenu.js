@@ -37,6 +37,9 @@ function SubMenu(props) {
   const onClickConsultation = row => {
     props.setActiveContent({ ...props.activeContent, route: "consultation" });
   };
+  const loadPEPFollowupVisit = row => {
+    props.setActiveContent({ ...props.activeContent, route: "pep-followup" });
+  };
   const onClickHome = row => {
     props.setActiveContent({ ...props.activeContent, route: "recent-history" });
   };
@@ -163,6 +166,16 @@ function SubMenu(props) {
                     )}
                     {patientObj?.hivresultAtVisit === "Negative" && (
                       <ProtectedComponent
+                        isAuthorized={userPermissions.visit}
+                        privateComponent={() => (
+                          <Menu.Item onClick={loadPEPFollowupVisit}>
+                            PEP Follow-up Visit
+                          </Menu.Item>
+                        )}
+                      />
+                    )}
+                    {patientObj?.hivresultAtVisit === "Negative" && (
+                      <ProtectedComponent
                         isAuthorized={userPermissions.discontinuation}
                         privateComponent={() => (
                           <Menu.Item
@@ -236,6 +249,17 @@ function SubMenu(props) {
                 privateComponent={() => (
                   <Menu.Item onClick={onClickConsultation}>
                     PrEP Follow-up Visit
+                  </Menu.Item>
+                )}
+              />
+            )}
+            {(patientObj?.hivresultAtVisit === "Negative" ||
+              patientObj?.hivresultAtVisit === null) && (
+              <ProtectedComponent
+                isAuthorized={userPermissions.visit}
+                privateComponent={() => (
+                  <Menu.Item onClick={loadPEPFollowupVisit}>
+                    PEP Follow-up Visit
                   </Menu.Item>
                 )}
               />

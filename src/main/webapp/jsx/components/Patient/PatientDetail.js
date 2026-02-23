@@ -15,6 +15,7 @@ import PrEPCommencementForm from "./../PrepServices/PrEPCommencementForm";
 import PrEPDiscontinuationsInterruptions from "./../PrepServices/PrEPDiscontinuationsInterruptions";
 import PrEPEligibilityScreeningForm from "./../PrepServices/PrEPEligibilityScreeningForm";
 import PrEPInitialVisitForm from "./../PrepServices/PrEPInitialVisitForm";
+import PEPFollowupVisitIndex from "./../Consultation/PEPFollowupIndex";
 import Biometrics from "./Biometric";
 import axios from "axios";
 import { url as baseUrl, token } from "./../../../api";
@@ -153,6 +154,17 @@ function PatientCard(props) {
           {activeContent.route === "consultation" && (
             <ProtectedComponent
               privateComponent={ClinicVisit}
+              isAuthorized={userPermissions.visit}
+              patientObj={patientObjLocation || location?.state?.patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+              prepId={prepId}
+              PatientObject={() => PatientObject()}
+            />
+          )}
+          {activeContent.route === "pep-followup" && (
+            <ProtectedComponent
+              privateComponent={PEPFollowupVisitIndex}
               isAuthorized={userPermissions.visit}
               patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}

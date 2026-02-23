@@ -1,0 +1,892 @@
+import React, { useState, useEffect, useRef } from "react";
+import { Grid, Segment } from "semantic-ui-react";
+import {
+  FormGroup,
+  Label as FormLabelName,
+  InputGroup,
+  InputGroupText,
+  Input,
+} from "reactstrap";
+import { url as baseUrl, token } from "../../../api";
+import { Button as MatButton } from "@material-ui/core";
+import SaveIcon from "@material-ui/icons/Save";
+import axios from "axios";
+import moment from "moment";
+import { toast } from "react-toastify";
+import DualListBox from "react-dual-listbox";
+import "react-dual-listbox/lib/react-dual-listbox.css";
+import { useStyles } from "../../../hooks/styles/prepVisit/useStyle";
+import { Formik } from "formik";
+import * as Yup from "yup";
+import { fetchAllCodesets } from "./codesets";
+
+const inputStyle = {
+  border: "1px solid #014D88",
+  borderRadius: "0.25rem",
+};
+
+const inputGroupLeftStyle = {
+  backgroundColor: "#014D88",
+  color: "#fff",
+  border: "1px solid #014D88",
+  borderRadius: "0rem",
+  borderTopLeftRadius: "0.25rem",
+  borderBottomLeftRadius: "0.25rem",
+};
+
+const inputGroupRightStyle = {
+  backgroundColor: "#014D88",
+  color: "#fff",
+  border: "1px solid #014D88",
+  borderRadius: "0rem",
+  borderTopRightRadius: "0.25rem",
+  borderBottomRightRadius: "0.25rem",
+};
+
+const inputGroupMiddleStyle = {
+  border: "1px solid #014D88",
+  borderRadius: "0rem",
+};
+
+const validationSchema = Yup.object().shape({
+  encounterDate: Yup.string().required("This field is required"),
+  modeOfExposure: Yup.string().required("This field is required"),
+  durationBeforePep: Yup.string().required("This field is required"),
+  hivStatusAtExposure: Yup.string().required("This field is required"),
+  pepRegimen: Yup.string().required("This field is required"),
+  dateStartPep: Yup.string().required("This field is required"),
+  dateStopPep: Yup.string().required("This field is required"),
+  followupHivTestResult: Yup.string().required("This field is required"),
+  nextAppointment: Yup.string().required("This field is required"),
+});
+
+const INITIAL_VALUES = {
+  encounterDate: "",
+  modeOfExposure: "",
+  durationBeforePep: "",
+  systolic: "",
+  diastolic: "",
+  hivStatusAtExposure: "",
+  pepNotedSideEffects: [],
+  otherNotedSideEffects: "",
+  syndromicStiScreening: "",
+  otherSyndromicStiScreening: "",
+  riskReductionServices: "",
+  adherenceLevel: "",
+  pepRegimen: "",
+  otherPepRegimen: "",
+  dateStartPep: "",
+  dateStopPep: "",
+  followupHivTestResult: "",
+  nextAppointment: "",
+  healthCareWorkerSignature: "",
+  personId: "",
+};
+
+const PEPFollowupVisit = props => {
+  const classes = useStyles();
+  const [disabledField, setDisabledField] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [codeset, setCodeset] = useState({});
+  const [notedSideEffects, setNotedSideEffects] = useState([]);
+  const [patientDto, setPatientDto] = useState();
+
+  const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
+    systolic: "",
+    diastolic: "",
+  });
+
+  const [formInitialValues, setFormInitialValues] = useState({
+    ...INITIAL_VALUES,
+    personId: props.patientObj.personId || props.patientObj.id,
+  });
+
+  const formikRef = useRef(null);
+
+  // ── API Calls ──
+
+  const getPatientDtoObj = () => {
+    axios
+      .get(
+        `${baseUrl}prep/enrollment/open/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then(response => {
+        setPatientDto(response.data);
+      })
+      .catch(error => {});
+  };
+
+  const getPatientVisit = async () => {
+    if (!props.activeContent.id) return;
+    try {
+      const response = await axios.get(
+        `${baseUrl}pep-clinic/${props.activeContent.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = JSON.parse(JSON.stringify(response.data));
+      if (data.pepNotedSideEffects) {
+        setNotedSideEffects(data.pepNotedSideEffects);
+      }
+      setFormInitialValues(prev => ({ ...prev, ...data }));
+      if (formikRef.current) {
+        formikRef.current.setValues({ ...formikRef.current.values, ...data });
+      }
+    } catch (error) {}
+  };
+
+  // ── Vital sign warning helpers ──
+
+  const handleInputValueCheckSystolic = e => {
+    if (e.target.value < 90 || e.target.value > 240) {
+      setVitalClinicalSupport(prev => ({
+        ...prev,
+        systolic:
+          "Blood Pressure systolic must not be greater than 240 and less than 90",
+      }));
+    } else {
+      setVitalClinicalSupport(prev => ({ ...prev, systolic: "" }));
+    }
+  };
+
+  const handleInputValueCheckDiastolic = e => {
+    if (e.target.value < 60 || e.target.value > 140) {
+      setVitalClinicalSupport(prev => ({
+        ...prev,
+        diastolic:
+          "Blood Pressure diastolic must not be greater than 140 and less than 60",
+      }));
+    } else {
+      setVitalClinicalSupport(prev => ({ ...prev, diastolic: "" }));
+    }
+  };
+
+  // ── Noted side effects handler ──
+
+  const handleNotedSideEffectsChange = selected => {
+    setNotedSideEffects(selected);
+    if (formikRef.current) {
+      formikRef.current.setFieldValue("pepNotedSideEffects", selected);
+    }
+  };
+
+  // ── Codeset fetch ──
+
+  useEffect(() => {
+    fetchAllCodesets().then(data => {
+      setCodeset(data);
+    });
+  }, []);
+
+  // ── Data loading ──
+
+  useEffect(() => {
+    getPatientDtoObj();
+  }, []);
+
+  useEffect(() => {
+    getPatientVisit();
+    setDisabledField(
+      !["update", undefined].includes(props.activeContent.actionType)
+    );
+  }, [props.activeContent]);
+
+  useEffect(() => {
+    if (
+      props.activeContent.actionType === "" ||
+      props.activeContent.actionType === null
+    ) {
+      if (formikRef.current) {
+        formikRef.current.resetForm({
+          values: {
+            ...INITIAL_VALUES,
+            personId: props.patientObj.personId || props.patientObj.id,
+          },
+        });
+      }
+      setNotedSideEffects([]);
+    }
+  }, [props.activeContent.actionType]);
+
+  // ── Submit ──
+
+  function handleError(error) {
+    setSaving(false);
+    if (error.response && error.response.data) {
+      let errorMessage =
+        error.response.data.apierror &&
+        error.response.data.apierror.message !== ""
+          ? error.response.data.apierror.message
+          : "Something went wrong. Please try again";
+      toast.error(errorMessage, {
+        position: toast.POSITION.BOTTOM_CENTER,
+      });
+    } else {
+      toast.error("Something went wrong, please try again...", {
+        position: toast.POSITION.BOTTOM_CENTER,
+      });
+    }
+  }
+
+  const handleFormSubmit = async values => {
+    setSaving(true);
+    const payload = { ...values };
+    payload.pepNotedSideEffects = notedSideEffects;
+    payload.prepEnrollmentUuid = patientDto?.uuid;
+    payload.previousPrepStatus = props.patientObj?.prepStatus;
+
+    if (props.activeContent && props.activeContent.actionType === "update") {
+      try {
+        await axios.put(
+          `${baseUrl}pep-clinic/${props.activeContent.id}`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setSaving(false);
+        toast.success("PEP Follow-up visit updated successfully!", {
+          position: toast.POSITION.BOTTOM_CENTER,
+        });
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "pep-followup",
+          activeTab: "history",
+          actionType: "view",
+        });
+      } catch (error) {
+        handleError(error);
+      }
+    } else {
+      try {
+        await axios.post(`${baseUrl}pep/clinic-visit`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSaving(false);
+        toast.success("PEP Follow-up visit saved successfully!", {
+          position: toast.POSITION.BOTTOM_CENTER,
+        });
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "pep-followup",
+          activeTab: "history",
+          actionType: "view",
+        });
+      } catch (error) {
+        handleError(error);
+      }
+    }
+  };
+
+  return (
+    <div className={`${classes.root} container-fluid`}>
+      <div className="row">
+        <div className="col-12">
+          <h2 className="p-2">PEP Follow-up Visit</h2>
+        </div>
+      </div>
+      <Formik
+        innerRef={formikRef}
+        initialValues={formInitialValues}
+        enableReinitialize
+        validationSchema={validationSchema}
+        onSubmit={values => {
+          handleFormSubmit(values);
+        }}
+      >
+        {({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleSubmit,
+          setFieldValue,
+        }) => {
+          const getError = field => {
+            return touched[field] && errors[field] ? errors[field] : "";
+          };
+
+          return (
+            <Grid>
+              <Grid.Column>
+                <Segment>
+                  <div className="row">
+                    {/* 1. Visit Date */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>
+                          Visit Date <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
+                        <Input
+                          className="form-control"
+                          type="date"
+                          name="encounterDate"
+                          id="encounterDate"
+                          onKeyDown={e => e.preventDefault()}
+                          value={values.encounterDate}
+                          style={inputStyle}
+                          onChange={handleChange}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                          disabled={disabledField}
+                        />
+                        {getError("encounterDate") && (
+                          <span className={classes.error}>
+                            {getError("encounterDate")}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+
+                    {/* 2. Mode of Exposure */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>
+                          Mode of Exposure{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
+                        <Input
+                          type="select"
+                          name="modeOfExposure"
+                          id="modeOfExposure"
+                          onChange={handleChange}
+                          value={values.modeOfExposure}
+                          style={inputStyle}
+                          disabled={disabledField}
+                        >
+                          <option value="">Select</option>
+                          {codeset?.PEP_MODE_OF_EXPOSURE?.map(value => (
+                            <option key={value.id} value={value.code}>
+                              {value.display}
+                            </option>
+                          ))}
+                        </Input>
+                        {getError("modeOfExposure") && (
+                          <span className={classes.error}>
+                            {getError("modeOfExposure")}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+
+                    {/* 3. Duration before PEP provided */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>
+                          Duration before PEP provided{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
+                        <Input
+                          type="select"
+                          name="durationBeforePep"
+                          id="durationBeforePep"
+                          onChange={handleChange}
+                          value={values.durationBeforePep}
+                          style={inputStyle}
+                          disabled={disabledField}
+                        >
+                          <option value="">Select</option>
+                          {codeset?.PEP_DURATION_BEFORE_PEP?.map(value => (
+                            <option key={value.id} value={value.code}>
+                              {value.display}
+                            </option>
+                          ))}
+                        </Input>
+                        {getError("durationBeforePep") && (
+                          <span className={classes.error}>
+                            {getError("durationBeforePep")}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+
+                    {/* 4. Blood Pressure (mmHg) */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>Blood Pressure (mmHg)</FormLabelName>
+                        <InputGroup>
+                          <InputGroupText
+                            addonType="append"
+                            style={inputGroupLeftStyle}
+                          >
+                            systolic
+                          </InputGroupText>
+                          <Input
+                            type="number"
+                            name="systolic"
+                            id="systolic"
+                            min="90"
+                            max="240"
+                            onChange={e => {
+                              handleChange(e);
+                              handleInputValueCheckSystolic(e);
+                            }}
+                            value={values.systolic}
+                            style={inputGroupMiddleStyle}
+                            disabled={disabledField}
+                          />
+                          <InputGroupText
+                            addonType="append"
+                            style={{
+                              backgroundColor: "#014D88",
+                              color: "#fff",
+                              border: "1px solid #014D88",
+                              borderRadius: "0rem",
+                            }}
+                          >
+                            diastolic
+                          </InputGroupText>
+                          <Input
+                            type="number"
+                            name="diastolic"
+                            id="diastolic"
+                            min={0}
+                            max={140}
+                            onChange={e => {
+                              handleChange(e);
+                              handleInputValueCheckDiastolic(e);
+                            }}
+                            value={values.diastolic}
+                            style={{
+                              ...inputGroupMiddleStyle,
+                              borderTopRightRadius: "0.25rem",
+                              borderBottomRightRadius: "0.25rem",
+                            }}
+                            disabled={disabledField}
+                          />
+                        </InputGroup>
+                        {vitalClinicalSupport.systolic && (
+                          <span className={classes.error}>
+                            {vitalClinicalSupport.systolic}
+                          </span>
+                        )}
+                        {vitalClinicalSupport.diastolic && (
+                          <span className={classes.error}>
+                            {vitalClinicalSupport.diastolic}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+
+                    {/* 5. HIV Status at Exposure */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>
+                          HIV Status at Exposure{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
+                        <Input
+                          type="select"
+                          name="hivStatusAtExposure"
+                          id="hivStatusAtExposure"
+                          onChange={handleChange}
+                          value={values.hivStatusAtExposure}
+                          style={inputStyle}
+                          disabled={disabledField}
+                        >
+                          <option value="">Select</option>
+                          {codeset?.PEP_HIV_STATUS_AT_EXPOSURE?.map(value => (
+                            <option key={value.id} value={value.code}>
+                              {value.display}
+                            </option>
+                          ))}
+                        </Input>
+                        {getError("hivStatusAtExposure") && (
+                          <span className={classes.error}>
+                            {getError("hivStatusAtExposure")}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+
+                    {/* 6. Noted Side Effects */}
+                    {codeset?.PREP_SIDE_EFFECTS && (
+                      <div className="mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>Noted Side Effects</FormLabelName>
+                          <DualListBox
+                            options={codeset.PREP_SIDE_EFFECTS.map(effect => ({
+                              value: effect?.code,
+                              label: effect?.display,
+                            }))}
+                            selected={notedSideEffects}
+                            onChange={handleNotedSideEffectsChange}
+                            disabled={disabledField}
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
+
+                    {/* 6b. Noted Side Effects - Other specify */}
+                    {notedSideEffects?.includes("PREP_SIDE_EFFECTS_OTHER") && (
+                      <div className="mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>
+                            Specify Other Side Effect
+                          </FormLabelName>
+                          <Input
+                            type="text"
+                            name="otherNotedSideEffects"
+                            id="otherNotedSideEffects"
+                            value={values.otherNotedSideEffects}
+                            onChange={handleChange}
+                            style={inputStyle}
+                            disabled={disabledField}
+                            placeholder="Specify..."
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
+
+                    {/* 7. Syndromic STI Screening */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>Syndromic STI Screening</FormLabelName>
+                        <Input
+                          type="select"
+                          name="syndromicStiScreening"
+                          id="syndromicStiScreening"
+                          value={values.syndromicStiScreening || ""}
+                          onChange={handleChange}
+                          style={inputStyle}
+                          disabled={disabledField}
+                        >
+                          <option value="">Select</option>
+                          {codeset?.SYNDROMIC_STI_SCREENING?.map(value => (
+                            <option key={value.id} value={value.id}>
+                              {value.display}
+                            </option>
+                          ))}
+                        </Input>
+                      </FormGroup>
+                    </div>
+
+                    {/* 7b. Syndromic STI Screening - Other specify */}
+                    {values.syndromicStiScreening &&
+                      codeset?.SYNDROMIC_STI_SCREENING?.find(
+                        v =>
+                          v.id === Number(values.syndromicStiScreening)
+                      )
+                        ?.display?.toLowerCase()
+                        ?.includes("other") && (
+                        <div className="form-group mb-3 col-md-6">
+                          <FormGroup>
+                            <FormLabelName>
+                              Specify Other STI Screening
+                            </FormLabelName>
+                            <Input
+                              type="text"
+                              name="otherSyndromicStiScreening"
+                              id="otherSyndromicStiScreening"
+                              value={values.otherSyndromicStiScreening}
+                              onChange={handleChange}
+                              style={inputStyle}
+                              disabled={disabledField}
+                              placeholder="Specify..."
+                            />
+                          </FormGroup>
+                        </div>
+                      )}
+
+                    {/* 8. Risk Reduction Services */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>Risk Reduction Services</FormLabelName>
+                        <Input
+                          type="select"
+                          name="riskReductionServices"
+                          id="riskReductionServices"
+                          value={values.riskReductionServices}
+                          onChange={handleChange}
+                          style={inputStyle}
+                          disabled={disabledField}
+                        >
+                          <option value="">Select</option>
+                          {codeset?.PrEP_RISK_REDUCTION_PLAN?.map(plan => (
+                            <option key={plan.id} value={plan.id}>
+                              {plan.display}
+                            </option>
+                          ))}
+                        </Input>
+                      </FormGroup>
+                    </div>
+
+                    {/* 9. Adherence */}
+                    <div className="mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>Adherence</FormLabelName>
+                        <Input
+                          type="select"
+                          name="adherenceLevel"
+                          id="adherenceLevel"
+                          value={values.adherenceLevel}
+                          onChange={handleChange}
+                          style={inputStyle}
+                          disabled={disabledField}
+                        >
+                          <option value="">Select</option>
+                          {codeset?.PrEP_LEVEL_OF_ADHERENCE?.map(value => (
+                            <option key={value.id} value={value.code}>
+                              {value.display}
+                            </option>
+                          ))}
+                        </Input>
+                      </FormGroup>
+                    </div>
+
+                    {/* 10. PEP Regimen */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>
+                          PEP Regimen{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
+                        <Input
+                          type="select"
+                          name="pepRegimen"
+                          id="pepRegimen"
+                          onChange={handleChange}
+                          value={values.pepRegimen}
+                          style={inputStyle}
+                          disabled={disabledField}
+                        >
+                          <option value="">Select</option>
+                          {codeset?.PEP_REGIMEN?.map(value => (
+                            <option key={value.id} value={value.code}>
+                              {value.display}
+                            </option>
+                          ))}
+                        </Input>
+                        {getError("pepRegimen") && (
+                          <span className={classes.error}>
+                            {getError("pepRegimen")}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+
+                    {/* 10b. PEP Regimen - Other specify */}
+                    {values.pepRegimen === "PEP_REGIMEN_OTHERS" && (
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>
+                            Specify Other PEP Regimen
+                          </FormLabelName>
+                          <Input
+                            type="text"
+                            name="otherPepRegimen"
+                            id="otherPepRegimen"
+                            value={values.otherPepRegimen}
+                            onChange={handleChange}
+                            style={inputStyle}
+                            disabled={disabledField}
+                            placeholder="Specify..."
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
+
+                    {/* 11. Date of start of PEP */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>
+                          Date of start of PEP{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
+                        <Input
+                          className="form-control"
+                          type="date"
+                          name="dateStartPep"
+                          id="dateStartPep"
+                          onKeyDown={e => e.preventDefault()}
+                          value={values.dateStartPep}
+                          style={inputStyle}
+                          onChange={handleChange}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                          disabled={disabledField}
+                        />
+                        {getError("dateStartPep") && (
+                          <span className={classes.error}>
+                            {getError("dateStartPep")}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+
+                    {/* 12. Date of stop of PEP */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>
+                          Date of stop of PEP{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
+                        <Input
+                          className="form-control"
+                          type="date"
+                          name="dateStopPep"
+                          id="dateStopPep"
+                          onKeyDown={e => e.preventDefault()}
+                          value={values.dateStopPep}
+                          style={inputStyle}
+                          onChange={handleChange}
+                          min={values.dateStartPep}
+                          disabled={disabledField}
+                        />
+                        {getError("dateStopPep") && (
+                          <span className={classes.error}>
+                            {getError("dateStopPep")}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+
+                    {/* 13. Follow-up HIV Test Results */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>
+                          Follow-up HIV Test Results{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
+                        <Input
+                          type="select"
+                          name="followupHivTestResult"
+                          id="followupHivTestResult"
+                          onChange={handleChange}
+                          value={values.followupHivTestResult}
+                          style={inputStyle}
+                          disabled={disabledField}
+                        >
+                          <option value="">Select</option>
+                          {codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.map(
+                            value => (
+                              <option key={value.id} value={value.code}>
+                                {value.display}
+                              </option>
+                            )
+                          )}
+                        </Input>
+                        {getError("followupHivTestResult") && (
+                          <span className={classes.error}>
+                            {getError("followupHivTestResult")}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+
+                    {/* 14. Next Appointment Date */}
+                    <div className="mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>
+                          Next Appointment Date{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
+                        <Input
+                          type="date"
+                          onKeyDown={e => e.preventDefault()}
+                          name="nextAppointment"
+                          id="nextAppointment"
+                          value={values.nextAppointment}
+                          onChange={handleChange}
+                          style={inputStyle}
+                          min={values.encounterDate}
+                          disabled={disabledField}
+                        />
+                        {getError("nextAppointment") && (
+                          <span className={classes.error}>
+                            {getError("nextAppointment")}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+
+                    {/* 15. Signature */}
+                    <div className="mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>Signature</FormLabelName>
+                        <Input
+                          name="healthCareWorkerSignature"
+                          id="healthCareWorkerSignature"
+                          placeholder="Enter signature..."
+                          value={values.healthCareWorkerSignature}
+                          disabled={disabledField}
+                          onChange={handleChange}
+                          style={inputStyle}
+                        />
+                      </FormGroup>
+                    </div>
+                  </div>
+
+                  <br />
+
+                  {/* ── Submit Buttons ── */}
+                  {!disabledField && (
+                    <>
+                      {props.activeContent &&
+                      props.activeContent.actionType === "update" ? (
+                        <div>
+                          <MatButton
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            hidden={disabledField}
+                            className={classes.button}
+                            startIcon={<SaveIcon />}
+                            style={{ backgroundColor: "#014d88" }}
+                            onClick={handleSubmit}
+                            disabled={saving}
+                          >
+                            {!saving ? (
+                              <span
+                                style={{ textTransform: "capitalize" }}
+                              >
+                                Update
+                              </span>
+                            ) : (
+                              <span
+                                style={{ textTransform: "capitalize" }}
+                              >
+                                Updating...
+                              </span>
+                            )}
+                          </MatButton>
+                        </div>
+                      ) : (
+                        <div>
+                          <MatButton
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            className={classes.button}
+                            startIcon={<SaveIcon />}
+                            style={{ backgroundColor: "#014d88" }}
+                            onClick={handleSubmit}
+                            disabled={saving}
+                          >
+                            {!saving ? (
+                              <span
+                                style={{ textTransform: "capitalize" }}
+                              >
+                                Save
+                              </span>
+                            ) : (
+                              <span
+                                style={{ textTransform: "capitalize" }}
+                              >
+                                Saving...
+                              </span>
+                            )}
+                          </MatButton>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </Segment>
+              </Grid.Column>
+            </Grid>
+          );
+        }}
+      </Formik>
+    </div>
+  );
+};
+
+export default PEPFollowupVisit;

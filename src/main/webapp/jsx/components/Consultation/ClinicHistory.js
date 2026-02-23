@@ -112,8 +112,9 @@ const PatientnHistory = (props) => {
         }
     }, [props.patientObj.id, props.activeContent.actionType]);
 
+    const routeName = props.routeName || 'consultation';
     const LoadViewPage = (row, action) => {
-        props.setActiveContent({ ...props.activeContent, route: 'consultation', id: row.id, actionType: action, activeTab: 'home' })
+        props.setActiveContent({ ...props.activeContent, route: routeName, id: row.id, actionType: action, activeTab: 'home' })
     }
     const LoadModal = (row) => {
         toggle()
