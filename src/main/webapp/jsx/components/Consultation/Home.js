@@ -293,7 +293,14 @@ const ClinicVisit = props => {
       );
       let data = JSON.parse(JSON.stringify(response.data));
       setUrinalysisTest(data.urinalysis || { urinalysisTest: "No", testDate: "", result: "" });
-      setOtherTest(data?.otherTestsDone || []);
+      const loadedOtherTests = (data?.otherTestsDone || []).map((t, i) => ({
+        ...t,
+        localId: t.localId != null ? t.localId : i,
+      }));
+      setOtherTest(loadedOtherTests);
+      if (loadedOtherTests.length > 0) {
+        otherTestIdCounter.current = Math.max(...loadedOtherTests.map(t => t.localId)) + 1;
+      }
       setSyphilisTest(data?.syphilis || { syphilisTest: "No", testDate: "", result: "", others: "" });
       setHepatitisTest(data?.hepatitis || { hepatitisTest: "No", testDate: "", result: "" });
       setIsCabLaEligible(true);
@@ -561,14 +568,18 @@ const ClinicVisit = props => {
     setLiverFunctionTestEnabled(prev => !prev);
   };
 
+  const otherTestIdCounter = useRef(0);
+
   const handleCheckBoxOtherTest = () => {
     if (otherTest.length > 0) {
       setOtherTest([]);
     } else {
+      const id = otherTestIdCounter.current++;
       setOtherTest([
         {
-          localId: 0,
+          localId: id,
           otherTest: "Yes",
+          otherTestsDone: "",
           testDate: "",
           result: "",
           name: "",
@@ -595,10 +606,20 @@ const ClinicVisit = props => {
   };
 
   const handleInputChangeOtherTest = (e, localId) => {
-    let temp = [...otherTest];
-    let index = temp.findIndex(x => Number(x.localId) === Number(localId));
-    temp[index][e.target.name] = e.target.value;
-    setOtherTest(temp);
+    const { name, value } = e.target;
+    setOtherTest(prev =>
+      prev.map(item => {
+        if (item.localId !== localId) return item;
+        const updated = { ...item, [name]: value };
+        if (name === "otherTestsDone") {
+          const matched = codeset?.PREP_OTHER_TEST?.find(
+            v => v.code === value
+          );
+          updated.name = matched?.code || "";
+        }
+        return updated;
+      })
+    );
   };
 
   const handleRemoveTest = localId => {
@@ -606,11 +627,13 @@ const ClinicVisit = props => {
   };
 
   const handleCreateNewTest = () => {
-    setOtherTest([
-      ...otherTest,
+    const id = otherTestIdCounter.current++;
+    setOtherTest(prev => [
+      ...prev,
       {
-        localId: otherTest.length,
+        localId: id,
         otherTest: "Yes",
+        otherTestsDone: "",
         testDate: "",
         result: "",
         name: "",
