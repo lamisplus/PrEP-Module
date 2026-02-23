@@ -58,6 +58,13 @@ const validationSchema = Yup.object().shape({
   dateStopPep: Yup.string().required("This field is required"),
   followupHivTestResult: Yup.string().required("This field is required"),
   nextAppointment: Yup.string().required("This field is required"),
+  whyAdherenceLevelPoor: Yup.string().when("adherenceLevel", {
+    is: val =>
+      val?.toUpperCase()?.includes("POOR") ||
+      val?.toUpperCase()?.includes("FAIR"),
+    then: schema => schema.required("This field is required"),
+    otherwise: schema => schema,
+  }),
 });
 
 const INITIAL_VALUES = {
@@ -73,6 +80,8 @@ const INITIAL_VALUES = {
   otherSyndromicStiScreening: "",
   riskReductionServices: "",
   adherenceLevel: "",
+  whyAdherenceLevelPoor: "",
+  otherReasonForPoorFairAdherence: "",
   pepRegimen: "",
   otherPepRegimen: "",
   dateStartPep: "",
@@ -619,7 +628,16 @@ const PEPFollowupVisit = props => {
                           name="adherenceLevel"
                           id="adherenceLevel"
                           value={values.adherenceLevel}
-                          onChange={handleChange}
+                          onChange={e => {
+                            handleChange(e);
+                            if (
+                              !e.target.value?.toUpperCase()?.includes("POOR") &&
+                              !e.target.value?.toUpperCase()?.includes("FAIR")
+                            ) {
+                              setFieldValue("whyAdherenceLevelPoor", "");
+                              setFieldValue("otherReasonForPoorFairAdherence", "");
+                            }
+                          }}
                           style={inputStyle}
                           disabled={disabledField}
                         >
@@ -632,6 +650,61 @@ const PEPFollowupVisit = props => {
                         </Input>
                       </FormGroup>
                     </div>
+
+                    {/* 9b. Reason for Poor/Fair Adherence (conditional) */}
+                    {(values.adherenceLevel?.toUpperCase()?.includes("POOR") ||
+                      values.adherenceLevel?.toUpperCase()?.includes("FAIR")) && (
+                      <div className="mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>
+                            Reason for Poor/Fair Adherence{" "}
+                            <span style={{ color: "red" }}> *</span>
+                          </FormLabelName>
+                          <Input
+                            type="select"
+                            name="whyAdherenceLevelPoor"
+                            id="whyAdherenceLevelPoor"
+                            value={values.whyAdherenceLevelPoor}
+                            onChange={handleChange}
+                            style={inputStyle}
+                            disabled={disabledField}
+                          >
+                            <option value="">Select</option>
+                            {codeset?.WHY_POOR_FAIR_ADHERENCE?.map(value => (
+                              <option key={value.id} value={value.code}>
+                                {value.display}
+                              </option>
+                            ))}
+                          </Input>
+                          {getError("whyAdherenceLevelPoor") && (
+                            <span className={classes.error}>
+                              {getError("whyAdherenceLevelPoor")}
+                            </span>
+                          )}
+                        </FormGroup>
+                      </div>
+                    )}
+
+                    {/* 9c. Reason for Poor/Fair Adherence - Other specify */}
+                    {(values.adherenceLevel?.toUpperCase()?.includes("POOR") ||
+                      values.adherenceLevel?.toUpperCase()?.includes("FAIR")) &&
+                      values.whyAdherenceLevelPoor?.toUpperCase()?.includes("OTHER") && (
+                      <div className="mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>Specify Other Reason</FormLabelName>
+                          <Input
+                            type="text"
+                            name="otherReasonForPoorFairAdherence"
+                            id="otherReasonForPoorFairAdherence"
+                            value={values.otherReasonForPoorFairAdherence}
+                            onChange={handleChange}
+                            style={inputStyle}
+                            disabled={disabledField}
+                            placeholder="Specify..."
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
 
                     {/* 10. PEP Regimen */}
                     <div className="form-group mb-3 col-md-6">
