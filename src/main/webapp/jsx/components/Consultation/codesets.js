@@ -178,3 +178,18 @@ export function getOtherTestOptions() {
     { value: "PREP_OTHER_TEST_CHEST_XRAY", label: "Chest Xray" },
   ];
 }
+
+/**
+ * Returns CAB-LA injectable refill duration options.
+ * TODO: Replace with API call to
+ *   GET /application-codesets/v2/DURATION_OF_CAB-LA_INJECTABLE_REFILL
+ * when the endpoint is available.
+ * @returns {Promise<Array<{code: string, display: string}>>}
+ */
+export function fetchCabLaRefillDurations() {
+  return Promise.resolve([
+    { code: "30", display: "30" },
+    { code: "60", display: "60" },
+    { code: "90", display: "90" },
+  ]);
+}

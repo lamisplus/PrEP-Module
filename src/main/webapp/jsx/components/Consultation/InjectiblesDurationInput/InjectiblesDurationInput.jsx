@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Input } from 'reactstrap';
-import { url as baseUrl, token } from '../../../../api';
-import axios from 'axios';
 import { CleanupWrapper } from '../Home';
+import { fetchCabLaRefillDurations } from '../codesets';
 
 const InjectiblesDurationInput = ({
   name,
@@ -14,21 +13,9 @@ const InjectiblesDurationInput = ({
 }) => {
   const [durationOfRefillOptions, setDurationOfRefillOptions] = useState([]);
 
-  const getDurationOfRill = () => {
-    axios
-      .get(
-        `${baseUrl}application-codesets/v2/DURATION_OF_CAB-LA_INJECTABLE_REFILL`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-      .then(response => {
-        setDurationOfRefillOptions(response.data);
-      })
-      .catch(error => {});
-  };
-
-  useEffect(() => getDurationOfRill(), []);
+  useEffect(() => {
+    fetchCabLaRefillDurations().then(setDurationOfRefillOptions).catch(() => {});
+  }, []);
 
   return (
     <CleanupWrapper
