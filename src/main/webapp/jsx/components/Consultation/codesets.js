@@ -1,8 +1,18 @@
 /**
- * Hardcoded codeset options for PrEP Follow-Up Visit form.
- * TODO: Replace each getter with an API call when codeset endpoints are available.
- * Each function returns an array of { value, label } objects.
+ * Abstracted codeset / lookup data for PrEP forms.
+ *
+ * Every function below returns hardcoded data shaped exactly like the API
+ * responses so the rest of the application is unaffected.  When the real
+ * endpoints are ready, replace the Promise.resolve(...) bodies with the
+ * corresponding axios calls — no changes needed in consuming components.
+ *
+ * Codeset items use { id, code, display } to match the API contract.
+ * Regimen  items use { id, regimen, code }   to match the API contract.
  */
+
+// ---------------------------------------------------------------------------
+// Codeset helpers  (sync – kept for any code that still calls them directly)
+// ---------------------------------------------------------------------------
 
 export function getVisitTypeOptions() {
   return [
@@ -176,14 +186,91 @@ export function getOtherTestOptions() {
     { value: "PREP_OTHER_TEST_URINALYSIS", label: "Urinalysis" },
     { value: "PREP_OTHER_TEST_SPUTUM_AFB", label: "Sputum AFB" },
     { value: "PREP_OTHER_TEST_CHEST_XRAY", label: "Chest Xray" },
+    { value: "PREP_OTHER_TEST_OTHER_(SPECIFY)", label: "Other(specify)" },
   ];
 }
 
+// ---------------------------------------------------------------------------
+// Async abstractions — shaped to match the API responses exactly
+// ---------------------------------------------------------------------------
+
+/** Helper: turn { value, label } into API-shaped { id, code, display }. */
+function toApiShape(arr) {
+  return arr.map((item, i) => ({
+    id: i + 1,
+    code: item.value,
+    display: item.label,
+  }));
+}
+
 /**
- * Returns CAB-LA injectable refill duration options.
- * TODO: Replace with API call to
- *   GET /application-codesets/v2/DURATION_OF_CAB-LA_INJECTABLE_REFILL
- * when the endpoint is available.
+ * Replaces: GET /application-codesets/v2/codeSets?codes=...
+ * Returns an object keyed by codeset name, each value is an array of
+ * { id, code, display }.
+ * @returns {Promise<Object>}
+ */
+export function fetchAllCodesets() {
+  const data = {
+    PrEP_VISIT_TYPE: toApiShape(getVisitTypeOptions()),
+    PREGNANCY_STATUS: toApiShape(getPregnancyStatusOptions()),
+    HTS_RESULT: toApiShape(getHTSResultOptions()),
+    PREP_SIDE_EFFECTS: toApiShape(getNotedSideEffectOptions()),
+    SYNDROMIC_STI_SCREENING: toApiShape(getSyndromicSTIOptions()),
+    PrEP_RISK_REDUCTION_PLAN: toApiShape(getRiskReductionOptions()),
+    PrEP_LEVEL_OF_ADHERENCE: toApiShape(getAdherenceOptions()),
+    WHY_POOR_FAIR_ADHERENCE: toApiShape(getReasonPoorFairAdherenceOptions()),
+    PrEP_TYPE: toApiShape(getPrepTypeOptions()),
+    PREP_URINALYSIS_RESULT: toApiShape(getUrinalysisResultOptions()),
+    HEPATITIS_SCREENING_RESULT: toApiShape(getHepatitisResultOptions()),
+    SYPHILIS_RESULT: toApiShape(getSyphilisResultOptions()),
+    LIVER_FUNCTION_TEST_RESULT: toApiShape(getLiverFunctionTestOptions()),
+    PREP_OTHER_TEST: toApiShape(getOtherTestOptions()),
+    // Keys that exist in CODESET_KEYS but are unused / have no dropdown:
+    REASON_METHOD_SWITCH: [],
+    CREATININE_TEST_RESULT: [],
+    PREP_STATUS: [],
+    PrEP_ENTRY_POINT: [],
+    POPULATION_TYPE: [],
+    FAMILY_PLANNING_METHOD: [],
+  };
+  return Promise.resolve(data);
+}
+
+/**
+ * Replaces: GET /prep-regimen
+ * Returns an array of { id, regimen, code } matching the API shape.
+ * @returns {Promise<Array<{id: number, regimen: string, code: string}>>}
+ */
+export function fetchPrepRegimens() {
+  return Promise.resolve([
+    { id: 1, regimen: "TDF/FTC", code: "TDF/FTC" },
+    { id: 2, regimen: "CAB-LA(600mg/3mL)", code: "CAB-LA(600mg/3mL)" },
+    { id: 3, regimen: "TDF/3TC", code: "TDF/3TC" },
+    { id: 4, regimen: "Lenacapavir", code: "Lenacapavir" },
+  ]);
+}
+
+/**
+ * Replaces: GET /prep-regimen/prepType?prepType={prepType}
+ * Filters regimens by PrEP type.
+ * @param {string} prepType
+ * @returns {Promise<Array<{id: number, regimen: string, code: string}>>}
+ */
+export function fetchPrepRegimenByType(prepType) {
+  const allRegimens = [
+    { id: 1, regimen: "TDF/FTC", code: "TDF/FTC", types: ["PREP_TYPE_ORAL"] },
+    { id: 2, regimen: "CAB-LA(600mg/3mL)", code: "CAB-LA(600mg/3mL)", types: ["PREP_TYPE_INJECTIBLES"] },
+    { id: 3, regimen: "TDF/3TC", code: "TDF/3TC", types: ["PREP_TYPE_ORAL"] },
+    { id: 4, regimen: "Lenacapavir", code: "Lenacapavir", types: ["PREP_TYPE_INJECTIBLES", "PREP_TYPE_OTHERS"] },
+  ];
+  const filtered = allRegimens
+    .filter(r => r.types.includes(prepType))
+    .map(({ types, ...rest }) => rest);
+  return Promise.resolve(filtered);
+}
+
+/**
+ * Replaces: GET /application-codesets/v2/DURATION_OF_CAB-LA_INJECTABLE_REFILL
  * @returns {Promise<Array<{code: string, display: string}>>}
  */
 export function fetchCabLaRefillDurations() {

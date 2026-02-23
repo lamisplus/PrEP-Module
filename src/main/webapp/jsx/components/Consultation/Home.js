@@ -23,6 +23,11 @@ import DurationWrapper from "./DurationWrapper/DurationWrapper";
 import { useStyles } from "../../../hooks/styles/prepVisit/useStyle";
 import { Formik } from "formik";
 import * as Yup from "yup";
+import {
+  fetchAllCodesets,
+  fetchPrepRegimens,
+  fetchPrepRegimenByType,
+} from "./codesets";
 
 export const CleanupWrapper = ({ cleanup, children }) => {
   useEffect(() => {
@@ -57,29 +62,6 @@ function getDurationByValue(value) {
 }
 
 const regimenMapping = { orals: "1", cabLa: "2" };
-
-const CODESET_KEYS = [
-  "PrEP_RISK_REDUCTION_PLAN",
-  "REASON_METHOD_SWITCH",
-  "CREATININE_TEST_RESULT",
-  "LIVER_FUNCTION_TEST_RESULT",
-  "PrEP_LEVEL_OF_ADHERENCE",
-  "SYNDROMIC_STI_SCREENING",
-  "PREP_STATUS",
-  "HTS_RESULT",
-  "PREP_SIDE_EFFECTS",
-  "WHY_POOR_FAIR_ADHERENCE",
-  "PREP_URINALYSIS_RESULT",
-  "PREP_OTHER_TEST",
-  "HEPATITIS_SCREENING_RESULT",
-  "SYPHILIS_RESULT",
-  "PREGNANCY_STATUS",
-  "PrEP_ENTRY_POINT",
-  "PrEP_TYPE",
-  "POPULATION_TYPE",
-  "PrEP_VISIT_TYPE",
-  "FAMILY_PLANNING_METHOD",
-];
 
 const inputStyle = {
   border: "1px solid #014D88",
@@ -274,12 +256,10 @@ const ClinicVisit = props => {
   };
 
   const PrepRegimen = currentDate => {
-    axios
-      .get(`${baseUrl}prep-regimen`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        checkEligibleForCabLa(currentDate, response.data);
+    // TODO: Replace fetchPrepRegimens() with API call when endpoint is ready.
+    fetchPrepRegimens()
+      .then(data => {
+        checkEligibleForCabLa(currentDate, data);
       })
       .catch(error => {});
   };
@@ -401,12 +381,10 @@ const ClinicVisit = props => {
   };
 
   const prepRegimenUpdateView = () =>
-    axios
-      .get(`${baseUrl}prep-regimen`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setprepRegimen(response.data);
+    // TODO: Replace fetchPrepRegimens() with API call when endpoint is ready.
+    fetchPrepRegimens()
+      .then(data => {
+        setprepRegimen(data);
       })
       .catch(error => {});
 
@@ -652,20 +630,12 @@ const ClinicVisit = props => {
   };
 
   // ── Codeset fetch ──
+  // TODO: Replace fetchAllCodesets() with API call when endpoints are ready.
 
   useEffect(() => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/codeSets`, {
-        params: { codes: CODESET_KEYS },
-        paramsSerializer: params =>
-          params.codes
-            .map(code => `codes=${encodeURIComponent(code)}`)
-            .join("&"),
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(({ data }) => {
-        setCodeset(data);
-      });
+    fetchAllCodesets().then(data => {
+      setCodeset(data);
+    });
   }, []);
 
   // ── Side effects & data loading ──
@@ -815,14 +785,12 @@ const ClinicVisit = props => {
     ) {
       PrepRegimen(formikRef.current?.values?.encounterDate);
     } else {
-      axios
-        .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then(response => {
+      // TODO: Replace fetchPrepRegimenByType() with API call when endpoint is ready.
+      fetchPrepRegimenByType(e.target.value)
+        .then(data => {
           checkEligibleForCabLa(
             formikRef.current?.values?.encounterDate,
-            response.data
+            data
           );
         })
         .catch(error => {});
