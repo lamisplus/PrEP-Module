@@ -12,16 +12,7 @@ import moment from "moment";
 import { Spinner } from "reactstrap";
 import { useStyles } from "../../../hooks/styles/prepRegistration/useStyle";
 import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
-
-const CODESET_KEYS = [
-  "HTS_ENTRY_POINT",
-  "RELATIONSHIP",
-  "PREP_RISK_TYPE",
-  "PREGNANCY_STATUS",
-  "PREP_HISTORY_OF_DRUG_INTERACTIONS",
-  "PREP_URINALYSIS_RESULT",
-  "LIVER_FUNCTION_TEST_RESULT",
-];
+import { fetchAllCodesets, fetchPrepRegimens } from "../Consultation/codesets";
 
 const PrEPInitialVisitForm = props => {
   const [entryPoint, setEntryPoint] = useState([]);
@@ -73,38 +64,20 @@ const PrEPInitialVisitForm = props => {
     height: "",
   });
 
+  // TODO: Replace fetchAllCodesets / fetchPrepRegimens with API calls when endpoints are ready.
   useEffect(() => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/codeSets`, {
-        params: { codes: CODESET_KEYS },
-        paramsSerializer: params =>
-          params.codes
-            .map(code => `codes=${encodeURIComponent(code)}`)
-            .join("&"),
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(({ data }) => {
-        setCodeset(data);
-        setEntryPoint(data.HTS_ENTRY_POINT || []);
-        setRelatives(data.RELATIONSHIP || []);
-        setPrepRisk(data.PREP_RISK_TYPE || []);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
+    fetchAllCodesets().then(data => {
+      setCodeset(data);
+      setEntryPoint(data.HTS_ENTRY_POINT || []);
+      setRelatives(data.RELATIONSHIP || []);
+      setPrepRisk(data.PREP_RISK_TYPE || []);
+    });
   }, []);
 
   useEffect(() => {
-    axios
-      .get(`${baseUrl}prep-regimen`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepRegimen(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
+    fetchPrepRegimens().then(data => {
+      setPrepRegimen(data);
+    });
   }, []);
 
   useEffect(() => {

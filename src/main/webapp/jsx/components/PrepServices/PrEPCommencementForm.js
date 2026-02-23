@@ -21,6 +21,11 @@ import { Spinner } from "reactstrap";
 import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 import DurationWrapper from "../Consultation/DurationWrapper/DurationWrapper";
 import { useStyles } from "../../../hooks/styles/prepCommencement/useStyles";
+import {
+  fetchAllCodesets as fetchAllCodesetsFromCatalog,
+  fetchPrepRegimens,
+  fetchPrepRegimenByType,
+} from "../Consultation/codesets";
 
 const durationMap = {
   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": "30",
@@ -45,14 +50,7 @@ function getDurationByValue(value) {
   }
 }
 
-const CODESET_KEYS = [
-  "PREGNANCY_STATUS",
-  "PrEP_ENTRY_POINT",
-  "PrEP_TYPE",
-  "PREP_HISTORY_OF_DRUG_INTERACTIONS",
-  "LIVER_FUNCTION_TEST_RESULT",
-  "PREP_URINALYSIS_RESULT",
-];
+// CODESET_KEYS removed — codesets now loaded from codesets.js
 
 const PrEPCommencementForm = props => {
   const { patientObj } = props;
@@ -103,33 +101,21 @@ const PrEPCommencementForm = props => {
     }
   }, []);
 
+  // TODO: Replace with API calls when endpoints are ready.
   const fetchAllCodesets = async () => {
     try {
-      const response = await axios.get(
-        `${baseUrl}application-codesets/v2/codeSets`,
-        {
-          params: { codes: CODESET_KEYS },
-          paramsSerializer: params =>
-            params.codes
-              .map(code => `codes=${encodeURIComponent(code)}`)
-              .join("&"),
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setCodeset(response.data);
+      const data = await fetchAllCodesetsFromCatalog();
+      setCodeset(data);
     } catch (error) {
       console.error("Error fetching codesets:", error);
     }
   };
 
   const fetchPrepRegimen = async () => {
-    axios
-      .get(`${baseUrl}prep-regimen`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepRegimen(response.data);
-        setAvailableRegimens(response.data);
+    fetchPrepRegimens()
+      .then(data => {
+        setPrepRegimen(data);
+        setAvailableRegimens(data);
       })
       .catch(error => {
         console.error("Error fetching prep regimen:", error);
@@ -323,12 +309,10 @@ const PrEPCommencementForm = props => {
       const regimens = [...availableRegimens]?.filter(({ id }) => id == 1);
       setPrepRegimen(regimens);
     } else {
-      axios
-        .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then(response => {
-          setPrepRegimen(response.data);
+      // TODO: Replace fetchPrepRegimenByType() with API call when endpoint is ready.
+      fetchPrepRegimenByType(e.target.value)
+        .then(data => {
+          setPrepRegimen(data);
         })
         .catch(error => {
           console.error("Error fetching regimen by prep type:", error);

@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import "react-widgets/dist/css/react-widgets.css";
 import { token, url as baseUrl } from "../../../api";
 import "react-phone-input-2/lib/style.css";
+import { fetchAllCodesets as fetchAllCodesetsFromCatalog } from "../Consultation/codesets";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
@@ -70,16 +71,7 @@ export const LiverFunctionTest = ({
   );
 };
 
-const CODESET_KEYS = [
-  "COUNSELING_TYPE",
-  "LIVER_FUNCTION_TEST_RESULT",
-  "REASON_METHOD_SWITCH",
-  "REASON_PREP_DECLINED",
-  "POPULATION_TYPE",
-  "PREGNANCY_STATUS",
-  "PrEP_VISIT_TYPE",
-  "PrEP_TYPE",
-];
+// CODESET_KEYS removed — codesets now loaded from codesets.js
 
 const BasicInfo = props => {
   const classes = useStyles();
@@ -231,20 +223,9 @@ const BasicInfo = props => {
     }));
   };
 
-  useEffect(async () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/codeSets`, {
-        params: { codes: CODESET_KEYS },
-        paramsSerializer: params =>
-          params.codes
-            .map(code => `codes=${encodeURIComponent(code)}`)
-            .join("&"),
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(({ data }) =>
-        //console.log(res)
-        setCodeset(data)
-      );
+  // TODO: Replace fetchAllCodesetsFromCatalog() with API call when endpoint is ready.
+  useEffect(() => {
+    fetchAllCodesetsFromCatalog().then(data => setCodeset(data));
   }, []);
 
   useEffect(async () => {

@@ -119,10 +119,8 @@ export function getPrepTypeOptions() {
 
 export function getPrepRegimenOptions() {
   return [
-    { value: "1", label: "TDF/FTC" },
-    { value: "2", label: "TDF/3TC" },
-    { value: "3", label: "Cabotegravir" },
-    { value: "4", label: "Lenacapavir" },
+    { value: "1", label: "TDF(300mg)+3TC(300mg)" },
+    { value: "2", label: "IM CAB-LA(600mg/3mL)" },
   ];
 }
 
@@ -225,15 +223,85 @@ export function fetchAllCodesets() {
     SYPHILIS_RESULT: toApiShape(getSyphilisResultOptions()),
     LIVER_FUNCTION_TEST_RESULT: toApiShape(getLiverFunctionTestOptions()),
     PREP_OTHER_TEST: toApiShape(getOtherTestOptions()),
-    // Keys that exist in CODESET_KEYS but are unused / have no dropdown:
+    // Codesets used by PrEP Initial Visit form
+    HTS_ENTRY_POINT: toApiShape([
+      { value: "HTS_ENTRY_POINT_VCT", label: "VCT" },
+      { value: "HTS_ENTRY_POINT_OPD", label: "OPD" },
+      { value: "HTS_ENTRY_POINT_PMTCT", label: "PMTCT" },
+      { value: "HTS_ENTRY_POINT_COMMUNITY", label: "Community" },
+      { value: "HTS_ENTRY_POINT_OTHERS", label: "Others" },
+    ]),
+    RELATIONSHIP: toApiShape([
+      { value: "RELATIONSHIP_SPOUSE", label: "Spouse/Partner" },
+      { value: "RELATIONSHIP_PARENT", label: "Parent" },
+      { value: "RELATIONSHIP_SIBLING", label: "Sibling" },
+      { value: "RELATIONSHIP_FRIEND", label: "Friend" },
+      { value: "RELATIONSHIP_OTHER", label: "Other" },
+    ]),
+    PREP_RISK_TYPE: toApiShape([
+      { value: "PREP_RISK_TYPE_MSM", label: "MSM" },
+      { value: "PREP_RISK_TYPE_FSW", label: "FSW" },
+      { value: "PREP_RISK_TYPE_PWID", label: "PWID" },
+      { value: "PREP_RISK_TYPE_SERO_DISCORDANT", label: "Sero-discordant couple" },
+      { value: "PREP_RISK_TYPE_TRANSGENDER", label: "Transgender" },
+      { value: "PREP_RISK_TYPE_AGYW", label: "AGYW" },
+      { value: "PREP_RISK_TYPE_OTHER", label: "Other" },
+    ]),
+    PREP_HISTORY_OF_DRUG_INTERACTIONS: toApiShape([
+      { value: "PREP_DRUG_INTERACTION_NONE", label: "None" },
+      { value: "PREP_DRUG_INTERACTION_RIFAMPICIN", label: "Rifampicin" },
+      { value: "PREP_DRUG_INTERACTION_CARBAMAZEPINE", label: "Carbamazepine" },
+      { value: "PREP_DRUG_INTERACTION_PHENYTOIN", label: "Phenytoin" },
+      { value: "PREP_DRUG_INTERACTION_OTHER", label: "Others" },
+    ]),
+    // Codesets used by Commencement form
+    PrEP_ENTRY_POINT: toApiShape([
+      { value: "PrEP_ENTRY_POINT_OUTREACH", label: "Outreach" },
+      { value: "PrEP_ENTRY_POINT_FACILITY_WALK_IN", label: "In-facility/Walk-in" },
+      { value: "PrEP_ENTRY_POINT_TRANSFER_IN", label: "Transfer In" },
+    ]),
+    // Codesets used by Eligibility Screening form
+    COUNSELING_TYPE: toApiShape([
+      { value: "COUNSELING_TYPE_PRE_TEST", label: "Pre-test counselling" },
+      { value: "COUNSELING_TYPE_POST_TEST", label: "Post-test counselling" },
+    ]),
+    REASON_PREP_DECLINED: toApiShape([
+      { value: "REASON_PREP_DECLINED_NO_NEED", label: "No need for PrEP" },
+      { value: "REASON_PREP_DECLINED_DAILY_MEDICATION", label: "Does not wish to take daily medication" },
+      { value: "REASON_PREP_DECLINED_SIDE_EFFECTS", label: "Concerns about side effects" },
+      { value: "REASON_PREP_DECLINED_OTHERS_THINK", label: "Concerns about what others think" },
+      { value: "REASON_PREP_DECLINED_TIME", label: "Concerns about time required for clinic follow-up" },
+      { value: "REASON_PREP_DECLINED_SAFETY", label: "Concerns about safety of medication" },
+      { value: "REASON_PREP_DECLINED_EFFECTIVENESS", label: "Concerns about effectiveness of medication" },
+      { value: "REASON_PREP_DECLINED_OTHER", label: "Others" },
+    ]),
+    POPULATION_TYPE: toApiShape([
+      { value: "POPULATION_TYPE_GEN_POP", label: "GenPop" },
+      { value: "POPULATION_TYPE_KEY_POP", label: "Key Population" },
+      { value: "POPULATION_TYPE_PRIORITY_POP", label: "Priority Population" },
+    ]),
+    // Other keys referenced by various forms
     REASON_METHOD_SWITCH: [],
     CREATININE_TEST_RESULT: [],
     PREP_STATUS: [],
-    PrEP_ENTRY_POINT: [],
-    POPULATION_TYPE: [],
     FAMILY_PLANNING_METHOD: [],
   };
   return Promise.resolve(data);
+}
+
+/**
+ * Master regimen list.  Keep in sync with the API table.
+ * id values must match the ones the backend assigns — the rest of the app
+ * uses id === 1 for the default oral regimen and id === 2 for CAB-LA.
+ */
+const ALL_REGIMENS = [
+  { id: 1, regimen: "TDF(300mg)+3TC(300mg)", code: "TDF(300mg)+3TC(300mg)", types: ["PREP_TYPE_ORAL"] },
+  { id: 2, regimen: "IM CAB-LA(600mg/3mL)",  code: "CAB-LA(600mg/3mL)",     types: ["PREP_TYPE_INJECTIBLES"] },
+];
+
+/** Strip the internal `types` key before returning to callers. */
+function stripTypes(list) {
+  return list.map(({ types, ...rest }) => rest);
 }
 
 /**
@@ -242,12 +310,7 @@ export function fetchAllCodesets() {
  * @returns {Promise<Array<{id: number, regimen: string, code: string}>>}
  */
 export function fetchPrepRegimens() {
-  return Promise.resolve([
-    { id: 1, regimen: "TDF/FTC", code: "TDF/FTC" },
-    { id: 2, regimen: "CAB-LA(600mg/3mL)", code: "CAB-LA(600mg/3mL)" },
-    { id: 3, regimen: "TDF/3TC", code: "TDF/3TC" },
-    { id: 4, regimen: "Lenacapavir", code: "Lenacapavir" },
-  ]);
+  return Promise.resolve(stripTypes(ALL_REGIMENS));
 }
 
 /**
@@ -257,16 +320,8 @@ export function fetchPrepRegimens() {
  * @returns {Promise<Array<{id: number, regimen: string, code: string}>>}
  */
 export function fetchPrepRegimenByType(prepType) {
-  const allRegimens = [
-    { id: 1, regimen: "TDF/FTC", code: "TDF/FTC", types: ["PREP_TYPE_ORAL"] },
-    { id: 2, regimen: "CAB-LA(600mg/3mL)", code: "CAB-LA(600mg/3mL)", types: ["PREP_TYPE_INJECTIBLES"] },
-    { id: 3, regimen: "TDF/3TC", code: "TDF/3TC", types: ["PREP_TYPE_ORAL"] },
-    { id: 4, regimen: "Lenacapavir", code: "Lenacapavir", types: ["PREP_TYPE_INJECTIBLES", "PREP_TYPE_OTHERS"] },
-  ];
-  const filtered = allRegimens
-    .filter(r => r.types.includes(prepType))
-    .map(({ types, ...rest }) => rest);
-  return Promise.resolve(filtered);
+  const filtered = ALL_REGIMENS.filter(r => r.types.includes(prepType));
+  return Promise.resolve(stripTypes(filtered));
 }
 
 /**
