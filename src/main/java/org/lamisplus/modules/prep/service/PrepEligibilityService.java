@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.lamisplus.modules.base.util.Constants.ArchiveStatus.ARCHIVED;
@@ -53,6 +54,29 @@ public class PrepEligibilityService {
     public Person getPerson(Long personId) {
         return personRepository.findById(personId)
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
+    }
+
+    public PrepEligibilityDto save(PrepEligibilityRequestDto prepEligibilityRequestDto) {
+        Person person = this.getPerson(prepEligibilityRequestDto.getPersonId());
+        PrepEligibility prepEligibility = eligibilityRequestDtoToEligibility(prepEligibilityRequestDto, person.getUuid());
+        prepEligibility.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
+        prepEligibility.setUuid(UUID.randomUUID().toString());
+
+        //Check if client eligibility on same date exist and throw an error
+        prepEligibilityRepository
+                .findByVisitDateAndPersonUuidAndArchived(prepEligibilityRequestDto.getVisitDate(), person.getUuid(), 0)
+                .ifPresent(prepEligibilityRec -> {
+                    if (prepEligibilityRec.getArchived() == 0) {
+                        throw new RecordExistException(PrepEligibility.class, "Visit date", String.valueOf(prepEligibilityRequestDto.getVisitDate()));
+                    }
+                });
+
+        prepEligibility = prepEligibilityRepository.save(prepEligibility);
+        prepEligibility.setPerson(person);
+        PrepEligibilityDto prepEligibilityDto = eligibilityToEligibilityDto(prepEligibility);
+        prepEligibilityDto.setPrepEligibilityCount(prepEligibilityRepository
+                .findAllByPersonUuid(person.getUuid()).size());
+        return prepEligibilityDto;
     }
 
     public void delete(Long id) {
@@ -184,6 +208,14 @@ public class PrepEligibilityService {
         prepEligibility.setLftConducted(eligibilityDto.getLftConducted());
         prepEligibility.setDateLiverFunctionTestResults(eligibilityDto.getDateLiverFunctionTestResults());
         prepEligibility.setLiverFunctionTestResults(eligibilityDto.getLiverFunctionTestResults());
+        prepEligibility.setConsiderationForInjections(eligibilityDto.getConsiderationForInjections());
+        prepEligibility.setReasonForDecliningPrep(eligibilityDto.getReasonForDecliningPrep());
+        prepEligibility.setUniqueClientId(eligibilityDto.getUniqueClientId());
+        prepEligibility.setClientHtsCode(eligibilityDto.getClientHtsCode());
+        prepEligibility.setReferredFrom(eligibilityDto.getReferredFrom());
+        prepEligibility.setSetting(eligibilityDto.getSetting());
+        prepEligibility.setServiceStatus(eligibilityDto.getServiceStatus());
+        prepEligibility.setTypeOfSession(eligibilityDto.getTypeOfSession());
         return prepEligibility;
     }
 
@@ -222,6 +254,14 @@ public class PrepEligibilityService {
 
         prepEligibility.setDateLiverFunctionTestResults(prepEligibilityRequestDto.getDateLiverFunctionTestResults());
         prepEligibility.setLiverFunctionTestResults(prepEligibilityRequestDto.getLiverFunctionTestResults());
+        prepEligibility.setConsiderationForInjections(prepEligibilityRequestDto.getConsiderationForInjections());
+        prepEligibility.setReasonForDecliningPrep(prepEligibilityRequestDto.getReasonForDecliningPrep());
+        prepEligibility.setUniqueClientId(prepEligibilityRequestDto.getUniqueClientId());
+        prepEligibility.setClientHtsCode(prepEligibilityRequestDto.getClientHtsCode());
+        prepEligibility.setReferredFrom(prepEligibilityRequestDto.getReferredFrom());
+        prepEligibility.setSetting(prepEligibilityRequestDto.getSetting());
+        prepEligibility.setServiceStatus(prepEligibilityRequestDto.getServiceStatus());
+        prepEligibility.setTypeOfSession(prepEligibilityRequestDto.getTypeOfSession());
         return prepEligibility;
     }
 
@@ -262,6 +302,14 @@ public class PrepEligibilityService {
         prepEligibilityDto.setLftConducted(eligibility.getLftConducted());
         prepEligibilityDto.setDateLiverFunctionTestResults(eligibility.getDateLiverFunctionTestResults());
         prepEligibilityDto.setLiverFunctionTestResults(eligibility.getLiverFunctionTestResults());
+        prepEligibilityDto.setConsiderationForInjections(eligibility.getConsiderationForInjections());
+        prepEligibilityDto.setReasonForDecliningPrep(eligibility.getReasonForDecliningPrep());
+        prepEligibilityDto.setUniqueClientId(eligibility.getUniqueClientId());
+        prepEligibilityDto.setClientHtsCode(eligibility.getClientHtsCode());
+        prepEligibilityDto.setReferredFrom(eligibility.getReferredFrom());
+        prepEligibilityDto.setSetting(eligibility.getSetting());
+        prepEligibilityDto.setServiceStatus(eligibility.getServiceStatus());
+        prepEligibilityDto.setTypeOfSession(eligibility.getTypeOfSession());
         return prepEligibilityDto;
     }
 

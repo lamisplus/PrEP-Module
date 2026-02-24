@@ -146,6 +146,34 @@ public class PrepEligibility extends Audit implements Serializable {
     @Column(name = "liver_function_test_results", columnDefinition = "jsonb", nullable = true)
     private Object liverFunctionTestResults;
 
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "consideration_for_injections", columnDefinition = "jsonb")
+    private Object considerationForInjections;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "reason_for_declining_prep", columnDefinition = "jsonb")
+    private Object reasonForDecliningPrep;
+
+    @Column(name = "unique_client_id")
+    private String uniqueClientId;
+
+    @Column(name = "client_hts_code")
+    private String clientHtsCode;
+
+    @Column(name = "referred_from")
+    private String referredFrom;
+
+    @Column(name = "setting")
+    private String setting;
+
+    @Column(name = "service_status")
+    private String serviceStatus;
+
+    @Column(name = "type_of_session")
+    private String typeOfSession;
+
     @PrePersist
     public void setFields() {
         if (StringUtils.isEmpty(uuid)) {

@@ -3,6 +3,7 @@ package org.lamisplus.modules.prep.controller;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.lamisplus.modules.prep.domain.dto.PrepEligibilityDto;
+import org.lamisplus.modules.prep.domain.dto.PrepEligibilityRequestDto;
 import org.lamisplus.modules.prep.service.PrepEligibilityService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,12 @@ import java.util.List;
 public class PrepEligibilityController {
     private final PrepEligibilityService prepEligibilityService;
     private final String PREP_ELIGIBILITY_URL_VERSION_ONE = "/api/v1/prep-eligibility";
+
+    @PostMapping(PREP_ELIGIBILITY_URL_VERSION_ONE)
+    @ApiOperation("Save Prep Eligibility")
+    public ResponseEntity<PrepEligibilityDto> save(@Valid @RequestBody PrepEligibilityRequestDto prepEligibilityRequestDto) {
+        return ResponseEntity.ok(prepEligibilityService.save(prepEligibilityRequestDto));
+    }
 
     @PutMapping(PREP_ELIGIBILITY_URL_VERSION_ONE +"/{id}")
     @ApiOperation("update Prep Eligibility by id")

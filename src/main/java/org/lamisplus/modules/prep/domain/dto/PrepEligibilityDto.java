@@ -48,7 +48,15 @@ public class PrepEligibilityDto implements Serializable {
     private String reasonForSwitch;
     private LocalDate dateLiverFunctionTestResults;
     private Object liverFunctionTestResults;
+    private Object considerationForInjections;
+    private Object reasonForDecliningPrep;
     private String pregnancyStatus;
+    private String uniqueClientId;
+    private String clientHtsCode;
+    private String referredFrom;
+    private String setting;
+    private String serviceStatus;
+    private String typeOfSession;
 
     //private PersonResponseDto personResponseDto;
 

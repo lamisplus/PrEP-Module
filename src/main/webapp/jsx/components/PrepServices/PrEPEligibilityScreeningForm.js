@@ -172,6 +172,7 @@ const BasicInfo = props => {
     hivExposure: "",
     hivTestResultAtvisit: "",
     lastTest: "",
+    recommendRetestingAfter1Month: "",
   });
   const [assessmentForPepIndication, setAssessmentForPepIndication] = useState({
     unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours: "",
@@ -420,7 +421,7 @@ const BasicInfo = props => {
               drugHistory.hivTestResultAtvisit;
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
-            toast.success("Prep eligilibility saved successfully! ✔", {
+            toast.success("Prep eligibility saved successfully! ✔", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -454,7 +455,7 @@ const BasicInfo = props => {
           });
       } else {
         axios
-          .post(`${baseUrl}prep/eligibility`, objValues, {
+          .post(`${baseUrl}prep-eligibility`, objValues, {
             headers: { Authorization: `Bearer ${token}` },
           })
           .then(response => {
@@ -462,7 +463,7 @@ const BasicInfo = props => {
             props.patientObj.eligibilityCount = 1;
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
-            toast.success("Prep eligilibility saved successfull! ✔", {
+            toast.success("Prep eligibility saved successfully! ✔", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -628,7 +629,7 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
-                  <Label>Client HTS Code</Label>
+                  <Label>Client's HTS Code</Label>
                   <input
                     type="text"
                     className="form-control"
@@ -722,6 +723,27 @@ const BasicInfo = props => {
                   </select>
                 </FormGroup>
               </div>
+
+              {objValues.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH" && (
+                <div className="form-group col-md-4 p-2">
+                  <FormGroup className="p-2">
+                    <Label>Reason for Switch</Label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="reasonForSwitch"
+                      id="reasonForSwitch"
+                      value={objValues.reasonForSwitch}
+                      onChange={handleInputChange}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                      }}
+                      disabled={disabledField}
+                    />
+                  </FormGroup>
+                </div>
+              )}
 
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
@@ -882,7 +904,7 @@ const BasicInfo = props => {
                     <option value={""}>Select</option>
                     <option value="Pregnant">Pregnant</option>
                     <option value="Breastfeeding">Breastfeeding</option>
-                    <option value="Not pregnant">Not pregnant</option>
+                    <option value="Non-pregnant">Non-pregnant</option>
                   </select>
                 </FormGroup>
               </div>
@@ -904,14 +926,14 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "4px solid #014D88",
+                  borderLeft: "5px solid #014D88",
                   backgroundColor: "#f0f4f8",
-                  padding: "0.5rem 1rem",
+                  padding: "0.75rem 1rem",
                   marginBottom: "0.75rem",
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                   Sex Partner Risk
                 </h4>
               </div>
@@ -1087,14 +1109,14 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "4px solid #014D88",
+                  borderLeft: "5px solid #014D88",
                   backgroundColor: "#f0f4f8",
-                  padding: "0.5rem 1rem",
+                  padding: "0.75rem 1rem",
                   marginBottom: "0.75rem",
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                   Personal HIV Risk Assessment (Last 3 months)
                 </h4>
               </div>
@@ -1246,15 +1268,15 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "4px solid #014D88",
+                  borderLeft: "5px solid #014D88",
                   backgroundColor: "#f0f4f8",
-                  padding: "0.5rem 1rem",
+                  padding: "0.75rem 1rem",
                   marginBottom: "0.75rem",
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
-                  Drug Use History
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  Drug Use History (last 3months)
                 </h4>
               </div>
               <h5
@@ -1526,14 +1548,14 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "4px solid #014D88",
+                  borderLeft: "5px solid #014D88",
                   backgroundColor: "#f0f4f8",
-                  padding: "0.5rem 1rem",
+                  padding: "0.75rem 1rem",
                   marginBottom: "0.75rem",
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                   Assessment for PEP Indication
                 </h4>
               </div>
@@ -1618,14 +1640,14 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "4px solid #014D88",
+                  borderLeft: "5px solid #014D88",
                   backgroundColor: "#f0f4f8",
-                  padding: "0.5rem 1rem",
+                  padding: "0.75rem 1rem",
                   marginBottom: "0.75rem",
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                   Assessment Acute HIV Infection
                 </h4>
               </div>
@@ -1706,14 +1728,14 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "4px solid #014D88",
+                  borderLeft: "5px solid #014D88",
                   backgroundColor: "#f0f4f8",
-                  padding: "0.5rem 1rem",
+                  padding: "0.75rem 1rem",
                   marginBottom: "0.75rem",
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88" }}>
+                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                   STI Screening
                 </h4>
               </div>
@@ -2184,6 +2206,38 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
+              {drugHistory.hivTestResultAtvisit === "Negative" &&
+                (assessmentForAcuteHivInfection?.acuteHivSymptomsLasttwoWeeks ===
+                  "true" ||
+                  assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days ===
+                    "true") && (
+                <div className="form-group col-md-6 p-3">
+                  <FormGroup>
+                    <Label>
+                      If the client tests HIV negative and has signs and symptoms
+                      of acute HIV infection, recommend HIV re-testing after 1
+                      month?
+                    </Label>
+                    <select
+                      className="form-control"
+                      name="recommendRetestingAfter1Month"
+                      id="recommendRetestingAfter1Month"
+                      value={drugHistory.recommendRetestingAfter1Month}
+                      onChange={handleInputChangeDrugHistory}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                      }}
+                      disabled={disabledField}
+                    >
+                      <option value={""}>Select</option>
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
+                  </FormGroup>
+                </div>
+              )}
+
               <Message warning>
                 <h4>HIV Testing Summary</h4>
                 <b>{`HIV Test Result at Visit: ${
@@ -2442,6 +2496,44 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
+              <div className="col-md-12 p-2">
+                {(() => {
+                  const allYes =
+                    considerationForInjections?.noHistoryOrSignsOfLiverAbnormalitiesInjectable === "true" &&
+                    considerationForInjections?.noHistoryOfDrugToDrugInteractionInjectable === "true" &&
+                    considerationForInjections?.noHistoryOfDrugHypersensitivityInjectable === "true";
+                  const eligibleForInjectable = allYes ? "Yes" : "No";
+                  return (
+                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+                      <span
+                        className="badge"
+                        style={{
+                          backgroundColor: eligibleForInjectable === "Yes" ? "#28a745" : "#dc3545",
+                          color: "#fff",
+                          padding: "0.5rem 1rem",
+                          fontSize: "0.9rem",
+                        }}
+                      >
+                        Eligible for Injectable: {eligibleForInjectable}
+                      </span>
+                      {eligibleForInjectable === "No" && (
+                        <span
+                          className="badge"
+                          style={{
+                            backgroundColor: "#17a2b8",
+                            color: "#fff",
+                            padding: "0.5rem 1rem",
+                            fontSize: "0.9rem",
+                          }}
+                        >
+                          Consider Oral PrEP
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+
               <hr />
               <br />
               <div
@@ -2508,7 +2600,7 @@ const BasicInfo = props => {
               </div>
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
-                  <Label>PrEP Accepted</Label>
+                  <Label>Received PrEP for the first time this year</Label>
                   <select
                     className="form-control"
                     name="prepAccepted"
@@ -2566,185 +2658,70 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              <hr />
-              <br />
-              <div
-                className="form-group  col-md-12 text-center pt-2 mb-4 p-3"
-                style={{
-                  backgroundColor: "#014D88",
-                  width: "125%",
-                  height: "35px",
-                  color: "#fff",
-                  fontWeight: "bold",
-                }}
-              >
-                Reason for Declining PrEP
-              </div>
+              {servicesReceivedByClient?.willingToCommencePrep === "false" && (
+                <>
+                  <hr />
+                  <br />
+                  <div
+                    className="form-group  col-md-12 text-center pt-2 mb-4 p-3"
+                    style={{
+                      backgroundColor: "#014D88",
+                      width: "125%",
+                      height: "35px",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Reasons for Declining PrEP
+                  </div>
 
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>No need for PrEP</Label>
-                  <select
-                    className="form-control"
-                    name="noNeedForPrep"
-                    id="noNeedForPrep"
-                    value={reasonForDecliningPrep?.noNeedForPrep}
-                    onChange={handleInputChangeReasonForDecliningPrep}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </FormGroup>
-              </div>
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>Does not wish to take a daily medication</Label>
-                  <select
-                    className="form-control"
-                    name="doesNotWishDailyMedication"
-                    id="doesNotWishDailyMedication"
-                    value={reasonForDecliningPrep?.doesNotWishDailyMedication}
-                    onChange={handleInputChangeReasonForDecliningPrep}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </FormGroup>
-              </div>
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>Concerns about side effects</Label>
-                  <select
-                    className="form-control"
-                    name="concernsAboutSideEffects"
-                    id="concernsAboutSideEffects"
-                    value={reasonForDecliningPrep?.concernsAboutSideEffects}
-                    onChange={handleInputChangeReasonForDecliningPrep}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </FormGroup>
-              </div>
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>Concerns about what others think</Label>
-                  <select
-                    className="form-control"
-                    name="concernsAboutWhatOthersThink"
-                    id="concernsAboutWhatOthersThink"
-                    value={reasonForDecliningPrep?.concernsAboutWhatOthersThink}
-                    onChange={handleInputChangeReasonForDecliningPrep}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </FormGroup>
-              </div>
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>Concerns about time required for clinic follow-up</Label>
-                  <select
-                    className="form-control"
-                    name="concernsAboutTimeForClinicFollowUp"
-                    id="concernsAboutTimeForClinicFollowUp"
-                    value={reasonForDecliningPrep?.concernsAboutTimeForClinicFollowUp}
-                    onChange={handleInputChangeReasonForDecliningPrep}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </FormGroup>
-              </div>
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>Concerns about safety of medication</Label>
-                  <select
-                    className="form-control"
-                    name="concernsAboutSafetyOfMedication"
-                    id="concernsAboutSafetyOfMedication"
-                    value={reasonForDecliningPrep?.concernsAboutSafetyOfMedication}
-                    onChange={handleInputChangeReasonForDecliningPrep}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </FormGroup>
-              </div>
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>Concerns about effectiveness of medication</Label>
-                  <select
-                    className="form-control"
-                    name="concernsAboutEffectivenessOfMedication"
-                    id="concernsAboutEffectivenessOfMedication"
-                    value={reasonForDecliningPrep?.concernsAboutEffectivenessOfMedication}
-                    onChange={handleInputChangeReasonForDecliningPrep}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </FormGroup>
-              </div>
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>Others (Specify)</Label>
-                  <Input
-                    className="form-control"
-                    name="othersSpecify"
-                    id="reasonForDecliningPrepOthersSpecify"
-                    value={reasonForDecliningPrep?.othersSpecify}
-                    onChange={handleInputChangeReasonForDecliningPrep}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  />
-                </FormGroup>
-              </div>
+                  <div className="form-group col-md-8 p-2">
+                    <FormGroup className="p-2">
+                      <Label>Reasons for Declining PrEP</Label>
+                      <Dropdown
+                        placeholder="Select reasons"
+                        fluid
+                        multiple
+                        selection
+                        search
+                        options={[
+                          { key: "no_need", value: "No need for PrEP", text: "No need for PrEP" },
+                          { key: "daily_med", value: "Does not wish to take a daily medication", text: "Does not wish to take a daily medication" },
+                          { key: "side_effects", value: "Concerns about side effects", text: "Concerns about side effects" },
+                          { key: "others_think", value: "Concerns about what others think", text: "Concerns about what others think" },
+                          { key: "clinic_time", value: "Concerns about time required for clinic follow-up", text: "Concerns about time required for clinic follow-up" },
+                          { key: "safety", value: "Concerns about safety of medication", text: "Concerns about safety of medication" },
+                          { key: "effectiveness", value: "Concerns about effectiveness of medication", text: "Concerns about effectiveness of medication" },
+                          { key: "others", value: "Others (Specify)", text: "Others (Specify)" },
+                        ]}
+                        value={servicesReceivedByClient.reasonsForDecline || []}
+                        onChange={handleInputReasonsForDecline}
+                        disabled={disabledField}
+                      />
+                    </FormGroup>
+                  </div>
+
+                  {servicesReceivedByClient.reasonsForDecline?.includes("Others (Specify)") && (
+                    <div className="form-group col-md-4 p-2">
+                      <FormGroup className="p-2">
+                        <Label>Others (Specify)</Label>
+                        <Input
+                          className="form-control"
+                          name="otherReasonsForDecline"
+                          id="otherReasonsForDecline"
+                          value={servicesReceivedByClient?.otherReasonsForDecline}
+                          onChange={handleInputChangeServicesReceivedByClient}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.2rem",
+                          }}
+                          disabled={disabledField}
+                        />
+                      </FormGroup>
+                    </div>
+                  )}
+                </>
+              )}
 
               {saving ? <Spinner /> : ""}
               <br />

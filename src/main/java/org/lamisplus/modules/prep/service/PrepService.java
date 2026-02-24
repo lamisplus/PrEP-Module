@@ -494,6 +494,14 @@ public class PrepService {
         prepEligibility.setLftConducted(prepEligibilityRequestDto.getLftConducted());
         prepEligibility.setDateLiverFunctionTestResults(prepEligibilityRequestDto.getDateLiverFunctionTestResults());
         prepEligibility.setLiverFunctionTestResults(prepEligibilityRequestDto.getLiverFunctionTestResults());
+        prepEligibility.setConsiderationForInjections(prepEligibilityRequestDto.getConsiderationForInjections());
+        prepEligibility.setReasonForDecliningPrep(prepEligibilityRequestDto.getReasonForDecliningPrep());
+        prepEligibility.setUniqueClientId(prepEligibilityRequestDto.getUniqueClientId());
+        prepEligibility.setClientHtsCode(prepEligibilityRequestDto.getClientHtsCode());
+        prepEligibility.setReferredFrom(prepEligibilityRequestDto.getReferredFrom());
+        prepEligibility.setSetting(prepEligibilityRequestDto.getSetting());
+        prepEligibility.setServiceStatus(prepEligibilityRequestDto.getServiceStatus());
+        prepEligibility.setTypeOfSession(prepEligibilityRequestDto.getTypeOfSession());
         return prepEligibility;
     }
 
@@ -531,6 +539,14 @@ public class PrepService {
         prepEligibilityDto.setLftConducted(eligibility.getLftConducted());
         prepEligibilityDto.setDateLiverFunctionTestResults(eligibility.getDateLiverFunctionTestResults());
         prepEligibilityDto.setLiverFunctionTestResults(eligibility.getLiverFunctionTestResults());
+        prepEligibilityDto.setConsiderationForInjections(eligibility.getConsiderationForInjections());
+        prepEligibilityDto.setReasonForDecliningPrep(eligibility.getReasonForDecliningPrep());
+        prepEligibilityDto.setUniqueClientId(eligibility.getUniqueClientId());
+        prepEligibilityDto.setClientHtsCode(eligibility.getClientHtsCode());
+        prepEligibilityDto.setReferredFrom(eligibility.getReferredFrom());
+        prepEligibilityDto.setSetting(eligibility.getSetting());
+        prepEligibilityDto.setServiceStatus(eligibility.getServiceStatus());
+        prepEligibilityDto.setTypeOfSession(eligibility.getTypeOfSession());
         //PersonResponseDto personResponseDto = personService.getDtoFromPerson(eligibility.getPerson());
         //prepEligibilityDto.setPersonResponseDto(personResponseDto);
 
