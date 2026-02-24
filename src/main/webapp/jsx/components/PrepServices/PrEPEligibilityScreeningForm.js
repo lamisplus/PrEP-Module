@@ -933,7 +933,7 @@ const BasicInfo = props => {
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
                   Sex Partner Risk
                 </h4>
               </div>
@@ -1116,7 +1116,7 @@ const BasicInfo = props => {
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
                   Personal HIV Risk Assessment (Last 3 months)
                 </h4>
               </div>
@@ -1275,7 +1275,7 @@ const BasicInfo = props => {
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
                   Drug Use History (last 3months)
                 </h4>
               </div>
@@ -1555,7 +1555,7 @@ const BasicInfo = props => {
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
                   Assessment for PEP Indication
                 </h4>
               </div>
@@ -1647,7 +1647,7 @@ const BasicInfo = props => {
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
                   Assessment Acute HIV Infection
                 </h4>
               </div>
@@ -1735,7 +1735,7 @@ const BasicInfo = props => {
                   marginTop: "0.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "bold", margin: 0, color: "#014D88", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
                   STI Screening
                 </h4>
               </div>
