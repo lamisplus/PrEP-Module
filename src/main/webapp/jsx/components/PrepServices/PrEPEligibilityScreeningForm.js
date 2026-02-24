@@ -2498,10 +2498,12 @@ const BasicInfo = props => {
 
               <div className="col-md-12 p-2">
                 {(() => {
-                  const allYes =
-                    considerationForInjections?.noHistoryOrSignsOfLiverAbnormalitiesInjectable === "true" &&
-                    considerationForInjections?.noHistoryOfDrugToDrugInteractionInjectable === "true" &&
-                    considerationForInjections?.noHistoryOfDrugHypersensitivityInjectable === "true";
+                  const liver = considerationForInjections?.noHistoryOrSignsOfLiverAbnormalitiesInjectable;
+                  const drugInteraction = considerationForInjections?.noHistoryOfDrugToDrugInteractionInjectable;
+                  const hypersensitivity = considerationForInjections?.noHistoryOfDrugHypersensitivityInjectable;
+                  const allSelected = liver !== "" && drugInteraction !== "" && hypersensitivity !== "";
+                  if (!allSelected) return null;
+                  const allYes = liver === "true" && drugInteraction === "true" && hypersensitivity === "true";
                   const eligibleForInjectable = allYes ? "Yes" : "No";
                   return (
                     <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
