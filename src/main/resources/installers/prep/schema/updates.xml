@@ -345,19 +345,14 @@
             ALTER TABLE prep_eligibility ADD COLUMN reason_for_declining_prep JSONB;
         </sql>
     </changeSet>
-    <changeSet failOnError="true" author="Gamaliel" id="24-02-2026-03">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="prep_eligibility" columnName="unique_client_id"/>
-            </not>
-        </preConditions>
+    <changeSet failOnError="true" author="Gamaliel" id="25-02-2026-01">
         <sql>
-            ALTER TABLE prep_eligibility ADD COLUMN unique_client_id VARCHAR(255);
-            ALTER TABLE prep_eligibility ADD COLUMN client_hts_code VARCHAR(255);
-            ALTER TABLE prep_eligibility ADD COLUMN referred_from VARCHAR(255);
-            ALTER TABLE prep_eligibility ADD COLUMN setting VARCHAR(255);
-            ALTER TABLE prep_eligibility ADD COLUMN service_status VARCHAR(255);
-            ALTER TABLE prep_eligibility ADD COLUMN type_of_session VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS unique_client_id VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS client_hts_code VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS referred_from VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS setting VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS service_status VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS type_of_session VARCHAR(255);
         </sql>
     </changeSet>
 </databaseChangeLog>
