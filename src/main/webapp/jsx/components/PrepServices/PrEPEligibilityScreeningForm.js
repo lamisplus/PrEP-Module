@@ -926,11 +926,11 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "5px solid #014D88",
+                  borderLeft: "5px solid #992E62",
                   backgroundColor: "#f0f4f8",
                   padding: "0.75rem 1rem",
-                  marginBottom: "0.75rem",
-                  marginTop: "0.5rem",
+                  marginBottom: "1rem",
+                  marginTop: "1.5rem",
                 }}
               >
                 <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
@@ -1109,11 +1109,11 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "5px solid #014D88",
+                  borderLeft: "5px solid #992E62",
                   backgroundColor: "#f0f4f8",
                   padding: "0.75rem 1rem",
-                  marginBottom: "0.75rem",
-                  marginTop: "0.5rem",
+                  marginBottom: "1rem",
+                  marginTop: "1.5rem",
                 }}
               >
                 <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
@@ -1268,11 +1268,11 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "5px solid #014D88",
+                  borderLeft: "5px solid #992E62",
                   backgroundColor: "#f0f4f8",
                   padding: "0.75rem 1rem",
-                  marginBottom: "0.75rem",
-                  marginTop: "0.5rem",
+                  marginBottom: "1rem",
+                  marginTop: "1.5rem",
                 }}
               >
                 <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
@@ -1548,11 +1548,11 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "5px solid #014D88",
+                  borderLeft: "5px solid #992E62",
                   backgroundColor: "#f0f4f8",
                   padding: "0.75rem 1rem",
-                  marginBottom: "0.75rem",
-                  marginTop: "0.5rem",
+                  marginBottom: "1rem",
+                  marginTop: "1.5rem",
                 }}
               >
                 <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
@@ -1640,11 +1640,11 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "5px solid #014D88",
+                  borderLeft: "5px solid #992E62",
                   backgroundColor: "#f0f4f8",
                   padding: "0.75rem 1rem",
-                  marginBottom: "0.75rem",
-                  marginTop: "0.5rem",
+                  marginBottom: "1rem",
+                  marginTop: "1.5rem",
                 }}
               >
                 <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
@@ -1728,11 +1728,11 @@ const BasicInfo = props => {
               <div
                 style={{
                   width: "100%",
-                  borderLeft: "5px solid #014D88",
+                  borderLeft: "5px solid #992E62",
                   backgroundColor: "#f0f4f8",
                   padding: "0.75rem 1rem",
-                  marginBottom: "0.75rem",
-                  marginTop: "0.5rem",
+                  marginBottom: "1rem",
+                  marginTop: "1.5rem",
                 }}
               >
                 <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
