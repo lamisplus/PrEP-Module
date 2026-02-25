@@ -2,8 +2,6 @@ package org.lamisplus.modules.prep.domain.dto;
 
 import lombok.*;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -18,7 +16,6 @@ public class PepClinicRequestDto implements Serializable {
     private Double height;
     private String pregnant;
 
-    @NotBlank(message = "prepEnrollmentUuid is mandatory")
     private String prepEnrollmentUuid;
 
     private long regimenId;
@@ -26,7 +23,6 @@ public class PepClinicRequestDto implements Serializable {
     private Boolean referred;
     private LocalDate dateReferred;
 
-    @NotNull(message = "personId is mandatory")
     private Long personId;
 
     private LocalDate nextAppointment;

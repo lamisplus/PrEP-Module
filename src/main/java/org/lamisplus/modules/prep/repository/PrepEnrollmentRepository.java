@@ -40,6 +40,9 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
 
     Optional<PrepEnrollment> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
 
+    @Query(value = "SELECT * FROM prep_enrollment pe WHERE pe.person_uuid=?1 AND pe.archived=?2 ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
+    Optional<PrepEnrollment> findTopByPersonUuidAndArchived(String personUuid, int archived);
+
     @Query(value = "SELECT pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,   " +
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +

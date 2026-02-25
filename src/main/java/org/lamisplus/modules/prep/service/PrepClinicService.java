@@ -57,15 +57,23 @@ public class PrepClinicService {
     }
 
     public PrepClinicDto saveCommencement(PrepClinicRequestDto commencementRequestDto) {
-        String enrollmentUuid = commencementRequestDto.getPrepEnrollmentUuid();
-
         Person person = this.getPerson(commencementRequestDto.getPersonId());
 
-        PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(enrollmentUuid)
-                .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", enrollmentUuid));
+        String enrollmentUuid = commencementRequestDto.getPrepEnrollmentUuid();
+        if (enrollmentUuid == null || enrollmentUuid.trim().isEmpty()) {
+            PrepEnrollment enrollment = prepEnrollmentRepository
+                    .findTopByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED)
+                    .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "PersonUuid", person.getUuid()));
+            enrollmentUuid = enrollment.getUuid();
+            commencementRequestDto.setPrepEnrollmentUuid(enrollmentUuid);
+        }
+        final String finalEnrollmentUuid = enrollmentUuid;
+
+        PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(finalEnrollmentUuid)
+                .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", finalEnrollmentUuid));
 
         if (!prepEnrollment.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepClinic.class, "Person not same enrolled", enrollmentUuid);
+            throw new IllegalTypeException(PrepClinic.class, "Person not same enrolled", finalEnrollmentUuid);
         }
 
         PrepClinic prepClinic = this.clinicRequestDtoToClinic(commencementRequestDto, person.getUuid());
@@ -80,15 +88,23 @@ public class PrepClinicService {
     }
 
     public PrepClinicDto saveClinic(PrepClinicRequestDto clinicRequestDto) {
-        String enrollmentUuid = clinicRequestDto.getPrepEnrollmentUuid();
-
         Person person = this.getPerson(clinicRequestDto.getPersonId());
 
-        PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(enrollmentUuid)
-                .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", enrollmentUuid));
+        String enrollmentUuid = clinicRequestDto.getPrepEnrollmentUuid();
+        if (enrollmentUuid == null || enrollmentUuid.trim().isEmpty()) {
+            PrepEnrollment enrollment = prepEnrollmentRepository
+                    .findTopByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED)
+                    .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "PersonUuid", person.getUuid()));
+            enrollmentUuid = enrollment.getUuid();
+            clinicRequestDto.setPrepEnrollmentUuid(enrollmentUuid);
+        }
+        final String finalEnrollmentUuid = enrollmentUuid;
+
+        PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(finalEnrollmentUuid)
+                .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", finalEnrollmentUuid));
 
         if (!prepEnrollment.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepClinic.class, "Person not same enrolled", enrollmentUuid);
+            throw new IllegalTypeException(PrepClinic.class, "Person not same enrolled", finalEnrollmentUuid);
         }
 
         PrepClinic prepClinic = this.clinicRequestDtoToClinic(clinicRequestDto, person.getUuid());
