@@ -462,7 +462,7 @@
                 hepatitis JSONB,
                 syphilis JSONB,
                 other_tests_done JSONB,
-                syndromic_sti_screening JSONB,
+                syndromic_sti_screening VARCHAR(255),
                 risk_reduction_services VARCHAR(255),
                 noted_side_effects VARCHAR(255),
                 prep_type VARCHAR(255),
@@ -519,6 +519,17 @@
             ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS date_start_pep DATE;
             ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS date_stop_pep DATE;
             ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS followup_hiv_test_results JSONB;
+        </sql>
+    </changeSet>
+
+    <!-- Change prep_clinic.syndromic_sti_screening from jsonb to varchar -->
+    <changeSet failOnError="false" author="Claude" id="25-02-2026-06">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="prep_clinic"/>
+            <columnExists tableName="prep_clinic" columnName="syndromic_sti_screening"/>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic ALTER COLUMN syndromic_sti_screening TYPE VARCHAR(255) USING syndromic_sti_screening::text;
         </sql>
     </changeSet>
 </databaseChangeLog>

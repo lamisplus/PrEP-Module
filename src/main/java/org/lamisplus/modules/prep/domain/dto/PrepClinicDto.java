@@ -73,7 +73,7 @@ public class PrepClinicDto implements Serializable {
 
     private Object otherTestsDone;
 
-    private Object syndromicStiScreening;
+    private String syndromicStiScreening;
 
     private String riskReductionServices;
 
