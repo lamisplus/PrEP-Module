@@ -16,6 +16,7 @@ public class PepClinicRequestDto implements Serializable {
     private Double height;
     private String pregnant;
 
+    //@NotBlank(message = "prepEnrollmentUuid is mandatory")
     private String prepEnrollmentUuid;
 
     private long regimenId;
@@ -23,6 +24,7 @@ public class PepClinicRequestDto implements Serializable {
     private Boolean referred;
     private LocalDate dateReferred;
 
+    //@NotNull(message = "personId is mandatory")
     private Long personId;
 
     private LocalDate nextAppointment;

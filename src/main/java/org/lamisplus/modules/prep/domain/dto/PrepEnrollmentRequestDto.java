@@ -14,13 +14,16 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PrepEnrollmentRequestDto implements Serializable {
+    //@NotNull(message = "personId is mandatory")
     private Long personId;
 
     private String uniqueId;
 
+    //@NotBlank(message = "prepEligibilityUuid is mandatory")
     public String prepEligibilityUuid;
 
     //@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    //@NotNull(message = "dateEnrolled is mandatory")
     private LocalDate dateEnrolled;
 
     private LocalDate dateReferred;

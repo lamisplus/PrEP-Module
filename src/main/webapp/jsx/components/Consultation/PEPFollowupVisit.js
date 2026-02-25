@@ -351,6 +351,7 @@ const PEPFollowupVisit = props => {
         innerRef={formikRef}
         initialValues={formInitialValues}
         enableReinitialize
+        // validationSchema={validationSchema} // Validation temporarily disabled
         onSubmit={values => {
           handleFormSubmit(values);
         }}

@@ -194,6 +194,13 @@ const PrEPInitialVisitForm = props => {
 
   const validate = () => {
     // Validation temporarily disabled
+    // let temp = { ...errors };
+    // temp.dateEnrolled = objValues.dateEnrolled ? "" : "This field is required⚠";
+    // temp.uniqueId = objValues.uniqueId ? "" : "This field is required⚠";
+    // setErrors({
+    //   ...temp,
+    // });
+    // return Object.values(temp).every(x => x == "");
     return true;
   };
 

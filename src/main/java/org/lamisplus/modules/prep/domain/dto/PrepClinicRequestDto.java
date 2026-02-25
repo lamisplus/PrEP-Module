@@ -15,14 +15,18 @@ import java.time.LocalDate;
 public class PrepClinicRequestDto implements Serializable {
     private LocalDate dateInitialAdherenceCounseling;
 
+    //@NotNull(message = "weight is mandatory")
     private Double weight;
 
+    //@NotNull(message = "height is mandatory")
     private Double height;
 
     private String pregnant;
 
+    //@NotBlank(message = "prepEnrollmentUuid is mandatory")
     private String prepEnrollmentUuid;
 
+    //@NotNull(message = "regimenId is mandatory")
     private long regimenId;
 
     //private long regimenTypeId;
@@ -33,6 +37,7 @@ public class PrepClinicRequestDto implements Serializable {
 
     private LocalDate dateReferred;
 
+    //@NotNull(message = "personId is mandatory")
     private Long personId;
 
     private LocalDate nextAppointment;

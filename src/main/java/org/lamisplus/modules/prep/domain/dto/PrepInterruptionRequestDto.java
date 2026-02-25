@@ -11,7 +11,10 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PrepInterruptionRequestDto implements Serializable {
+    //@NotBlank(message = "Interruption type is mandatory")
+    //@NotNull(message = "Interruption type is mandatory")
     private String interruptionType;
+    //@NotNull(message = "Interruption date is mandatory")
     private LocalDate interruptionDate;
     private LocalDate dateClientDied;
     private String causeOfDeath;
@@ -19,6 +22,7 @@ public class PrepInterruptionRequestDto implements Serializable {
     private LocalDate dateClientReferredOut;
     private String facilityReferredTo;
     private String interruptionReason;
+    //@NotNull(message = "PersonId is mandatory")
     private Long personId;
     private LocalDate dateSeroConverted;
     private LocalDate dateRestartPlacedBackMedication;
