@@ -77,6 +77,7 @@ const INITIAL_VALUES = {
   pepNotedSideEffects: [],
   otherNotedSideEffects: "",
   syndromicStiScreening: "",
+  syndromicScreening: "",
   otherSyndromicStiScreening: "",
   riskReductionServices: "",
   adherenceLevel: "",
@@ -605,9 +606,9 @@ const PEPFollowupVisit = props => {
                         <FormLabelName>Syndromic STI Screening</FormLabelName>
                         <Input
                           type="select"
-                          name="syndromicStiScreening"
-                          id="syndromicStiScreening"
-                          value={values.syndromicStiScreening || ""}
+                          name="syndromicScreening"
+                          id="syndromicScreening"
+                          value={values.syndromicScreening || ""}
                           onChange={handleChange}
                           style={inputStyle}
                           disabled={disabledField}
@@ -623,10 +624,10 @@ const PEPFollowupVisit = props => {
                     </div>
 
                     {/* 7b. Syndromic STI Screening - Other specify */}
-                    {values.syndromicStiScreening &&
+                    {values.syndromicScreening &&
                       codeset?.SYNDROMIC_STI_SCREENING?.find(
                         v =>
-                          v.code === values.syndromicStiScreening
+                          v.code === values.syndromicScreening
                       )
                         ?.display?.toLowerCase()
                         ?.includes("other") && (

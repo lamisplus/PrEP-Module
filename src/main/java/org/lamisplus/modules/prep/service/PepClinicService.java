@@ -146,6 +146,7 @@ public class PepClinicService {
         entity.setSyphilis(dto.getSyphilis());
         entity.setOtherTestsDone(dto.getOtherTestsDone());
         entity.setSyndromicStiScreening(dto.getSyndromicStiScreening());
+        entity.setSyndromicScreening(dto.getSyndromicScreening());
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setNotedSideEffects(dto.getNotedSideEffects());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
@@ -222,6 +223,7 @@ public class PepClinicService {
         entity.setSyphilis(dto.getSyphilis());
         entity.setOtherTestsDone(dto.getOtherTestsDone());
         entity.setSyndromicStiScreening(dto.getSyndromicStiScreening());
+        entity.setSyndromicScreening(dto.getSyndromicScreening());
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setNotedSideEffects(dto.getNotedSideEffects());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
@@ -299,6 +301,7 @@ public class PepClinicService {
         dto.setSyphilis(entity.getSyphilis());
         dto.setOtherTestsDone(entity.getOtherTestsDone());
         dto.setSyndromicStiScreening(entity.getSyndromicStiScreening());
+        dto.setSyndromicScreening(entity.getSyndromicScreening());
         dto.setRiskReductionServices(entity.getRiskReductionServices());
         dto.setNotedSideEffects(entity.getNotedSideEffects());
         dto.setHealthCareWorkerSignature(entity.getHealthCareWorkerSignature());

@@ -141,6 +141,7 @@ const INITIAL_VALUES = {
   healthCareWorkerSignature: "",
   stiScreening: "",
   syndromicStiScreening: null,
+  syndromicScreening: "",
   syphilis: {},
   systolic: "",
   temperature: "",
@@ -832,8 +833,8 @@ const ClinicVisit = props => {
     payload.prepNotedSideEffects = notedSideEffects;
     payload.notedSideEffects = "";
     payload.previousPrepStatus = props.patientObj?.prepStatus;
-    // Derive stiScreening from syndromicStiScreening for API compatibility
-    payload.stiScreening = payload.syndromicStiScreening ? "true" : "false";
+    // Derive stiScreening from syndromicScreening for API compatibility
+    payload.stiScreening = payload.syndromicScreening ? "true" : "false";
     // Map otherDrugsPrescribed back to otherDrugs for API compatibility
     if (payload.hasOtherDrugs === "true") {
       payload.otherDrugs = payload.otherDrugsPrescribed || "";
@@ -1233,9 +1234,9 @@ const ClinicVisit = props => {
                         <FormLabelName>Syndromic STI Screening</FormLabelName>
                         <Input
                           type="select"
-                          name="syndromicStiScreening"
-                          id="syndromicStiScreening"
-                          value={values.syndromicStiScreening || ""}
+                          name="syndromicScreening"
+                          id="syndromicScreening"
+                          value={values.syndromicScreening || ""}
                           onChange={handleChange}
                           style={inputStyle}
                           disabled={disabledField}
@@ -1251,9 +1252,9 @@ const ClinicVisit = props => {
                     </div>
 
                     {/* 9b. Syndromic STI Screening - Other specify */}
-                    {values.syndromicStiScreening &&
+                    {values.syndromicScreening &&
                       codeset?.SYNDROMIC_STI_SCREENING?.find(
-                        v => v.code === values.syndromicStiScreening
+                        v => v.code === values.syndromicScreening
                       )?.display?.toLowerCase()?.includes("other") && (
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>

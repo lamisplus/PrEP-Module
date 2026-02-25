@@ -463,6 +463,7 @@
                 syphilis JSONB,
                 other_tests_done JSONB,
                 syndromic_sti_screening VARCHAR(255),
+                syndromic_screening VARCHAR(255),
                 risk_reduction_services VARCHAR(255),
                 noted_side_effects VARCHAR(255),
                 prep_type VARCHAR(255),
@@ -522,11 +523,11 @@
         </sql>
     </changeSet>
 
-    <!-- Change prep_clinic.syndromic_sti_screening from jsonb to varchar -->
-    <changeSet failOnError="false" author="Claude" id="25-02-2026-06-v2">
+    <!-- Add new syndromic_screening varchar column to prep_clinic and pep_clinic -->
+    <changeSet failOnError="false" author="Claude" id="25-02-2026-06-v3">
         <sql>
-            ALTER TABLE prep_clinic DROP COLUMN IF EXISTS syndromic_sti_screening;
-            ALTER TABLE prep_clinic ADD COLUMN syndromic_sti_screening VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS syndromic_screening VARCHAR(255);
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS syndromic_screening VARCHAR(255);
         </sql>
     </changeSet>
 </databaseChangeLog>

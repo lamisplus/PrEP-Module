@@ -203,8 +203,13 @@ public class PepClinic extends Audit implements Serializable {
     @Column(name = "other_tests_done", columnDefinition = "jsonb", nullable = true)
     private Object otherTestsDone;
 
-    @Column(name = "syndromic_sti_screening")
-    private String syndromicStiScreening;
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "syndromic_sti_screening", columnDefinition = "jsonb")
+    private Object syndromicStiScreening;
+
+    @Column(name = "syndromic_screening")
+    private String syndromicScreening;
 
     @Column(name = "risk_reduction_services")
     private String riskReductionServices;

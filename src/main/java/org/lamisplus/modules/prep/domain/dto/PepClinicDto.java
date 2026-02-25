@@ -42,7 +42,8 @@ public class PepClinicDto implements Serializable {
     private Object hepatitis;
     private Object syphilis;
     private Object otherTestsDone;
-    private String syndromicStiScreening;
+    private Object syndromicStiScreening;
+    private String syndromicScreening;
     private String riskReductionServices;
     private String notedSideEffects;
     private Integer duration;
