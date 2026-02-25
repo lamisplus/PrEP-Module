@@ -428,6 +428,9 @@ public class PrepService {
         prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
         prepDtos.setHivPositive(isPositive);
         prepDtos.setPrepCommencementCount(commencementCount);
+        if (!clients.isEmpty()) {
+            prepDtos.setEnrollmentType(clients.get(0).getEnrollmentType());
+        }
         PrepClient prepClient = prepEnrollmentRepository
                 .findPersonPrepAndStatusByPatientUuid(UN_ARCHIVED,
                         currentUserOrganizationService.getCurrentUserOrganization(), person.getUuid())
@@ -582,6 +585,25 @@ public class PrepService {
         prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
         prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
         prepEnrollment.setTargetGroup(prepEnrollmentRequestDto.getTargetGroup());
+
+        prepEnrollment.setEnrollmentType(prepEnrollmentRequestDto.getEnrollmentType());
+        prepEnrollment.setPopulationType(prepEnrollmentRequestDto.getPopulationType());
+        prepEnrollment.setWeight(prepEnrollmentRequestDto.getWeight());
+        prepEnrollment.setHeight(prepEnrollmentRequestDto.getHeight());
+        prepEnrollment.setPregnancyStatus(prepEnrollmentRequestDto.getPregnancyStatus());
+        prepEnrollment.setHistoryOfDrugAllergies(prepEnrollmentRequestDto.getHistoryOfDrugAllergies());
+        prepEnrollment.setHistoryOfDrugToDrugInteraction(prepEnrollmentRequestDto.getHistoryOfDrugToDrugInteraction());
+        prepEnrollment.setUrinalysisResult(prepEnrollmentRequestDto.getUrinalysisResult());
+        prepEnrollment.setLiverFunctionTestResults(prepEnrollmentRequestDto.getLiverFunctionTestResults());
+        prepEnrollment.setDateOfHivTest(prepEnrollmentRequestDto.getDateOfHivTest());
+        prepEnrollment.setResultOfHivTest(prepEnrollmentRequestDto.getResultOfHivTest());
+        prepEnrollment.setDateOfInitialAdherenceCounseling(prepEnrollmentRequestDto.getDateOfInitialAdherenceCounseling());
+        prepEnrollment.setDatePrepStarted(prepEnrollmentRequestDto.getDatePrepStarted());
+        prepEnrollment.setPrepTypeAtStart(prepEnrollmentRequestDto.getPrepTypeAtStart());
+        prepEnrollment.setPrepTypeAtStartOthersSpecify(prepEnrollmentRequestDto.getPrepTypeAtStartOthersSpecify());
+        prepEnrollment.setPrepRegimen(prepEnrollmentRequestDto.getPrepRegimen());
+        prepEnrollment.setMonthsOfRefill(prepEnrollmentRequestDto.getMonthsOfRefill());
+        prepEnrollment.setHivTestingPointOthersSpecify(prepEnrollmentRequestDto.getHivTestingPointOthersSpecify());
 
         return prepEnrollment;
     }
@@ -750,6 +772,26 @@ public class PrepService {
         enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
         enrollmentDto.setDateOfLastHivNegativeTest(enrollment.getDateOfLastHivNegativeTest());
         enrollmentDto.setTargetGroup(enrollment.getTargetGroup());
+
+        enrollmentDto.setEnrollmentType(enrollment.getEnrollmentType());
+        enrollmentDto.setPopulationType(enrollment.getPopulationType());
+        enrollmentDto.setWeight(enrollment.getWeight());
+        enrollmentDto.setHeight(enrollment.getHeight());
+        enrollmentDto.setPregnancyStatus(enrollment.getPregnancyStatus());
+        enrollmentDto.setHistoryOfDrugAllergies(enrollment.getHistoryOfDrugAllergies());
+        enrollmentDto.setHistoryOfDrugToDrugInteraction(enrollment.getHistoryOfDrugToDrugInteraction());
+        enrollmentDto.setUrinalysisResult(enrollment.getUrinalysisResult());
+        enrollmentDto.setLiverFunctionTestResults(enrollment.getLiverFunctionTestResults());
+        enrollmentDto.setDateOfHivTest(enrollment.getDateOfHivTest());
+        enrollmentDto.setResultOfHivTest(enrollment.getResultOfHivTest());
+        enrollmentDto.setDateOfInitialAdherenceCounseling(enrollment.getDateOfInitialAdherenceCounseling());
+        enrollmentDto.setDatePrepStarted(enrollment.getDatePrepStarted());
+        enrollmentDto.setPrepTypeAtStart(enrollment.getPrepTypeAtStart());
+        enrollmentDto.setPrepTypeAtStartOthersSpecify(enrollment.getPrepTypeAtStartOthersSpecify());
+        enrollmentDto.setPrepRegimen(enrollment.getPrepRegimen());
+        enrollmentDto.setMonthsOfRefill(enrollment.getMonthsOfRefill());
+        enrollmentDto.setHivTestingPointOthersSpecify(enrollment.getHivTestingPointOthersSpecify());
+
         return enrollmentDto;
     }
 
@@ -791,6 +833,13 @@ public class PrepService {
         prepInterruption.setReasonStopped(interruptionRequestDto.getReasonStopped());
         prepInterruption.setReasonStoppedOthers(interruptionRequestDto.getReasonStoppedOthers());
         prepInterruption.setReasonForPrepDiscontinuation(interruptionRequestDto.getReasonForPrepDiscontinuation());
+
+        prepInterruption.setWhy(interruptionRequestDto.getWhy());
+        prepInterruption.setPepCompletion(interruptionRequestDto.getPepCompletion());
+        prepInterruption.setFollowUpVisitDate(interruptionRequestDto.getFollowUpVisitDate());
+        prepInterruption.setHivResult(interruptionRequestDto.getHivResult());
+        prepInterruption.setEarlyDetectViralLoadResult(interruptionRequestDto.getEarlyDetectViralLoadResult());
+
         return prepInterruption;
     }
 
@@ -818,6 +867,11 @@ public class PrepService {
         prepInterruptionDto.setReasonStoppedOthers(prepInterruption.getReasonStoppedOthers());
         prepInterruptionDto.setReasonForPrepDiscontinuation(prepInterruption.getReasonForPrepDiscontinuation());
 
+        prepInterruptionDto.setWhy(prepInterruption.getWhy());
+        prepInterruptionDto.setPepCompletion(prepInterruption.getPepCompletion());
+        prepInterruptionDto.setFollowUpVisitDate(prepInterruption.getFollowUpVisitDate());
+        prepInterruptionDto.setHivResult(prepInterruption.getHivResult());
+        prepInterruptionDto.setEarlyDetectViralLoadResult(prepInterruption.getEarlyDetectViralLoadResult());
 
         return prepInterruptionDto;
     }

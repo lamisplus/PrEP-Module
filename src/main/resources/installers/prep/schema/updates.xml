@@ -355,4 +355,160 @@
             ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS type_of_session VARCHAR(255);
         </sql>
     </changeSet>
+
+    <!-- Phase 1D: Add missing columns to prep_enrollment -->
+    <changeSet failOnError="true" author="Claude" id="25-02-2026-02">
+        <sql>
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS enrollment_type VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS population_type VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS weight DOUBLE PRECISION;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS height DOUBLE PRECISION;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS pregnancy_status VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS history_of_drug_allergies VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS history_of_drug_to_drug_interaction VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS urinalysis_result VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS date_of_hiv_test DATE;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS result_of_hiv_test VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS date_of_initial_adherence_counseling DATE;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS date_prep_started DATE;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS prep_type_at_start VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS prep_type_at_start_others_specify VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS prep_regimen VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS months_of_refill INTEGER;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS hiv_testing_point_others_specify VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <!-- Phase 2B: Add missing columns to prep_interruption -->
+    <changeSet failOnError="true" author="Claude" id="25-02-2026-03">
+        <sql>
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS why VARCHAR(255);
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS pep_completion VARCHAR(255);
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS follow_up_visit_date DATE;
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS hiv_result VARCHAR(255);
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS early_detect_viral_load_result VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <!-- Phase 1E: Create pep_clinic table -->
+    <changeSet failOnError="true" author="Claude" id="25-02-2026-04">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pep_clinic"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE pep_clinic (
+                id BIGSERIAL PRIMARY KEY,
+                date_initial_adherence_counseling DATE,
+                weight DOUBLE PRECISION,
+                height DOUBLE PRECISION,
+                pregnant VARCHAR(255),
+                uuid VARCHAR(255) NOT NULL UNIQUE,
+                prep_enrollment_uuid VARCHAR(255),
+                date_prep_start DATE,
+                regimen_id BIGINT DEFAULT 0,
+                archived INTEGER DEFAULT 0,
+                urinalysis_result VARCHAR(255),
+                referred BOOLEAN,
+                duration INTEGER,
+                date_referred DATE,
+                vital_sign_uuid VARCHAR(255),
+                person_uuid VARCHAR(255),
+                visit_uuid VARCHAR(255),
+                visit_type VARCHAR(255),
+                next_appointment DATE,
+                encounter_date DATE,
+                facility_id BIGINT,
+                is_commencement BOOLEAN,
+                extra JSONB,
+                pulse DOUBLE PRECISION,
+                respiratory_rate DOUBLE PRECISION,
+                temperature DOUBLE PRECISION,
+                systolic DOUBLE PRECISION,
+                diastolic DOUBLE PRECISION,
+                adherence_level VARCHAR(255),
+                sti_screening BOOLEAN,
+                why BOOLEAN,
+                date_prep_given DATE,
+                prep_given VARCHAR(255),
+                date_of_liver_function_test_results DATE,
+                liver_function_test_results JSONB,
+                prep_noted_side_effects JSONB,
+                reason_for_switch VARCHAR(255),
+                was_prep_administered VARCHAR(255),
+                other_prep_given VARCHAR(255),
+                other_prep_type VARCHAR(255),
+                other_regimen_id VARCHAR(255),
+                prep_distribution_setting VARCHAR(255),
+                family_planning VARCHAR(255),
+                date_of_family_planning DATE,
+                other_drugs VARCHAR(255),
+                hiv_test_result VARCHAR(255),
+                urinalysis JSONB,
+                creatinine JSONB,
+                creatinine_result VARCHAR(255),
+                hepatitis JSONB,
+                syphilis JSONB,
+                other_tests_done JSONB,
+                syndromic_sti_screening JSONB,
+                risk_reduction_services VARCHAR(255),
+                noted_side_effects VARCHAR(255),
+                prep_type VARCHAR(255),
+                population_type VARCHAR(255),
+                history_of_drug_to_drug_interaction VARCHAR(255),
+                history_of_drug_allergies VARCHAR(255),
+                months_of_refill INTEGER,
+                health_care_worker_signature VARCHAR(255),
+                comment VARCHAR(255),
+                previous_prep_status VARCHAR(255),
+                hiv_test_result_date DATE,
+                mode_of_exposure VARCHAR(255),
+                duration_before_pep VARCHAR(255),
+                hiv_status_at_exposure VARCHAR(255),
+                pep_noted_side_effects JSONB,
+                other_noted_side_effects VARCHAR(255),
+                other_syndromic_sti_screening VARCHAR(255),
+                why_adherence_level_poor VARCHAR(255),
+                other_reason_for_poor_fair_adherence VARCHAR(255),
+                pep_regimen VARCHAR(255),
+                other_pep_regimen VARCHAR(255),
+                date_start_pep DATE,
+                date_stop_pep DATE,
+                followup_hiv_test_results JSONB,
+                created_date TIMESTAMP,
+                created_by VARCHAR(255),
+                last_modified_date TIMESTAMP,
+                last_modified_by VARCHAR(255),
+                CONSTRAINT fk_pep_clinic_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
+                CONSTRAINT fk_pep_clinic_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES prep_enrollment(uuid)
+            );
+        </sql>
+    </changeSet>
+
+    <!-- Phase 4: Add PEP-specific columns to pep_clinic table if it already exists -->
+    <changeSet failOnError="false" author="Claude" id="25-02-2026-05">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="pep_clinic"/>
+            <not>
+                <columnExists tableName="pep_clinic" columnName="mode_of_exposure"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS mode_of_exposure VARCHAR(255);
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS duration_before_pep VARCHAR(255);
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS hiv_status_at_exposure VARCHAR(255);
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS pep_noted_side_effects JSONB;
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS other_noted_side_effects VARCHAR(255);
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS other_syndromic_sti_screening VARCHAR(255);
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS why_adherence_level_poor VARCHAR(255);
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS other_reason_for_poor_fair_adherence VARCHAR(255);
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS pep_regimen VARCHAR(255);
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS other_pep_regimen VARCHAR(255);
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS date_start_pep DATE;
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS date_stop_pep DATE;
+            ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS followup_hiv_test_results JSONB;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

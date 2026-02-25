@@ -24,12 +24,6 @@ function SubMenu(props) {
       route: "prep-registration",
     });
   };
-  const loadPrEPCommencementForm = row => {
-    props.setActiveContent({
-      ...props.activeContent,
-      route: "prep-commencement",
-    });
-  };
   const loadPrEPEligibilityScreeningForm = row => {
     props.setActiveContent({ ...props.activeContent, route: "prep-screening" });
   };
@@ -65,6 +59,7 @@ function SubMenu(props) {
     prepCount: patientDetailCopy.prepEnrollmentCount?.toString() ?? "0",
     eligibilityCount: patientDetailCopy.prepEligibilityCount?.toString() ?? "0",
     commencementCount: patientDetailCopy.prepCommencementCount ?? 0,
+    enrollmentType: patientDetailCopy.enrollmentType || "",
   };
 
   return (
@@ -92,9 +87,7 @@ function SubMenu(props) {
               />
             ) : (
               <>
-                {/* check if the patient has done prep commencement */}
-                {patientObj?.prepCount === "0" ||
-                patientObj?.commencementCount === null ? (
+                {patientObj?.prepCount === "0" ? (
                   <>
                     {patientObj?.prepCount === "0" &&
                       patientObj?.hivresultAtVisit === "Negative" && (
@@ -102,19 +95,7 @@ function SubMenu(props) {
                           isAuthorized={userPermissions.enrollment}
                           privateComponent={() => (
                             <Menu.Item onClick={loadPrEPInitialVisitForm}>
-                              PrEP/PEP Initial
-                            </Menu.Item>
-                          )}
-                        />
-                      )}
-                    {(patientObj?.commencementCount === null ||
-                      patientObj?.commencementCount <= 0) &&
-                      patientObj?.hivresultAtVisit === "Negative" && (
-                        <ProtectedComponent
-                          isAuthorized={userPermissions.commencement}
-                          privateComponent={() => (
-                            <Menu.Item onClick={loadPrEPCommencementForm}>
-                              PrEP Commencement
+                              PrEP/PEP Initiation
                             </Menu.Item>
                           )}
                         />
@@ -137,24 +118,13 @@ function SubMenu(props) {
                           isAuthorized={userPermissions.enrollment}
                           privateComponent={() => (
                             <Menu.Item onClick={loadPrEPInitialVisitForm}>
-                              PrEP/PEP Initial
+                              PrEP/PEP Initiation
                             </Menu.Item>
                           )}
                         />
                       )}
-                    {(patientObj?.commencementCount === null ||
-                      patientObj?.commencementCount <= 0) &&
-                      patientObj?.hivresultAtVisit === "Negative" && (
-                        <ProtectedComponent
-                          isAuthorized={userPermissions.commencement}
-                          privateComponent={() => (
-                            <Menu.Item onClick={loadPrEPCommencementForm}>
-                              PrEP Commencement
-                            </Menu.Item>
-                          )}
-                        />
-                      )}
-                    {patientObj?.hivresultAtVisit === "Negative" && (
+                    {patientObj?.hivresultAtVisit === "Negative" &&
+                      patientObj?.enrollmentType === "PrEP" && (
                       <ProtectedComponent
                         isAuthorized={userPermissions.visit}
                         privateComponent={() => (
@@ -164,7 +134,8 @@ function SubMenu(props) {
                         )}
                       />
                     )}
-                    {patientObj?.hivresultAtVisit === "Negative" && (
+                    {patientObj?.hivresultAtVisit === "Negative" &&
+                      patientObj?.enrollmentType === "PEP" && (
                       <ProtectedComponent
                         isAuthorized={userPermissions.visit}
                         privateComponent={() => (
@@ -181,7 +152,7 @@ function SubMenu(props) {
                           <Menu.Item
                             onClick={loadPrEPDiscontinuationsInterruptions}
                           >
-                            PrEP Discontinuations & Interruptions
+                            PrEP Completion/Discontinuations & Interruptions
                           </Menu.Item>
                         )}
                       />
@@ -224,26 +195,14 @@ function SubMenu(props) {
                   isAuthorized={userPermissions.enrollment}
                   privateComponent={() => (
                     <Menu.Item onClick={loadPrEPInitialVisitForm}>
-                      PrEP/PEP Initial
+                      PrEP/PEP Initiation
                     </Menu.Item>
                   )}
                 />
               )}
             {(patientObj?.hivresultAtVisit === "Negative" ||
               patientObj?.hivresultAtVisit === null) &&
-              (patientObj?.commencementCount === null ||
-                patientObj?.commencementCount <= 0) && (
-                <ProtectedComponent
-                  isAuthorized={userPermissions.commencement}
-                  privateComponent={() => (
-                    <Menu.Item onClick={loadPrEPCommencementForm}>
-                      PrEP Commencement
-                    </Menu.Item>
-                  )}
-                />
-              )}
-            {(patientObj?.hivresultAtVisit === "Negative" ||
-              patientObj?.hivresultAtVisit === null) && (
+              patientObj?.enrollmentType === "PrEP" && (
               <ProtectedComponent
                 isAuthorized={userPermissions.visit}
                 privateComponent={() => (
@@ -254,7 +213,8 @@ function SubMenu(props) {
               />
             )}
             {(patientObj?.hivresultAtVisit === "Negative" ||
-              patientObj?.hivresultAtVisit === null) && (
+              patientObj?.hivresultAtVisit === null) &&
+              patientObj?.enrollmentType === "PEP" && (
               <ProtectedComponent
                 isAuthorized={userPermissions.visit}
                 privateComponent={() => (
@@ -270,7 +230,7 @@ function SubMenu(props) {
                 isAuthorized={userPermissions.discontinuation}
                 privateComponent={() => (
                   <Menu.Item onClick={loadPrEPDiscontinuationsInterruptions}>
-                    PrEP Discontinuations & Interruptions
+                    PrEP Completion/Discontinuations & Interruptions
                   </Menu.Item>
                 )}
               />

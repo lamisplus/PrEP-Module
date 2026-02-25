@@ -1192,7 +1192,7 @@ const ClinicVisit = props => {
 
                     {/* 8. Noted Side Effects */}
                     {codeset?.PREP_SIDE_EFFECTS && (
-                      <div className="mb-3 col-md-6">
+                      <div className="mb-3 col-md-12">
                         <FormGroup>
                           <FormLabelName>Noted Side Effects</FormLabelName>
                           <DualListBox
@@ -1619,7 +1619,7 @@ const ClinicVisit = props => {
                       </div>
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Client urinalysis test</FormLabelName>
+                          <FormLabelName>Result</FormLabelName>
                           <Input
                             type="select"
                             name="result"
@@ -1683,7 +1683,7 @@ const ClinicVisit = props => {
                       </div>
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Client hepatitis test</FormLabelName>
+                          <FormLabelName>Result</FormLabelName>
                           <Input
                             type="select"
                             name="result"
@@ -1749,7 +1749,7 @@ const ClinicVisit = props => {
                       </div>
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Client syphilis test</FormLabelName>
+                          <FormLabelName>Result</FormLabelName>
                           <Input
                             type="select"
                             name="result"
@@ -1772,7 +1772,7 @@ const ClinicVisit = props => {
                         <div className="mb-3 col-md-6">
                           <FormGroup>
                             <FormLabelName>
-                              Client syphilis test (Others)
+                              Result (Others)
                             </FormLabelName>
                             <Input
                               type="text"
@@ -1831,10 +1831,10 @@ const ClinicVisit = props => {
                           />
                         </FormGroup>
                       </div>
-                      <div className="form-group mb-3 col-md-6">
+                      <div className="form-group mb-3 col-md-12">
                         <FormGroup>
                           <FormLabelName>
-                            Client liver function test
+                            Result
                           </FormLabelName>
                           <LiverFunctionTest
                             objValues={values}
@@ -1876,9 +1876,29 @@ const ClinicVisit = props => {
                     otherTest?.map(eachTest => (
                       <React.Fragment key={eachTest.localId}>
                         <div className="row">
+                          <div className="mb-1 col-md-3">
+                            <FormGroup>
+                              <FormLabelName>Date</FormLabelName>
+                              <Input
+                                type="date"
+                                onKeyDown={e => e.preventDefault()}
+                                name="testDate"
+                                id={`otherTestDate_${eachTest.localId}`}
+                                value={eachTest.testDate}
+                                onChange={e =>
+                                  handleInputChangeOtherTest(e, eachTest.localId)
+                                }
+                                style={inputStyle}
+                                disabled={disabledField}
+                                min={values.encounterDate}
+                                max={moment(new Date()).format("YYYY-MM-DD")}
+                              />
+                            </FormGroup>
+                          </div>
+
                           <div className="mb-1 col-md-4">
                             <FormGroup>
-                              <FormLabelName>Client other indication for PrEP test</FormLabelName>
+                              <FormLabelName>Other Tests</FormLabelName>
                               <Input
                                 type="select"
                                 name="otherTestsDone"
@@ -1900,29 +1920,9 @@ const ClinicVisit = props => {
                             </FormGroup>
                           </div>
 
-                          <div className="mb-1 col-md-3">
-                            <FormGroup>
-                              <FormLabelName>Date of Other Tests</FormLabelName>
-                              <Input
-                                type="date"
-                                onKeyDown={e => e.preventDefault()}
-                                name="testDate"
-                                id={`otherTestDate_${eachTest.localId}`}
-                                value={eachTest.testDate}
-                                onChange={e =>
-                                  handleInputChangeOtherTest(e, eachTest.localId)
-                                }
-                                style={inputStyle}
-                                disabled={disabledField}
-                                min={values.encounterDate}
-                                max={moment(new Date()).format("YYYY-MM-DD")}
-                              />
-                            </FormGroup>
-                          </div>
-
                           <div className="mb-1 col-md-4">
                             <FormGroup>
-                              <FormLabelName>Test Result</FormLabelName>
+                              <FormLabelName>Result</FormLabelName>
                               <Input
                                 type="text"
                                 name="result"
@@ -2037,7 +2037,7 @@ const ClinicVisit = props => {
                     {/* 23. Signature */}
                     <div className="mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Signature</FormLabelName>
+                        <FormLabelName>Healthcare Worker Signature</FormLabelName>
                         <Input
                           name="healthCareWorkerSignature"
                           id="healthCareWorkerSignature"

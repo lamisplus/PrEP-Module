@@ -266,7 +266,22 @@ const PrEPInitialVisitForm = props => {
         <CardBody>
           <form>
             <div className="row">
-              <h2>{`PrEP/PEP Initial Visit`}</h2>
+              <h2>{`PrEP/PEP Initiation`}</h2>
+
+              {/* Section A Header */}
+              <div
+                className="form-group col-md-12 mb-3 p-3"
+                style={{
+                  borderLeft: "5px solid #992E62",
+                  backgroundColor: "#f0f4f8",
+                  fontWeight: "800",
+                  fontSize: "1.2rem",
+                  marginTop: "1.5rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                {`PrEP/PEP Initial Visit`}
+              </div>
 
               {/* 1. Unique ID */}
               <div className="form-group mb-3 col-md-4">
@@ -581,13 +596,14 @@ const PrEPInitialVisitForm = props => {
 
               {/* ====== Section B: PrEP/PEP Initiation ====== */}
               <div
-                className="form-group col-md-12 text-center pt-2 mb-4 p-3"
+                className="form-group col-md-12 mb-3 p-3"
                 style={{
-                  backgroundColor: "#014D88",
-                  width: "125%",
-                  height: "35px",
-                  color: "#fff",
-                  fontWeight: "bold",
+                  borderLeft: "5px solid #992E62",
+                  backgroundColor: "#f0f4f8",
+                  fontWeight: "800",
+                  fontSize: "1.2rem",
+                  marginTop: "1.5rem",
+                  marginBottom: "1rem",
                 }}
               >
                 {`PrEP/PEP Initiation`}
@@ -738,10 +754,41 @@ const PrEPInitialVisitForm = props => {
                 </FormGroup>
               </div>
 
-              {/* 16. Pregnancy Status */}
+              {/* BMI Display */}
+              {objValues.weight && objValues.height && (
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>BMI</Label>
+                    <InputGroup>
+                      <InputGroupText
+                        style={{
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                          padding: "0.5rem",
+                          width: "100%",
+                          justifyContent: "center",
+                          fontWeight: "bold",
+                          fontSize: "1rem",
+                        }}
+                      >
+                        BMI: {(
+                          objValues.weight /
+                          (objValues.height / 100) ** 2
+                        ).toFixed(2)}
+                      </InputGroupText>
+                    </InputGroup>
+                  </FormGroup>
+                </div>
+              )}
+
+              {/* 16. Pregnant */}
+              {(props.patientObj?.gender?.toLowerCase() === "female" ||
+                props.patientObj?.sex?.toLowerCase() === "female") && (
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Pregnancy Status</Label>
+                  <Label>Pregnant</Label>
                   <select
                     className="form-control"
                     name="pregnancyStatus"
@@ -752,6 +799,7 @@ const PrEPInitialVisitForm = props => {
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
+                      padding: "0.5rem",
                     }}
                   >
                     <option value="">Select</option>
@@ -763,6 +811,7 @@ const PrEPInitialVisitForm = props => {
                   </select>
                 </FormGroup>
               </div>
+              )}
 
               {/* 17. PrEP Type at Start */}
               <div className="form-group mb-3 col-md-4">
@@ -932,7 +981,7 @@ const PrEPInitialVisitForm = props => {
               </div>
 
               {/* 22. Liver Function Test (DualListBox) */}
-              <div className="form-group mb-3 col-md-6">
+              <div className="form-group mb-3 col-md-12">
                 <FormGroup>
                   <Label>Liver Function Test</Label>
                   <LiverFunctionTest

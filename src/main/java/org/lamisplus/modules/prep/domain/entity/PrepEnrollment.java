@@ -115,6 +115,62 @@ public class PrepEnrollment extends Audit implements Serializable {
     @Column(name = "target_group")
     private String targetGroup;
 
+    @Column(name = "enrollment_type")
+    private String enrollmentType;
+
+    @Column(name = "population_type")
+    private String populationType;
+
+    @Column(name = "weight")
+    private Double weight;
+
+    @Column(name = "height")
+    private Double height;
+
+    @Column(name = "pregnancy_status")
+    private String pregnancyStatus;
+
+    @Column(name = "history_of_drug_allergies")
+    private String historyOfDrugAllergies;
+
+    @Column(name = "history_of_drug_to_drug_interaction")
+    private String historyOfDrugToDrugInteraction;
+
+    @Column(name = "urinalysis_result")
+    private String urinalysisResult;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "liver_function_test_results", columnDefinition = "jsonb")
+    private Object liverFunctionTestResults;
+
+    @Column(name = "date_of_hiv_test")
+    private LocalDate dateOfHivTest;
+
+    @Column(name = "result_of_hiv_test")
+    private String resultOfHivTest;
+
+    @Column(name = "date_of_initial_adherence_counseling")
+    private LocalDate dateOfInitialAdherenceCounseling;
+
+    @Column(name = "date_prep_started")
+    private LocalDate datePrepStarted;
+
+    @Column(name = "prep_type_at_start")
+    private String prepTypeAtStart;
+
+    @Column(name = "prep_type_at_start_others_specify")
+    private String prepTypeAtStartOthersSpecify;
+
+    @Column(name = "prep_regimen")
+    private String prepRegimen;
+
+    @Column(name = "months_of_refill")
+    private Integer monthsOfRefill;
+
+    @Column(name = "hiv_testing_point_others_specify")
+    private String hivTestingPointOthersSpecify;
+
     @PrePersist
     public void setFields(){
         if(StringUtils.isEmpty(uuid)){

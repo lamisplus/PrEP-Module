@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Grid, Segment } from "semantic-ui-react";
+import { Grid, Segment, Label } from "semantic-ui-react";
 import {
   FormGroup,
   Label as FormLabelName,
@@ -10,6 +10,7 @@ import {
 import { url as baseUrl, token } from "../../../api";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
+import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import moment from "moment";
 import { toast } from "react-toastify";
@@ -56,7 +57,6 @@ const validationSchema = Yup.object().shape({
   pepRegimen: Yup.string().required("This field is required"),
   dateStartPep: Yup.string().required("This field is required"),
   dateStopPep: Yup.string().required("This field is required"),
-  followupHivTestResult: Yup.string().required("This field is required"),
   nextAppointment: Yup.string().required("This field is required"),
   whyAdherenceLevelPoor: Yup.string().when("adherenceLevel", {
     is: val =>
@@ -86,7 +86,7 @@ const INITIAL_VALUES = {
   otherPepRegimen: "",
   dateStartPep: "",
   dateStopPep: "",
-  followupHivTestResult: "",
+  followupHivTestResults: [],
   nextAppointment: "",
   healthCareWorkerSignature: "",
   personId: "",
@@ -99,6 +99,10 @@ const PEPFollowupVisit = props => {
   const [codeset, setCodeset] = useState({});
   const [notedSideEffects, setNotedSideEffects] = useState([]);
   const [patientDto, setPatientDto] = useState();
+
+  const [hivTestEntries, setHivTestEntries] = useState([]);
+  const [hivTestInput, setHivTestInput] = useState({ test: "", result: "" });
+  const [editingHivTestIndex, setEditingHivTestIndex] = useState(null);
 
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     systolic: "",
@@ -138,6 +142,9 @@ const PEPFollowupVisit = props => {
       const data = JSON.parse(JSON.stringify(response.data));
       if (data.pepNotedSideEffects) {
         setNotedSideEffects(data.pepNotedSideEffects);
+      }
+      if (data.followupHivTestResults && Array.isArray(data.followupHivTestResults)) {
+        setHivTestEntries(data.followupHivTestResults);
       }
       setFormInitialValues(prev => ({ ...prev, ...data }));
       if (formikRef.current) {
@@ -181,6 +188,48 @@ const PEPFollowupVisit = props => {
     }
   };
 
+  // ── HIV Test Entries handlers ──
+
+  const handleHivTestInputChange = e => {
+    setHivTestInput(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleAddHivTestEntry = () => {
+    if (!hivTestInput.test || !hivTestInput.result) return;
+    if (editingHivTestIndex !== null) {
+      const updated = [...hivTestEntries];
+      updated[editingHivTestIndex] = { ...hivTestInput };
+      setHivTestEntries(updated);
+      setEditingHivTestIndex(null);
+    } else {
+      setHivTestEntries(prev => [...prev, { ...hivTestInput }]);
+    }
+    setHivTestInput({ test: "", result: "" });
+    if (formikRef.current) {
+      const updatedEntries = editingHivTestIndex !== null
+        ? hivTestEntries.map((entry, i) => i === editingHivTestIndex ? { ...hivTestInput } : entry)
+        : [...hivTestEntries, { ...hivTestInput }];
+      formikRef.current.setFieldValue("followupHivTestResults", updatedEntries);
+    }
+  };
+
+  const handleEditHivTestEntry = index => {
+    setHivTestInput({ ...hivTestEntries[index] });
+    setEditingHivTestIndex(index);
+  };
+
+  const handleDeleteHivTestEntry = index => {
+    const updated = hivTestEntries.filter((_, i) => i !== index);
+    setHivTestEntries(updated);
+    if (formikRef.current) {
+      formikRef.current.setFieldValue("followupHivTestResults", updated);
+    }
+  };
+
+  const hasPositiveHivResult = hivTestEntries.some(
+    entry => entry.result?.toLowerCase() === "positive"
+  );
+
   // ── Codeset fetch ──
 
   useEffect(() => {
@@ -216,6 +265,9 @@ const PEPFollowupVisit = props => {
         });
       }
       setNotedSideEffects([]);
+      setHivTestEntries([]);
+      setHivTestInput({ test: "", result: "" });
+      setEditingHivTestIndex(null);
     }
   }, [props.activeContent.actionType]);
 
@@ -243,6 +295,7 @@ const PEPFollowupVisit = props => {
     setSaving(true);
     const payload = { ...values };
     payload.pepNotedSideEffects = notedSideEffects;
+    payload.followupHivTestResults = hivTestEntries;
     payload.prepEnrollmentUuid = patientDto?.uuid;
     payload.previousPrepStatus = props.patientObj?.prepStatus;
 
@@ -509,7 +562,7 @@ const PEPFollowupVisit = props => {
 
                     {/* 6. Noted Side Effects */}
                     {codeset?.PREP_SIDE_EFFECTS && (
-                      <div className="mb-3 col-md-6">
+                      <div className="mb-3 col-md-12">
                         <FormGroup>
                           <FormLabelName>Noted Side Effects</FormLabelName>
                           <DualListBox
@@ -813,36 +866,160 @@ const PEPFollowupVisit = props => {
                     </div>
 
                     {/* 13. Follow-up HIV Test Results */}
-                    <div className="form-group mb-3 col-md-6">
-                      <FormGroup>
-                        <FormLabelName>
-                          Follow-up HIV Test Results{" "}
-                          <span style={{ color: "red" }}> *</span>
-                        </FormLabelName>
-                        <Input
-                          type="select"
-                          name="followupHivTestResult"
-                          id="followupHivTestResult"
-                          onChange={handleChange}
-                          value={values.followupHivTestResult}
-                          style={inputStyle}
-                          disabled={disabledField}
+                    <div className="form-group mb-3 col-md-12">
+                      <Label
+                        as="a"
+                        color="blue"
+                        style={{ width: "106%", height: "35px" }}
+                        ribbon
+                      >
+                        <h4 style={{ color: "#fff" }}>
+                          Follow-up HIV Test Results
+                        </h4>
+                      </Label>
+                      <br />
+                      <br />
+                      {!disabledField && (
+                        <div className="row mb-3">
+                          <div className="mb-1 col-md-5">
+                            <FormGroup>
+                              <FormLabelName>Test</FormLabelName>
+                              <Input
+                                type="select"
+                                name="test"
+                                id="hivTestEntryTest"
+                                value={hivTestInput.test}
+                                onChange={handleHivTestInputChange}
+                                style={inputStyle}
+                              >
+                                <option value="">Select</option>
+                                {codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.filter(
+                                  v => !v.display?.toLowerCase()?.includes("refer")
+                                ).map(value => (
+                                  <option key={value.id} value={value.display}>
+                                    {value.display}
+                                  </option>
+                                ))}
+                              </Input>
+                            </FormGroup>
+                          </div>
+                          <div className="mb-1 col-md-5">
+                            <FormGroup>
+                              <FormLabelName>Result</FormLabelName>
+                              <Input
+                                type="select"
+                                name="result"
+                                id="hivTestEntryResult"
+                                value={hivTestInput.result}
+                                onChange={handleHivTestInputChange}
+                                style={inputStyle}
+                              >
+                                <option value="">Select</option>
+                                <option value="Positive">Positive</option>
+                                <option value="Negative">Negative</option>
+                                <option value="Indeterminate">Indeterminate</option>
+                              </Input>
+                            </FormGroup>
+                          </div>
+                          <div className="mb-1 col-md-2 d-flex align-items-end">
+                            <MatButton
+                              type="button"
+                              variant="contained"
+                              color="primary"
+                              startIcon={<AddIcon />}
+                              style={{ backgroundColor: "#014d88" }}
+                              onClick={handleAddHivTestEntry}
+                              disabled={!hivTestInput.test || !hivTestInput.result}
+                            >
+                              <span style={{ textTransform: "capitalize" }}>
+                                {editingHivTestIndex !== null ? "Update" : "Add"}
+                              </span>
+                            </MatButton>
+                          </div>
+                        </div>
+                      )}
+
+                      {hivTestEntries.length > 0 && (
+                        <table className="table table-bordered table-sm mb-3">
+                          <thead style={{ backgroundColor: "#014d88", color: "#fff" }}>
+                            <tr>
+                              <th>S/N</th>
+                              <th>Test</th>
+                              <th>Result</th>
+                              {!disabledField && <th>Actions</th>}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {hivTestEntries.map((entry, index) => (
+                              <tr key={index}>
+                                <td>{index + 1}</td>
+                                <td>{entry.test}</td>
+                                <td>
+                                  <span
+                                    style={{
+                                      color: entry.result?.toLowerCase() === "positive" ? "red" : "green",
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    {entry.result}
+                                  </span>
+                                </td>
+                                {!disabledField && (
+                                  <td>
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-primary mr-2"
+                                      style={{ marginRight: "5px" }}
+                                      onClick={() => handleEditHivTestEntry(index)}
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-danger"
+                                      onClick={() => handleDeleteHivTestEntry(index)}
+                                    >
+                                      Delete
+                                    </button>
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+
+                      {hivTestEntries.length === 0 && (
+                        <span className={classes.error}>
+                          At least 1 HIV test result is required
+                        </span>
+                      )}
+
+                      {/* Refer (If positive) Summary */}
+                      {hivTestEntries.length > 0 && (
+                        <div
+                          className="p-3 mb-3"
+                          style={{
+                            borderLeft: "5px solid #992E62",
+                            backgroundColor: "#f0f4f8",
+                          }}
                         >
-                          <option value="">Select</option>
-                          {codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.map(
-                            value => (
-                              <option key={value.id} value={value.code}>
-                                {value.display}
-                              </option>
-                            )
-                          )}
-                        </Input>
-                        {getError("followupHivTestResult") && (
-                          <span className={classes.error}>
-                            {getError("followupHivTestResult")}
+                          <span style={{ fontWeight: "bold", fontSize: "1rem" }}>
+                            Refer (If positive):{" "}
                           </span>
-                        )}
-                      </FormGroup>
+                          <span
+                            style={{
+                              padding: "4px 12px",
+                              borderRadius: "4px",
+                              fontWeight: "bold",
+                              color: "#fff",
+                              backgroundColor: hasPositiveHivResult ? "#dc3545" : "#28a745",
+                            }}
+                          >
+                            {hasPositiveHivResult ? "Yes" : "No"}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* 14. Next Appointment Date */}
@@ -874,7 +1051,7 @@ const PEPFollowupVisit = props => {
                     {/* 15. Signature */}
                     <div className="mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Signature</FormLabelName>
+                        <FormLabelName>Healthcare Worker Signature</FormLabelName>
                         <Input
                           name="healthCareWorkerSignature"
                           id="healthCareWorkerSignature"

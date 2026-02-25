@@ -11,7 +11,6 @@ import SubMenu from "./SubMenu";
 import RecentHistory from "./../History/RecentHistory";
 import PatientHistory from "./../History/PatientHistory";
 import ClinicVisit from "../Consultation/Index";
-import PrEPCommencementForm from "./../PrepServices/PrEPCommencementForm";
 import PrEPDiscontinuationsInterruptions from "./../PrepServices/PrEPDiscontinuationsInterruptions";
 import PrEPEligibilityScreeningForm from "./../PrepServices/PrEPEligibilityScreeningForm";
 import PrEPInitialVisitForm from "./../PrepServices/PrEPInitialVisitForm";
@@ -166,17 +165,6 @@ function PatientCard(props) {
             <ProtectedComponent
               privateComponent={PEPFollowupVisitIndex}
               isAuthorized={userPermissions.visit}
-              patientObj={patientObjLocation || location?.state?.patientObj}
-              setActiveContent={setActiveContent}
-              activeContent={activeContent}
-              prepId={prepId}
-              PatientObject={() => PatientObject()}
-            />
-          )}
-          {activeContent.route === "prep-commencement" && (
-            <ProtectedComponent
-              privateComponent={PrEPCommencementForm}
-              isAuthorized={userPermissions.commencement}
               patientObj={patientObjLocation || location?.state?.patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}

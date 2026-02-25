@@ -20,7 +20,7 @@ const PrEPDiscontinuationsInterruptions = props => {
     interruptionDate: "",
     why: "",
     dateRestartPlacedBackMedication: "",
-    prepCompletion: "",
+    pepCompletion: "",
     followUpVisitDate: "",
     hivResult: "",
     earlyDetectViralLoadResult: "",
@@ -39,8 +39,8 @@ const PrEPDiscontinuationsInterruptions = props => {
   const isStopped = objValues.interruptionType === "Stopped";
   const isDefault = objValues.interruptionType === "Default";
   const showDate = isStopped || isDefault;
-  const showWhy = isStopped;
-  const showFollowUpVisitDate = objValues.prepCompletion === "Yes";
+  const showWhy = isStopped || isDefault;
+  const showFollowUpVisitDate = objValues.pepCompletion === "Yes";
   const showFacilityReferredTo = !!objValues.dateClientReferredOut;
   const showDeathFields = !!objValues.dateClientDied;
 
@@ -244,7 +244,7 @@ const PrEPDiscontinuationsInterruptions = props => {
         <CardBody>
           <form>
             <div className="row">
-              <h2>PrEP Interruptions</h2>
+              <h2>PrEP Completion/Discontinuation & Interruptions</h2>
 
               {/* 1. PrEP Interruptions - Always displayed */}
               <div className="form-group mb-3 col-md-6">
@@ -370,29 +370,29 @@ const PrEPDiscontinuationsInterruptions = props => {
                 </FormGroup>
               </div>
 
-              {/* 5. PrEP Completion - Always displayed */}
+              {/* 5. PEP Completion - Always displayed */}
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label>
-                    PrEP Completion{" "}
+                    PEP Completion{" "}
                     <span style={{ color: "red" }}>*</span>
                   </Label>
                   <Input
                     type="select"
-                    name="prepCompletion"
-                    id="prepCompletion"
+                    name="pepCompletion"
+                    id="pepCompletion"
                     onChange={handleInputChange}
-                    value={objValues.prepCompletion}
-                    style={{ border: "1px solid #014D88" }}
+                    value={objValues.pepCompletion}
+                    style={{ border: "1px solid #014D88", padding: "0.5rem" }}
                     disabled={disabledField}
                   >
                     <option value="">Select</option>
                     <option value="Yes">Yes</option>
                     <option value="No">No</option>
                   </Input>
-                  {errors.prepCompletion !== "" ? (
+                  {errors.pepCompletion !== "" ? (
                     <span className={classes.error}>
-                      {errors.prepCompletion}
+                      {errors.pepCompletion}
                     </span>
                   ) : (
                     ""

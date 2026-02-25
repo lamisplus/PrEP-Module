@@ -47,4 +47,40 @@ public class PrepEnrollmentRequestDto implements Serializable {
     private LocalDate dateOfLastHivNegativeTest;
 
     private String targetGroup;
+
+    private String enrollmentType;
+
+    private String populationType;
+
+    private Double weight;
+
+    private Double height;
+
+    private String pregnancyStatus;
+
+    private String historyOfDrugAllergies;
+
+    private String historyOfDrugToDrugInteraction;
+
+    private String urinalysisResult;
+
+    private Object liverFunctionTestResults;
+
+    private LocalDate dateOfHivTest;
+
+    private String resultOfHivTest;
+
+    private LocalDate dateOfInitialAdherenceCounseling;
+
+    private LocalDate datePrepStarted;
+
+    private String prepTypeAtStart;
+
+    private String prepTypeAtStartOthersSpecify;
+
+    private String prepRegimen;
+
+    private Integer monthsOfRefill;
+
+    private String hivTestingPointOthersSpecify;
 }

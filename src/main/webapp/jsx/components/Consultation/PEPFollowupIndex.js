@@ -16,15 +16,13 @@ const PEPFollowupVisitIndex = props => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // TODO: Update this API endpoint to also return PEP Follow-up Visit records.
-  // Currently uses the same prep-clinic endpoint as PrEP Follow-up Visit.
   const getPatientHistory = () => {
     setLoading(true);
     axios
       .get(
-        `${baseUrl}prep-clinic/person/${
+        `${baseUrl}pep-clinic/person/${
           props.patientObj.personId || props.patientObj.id
-        }?isCommenced=false&last=false`,
+        }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -38,15 +36,13 @@ const PEPFollowupVisitIndex = props => {
 
   const [encounters, setEncounters] = useState([]);
 
-  // TODO: Update this API endpoint to also return PEP Follow-up Visit records.
-  // Currently uses the same prep/activities endpoint as PrEP Follow-up Visit.
   const fetchListOfEncounters = () => {
     setLoading(true);
     axios
       .get(
-        `${baseUrl}prep/activities/patients/${
+        `${baseUrl}pep-clinic/person/${
           props.patientObj.personId || props.patientObj.id
-        }?isCommenced=false&last=false`,
+        }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {

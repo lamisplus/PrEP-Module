@@ -112,6 +112,21 @@ public class PrepInterruption extends Audit implements Serializable {
     @Column(name = "previous_prep_status")
     private String previousPrepStatus;
 
+    @Column(name = "why")
+    private String why;
+
+    @Column(name = "pep_completion")
+    private String pepCompletion;
+
+    @Column(name = "follow_up_visit_date")
+    private LocalDate followUpVisitDate;
+
+    @Column(name = "hiv_result")
+    private String hivResult;
+
+    @Column(name = "early_detect_viral_load_result")
+    private String earlyDetectViralLoadResult;
+
     @PrePersist
     public void setFields() {
         if (StringUtils.isEmpty(uuid)) {
