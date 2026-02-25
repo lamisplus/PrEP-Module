@@ -1242,7 +1242,7 @@ const ClinicVisit = props => {
                         >
                           <option value="">Select</option>
                           {codeset?.SYNDROMIC_STI_SCREENING?.map(value => (
-                            <option key={value.id} value={value.id}>
+                            <option key={value.id} value={value.code}>
                               {value.display}
                             </option>
                           ))}
@@ -1253,7 +1253,7 @@ const ClinicVisit = props => {
                     {/* 9b. Syndromic STI Screening - Other specify */}
                     {values.syndromicStiScreening &&
                       codeset?.SYNDROMIC_STI_SCREENING?.find(
-                        v => v.id === Number(values.syndromicStiScreening)
+                        v => v.code === values.syndromicStiScreening
                       )?.display?.toLowerCase()?.includes("other") && (
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
@@ -1287,7 +1287,7 @@ const ClinicVisit = props => {
                         >
                           <option value="">Select</option>
                           {codeset?.PrEP_RISK_REDUCTION_PLAN?.map(plan => (
-                            <option key={plan.id} value={plan.id}>
+                            <option key={plan.id} value={plan.code}>
                               {plan.display}
                             </option>
                           ))}
@@ -1631,7 +1631,7 @@ const ClinicVisit = props => {
                           >
                             <option value="">Select</option>
                             {codeset?.PREP_URINALYSIS_RESULT?.map(value => (
-                              <option key={value.id} value={value.display}>
+                              <option key={value.id} value={value.code}>
                                 {value.display}
                               </option>
                             ))}
@@ -1696,7 +1696,7 @@ const ClinicVisit = props => {
                             <option value="">Select</option>
                             {codeset?.HEPATITIS_SCREENING_RESULT?.map(
                               value => (
-                                <option key={value.id} value={value.display}>
+                                <option key={value.id} value={value.code}>
                                   {value.display}
                                 </option>
                               )
@@ -1761,7 +1761,7 @@ const ClinicVisit = props => {
                           >
                             <option value="">Select</option>
                             {codeset?.SYPHILIS_RESULT?.map(value => (
-                              <option key={value.id} value={value.display}>
+                              <option key={value.id} value={value.code}>
                                 {value.display}
                               </option>
                             ))}

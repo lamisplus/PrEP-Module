@@ -208,6 +208,8 @@ const PrEPInitialVisitForm = props => {
       objValues.personId = props.patientObj.personId || props.patientObj.id;
       objValues.prepEligibilityUuid = patientDto.uuid;
       objValues.targetGroup = targetGroupValue;
+      // Sanitize: convert empty strings to null for FK-constrained fields
+      if (!objValues.riskType) objValues.riskType = null;
       setSaving(true);
       if (props.activeContent && props.activeContent.actionType) {
         axios
@@ -972,7 +974,7 @@ const PrEPInitialVisitForm = props => {
                   >
                     <option value="">Select</option>
                     {codeset?.PREP_URINALYSIS_RESULT?.map(value => (
-                      <option key={value.id} value={value.display}>
+                      <option key={value.id} value={value.code}>
                         {value.display}
                       </option>
                     ))}

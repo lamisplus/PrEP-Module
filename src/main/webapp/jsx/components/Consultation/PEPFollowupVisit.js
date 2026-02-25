@@ -614,7 +614,7 @@ const PEPFollowupVisit = props => {
                         >
                           <option value="">Select</option>
                           {codeset?.SYNDROMIC_STI_SCREENING?.map(value => (
-                            <option key={value.id} value={value.id}>
+                            <option key={value.id} value={value.code}>
                               {value.display}
                             </option>
                           ))}
@@ -626,7 +626,7 @@ const PEPFollowupVisit = props => {
                     {values.syndromicStiScreening &&
                       codeset?.SYNDROMIC_STI_SCREENING?.find(
                         v =>
-                          v.id === Number(values.syndromicStiScreening)
+                          v.code === values.syndromicStiScreening
                       )
                         ?.display?.toLowerCase()
                         ?.includes("other") && (
@@ -664,7 +664,7 @@ const PEPFollowupVisit = props => {
                         >
                           <option value="">Select</option>
                           {codeset?.PrEP_RISK_REDUCTION_PLAN?.map(plan => (
-                            <option key={plan.id} value={plan.id}>
+                            <option key={plan.id} value={plan.code}>
                               {plan.display}
                             </option>
                           ))}
@@ -896,7 +896,7 @@ const PEPFollowupVisit = props => {
                                 {codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.filter(
                                   v => !v.display?.toLowerCase()?.includes("refer")
                                 ).map(value => (
-                                  <option key={value.id} value={value.display}>
+                                  <option key={value.id} value={value.code}>
                                     {value.display}
                                   </option>
                                 ))}
