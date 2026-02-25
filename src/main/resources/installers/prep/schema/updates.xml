@@ -523,13 +523,10 @@
     </changeSet>
 
     <!-- Change prep_clinic.syndromic_sti_screening from jsonb to varchar -->
-    <changeSet failOnError="false" author="Claude" id="25-02-2026-06">
-        <preConditions onFail="MARK_RAN">
-            <tableExists tableName="prep_clinic"/>
-            <columnExists tableName="prep_clinic" columnName="syndromic_sti_screening"/>
-        </preConditions>
+    <changeSet failOnError="false" author="Claude" id="25-02-2026-06-v2">
         <sql>
-            ALTER TABLE prep_clinic ALTER COLUMN syndromic_sti_screening TYPE VARCHAR(255) USING syndromic_sti_screening::text;
+            ALTER TABLE prep_clinic DROP COLUMN IF EXISTS syndromic_sti_screening;
+            ALTER TABLE prep_clinic ADD COLUMN syndromic_sti_screening VARCHAR(255);
         </sql>
     </changeSet>
 </databaseChangeLog>
