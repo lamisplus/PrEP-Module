@@ -391,8 +391,18 @@
         </sql>
     </changeSet>
 
+    <!-- Drop pep_clinic so it can be recreated with correct columns -->
+    <changeSet failOnError="false" author="Claude" id="25-02-2026-drop-pep-clinic">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="pep_clinic"/>
+        </preConditions>
+        <sql>
+            DROP TABLE pep_clinic;
+        </sql>
+    </changeSet>
+
     <!-- Phase 1E: Create pep_clinic table -->
-    <changeSet failOnError="true" author="Claude" id="25-02-2026-04">
+    <changeSet failOnError="true" author="Claude" id="25-02-2026-04" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="pep_clinic"/>
@@ -477,10 +487,10 @@
                 date_start_pep DATE,
                 date_stop_pep DATE,
                 followup_hiv_test_results JSONB,
-                created_date TIMESTAMP,
-                created_by VARCHAR(255),
-                last_modified_date TIMESTAMP,
-                last_modified_by VARCHAR(255),
+                created_by VARCHAR(255) NOT NULL,
+                date_created TIMESTAMP NOT NULL,
+                modified_by VARCHAR(255),
+                date_modified TIMESTAMP,
                 CONSTRAINT fk_pep_clinic_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
                 CONSTRAINT fk_pep_clinic_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES prep_enrollment(uuid)
             );
