@@ -895,7 +895,6 @@ const ClinicVisit = props => {
         innerRef={formikRef}
         initialValues={formInitialValues}
         enableReinitialize
-        validationSchema={validationSchema}
         onSubmit={(values) => {
           handleFormSubmit(values);
         }}

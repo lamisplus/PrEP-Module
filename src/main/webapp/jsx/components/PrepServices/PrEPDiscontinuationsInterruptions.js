@@ -137,39 +137,8 @@ const PrEPDiscontinuationsInterruptions = props => {
   };
 
   const validate = () => {
-    let temp = { ...errors };
-    if (!objValues.interruptionType) {
-      temp.interruptionType = "This field is required";
-    }
-    if (showDate && !objValues.interruptionDate) {
-      temp.interruptionDate = "This field is required";
-    }
-    if (showWhy && !objValues.why) {
-      temp.why = "This field is required";
-    }
-    if (!objValues.prepCompletion) {
-      temp.prepCompletion = "This field is required";
-    }
-    if (showFollowUpVisitDate && !objValues.followUpVisitDate) {
-      temp.followUpVisitDate = "This field is required";
-    }
-    if (!objValues.hivResult) {
-      temp.hivResult = "This field is required";
-    }
-    if (!objValues.earlyDetectViralLoadResult) {
-      temp.earlyDetectViralLoadResult = "This field is required";
-    }
-    if (showFacilityReferredTo && !objValues.facilityReferredTo) {
-      temp.facilityReferredTo = "This field is required";
-    }
-    if (showDeathFields && !objValues.sourceOfDeathInfo) {
-      temp.sourceOfDeathInfo = "This field is required";
-    }
-    if (showDeathFields && !objValues.causeOfDeath) {
-      temp.causeOfDeath = "This field is required";
-    }
-    setErrors({ ...temp });
-    return Object.values(temp).every(x => x === "");
+    // Validation temporarily disabled
+    return true;
   };
 
   const handleSubmit = e => {
