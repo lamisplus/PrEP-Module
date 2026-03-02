@@ -80,7 +80,7 @@ const NotEnrolledPatients = props => {
   async function patients() {
     setLoading(true);
     axios
-      .get(`${baseUrl}prep/persons/not-enrolled`, {
+      .get(`${baseUrl}prep/persons/enrolled`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
@@ -126,7 +126,7 @@ const NotEnrolledPatients = props => {
           new Promise((resolve, reject) => {
             axios
               .get(
-                `${baseUrl}prep/persons/not-enrolled?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
+                `${baseUrl}prep/persons/enrolled?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
                 { headers: { Authorization: `Bearer ${token}` } }
               )
               .then(response => response)

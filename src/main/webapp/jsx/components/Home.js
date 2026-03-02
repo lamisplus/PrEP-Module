@@ -76,7 +76,7 @@ const Home = () => {
                     </Tab>
                   )}
                   {permissions.canSeeFindPatients && (
-                    <Tab eventKey="not-enrolled" title="Pending Enrollments">
+                    <Tab eventKey="not-enrolled" title="PrEP Enrolments">
                       <Suspense>
                         <NotEnrolledPatients />
                       </Suspense>

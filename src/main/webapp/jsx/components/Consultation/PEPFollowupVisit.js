@@ -322,7 +322,7 @@ const PEPFollowupVisit = props => {
       }
     } else {
       try {
-        await axios.post(`${baseUrl}pep/clinic-visit`, payload, {
+        await axios.post(`${baseUrl}pep-clinic/clinic-visit`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSaving(false);

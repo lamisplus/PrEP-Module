@@ -372,6 +372,26 @@ public class PrepService {
         return new PageImpl<>(filteredList, pageable, resultPage.getTotalElements());
     }
 
+    public Page<PrepClient> findAllEnrolledPrepPersonPage(String searchValue, int pageNo, int pageSize) {
+        Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<PrepClient> resultPage;
+
+        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
+            searchValue = searchValue.replaceAll("\\\\s", "");
+            String queryParam = "%" + searchValue + "%";
+            resultPage = prepEnrollmentRepository.findAllPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
+        } else {
+            resultPage = prepEnrollmentRepository.findAllPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
+        }
+        List<PrepClient> filteredList = resultPage.getContent().stream()
+                .filter(prepClient -> !"Not Enrolled".equals(prepClient.getPrepStatus()))
+                .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(filteredList, pageable, resultPage.getTotalElements());
+    }
+
     public Page<PrepClient> findOnlyPrepPersonPage(String searchValue, int pageNo, int pageSize) {
         Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
