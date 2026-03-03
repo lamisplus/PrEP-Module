@@ -192,9 +192,11 @@ const ClinicVisit = props => {
   const [isCabLaEligible, setIsCabLaEligible] = useState(false);
   const [eligibilityVisitDateSync, setEligibilityVisitDateSync] = useState(false);
   const [notedSideEffects, setNotedSideEffects] = useState([]);
+  const [syndromicStiSelected, setSyndromicStiSelected] = useState([]);
 
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: "",
+    height: "",
     diastolic: "",
     systolic: "",
   });
@@ -216,6 +218,14 @@ const ClinicVisit = props => {
     result: "",
   });
   const [otherTest, setOtherTest] = useState([]);
+  const [otherTestInput, setOtherTestInput] = useState({
+    testDate: "",
+    otherTestsDone: "",
+    result: "",
+    name: "",
+    otherTestName: "",
+  });
+  const [editingOtherTestIndex, setEditingOtherTestIndex] = useState(null);
   const [liverFunctionTestEnabled, setLiverFunctionTestEnabled] = useState(false);
 
   const [formInitialValues, setFormInitialValues] = useState({
@@ -294,6 +304,13 @@ const ClinicVisit = props => {
       };
       if (data.prepNotedSideEffects) {
         setNotedSideEffects(data.prepNotedSideEffects);
+      }
+      if (data.syndromicStiScreening) {
+        setSyndromicStiSelected(
+          Array.isArray(data.syndromicStiScreening)
+            ? data.syndromicStiScreening
+            : [data.syndromicStiScreening]
+        );
       }
       setFormInitialValues(prev => ({ ...prev, ...data }));
       if (formikRef.current) {
@@ -493,6 +510,17 @@ const ClinicVisit = props => {
     }
   };
 
+  const handleInputValueCheckHeight = e => {
+    if (e.target.value < 48.26 || e.target.value > 216.408) {
+      setVitalClinicalSupport(prev => ({
+        ...prev,
+        height: "Height must be between 48.26 cm and 216.408 cm",
+      }));
+    } else {
+      setVitalClinicalSupport(prev => ({ ...prev, height: "" }));
+    }
+  };
+
   const handleInputValueCheckSystolic = e => {
     if (e.target.value < 90 || e.target.value > 240) {
       setVitalClinicalSupport(prev => ({
@@ -582,6 +610,56 @@ const ClinicVisit = props => {
 
   const handleInputChangeHepatitisTest = e => {
     setHepatitisTest({ ...hepatitisTest, [e.target.name]: e.target.value });
+  };
+
+  const handleOtherTestInputChange = e => {
+    const { name, value } = e.target;
+    setOtherTestInput(prev => {
+      const updated = { ...prev, [name]: value };
+      if (name === "otherTestsDone") {
+        const matched = codeset?.PREP_OTHER_TEST?.find(v => v.code === value);
+        updated.name = matched?.code || "";
+      }
+      return updated;
+    });
+  };
+
+  const handleAddOtherTestEntry = () => {
+    if (!otherTestInput.testDate || !otherTestInput.otherTestsDone || !otherTestInput.result) return;
+    if (editingOtherTestIndex !== null) {
+      setOtherTest(prev =>
+        prev.map((item, idx) =>
+          idx === editingOtherTestIndex
+            ? { ...otherTestInput, localId: item.localId, otherTest: "Yes" }
+            : item
+        )
+      );
+      setEditingOtherTestIndex(null);
+    } else {
+      const id = otherTestIdCounter.current++;
+      setOtherTest(prev => [...prev, { ...otherTestInput, localId: id, otherTest: "Yes" }]);
+    }
+    setOtherTestInput({ testDate: "", otherTestsDone: "", result: "", name: "", otherTestName: "" });
+  };
+
+  const handleEditOtherTestEntry = index => {
+    const entry = otherTest[index];
+    setOtherTestInput({
+      testDate: entry.testDate || "",
+      otherTestsDone: entry.otherTestsDone || "",
+      result: entry.result || "",
+      name: entry.name || "",
+      otherTestName: entry.otherTestName || "",
+    });
+    setEditingOtherTestIndex(index);
+  };
+
+  const handleDeleteOtherTestEntry = index => {
+    setOtherTest(prev => prev.filter((_, idx) => idx !== index));
+    if (editingOtherTestIndex === index) {
+      setEditingOtherTestIndex(null);
+      setOtherTestInput({ testDate: "", otherTestsDone: "", result: "", name: "", otherTestName: "" });
+    }
   };
 
   const handleInputChangeOtherTest = (e, localId) => {
@@ -690,6 +768,7 @@ const ClinicVisit = props => {
       setHepatitisTest({ hepatitisTest: "No", testDate: "", result: "" });
       setOtherTest([]);
       setNotedSideEffects([]);
+      setSyndromicStiSelected([]);
     }
   }, [props.activeContent.actionType]);
 
@@ -775,6 +854,13 @@ const ClinicVisit = props => {
     }
   };
 
+  const handleSyndromicStiChange = selected => {
+    setSyndromicStiSelected(selected);
+    if (formikRef.current) {
+      formikRef.current.setFieldValue("syndromicStiScreening", selected);
+    }
+  };
+
   // ── PrEP type change ──
 
   const handlePrepTypeChange = (e, setFieldValue) => {
@@ -831,10 +917,11 @@ const ClinicVisit = props => {
     payload.otherTestsDone = otherTest;
     payload.prepEnrollmentUuid = patientDto?.uuid;
     payload.prepNotedSideEffects = notedSideEffects;
+    payload.syndromicStiScreening = syndromicStiSelected;
     payload.notedSideEffects = "";
     payload.previousPrepStatus = props.patientObj?.prepStatus;
-    // Derive stiScreening from syndromicScreening for API compatibility
-    payload.stiScreening = payload.syndromicScreening ? "true" : "false";
+    // Derive stiScreening from syndromicStiScreening for API compatibility
+    payload.stiScreening = syndromicStiSelected.length > 0 ? "true" : "false";
     // Map otherDrugsPrescribed back to otherDrugs for API compatibility
     if (payload.hasOtherDrugs === "true") {
       payload.otherDrugs = payload.otherDrugsPrescribed || "";
@@ -987,7 +1074,7 @@ const ClinicVisit = props => {
                           id="visitType"
                           onChange={handleChange}
                           value={values.visitType}
-                          disabled
+                          disabled={disabledField}
                           style={inputStyle}
                         >
                           <option value="">Select Visit Type</option>
@@ -1017,7 +1104,7 @@ const ClinicVisit = props => {
                             latestFromEligibility?.durationOnPrep || ""
                           }
                           style={inputStyle}
-                          disabled
+                          disabled={disabledField}
                         />
                       </FormGroup>
                     </div>
@@ -1036,7 +1123,7 @@ const ClinicVisit = props => {
                             id="pregnant"
                             onChange={handleChange}
                             value={values.pregnant}
-                            disabled
+                            disabled={disabledField}
                             style={inputStyle}
                           >
                             <option value="">Select Pregnancy Status</option>
@@ -1099,6 +1186,66 @@ const ClinicVisit = props => {
                         )}
                       </FormGroup>
                     </div>
+
+                    {/* 5b. Height */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>Height</FormLabelName>
+                        <InputGroup>
+                          <InputGroupText
+                            addonType="append"
+                            style={inputGroupLeftStyle}
+                          >
+                            cm
+                          </InputGroupText>
+                          <Input
+                            type="number"
+                            name="height"
+                            id="height"
+                            onChange={e => {
+                              handleChange(e);
+                              handleInputValueCheckHeight(e);
+                            }}
+                            min="48.26"
+                            max="216.408"
+                            value={values.height}
+                            style={inputGroupMiddleStyle}
+                            disabled={disabledField}
+                          />
+                          <InputGroupText
+                            addonType="append"
+                            style={inputGroupRightStyle}
+                          >
+                            {values.height
+                              ? (values.height / 100).toFixed(2) + "m"
+                              : "m"}
+                          </InputGroupText>
+                        </InputGroup>
+                        {vitalClinicalSupport.height && (
+                          <span className={classes.error}>
+                            {vitalClinicalSupport.height}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+
+                    {/* 5c. BMI */}
+                    {values.weight && values.height && (
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>BMI</FormLabelName>
+                          <Input
+                            type="text"
+                            value={(
+                              values.weight /
+                              (values.height / 100) ** 2
+                            ).toFixed(2)}
+                            style={inputStyle}
+                            disabled
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
 
                     {/* 6. Blood Pressure (mmHg) */}
                     <div className="form-group mb-3 col-md-6">
@@ -1181,7 +1328,7 @@ const ClinicVisit = props => {
                           id="hivTestResult"
                           value={hivTestValue}
                           style={inputStyle}
-                          disabled
+                          disabled={disabledField}
                         />
                         {!hivTestValue && (
                           <span className={classes.error}>
@@ -1228,34 +1375,26 @@ const ClinicVisit = props => {
                       </div>
                     )}
 
-                    {/* 9. Syndromic STI Screening */}
-                    <div className="form-group mb-3 col-md-6">
-                      <FormGroup>
-                        <FormLabelName>Syndromic STI Screening</FormLabelName>
-                        <Input
-                          type="select"
-                          name="syndromicScreening"
-                          id="syndromicScreening"
-                          value={values.syndromicScreening || ""}
-                          onChange={handleChange}
-                          style={inputStyle}
-                          disabled={disabledField}
-                        >
-                          <option value="">Select</option>
-                          {codeset?.SYNDROMIC_STI_SCREENING?.map(value => (
-                            <option key={value.id} value={value.code}>
-                              {value.display}
-                            </option>
-                          ))}
-                        </Input>
-                      </FormGroup>
-                    </div>
+                    {/* 9. Syndromic STI Screening (multiselect) */}
+                    {codeset?.SYNDROMIC_STI_SCREENING && (
+                      <div className="mb-3 col-md-12">
+                        <FormGroup>
+                          <FormLabelName>Syndromic STI Screening</FormLabelName>
+                          <DualListBox
+                            options={codeset.SYNDROMIC_STI_SCREENING.map(item => ({
+                              value: item?.code,
+                              label: item?.display,
+                            }))}
+                            selected={syndromicStiSelected}
+                            onChange={handleSyndromicStiChange}
+                            disabled={disabledField}
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
 
                     {/* 9b. Syndromic STI Screening - Other specify */}
-                    {values.syndromicScreening &&
-                      codeset?.SYNDROMIC_STI_SCREENING?.find(
-                        v => v.code === values.syndromicScreening
-                      )?.display?.toLowerCase()?.includes("other") && (
+                    {syndromicStiSelected?.includes("SYNDROMIC_STI_SCREENING_OTHERS") && (
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                           <FormLabelName>Specify Other STI Screening</FormLabelName>
@@ -1873,138 +2012,144 @@ const ClinicVisit = props => {
                   </Label>
                   <br />
                   <br />
-                  {otherTest.length > 0 &&
-                    otherTest?.map(eachTest => (
-                      <React.Fragment key={eachTest.localId}>
+                  {otherTest.length > 0 && !disabledField && (
+                    <>
+                      <div className="row">
+                        <div className="mb-1 col-md-3">
+                          <FormGroup>
+                            <FormLabelName>Date</FormLabelName>
+                            <Input
+                              type="date"
+                              onKeyDown={e => e.preventDefault()}
+                              name="testDate"
+                              id="otherTestInputDate"
+                              value={otherTestInput.testDate}
+                              onChange={handleOtherTestInputChange}
+                              style={inputStyle}
+                              min={values.encounterDate}
+                              max={moment(new Date()).format("YYYY-MM-DD")}
+                            />
+                          </FormGroup>
+                        </div>
+                        <div className="mb-1 col-md-3">
+                          <FormGroup>
+                            <FormLabelName>Other Tests</FormLabelName>
+                            <Input
+                              type="select"
+                              name="otherTestsDone"
+                              id="otherTestInputTest"
+                              onChange={handleOtherTestInputChange}
+                              value={otherTestInput.otherTestsDone}
+                              style={inputStyle}
+                            >
+                              <option value="">Select</option>
+                              {codeset?.PREP_OTHER_TEST?.map(value => (
+                                <option key={value.id} value={value.code}>
+                                  {value.display}
+                                </option>
+                              ))}
+                            </Input>
+                          </FormGroup>
+                        </div>
+                        <div className="mb-1 col-md-3">
+                          <FormGroup>
+                            <FormLabelName>Result</FormLabelName>
+                            <Input
+                              type="text"
+                              name="result"
+                              id="otherTestInputResult"
+                              value={otherTestInput.result}
+                              onChange={handleOtherTestInputChange}
+                              style={inputStyle}
+                            />
+                          </FormGroup>
+                        </div>
+                        <div className="mb-1 col-md-3 d-flex align-items-end">
+                          <MatButton
+                            type="button"
+                            variant="contained"
+                            color="primary"
+                            className={classes.button}
+                            startIcon={<AddIcon />}
+                            style={{ backgroundColor: "#014d88" }}
+                            onClick={handleAddOtherTestEntry}
+                            disabled={saving}
+                          >
+                            <span style={{ textTransform: "capitalize" }}>
+                              {editingOtherTestIndex !== null ? "Update" : "Add"}
+                            </span>
+                          </MatButton>
+                        </div>
+                      </div>
+                      {otherTestInput.name === "PREP_OTHER_TEST_OTHER_(SPECIFY)" && (
                         <div className="row">
-                          <div className="mb-1 col-md-3">
+                          <div className="mb-1 col-md-6">
                             <FormGroup>
-                              <FormLabelName>Date</FormLabelName>
-                              <Input
-                                type="date"
-                                onKeyDown={e => e.preventDefault()}
-                                name="testDate"
-                                id={`otherTestDate_${eachTest.localId}`}
-                                value={eachTest.testDate}
-                                onChange={e =>
-                                  handleInputChangeOtherTest(e, eachTest.localId)
-                                }
-                                style={inputStyle}
-                                disabled={disabledField}
-                                min={values.encounterDate}
-                                max={moment(new Date()).format("YYYY-MM-DD")}
-                              />
-                            </FormGroup>
-                          </div>
-
-                          <div className="mb-1 col-md-4">
-                            <FormGroup>
-                              <FormLabelName>Other Tests</FormLabelName>
-                              <Input
-                                type="select"
-                                name="otherTestsDone"
-                                id={`otherTestsDone_${eachTest.localId}`}
-                                onChange={e =>
-                                  handleInputChangeOtherTest(e, eachTest.localId)
-                                }
-                                value={eachTest.otherTestsDone}
-                                style={inputStyle}
-                                disabled={disabledField}
-                              >
-                                <option value="">Select</option>
-                                {codeset?.PREP_OTHER_TEST?.map(value => (
-                                  <option key={value.id} value={value.code}>
-                                    {value.display}
-                                  </option>
-                                ))}
-                              </Input>
-                            </FormGroup>
-                          </div>
-
-                          <div className="mb-1 col-md-4">
-                            <FormGroup>
-                              <FormLabelName>Result</FormLabelName>
+                              <FormLabelName>Specify Other Test Name</FormLabelName>
                               <Input
                                 type="text"
-                                name="result"
-                                id={`otherTestResult_${eachTest.localId}`}
-                                value={eachTest.result}
-                                onChange={e =>
-                                  handleInputChangeOtherTest(e, eachTest.localId)
-                                }
+                                name="otherTestName"
+                                id="otherTestInputOtherName"
+                                value={otherTestInput.otherTestName}
+                                onChange={handleOtherTestInputChange}
                                 style={inputStyle}
-                                disabled={disabledField}
+                                placeholder="Specify the other test..."
                               />
                             </FormGroup>
                           </div>
-
-                          <div className="mb-1 col-md-1 d-flex align-items-end">
-                            <button
-                              className={`${classes.button} btn btn-danger`}
-                              style={{
-                                display: "block",
-                                margin: 0,
-                                fontSize: "1.2em",
-                              }}
-                              disabled={disabledField}
-                              onClick={() => handleRemoveTest(eachTest.localId)}
-                            >
-                              <TiTrash />
-                            </button>
-                          </div>
                         </div>
-
-                        {eachTest.name ===
-                          "PREP_OTHER_TEST_OTHER_(SPECIFY)" && (
-                          <div className="row">
-                            <div className="mb-1 col-md-6">
-                              <FormGroup>
-                                <FormLabelName>Specify Other Test Name</FormLabelName>
-                                <Input
-                                  type="text"
-                                  name="otherTestName"
-                                  id={`otherTestName_${eachTest.localId}`}
-                                  value={eachTest.otherTestName}
-                                  onChange={e =>
-                                    handleInputChangeOtherTest(
-                                      e,
-                                      eachTest.localId
-                                    )
-                                  }
-                                  style={inputStyle}
-                                  disabled={disabledField}
-                                  placeholder="Specify the other test..."
-                                />
-                              </FormGroup>
-                            </div>
-                          </div>
-                        )}
-
-                        {otherTest.length > 1 && (
-                          <Divider
-                            component="li"
-                            style={{ marginBottom: "10px" }}
-                          />
-                        )}
-                      </React.Fragment>
-                    ))}
+                      )}
+                    </>
+                  )}
                   {otherTest.length > 0 && (
-                    <div className="p-2">
-                      <MatButton
-                        type="button"
-                        variant="contained"
-                        color="primary"
-                        className={classes.button}
-                        startIcon={<AddIcon />}
-                        style={{ backgroundColor: "#014d88" }}
-                        onClick={handleCreateNewTest}
-                        disabled={saving || disabledField}
-                      >
-                        <span style={{ textTransform: "capitalize" }}>
-                          Add more test results
-                        </span>
-                      </MatButton>
-                    </div>
+                    <table className="table table-bordered table-sm mb-3 mt-2">
+                      <thead style={{ backgroundColor: "#014d88", color: "#fff" }}>
+                        <tr>
+                          <th>S/N</th>
+                          <th>Date</th>
+                          <th>Test</th>
+                          <th>Result</th>
+                          {!disabledField && <th>Actions</th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {otherTest.map((entry, index) => {
+                          const testLabel = codeset?.PREP_OTHER_TEST?.find(
+                            v => v.code === entry.otherTestsDone
+                          )?.display || entry.otherTestsDone;
+                          return (
+                            <tr key={entry.localId ?? index}>
+                              <td>{index + 1}</td>
+                              <td>{entry.testDate}</td>
+                              <td>
+                                {testLabel}
+                                {entry.otherTestName ? ` (${entry.otherTestName})` : ""}
+                              </td>
+                              <td>{entry.result}</td>
+                              {!disabledField && (
+                                <td>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-primary"
+                                    style={{ marginRight: "5px" }}
+                                    onClick={() => handleEditOtherTestEntry(index)}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-danger"
+                                    onClick={() => handleDeleteOtherTestEntry(index)}
+                                  >
+                                    Delete
+                                  </button>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   )}
 
                   <br />

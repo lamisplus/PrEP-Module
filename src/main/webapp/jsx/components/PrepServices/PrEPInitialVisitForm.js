@@ -241,9 +241,12 @@ const PrEPInitialVisitForm = props => {
           .post(`${baseUrl}prep/enrollment`, objValues, {
             headers: { Authorization: `Bearer ${token}` },
           })
-          .then(response => {
+          .then(async response => {
             setSaving(false);
             props.patientObj.prepCount = "1";
+            if (props.PatientObject) {
+              await props.PatientObject();
+            }
             toast.success("PrEP enrolment saved successfully!✔", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
@@ -763,26 +766,18 @@ const PrEPInitialVisitForm = props => {
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>
                     <Label>BMI</Label>
-                    <InputGroup>
-                      <InputGroupText
-                        style={{
-                          backgroundColor: "#014D88",
-                          color: "#fff",
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                          padding: "0.5rem",
-                          width: "100%",
-                          justifyContent: "center",
-                          fontWeight: "bold",
-                          fontSize: "1rem",
-                        }}
-                      >
-                        BMI: {(
-                          objValues.weight /
-                          (objValues.height / 100) ** 2
-                        ).toFixed(2)}
-                      </InputGroupText>
-                    </InputGroup>
+                    <Input
+                      type="text"
+                      value={(
+                        objValues.weight /
+                        (objValues.height / 100) ** 2
+                      ).toFixed(2)}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                      disabled
+                    />
                   </FormGroup>
                 </div>
               )}

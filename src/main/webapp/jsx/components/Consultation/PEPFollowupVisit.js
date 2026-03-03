@@ -99,6 +99,7 @@ const PEPFollowupVisit = props => {
   const [saving, setSaving] = useState(false);
   const [codeset, setCodeset] = useState({});
   const [notedSideEffects, setNotedSideEffects] = useState([]);
+  const [syndromicStiSelected, setSyndromicStiSelected] = useState([]);
   const [patientDto, setPatientDto] = useState();
 
   const [hivTestEntries, setHivTestEntries] = useState([]);
@@ -144,6 +145,13 @@ const PEPFollowupVisit = props => {
       if (data.pepNotedSideEffects) {
         setNotedSideEffects(data.pepNotedSideEffects);
       }
+      if (data.syndromicStiScreening) {
+        setSyndromicStiSelected(
+          Array.isArray(data.syndromicStiScreening)
+            ? data.syndromicStiScreening
+            : [data.syndromicStiScreening]
+        );
+      }
       if (data.followupHivTestResults && Array.isArray(data.followupHivTestResults)) {
         setHivTestEntries(data.followupHivTestResults);
       }
@@ -186,6 +194,13 @@ const PEPFollowupVisit = props => {
     setNotedSideEffects(selected);
     if (formikRef.current) {
       formikRef.current.setFieldValue("pepNotedSideEffects", selected);
+    }
+  };
+
+  const handleSyndromicStiChange = selected => {
+    setSyndromicStiSelected(selected);
+    if (formikRef.current) {
+      formikRef.current.setFieldValue("syndromicStiScreening", selected);
     }
   };
 
@@ -266,6 +281,7 @@ const PEPFollowupVisit = props => {
         });
       }
       setNotedSideEffects([]);
+      setSyndromicStiSelected([]);
       setHivTestEntries([]);
       setHivTestInput({ test: "", result: "" });
       setEditingHivTestIndex(null);
@@ -296,6 +312,7 @@ const PEPFollowupVisit = props => {
     setSaving(true);
     const payload = { ...values };
     payload.pepNotedSideEffects = notedSideEffects;
+    payload.syndromicStiScreening = syndromicStiSelected;
     payload.followupHivTestResults = hivTestEntries;
     payload.prepEnrollmentUuid = patientDto?.uuid;
     payload.previousPrepStatus = props.patientObj?.prepStatus;
@@ -600,55 +617,44 @@ const PEPFollowupVisit = props => {
                       </div>
                     )}
 
-                    {/* 7. Syndromic STI Screening */}
-                    <div className="form-group mb-3 col-md-6">
-                      <FormGroup>
-                        <FormLabelName>Syndromic STI Screening</FormLabelName>
-                        <Input
-                          type="select"
-                          name="syndromicScreening"
-                          id="syndromicScreening"
-                          value={values.syndromicScreening || ""}
-                          onChange={handleChange}
-                          style={inputStyle}
-                          disabled={disabledField}
-                        >
-                          <option value="">Select</option>
-                          {codeset?.SYNDROMIC_STI_SCREENING?.map(value => (
-                            <option key={value.id} value={value.code}>
-                              {value.display}
-                            </option>
-                          ))}
-                        </Input>
-                      </FormGroup>
-                    </div>
+                    {/* 7. Syndromic STI Screening (multiselect) */}
+                    {codeset?.SYNDROMIC_STI_SCREENING && (
+                      <div className="mb-3 col-md-12">
+                        <FormGroup>
+                          <FormLabelName>Syndromic STI Screening</FormLabelName>
+                          <DualListBox
+                            options={codeset.SYNDROMIC_STI_SCREENING.map(item => ({
+                              value: item?.code,
+                              label: item?.display,
+                            }))}
+                            selected={syndromicStiSelected}
+                            onChange={handleSyndromicStiChange}
+                            disabled={disabledField}
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
 
                     {/* 7b. Syndromic STI Screening - Other specify */}
-                    {values.syndromicScreening &&
-                      codeset?.SYNDROMIC_STI_SCREENING?.find(
-                        v =>
-                          v.code === values.syndromicScreening
-                      )
-                        ?.display?.toLowerCase()
-                        ?.includes("other") && (
-                        <div className="form-group mb-3 col-md-6">
-                          <FormGroup>
-                            <FormLabelName>
-                              Specify Other STI Screening
-                            </FormLabelName>
-                            <Input
-                              type="text"
-                              name="otherSyndromicStiScreening"
-                              id="otherSyndromicStiScreening"
-                              value={values.otherSyndromicStiScreening}
-                              onChange={handleChange}
-                              style={inputStyle}
-                              disabled={disabledField}
-                              placeholder="Specify..."
-                            />
-                          </FormGroup>
-                        </div>
-                      )}
+                    {syndromicStiSelected?.includes("SYNDROMIC_STI_SCREENING_OTHERS") && (
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>
+                            Specify Other STI Screening
+                          </FormLabelName>
+                          <Input
+                            type="text"
+                            name="otherSyndromicStiScreening"
+                            id="otherSyndromicStiScreening"
+                            value={values.otherSyndromicStiScreening}
+                            onChange={handleChange}
+                            style={inputStyle}
+                            disabled={disabledField}
+                            placeholder="Specify..."
+                          />
+                        </FormGroup>
+                      </div>
+                    )}
 
                     {/* 8. Risk Reduction Services */}
                     <div className="form-group mb-3 col-md-6">

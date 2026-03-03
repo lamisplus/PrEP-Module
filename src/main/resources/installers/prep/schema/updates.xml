@@ -530,4 +530,40 @@
             ALTER TABLE pep_clinic ADD COLUMN IF NOT EXISTS syndromic_screening VARCHAR(255);
         </sql>
     </changeSet>
+
+    <!-- Clean up corrupted empty-string data before column type change -->
+    <changeSet failOnError="false" author="Claude" id="03-03-2026-01">
+        <sql>
+            UPDATE pep_clinic SET syndromic_sti_screening = NULL WHERE syndromic_sti_screening = '';
+            UPDATE prep_clinic SET syndromic_sti_screening = NULL WHERE syndromic_sti_screening = '';
+        </sql>
+    </changeSet>
+
+    <!-- Convert syndromic_sti_screening from VARCHAR to JSONB in both tables -->
+    <changeSet failOnError="false" author="Claude" id="03-03-2026-02">
+        <sql>
+            ALTER TABLE prep_clinic ALTER COLUMN syndromic_sti_screening TYPE JSONB USING
+                CASE
+                    WHEN syndromic_sti_screening IS NULL THEN NULL
+                    WHEN syndromic_sti_screening::text ~ '^\[' THEN syndromic_sti_screening::jsonb
+                    ELSE ('["' || syndromic_sti_screening || '"]')::jsonb
+                END;
+            ALTER TABLE pep_clinic ALTER COLUMN syndromic_sti_screening TYPE JSONB USING
+                CASE
+                    WHEN syndromic_sti_screening IS NULL THEN NULL
+                    WHEN syndromic_sti_screening::text ~ '^\[' THEN syndromic_sti_screening::jsonb
+                    ELSE ('["' || syndromic_sti_screening || '"]')::jsonb
+                END;
+        </sql>
+    </changeSet>
+
+    <!-- Add missing columns to prep_clinic for adherence/side-effect/STI details -->
+    <changeSet failOnError="false" author="Claude" id="03-03-2026-03">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS why_adherence_level_poor VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_reason_for_poor_fair_adherence VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_noted_side_effects VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_syndromic_sti_screening VARCHAR(255);
+        </sql>
+    </changeSet>
 </databaseChangeLog>

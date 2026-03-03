@@ -31,6 +31,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import "@reach/menu-button/styles.css";
 import { Modal } from "react-bootstrap";
 import { Dropdown, Button, Menu, Icon } from 'semantic-ui-react'
+import { getPepRegimenOptions } from './codesets'
 
 
 const tableIcons = {
@@ -240,7 +241,9 @@ const PatientnHistory = (props) => {
                 isLoading={props.loading}
                 data={props.recentActivities && props.recentActivities.map((row) => ({
                     date: row.encounterDate,
-                    regimen: row.regimen,
+                    regimen: row.pepRegimen
+                      ? (getPepRegimenOptions().find(o => o.value === row.pepRegimen) || {}).label || row.pepRegimen
+                      : row.regimen,
                     nextAppointment: row.nextAppointment,
                     actions:
 
