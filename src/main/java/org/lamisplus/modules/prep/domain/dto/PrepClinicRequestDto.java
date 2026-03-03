@@ -108,5 +108,9 @@ public class PrepClinicRequestDto implements Serializable {
     private Integer monthsOfRefill;
     private String comment;
     private String previousPrepStatus;
+    private String whyAdherenceLevelPoor;
+    private String otherReasonForPoorFairAdherence;
+    private String otherNotedSideEffects;
+    private String otherSyndromicStiScreening;
 }
 

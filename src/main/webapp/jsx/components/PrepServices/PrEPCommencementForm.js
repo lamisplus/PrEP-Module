@@ -546,23 +546,19 @@ const PrEPCommencementForm = props => {
             <div className="form-group mb-3 mt-2 col-md-4">
               {objValues.weight && objValues.height && (
                 <FormGroup>
-                  <InputGroup>
-                    <InputGroupText
-                      addonType="append"
-                      style={{
-                        backgroundColor: "#014D88",
-                        color: "#fff",
-                        border: "1px solid #014D88",
-                        borderRadius: "0rem",
-                      }}
-                    >
-                      BMI:{" "}
-                      {(
-                        objValues.weight /
-                        (objValues.height / 100) ** 2
-                      ).toFixed(2)}
-                    </InputGroupText>
-                  </InputGroup>
+                  <Label>BMI</Label>
+                  <Input
+                    type="text"
+                    value={(
+                      objValues.weight /
+                      (objValues.height / 100) ** 2
+                    ).toFixed(2)}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                    }}
+                    disabled
+                  />
                 </FormGroup>
               )}
             </div>

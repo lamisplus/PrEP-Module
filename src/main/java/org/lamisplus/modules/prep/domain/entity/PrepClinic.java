@@ -249,6 +249,15 @@ public class PrepClinic extends Audit implements Serializable {
     @Column(name = "previous_prep_status")
     private String previousPrepStatus;
 
+    @Column(name = "why_adherence_level_poor")
+    private String whyAdherenceLevelPoor;
+    @Column(name = "other_reason_for_poor_fair_adherence")
+    private String otherReasonForPoorFairAdherence;
+    @Column(name = "other_noted_side_effects")
+    private String otherNotedSideEffects;
+    @Column(name = "other_syndromic_sti_screening")
+    private String otherSyndromicStiScreening;
+
     @PrePersist
     public void setFields() {
         if (StringUtils.isEmpty(uuid)) {
