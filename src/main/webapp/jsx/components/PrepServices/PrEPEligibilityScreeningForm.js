@@ -409,7 +409,7 @@ const BasicInfo = props => {
       if (props.activeContent && props.activeContent.actionType === "update") {
         axios
           .put(
-            `${baseUrl}prep-eligibility/${props.activeContent.id}`,
+            `${baseUrl}prep-eligibility-screening/${props.activeContent.id}`,
             objValues,
             { headers: { Authorization: `Bearer ${token}` } }
           )
@@ -455,7 +455,7 @@ const BasicInfo = props => {
           });
       } else {
         axios
-          .post(`${baseUrl}prep-eligibility`, objValues, {
+          .post(`${baseUrl}prep-eligibility-screening`, objValues, {
             headers: { Authorization: `Bearer ${token}` },
           })
           .then(response => {

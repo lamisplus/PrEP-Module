@@ -216,7 +216,7 @@ const PrEPInitialVisitForm = props => {
       if (props.activeContent && props.activeContent.actionType) {
         axios
           .put(
-            `${baseUrl}prep-enrollment/${props.activeContent.id}`,
+            `${baseUrl}prep-pep-initiation/${props.activeContent.id}`,
             objValues,
             { headers: { Authorization: `Bearer ${token}` } }
           )

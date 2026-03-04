@@ -1,0 +1,26 @@
+package org.lamisplus.modules.prep.repository;
+
+import org.lamisplus.modules.prep.domain.entity.PepFollowupVisit;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+public interface PepFollowupVisitRepository extends JpaRepository<PepFollowupVisit, Long>, JpaSpecificationExecutor<PepFollowupVisit> {
+    Optional<PepFollowupVisit> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
+    List<PepFollowupVisit> findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
+            String personUuid, Long facilityId, int archived);
+    List<PepFollowupVisit> findAllByPrepEnrollmentUuid(String uuid);
+    Optional<PepFollowupVisit> findByEncounterDateAndPersonUuidAndArchived(
+            LocalDate encounterDate, String personUuid, Integer archived);
+    Optional<PepFollowupVisit> findByUuid(String uuid);
+    Integer countAllByPersonUuid(String personUuid);
+    List<PepFollowupVisit> findAllByFacilityId(Long facilityId);
+
+    @Query(value = "SELECT * FROM pep_followup_visit WHERE date_modified > ?1 AND facility_id=?2", nativeQuery = true)
+    List<PepFollowupVisit> getAllDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
+}

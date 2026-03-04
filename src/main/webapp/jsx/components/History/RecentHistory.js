@@ -49,7 +49,7 @@ const RecentHistory = props => {
   const Summary = () => {
     axios
       .get(
-        `${baseUrl}prep-clinic/person/${
+        `${baseUrl}prep-followup-visit/person/${
           props.patientObj.personId || props.patientObj.id
         }?full=true`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -93,21 +93,21 @@ const RecentHistory = props => {
   };
 
   const LoadViewPage = (row, action) => {
-    if (row.path === "prep-eligibility") {
+    if (row.path === "prep-eligibility-screening") {
       props.setActiveContent({
         ...props.activeContent,
         route: "prep-screening",
         id: row.id,
         actionType: action,
       });
-    } else if (row.path === "prep-enrollment") {
+    } else if (row.path === "prep-pep-initiation") {
       props.setActiveContent({
         ...props.activeContent,
         route: "prep-registration",
         id: row.id,
         actionType: action,
       });
-    } else if (row.path === "prep-clinic") {
+    } else if (row.path === "prep-followup-visit") {
       //prep-commencement
       props.setActiveContent({
         ...props.activeContent,
@@ -122,7 +122,7 @@ const RecentHistory = props => {
         id: row.id,
         actionType: action,
       });
-    } else if (row.path === "prep-interruption") {
+    } else if (row.path === "prep-completion") {
       props.setActiveContent({
         ...props.activeContent,
         route: "prep-interruptions",
@@ -137,10 +137,10 @@ const RecentHistory = props => {
     setRecord(row);
   };
   const LoadDeletePage = row => {
-    if (row.path === "prep-eligibility") {
+    if (row.path === "prep-eligibility-screening") {
       setSaving(true);
       axios
-        .delete(`${baseUrl}prep-eligibility/${row.id}`, {
+        .delete(`${baseUrl}prep-eligibility-screening/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
@@ -162,10 +162,10 @@ const RecentHistory = props => {
             toast.error("Something went wrong. Please try again...");
           }
         });
-    } else if (row.path === "prep-clinic") {
+    } else if (row.path === "prep-followup-visit") {
       setSaving(true);
       axios
-        .delete(`${baseUrl}prep-clinic/${row.id}`, {
+        .delete(`${baseUrl}prep-followup-visit/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
@@ -187,10 +187,10 @@ const RecentHistory = props => {
             toast.error("Something went wrong. Please try again...");
           }
         });
-    } else if (row.path === "prep-enrollment") {
+    } else if (row.path === "prep-pep-initiation") {
       setSaving(true);
       axios
-        .delete(`${baseUrl}prep-enrollment/${row.id}`, {
+        .delete(`${baseUrl}prep-pep-initiation/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
@@ -215,7 +215,7 @@ const RecentHistory = props => {
     } else if (row.path === "prep-commencement") {
       setSaving(true);
       axios
-        .delete(`${baseUrl}prep-clinic/${row.id}`, {
+        .delete(`${baseUrl}prep-followup-visit/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
@@ -237,11 +237,11 @@ const RecentHistory = props => {
             toast.error("Something went wrong. Please try again...");
           }
         });
-    } else if (row.path === "prep-interruption") {
+    } else if (row.path === "prep-completion") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
       axios
-        .delete(`${baseUrl}prep-interruption/${row.id}`, {
+        .delete(`${baseUrl}prep-completion/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {

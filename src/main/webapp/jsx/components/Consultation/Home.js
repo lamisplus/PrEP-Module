@@ -242,7 +242,7 @@ const ClinicVisit = props => {
     if (!currentDate) return;
     try {
       const response = await axios.get(
-        `${baseUrl}prep-clinic/checkEnableCab/${
+        `${baseUrl}prep-followup-visit/checkEnableCab/${
           props.patientObj.personId || props.patientObj.id
         }/${currentDate}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -279,7 +279,7 @@ const ClinicVisit = props => {
     if (!props.activeContent.id) return;
     try {
       const response = await axios.get(
-        `${baseUrl}prep-clinic/${props.activeContent.id}`,
+        `${baseUrl}prep-followup-visit/${props.activeContent.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       let data = JSON.parse(JSON.stringify(response.data));
@@ -322,7 +322,7 @@ const ClinicVisit = props => {
   const getHivResult = () => {
     axios
       .get(
-        `${baseUrl}prep-clinic/hts-record/${
+        `${baseUrl}prep-followup-visit/hts-record/${
           props.patientObj.personId || props.patientObj.id
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -374,7 +374,7 @@ const ClinicVisit = props => {
   const getLatestFromEligibility = async () => {
     try {
       const response = await axios.get(
-        `${baseUrl}prep-eligibility/person/${
+        `${baseUrl}prep-eligibility-screening/person/${
           props.patientObj.personId || props.patientObj.id
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -932,7 +932,7 @@ const ClinicVisit = props => {
     if (props.activeContent && props.activeContent.actionType === "update") {
       try {
         await axios.put(
-          `${baseUrl}prep-clinic/${props.activeContent.id}`,
+          `${baseUrl}prep-followup-visit/${props.activeContent.id}`,
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );

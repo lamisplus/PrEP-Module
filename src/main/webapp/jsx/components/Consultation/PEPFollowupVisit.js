@@ -138,7 +138,7 @@ const PEPFollowupVisit = props => {
     if (!props.activeContent.id) return;
     try {
       const response = await axios.get(
-        `${baseUrl}pep-clinic/${props.activeContent.id}`,
+        `${baseUrl}pep-followup-visit/${props.activeContent.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = JSON.parse(JSON.stringify(response.data));
@@ -320,7 +320,7 @@ const PEPFollowupVisit = props => {
     if (props.activeContent && props.activeContent.actionType === "update") {
       try {
         await axios.put(
-          `${baseUrl}pep-clinic/${props.activeContent.id}`,
+          `${baseUrl}pep-followup-visit/${props.activeContent.id}`,
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -339,7 +339,7 @@ const PEPFollowupVisit = props => {
       }
     } else {
       try {
-        await axios.post(`${baseUrl}pep-clinic/clinic-visit`, payload, {
+        await axios.post(`${baseUrl}pep-followup-visit/clinic-visit`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSaving(false);

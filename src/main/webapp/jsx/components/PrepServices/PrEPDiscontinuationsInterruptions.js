@@ -82,7 +82,7 @@ const PrEPDiscontinuationsInterruptions = props => {
   const GetPatientInterruption = id => {
     if (!id) return;
     axios
-      .get(`${baseUrl}prep-interruption/${id}`, {
+      .get(`${baseUrl}prep-completion/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
@@ -182,7 +182,7 @@ const PrEPDiscontinuationsInterruptions = props => {
       if (props.activeContent && props.activeContent.actionType === "update") {
         axios
           .put(
-            `${baseUrl}prep-interruption/${props.activeContent.id}`,
+            `${baseUrl}prep-completion/${props.activeContent.id}`,
             objValues,
             {
               headers: { Authorization: `Bearer ${token}` },

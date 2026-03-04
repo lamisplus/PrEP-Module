@@ -242,7 +242,7 @@ const PrEPCommencementForm = props => {
       objValues.prepEnrollmentUuid = patientDto.uuid;
       if (props.activeContent && props.activeContent.actionType === "update") {
         axios
-          .put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues, {
+          .put(`${baseUrl}prep-followup-visit/${props.activeContent.id}`, objValues, {
             headers: { Authorization: `Bearer ${token}` },
           })
           .then(response => {
@@ -326,7 +326,7 @@ const PrEPCommencementForm = props => {
   const getLatestFromEligibility = async () => {
     try {
       const response = await axios.get(
-        `${baseUrl}prep-eligibility/person/${objValues?.personId}`,
+        `${baseUrl}prep-eligibility-screening/person/${objValues?.personId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

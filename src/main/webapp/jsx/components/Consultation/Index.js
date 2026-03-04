@@ -19,7 +19,7 @@ const ClinicVisitPage = props => {
     setLoading(true);
     axios
       .get(
-        `${baseUrl}prep-clinic/person/${
+        `${baseUrl}prep-followup-visit/person/${
           props.patientObj.personId || props.patientObj.id
         }?isCommenced=false&last=false`,
         { headers: { Authorization: `Bearer ${token}` } }
