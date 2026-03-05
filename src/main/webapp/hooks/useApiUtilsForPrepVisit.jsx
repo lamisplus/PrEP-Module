@@ -43,7 +43,7 @@ export const useLatestFromEligibility = personId => {
   }, []);
 
   return useApiDataWithLogic(
-    `${baseUrl}prep-eligibility-screening/person/${personId}`,
+    `${baseUrl}prep-eligibility/person/${personId}`,
     null,
     logicFunction
   );
@@ -97,7 +97,7 @@ export const useHivResult = personId => {
   );
 
   return useApiDataWithLogic(
-    `${baseUrl}prep-followup-visit/hts-record/${personId}`,
+    `${baseUrl}prep-clinic/hts-record/${personId}`,
     {},
     logicFunction
   );
@@ -115,7 +115,7 @@ export const usePatientVisit = (id, setOtherTest) => {
   );
 
   return useApiDataWithLogic(
-    `${baseUrl}prep-followup-visit/${id}`,
+    `${baseUrl}prep-clinic/${id}`,
     null,
     logicFunction
   );

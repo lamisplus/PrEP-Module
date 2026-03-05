@@ -13,10 +13,10 @@ import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.patient.service.PersonService;
 import org.lamisplus.modules.prep.domain.dto.*;
 import org.lamisplus.modules.prep.domain.entity.*;
-import org.lamisplus.modules.prep.repository.PrepClinicRepository;
-import org.lamisplus.modules.prep.repository.PrepEligibilityRepository;
-import org.lamisplus.modules.prep.repository.PrepEnrollmentRepository;
-import org.lamisplus.modules.prep.repository.PrepInterruptionRepository;
+import org.lamisplus.modules.prep.repository.PrepFollowupVisitRepository;
+import org.lamisplus.modules.prep.repository.PrepEligibilityScreeningRepository;
+import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
+import org.lamisplus.modules.prep.repository.PrepCompletionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -37,11 +37,11 @@ public class PrepService {
     private final PersonRepository personRepository;
     private final PersonService personService;
     private final CurrentUserOrganizationService currentUserOrganizationService;
-    private final PrepEnrollmentRepository prepEnrollmentRepository;
-    private final PrepEligibilityRepository prepEligibilityRepository;
-    private final PrepClinicRepository prepClinicRepository;
+    private final PrepPepInitiationRepository prepPepInitiationRepository;
+    private final PrepEligibilityScreeningRepository prepEligibilityScreeningRepository;
+    private final PrepFollowupVisitRepository prepFollowupVisitRepository;
     private final PatientActivityService patientActivityService;
-    private final PrepInterruptionRepository prepInterruptionRepository;
+    private final PrepCompletionRepository prepCompletionRepository;
 
     public Person getPerson(Long personId) {
         return personRepository.findById(personId)
@@ -51,43 +51,43 @@ public class PrepService {
     public PrepEligibilityDto saveEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto) {
         Person person;
         person = this.getPerson(prepEligibilityRequestDto.getPersonId());
-        PrepEligibility prepEligibility = this.prepEligibilityRequestDtoToPrepEligibility(prepEligibilityRequestDto, person.getUuid());
+        PrepEligibilityScreening prepEligibility = this.prepEligibilityRequestDtoToPrepEligibility(prepEligibilityRequestDto, person.getUuid());
         prepEligibility.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());
 
         //Check if client eligibility on same date exist and throw an error
-        prepEligibilityRepository
+        prepEligibilityScreeningRepository
                 .findByVisitDateAndPersonUuidAndArchived(prepEligibilityRequestDto.getVisitDate(), person.getUuid(), 0)
                 .ifPresent(prepEligibilityRec -> {
                     if (prepEligibilityRec.getArchived() == 0) {
-                        throw new RecordExistException(PrepEligibility.class, "Visit date", String.valueOf(prepEligibilityRequestDto.getVisitDate()));
+                        throw new RecordExistException(PrepEligibilityScreening.class, "Visit date", String.valueOf(prepEligibilityRequestDto.getVisitDate()));
                     }
                 });
 
-        prepEligibility = prepEligibilityRepository.save(prepEligibility);
+        prepEligibility = prepEligibilityScreeningRepository.save(prepEligibility);
         prepEligibility.setPerson(person);
         PrepEligibilityDto prepEligibilityDto = this.prepEligibilityToPrepEligibilityDto(prepEligibility);
-        prepEligibilityDto.setPrepEligibilityCount(prepEligibilityRepository
+        prepEligibilityDto.setPrepEligibilityCount(prepEligibilityScreeningRepository
                 .findAllByPersonUuid(person.getUuid()).size());
         return prepEligibilityDto;
     }
 
     public PrepEnrollmentDto saveEnrollment(PrepEnrollmentRequestDto prepEnrollmentRequestDto) {
-        PrepEnrollment prepEnrollment;
+        PrepPepInitiation prepEnrollment;
         String eligibilityUuid = prepEnrollmentRequestDto.getPrepEligibilityUuid();
 
-        PrepEligibility prepEligibility = prepEligibilityRepository
+        PrepEligibilityScreening prepEligibility = prepEligibilityScreeningRepository
                 .findByUuid(eligibilityUuid)
-                .orElseThrow(() -> new EntityNotFoundException(PrepEligibility.class, "Eligibility ", eligibilityUuid));
+                .orElseThrow(() -> new EntityNotFoundException(PrepEligibilityScreening.class, "Eligibility ", eligibilityUuid));
 
         Person person = this.getPerson(prepEnrollmentRequestDto.getPersonId());
 
-        if (this.prepEnrollmentRepository.findByPrepEligibilityUuid(eligibilityUuid).isPresent()) {
-            throw new RecordExistException(PrepEnrollment.class, "Eligibility Already taken for prep", eligibilityUuid);
+        if (this.prepPepInitiationRepository.findByPrepEligibilityUuid(eligibilityUuid).isPresent()) {
+            throw new RecordExistException(PrepPepInitiation.class, "Eligibility Already taken for prep", eligibilityUuid);
         }
 
         if (!prepEligibility.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepEnrollment.class, "Person not same for prepEligibilityUuid", eligibilityUuid);
+            throw new IllegalTypeException(PrepPepInitiation.class, "Person not same for prepEligibilityUuid", eligibilityUuid);
         }
 
         prepEnrollment = this.enrollmentRequestDtoToEnrollment(prepEnrollmentRequestDto, prepEligibility.getPersonUuid());
@@ -96,14 +96,14 @@ public class PrepService {
         prepEligibility.setUuid(UUID.randomUUID().toString());
 
         //Check if client Enrollment on same date exist and throw an error
-        prepEnrollmentRepository
+        prepPepInitiationRepository
                 .findByDateEnrolledAndPersonUuid(prepEnrollmentRequestDto.getDateEnrolled(),
                         person.getUuid()).ifPresent(prepEnroll -> {
-                    throw new RecordExistException(PrepEnrollment.class, "Encounter date",
+                    throw new RecordExistException(PrepPepInitiation.class, "Encounter date",
                             String.valueOf(prepEnroll.getDateEnrolled()));
                 });
 
-        prepEnrollment = prepEnrollmentRepository.save(prepEnrollment);
+        prepEnrollment = prepPepInitiationRepository.save(prepEnrollment);
         prepEnrollment.setPerson(prepEligibility.getPerson());
         PrepEnrollmentDto prepEnrollmentDto = this.enrollmentToEnrollmentDto(prepEnrollment);
         prepEnrollmentDto.setStatus("Enrolled");
@@ -118,18 +118,18 @@ public class PrepService {
             commencementRequestDto.setEncounterDate(commencementRequestDto.getDatePrepStart());
         }
 
-        PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(enrollmentUuid)
-                .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", enrollmentUuid));
+        PrepPepInitiation prepEnrollment = this.prepPepInitiationRepository.findByUuid(enrollmentUuid)
+                .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "Enrollment", enrollmentUuid));
 
         if (!prepEnrollment.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepClinic.class, "Person not same enrolled", enrollmentUuid);
+            throw new IllegalTypeException(PrepFollowupVisit.class, "Person not same enrolled", enrollmentUuid);
         }
 
-        PrepClinic prepClinic = this.clinicRequestDtoToClinic(commencementRequestDto, person.getUuid());
+        PrepFollowupVisit prepClinic = this.clinicRequestDtoToClinic(commencementRequestDto, person.getUuid());
 
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepClinic.setIsCommencement(true);
-        prepClinic = prepClinicRepository.save(prepClinic);
+        prepClinic = prepFollowupVisitRepository.save(prepClinic);
         prepClinic.setPerson(person);
         PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic);
         return prepClinicDto;
@@ -140,18 +140,18 @@ public class PrepService {
 
         Person person = this.getPerson(clinicRequestDto.getPersonId());
 
-        PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(enrollmentUuid)
-                .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", enrollmentUuid));
+        PrepPepInitiation prepEnrollment = this.prepPepInitiationRepository.findByUuid(enrollmentUuid)
+                .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "Enrollment", enrollmentUuid));
 
         if (!prepEnrollment.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepClinic.class, "Person not same enrolled", enrollmentUuid);
+            throw new IllegalTypeException(PrepFollowupVisit.class, "Person not same enrolled", enrollmentUuid);
         }
 
-        PrepClinic prepClinic = this.clinicRequestDtoToClinic(clinicRequestDto, person.getUuid());
-        prepClinicRepository.findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(clinicRequestDto.getEncounterDate(), person.getUuid(), false, 0)
+        PrepFollowupVisit prepClinic = this.clinicRequestDtoToClinic(clinicRequestDto, person.getUuid());
+        prepFollowupVisitRepository.findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(clinicRequestDto.getEncounterDate(), person.getUuid(), false, 0)
                 .ifPresent(prepClinicRec -> {
                     if (prepClinicRec.getArchived() == 0) {
-                        throw new RecordExistException(PrepClinic.class, "Encounter date", String.valueOf(clinicRequestDto.getEncounterDate()));
+                        throw new RecordExistException(PrepFollowupVisit.class, "Encounter date", String.valueOf(clinicRequestDto.getEncounterDate()));
                     }
                 });
 
@@ -162,7 +162,7 @@ public class PrepService {
         prepClinic.setComment(clinicRequestDto.getComment());
         prepClinic.setPreviousPrepStatus(clinicRequestDto.getPreviousPrepStatus());
         System.out.println("prepClinic: " + prepClinic);
-        prepClinic = prepClinicRepository.save(prepClinic);
+        prepClinic = prepFollowupVisitRepository.save(prepClinic);
         prepClinic.setPregnant(clinicRequestDto.getPregnant());
         prepClinic.setPerson(person);
         PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic);
@@ -172,20 +172,20 @@ public class PrepService {
 
     public PrepInterruptionDto saveInterruption(PrepInterruptionRequestDto interruptionRequestDto) {
         Person person = this.getPerson(interruptionRequestDto.getPersonId());
-        PrepInterruption prepInterruption = interruptionRequestDtoInterruption(interruptionRequestDto, person.getUuid());
+        PrepCompletion prepInterruption = interruptionRequestDtoInterruption(interruptionRequestDto, person.getUuid());
         prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepInterruption.setPreviousPrepStatus(interruptionRequestDto.getPreviousPrepStatus());
 
-        prepInterruptionRepository
+        prepCompletionRepository
                 .findFirstByInterruptionDateAndPersonUuidAndArchived(interruptionRequestDto.getInterruptionDate(), person.getUuid(), 0)
                 .ifPresent(existingInterruption -> {
                     if (existingInterruption.getArchived() == 0) {
-                        throw new RecordExistException(PrepInterruption.class, "Encounter date", String.valueOf(interruptionRequestDto.getInterruptionDate()));
+                        throw new RecordExistException(PrepCompletion.class, "Encounter date", String.valueOf(interruptionRequestDto.getInterruptionDate()));
                     }
                 });
 
         try {
-            prepInterruption = prepInterruptionRepository.save(prepInterruption);
+            prepInterruption = prepCompletionRepository.save(prepInterruption);
         } catch (Exception e) {
             throw new RuntimeException("Input or Server error. Please Try again.");
         }
@@ -195,7 +195,7 @@ public class PrepService {
         return prepInterruptionDto;
     }
 
-    private PrepDtos prepToPrepDtos(List<PrepEnrollment> clients) {
+    private PrepDtos prepToPrepDtos(List<PrepPepInitiation> clients) {
         final Long[] pId = {null};
         final String[] uniqueId = {null};
         final String[] personUuid = {null};
@@ -203,7 +203,7 @@ public class PrepService {
         PrepDtos prepDtos = new PrepDtos();
         List<PrepDto> prepDtoList = clients
                 .stream()
-                .sorted(Comparator.comparingLong(PrepEnrollment::getId).reversed())
+                .sorted(Comparator.comparingLong(PrepPepInitiation::getId).reversed())
                 .map(prepEnrollment -> {
                     if (pId[0] == null) {
                         Person person = prepEnrollment.getPerson();
@@ -218,29 +218,29 @@ public class PrepService {
                 .collect(Collectors.toList());
         prepDtos.setPrepEnrollmentCount(prepDtoList.size());
         prepDtos.setPrepDtoList(prepDtoList);
-        prepDtos.setPrepEligibilityCount(prepEligibilityRepository.findAllByPersonUuid(personUuid[0]).size());
+        prepDtos.setPrepEligibilityCount(prepEligibilityScreeningRepository.findAllByPersonUuid(personUuid[0]).size());
         prepDtos.setPersonId(pId[0]);
         prepDtos.setUniqueId(uniqueId[0]);
         prepDtos.setPersonResponseDto(personResponseDto[0]);
         return prepDtos;
     }
 
-    private PrepEnrollment getById(Long id) {
-        return prepEnrollmentRepository
+    private PrepPepInitiation getById(Long id) {
+        return prepPepInitiationRepository
                 .findByIdAndArchivedAndFacilityId(id, UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization())
-                .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "id", "" + id));
+                .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "id", "" + id));
     }
 
     public List<PrepDtos> getAllPatients() {
         List<PrepDtos> prepDtosList = new ArrayList<>();
         for (PersonResponseDto personResponseDto : personService.getAllPerson()) {
             Person person = this.getPerson(personResponseDto.getId());
-            List<PrepEnrollment> prepEnrollments = prepEnrollmentRepository.findAllByPersonOrderByIdDesc(person);
+            List<PrepPepInitiation> prepEnrollments = prepPepInitiationRepository.findAllByPersonOrderByIdDesc(person);
             PrepDtos prepDtos = new PrepDtos();
             if (prepEnrollments.isEmpty()) {
                 prepDtos.setPrepDtoList(new ArrayList<>());
                 prepDtos.setPrepEnrollmentCount(0);
-                prepDtos.setPrepEligibilityCount(prepEligibilityRepository.findAllByPersonUuid(person.getUuid()).size());
+                prepDtos.setPrepEligibilityCount(prepEligibilityScreeningRepository.findAllByPersonUuid(person.getUuid()).size());
 
                 prepDtos.setPersonResponseDto(personResponseDto);
                 prepDtos.setPersonId(personResponseDto.getId());
@@ -252,12 +252,12 @@ public class PrepService {
         return prepDtosList;
     }
 
-    public Page<PrepEnrollment> findPrepClientPage(Pageable pageable) {
-        return prepEnrollmentRepository.findAll(pageable);
+    public Page<PrepPepInitiation> findPrepClientPage(Pageable pageable) {
+        return prepPepInitiationRepository.findAll(pageable);
     }
 
     public String getClientNameByCode(String code) {
-        List<PrepEnrollment> prepEnrollments = prepEnrollmentRepository.findAllByUniqueIdOrderByIdDesc(code);
+        List<PrepPepInitiation> prepEnrollments = prepPepInitiationRepository.findAllByUniqueIdOrderByIdDesc(code);
         if (prepEnrollments.isEmpty()) return "Record Not Found";
 
         Person person = prepEnrollments.stream().findFirst().get().getPerson();
@@ -269,13 +269,13 @@ public class PrepService {
         if (person.getId() == null) {
             return new PrepDtos();
         }
-        return this.prepToPrepDtos(person, prepEnrollmentRepository.findFirstByPersonOrderByIdDesc(person));
+        return this.prepToPrepDtos(person, prepPepInitiationRepository.findFirstByPersonOrderByIdDesc(person));
     }
 
     public List<PrepEnrollmentDto> getEnrollmentByPersonId(Long personId) {
         Person person = this.getPerson(personId);
         List<PrepEnrollmentDto> prepEnrollmentDtos = new ArrayList<>();
-        List<PrepEnrollment> prepEnrollments = prepEnrollmentRepository.findAllByPerson(person);
+        List<PrepPepInitiation> prepEnrollments = prepPepInitiationRepository.findAllByPerson(person);
         prepEnrollments.forEach(prepEnrollment -> {
             prepEnrollmentDtos.add(enrollmentToEnrollmentDto(prepEnrollment));
         });
@@ -285,21 +285,21 @@ public class PrepService {
     public List<PrepClinicDto> getCommencementByPersonId(Long personId) {
         Person person = this.getPerson(personId);
         List<PrepClinicDto> prepClinicDtos = new ArrayList<>();
-        List<PrepClinic> prepClinics = prepClinicRepository.findAllByPersonAndIsCommencement(person, true);
+        List<PrepFollowupVisit> prepClinics = prepFollowupVisitRepository.findAllByPersonAndIsCommencement(person, true);
         prepClinics.forEach(prepClinic -> {
             prepClinicDtos.add(clinicToClinicDto(prepClinic));
         });
         return prepClinicDtos;
     }
 
-    private Long getPersonId(PrepEnrollment prepEnrollment) {
+    private Long getPersonId(PrepPepInitiation prepEnrollment) {
         return prepEnrollment.getPerson().getId();
     }
 
     public void delete(Long id) {
-        PrepEnrollment prepEnrollment = this.getById(id);
+        PrepPepInitiation prepEnrollment = this.getById(id);
         prepEnrollment.setArchived(ARCHIVED);
-        prepEnrollmentRepository.save(prepEnrollment);
+        prepPepInitiationRepository.save(prepEnrollment);
     }
 
     public Page<Person> findPrepPersonPage(String searchValue, int pageNo, int pageSize) {
@@ -323,9 +323,9 @@ public class PrepService {
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
             searchValue = searchValue.replaceAll("\\\\s", "");
             String queryParam = "%" + searchValue + "%";
-            resultPage = prepEnrollmentRepository.findAllPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
+            resultPage = prepPepInitiationRepository.findAllPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
         } else {
-            resultPage = prepEnrollmentRepository.findAllPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
+            resultPage = prepPepInitiationRepository.findAllPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
         }
         List<PrepClient> filteredList = resultPage.getContent().stream()
                 .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
@@ -342,9 +342,9 @@ public class PrepService {
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
             searchValue = searchValue.replaceAll("\\\\s", "");
             String queryParam = "%" + searchValue + "%";
-            resultPage = prepEnrollmentRepository.findAllInterruptedPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
+            resultPage = prepPepInitiationRepository.findAllInterruptedPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
         } else {
-            resultPage = prepEnrollmentRepository.findAllInterruptedPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
+            resultPage = prepPepInitiationRepository.findAllInterruptedPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
         }
         List<PrepClient> filteredList = resultPage.getContent().stream()
                 .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
@@ -361,9 +361,9 @@ public class PrepService {
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
             searchValue = searchValue.replaceAll("\\\\s", "");
             String queryParam = "%" + searchValue + "%";
-            resultPage = prepEnrollmentRepository.findAllNotEnrolledPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
+            resultPage = prepPepInitiationRepository.findAllNotEnrolledPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
         } else {
-            resultPage = prepEnrollmentRepository.findAllNotEnrolledPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
+            resultPage = prepPepInitiationRepository.findAllNotEnrolledPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
         }
         List<PrepClient> filteredList = resultPage.getContent().stream()
                 .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
@@ -380,9 +380,9 @@ public class PrepService {
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
             searchValue = searchValue.replaceAll("\\\\s", "");
             String queryParam = "%" + searchValue + "%";
-            resultPage = prepEnrollmentRepository.findAllPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
+            resultPage = prepPepInitiationRepository.findAllPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
         } else {
-            resultPage = prepEnrollmentRepository.findAllPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
+            resultPage = prepPepInitiationRepository.findAllPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
         }
         List<PrepClient> filteredList = resultPage.getContent().stream()
                 .filter(prepClient -> !"Not Enrolled".equals(prepClient.getPrepStatus()))
@@ -398,10 +398,10 @@ public class PrepService {
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
             searchValue = searchValue.replaceAll("\\s", "");
             String queryParam = "%" + searchValue + "%";
-            return prepEnrollmentRepository
+            return prepPepInitiationRepository
                     .findOnlyPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
         }
-        return prepEnrollmentRepository
+        return prepPepInitiationRepository
                 .findOnlyPersonPrepAndStatus(UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(), pageable);
     }
 
@@ -414,16 +414,16 @@ public class PrepService {
     }
 
     public PrepDtos getPrepClientByPersonId(Person person) {
-        return this.prepToPrepDtos(person, prepEnrollmentRepository.findAllByPersonOrderByIdDesc(person));
+        return this.prepToPrepDtos(person, prepPepInitiationRepository.findAllByPersonOrderByIdDesc(person));
     }
 
-    private PrepDtos prepToPrepDtos(@NotNull Person person, List<PrepEnrollment> clients) {
+    private PrepDtos prepToPrepDtos(@NotNull Person person, List<PrepPepInitiation> clients) {
         boolean isPositive = false;
         PrepDtos prepDtos = new PrepDtos();
         if (person == null) throw new EntityNotFoundException(Person.class, "Person", "is null");
         prepDtos.setPersonId(person.getId());
         prepDtos.setPersonResponseDto(personService.getDtoFromPerson(person));
-        prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
+        prepDtos.setPrepEligibilityCount(prepEligibilityScreeningRepository.countAllByPersonUuid(person.getUuid()));
         List<PrepDto> prepDtoList = clients
                 .stream()
                 .map(client -> {
@@ -432,7 +432,7 @@ public class PrepService {
                         final PersonResponseDto personResponseDto = personService.getDtoFromPerson(samePerson);
                         prepDtos.setPersonResponseDto(personResponseDto);
                         prepDtos.setPersonId(personResponseDto.getId());
-                        prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(samePerson.getUuid()));
+                        prepDtos.setPrepEligibilityCount(prepEligibilityScreeningRepository.countAllByPersonUuid(samePerson.getUuid()));
                     }
                     if (prepDtos.getUniqueId() == null) {
                         prepDtos.setUniqueId(client.getUniqueId());
@@ -443,15 +443,15 @@ public class PrepService {
         int prepCount = prepDtoList.size();
         prepDtos.setPrepEnrollmentCount(prepCount);
         prepDtos.setPrepDtoList(prepDtoList);
-        Integer commencementCount = prepClinicRepository.countAllByPersonUuid(person.getUuid());
+        Integer commencementCount = prepFollowupVisitRepository.countAllByPersonUuid(person.getUuid());
         prepDtos.setCommenced((commencementCount > 0) ? true : false);
-        prepDtos.setPrepEligibilityCount(prepEligibilityRepository.countAllByPersonUuid(person.getUuid()));
+        prepDtos.setPrepEligibilityCount(prepEligibilityScreeningRepository.countAllByPersonUuid(person.getUuid()));
         prepDtos.setHivPositive(isPositive);
         prepDtos.setPrepCommencementCount(commencementCount);
         if (!clients.isEmpty()) {
             prepDtos.setEnrollmentType(clients.get(0).getEnrollmentType());
         }
-        PrepClient prepClient = prepEnrollmentRepository
+        PrepClient prepClient = prepPepInitiationRepository
                 .findPersonPrepAndStatusByPatientUuid(UN_ARCHIVED,
                         currentUserOrganizationService.getCurrentUserOrganization(), person.getUuid())
                 .orElse(null);
@@ -468,7 +468,7 @@ public class PrepService {
 
     public PrepEligibilityDto getOpenEligibility(Long personId) {
         Person person = this.getPerson(personId);
-        return prepEligibilityToPrepEligibilityDto(prepEligibilityRepository
+        return prepEligibilityToPrepEligibilityDto(prepEligibilityScreeningRepository
                 .findByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED));
     }
 
@@ -476,19 +476,19 @@ public class PrepService {
         Person person = this.getPerson(personId);
 
         String status = "STOPPED, DEATH";
-        Optional<PrepEnrollment> prepEnrollmentOptional = prepEnrollmentRepository
+        Optional<PrepPepInitiation> prepEnrollmentOptional = prepPepInitiationRepository
                 .findByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(), status);
         if (prepEnrollmentOptional.isPresent())
             return enrollmentToEnrollmentDto(prepEnrollmentOptional.get());//PrepEnrollmentDto.builder().build();
         return new PrepEnrollmentDto();
     }
 
-    public PrepEligibility prepEligibilityRequestDtoToPrepEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto, String personUuid) {
+    public PrepEligibilityScreening prepEligibilityRequestDtoToPrepEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto, String personUuid) {
         if (prepEligibilityRequestDto == null) {
             return null;
         }
 
-        PrepEligibility prepEligibility = new PrepEligibility();
+        PrepEligibilityScreening prepEligibility = new PrepEligibilityScreening();
 
         prepEligibility.setHivRisk(prepEligibilityRequestDto.getHivRisk());
         prepEligibility.setUniqueId(prepEligibilityRequestDto.getUniqueId());
@@ -528,7 +528,7 @@ public class PrepService {
         return prepEligibility;
     }
 
-    public PrepEligibilityDto prepEligibilityToPrepEligibilityDto(PrepEligibility eligibility) {
+    public PrepEligibilityDto prepEligibilityToPrepEligibilityDto(PrepEligibilityScreening eligibility) {
         if (eligibility == null) {
             return null;
         }
@@ -582,12 +582,12 @@ public class PrepService {
         return patientActivityService.getActivities(id);
     }
 
-    private PrepEnrollment enrollmentRequestDtoToEnrollment(PrepEnrollmentRequestDto prepEnrollmentRequestDto, String personUuid) {
+    private PrepPepInitiation enrollmentRequestDtoToEnrollment(PrepEnrollmentRequestDto prepEnrollmentRequestDto, String personUuid) {
         if (prepEnrollmentRequestDto == null) {
             return null;
         }
 
-        PrepEnrollment prepEnrollment = new PrepEnrollment();
+        PrepPepInitiation prepEnrollment = new PrepPepInitiation();
 
         prepEnrollment.setPersonUuid(personUuid);
         prepEnrollment.setExtra(prepEnrollmentRequestDto.getExtra());
@@ -628,12 +628,12 @@ public class PrepService {
         return prepEnrollment;
     }
 
-    private PrepClinic clinicRequestDtoToClinic(PrepClinicRequestDto prepClinicRequestDto, String personUuid) {
+    private PrepFollowupVisit clinicRequestDtoToClinic(PrepClinicRequestDto prepClinicRequestDto, String personUuid) {
         if (prepClinicRequestDto == null) {
             return null;
         }
 
-        PrepClinic prepClinic = new PrepClinic();
+        PrepFollowupVisit prepClinic = new PrepFollowupVisit();
         prepClinic.setPersonUuid(personUuid);
         prepClinic.setExtra(prepClinicRequestDto.getExtra());
         prepClinic.setDateInitialAdherenceCounseling(prepClinicRequestDto.getDateInitialAdherenceCounseling());
@@ -696,7 +696,7 @@ public class PrepService {
         return prepClinic;
     }
 
-    private PrepClinicDto clinicToClinicDto(PrepClinic clinic) {
+    private PrepClinicDto clinicToClinicDto(PrepFollowupVisit clinic) {
         if (clinic == null) {
             return null;
         }
@@ -768,7 +768,7 @@ public class PrepService {
         return prepClinicDto;
     }
 
-    private PrepEnrollmentDto enrollmentToEnrollmentDto(PrepEnrollment enrollment) {
+    private PrepEnrollmentDto enrollmentToEnrollmentDto(PrepPepInitiation enrollment) {
         if (enrollment == null) {
             return null;
         }
@@ -815,7 +815,7 @@ public class PrepService {
         return enrollmentDto;
     }
 
-    private PrepDto prepEnrollmentToPrepDto(PrepEnrollment prepEnrollment) {
+    private PrepDto prepEnrollmentToPrepDto(PrepPepInitiation prepEnrollment) {
         if (prepEnrollment == null) {
             return null;
         }
@@ -826,17 +826,17 @@ public class PrepService {
         prepDto.setExtra(prepEnrollment.getExtra());
         //PersonResponseDto personResponseDto = personService.getDtoFromPerson(prepEnrollment.getPerson());
         //prepDto.setPersonResponseDto(personResponseDto);
-        prepDto.setDateStarted(prepEnrollment.getDateStarted());
+        prepDto.setDateStarted(prepEnrollment.getDateEnrolled());
         prepDto.setStatus(prepEnrollment.getStatus());
         return prepDto;
     }
 
-    public PrepInterruption interruptionRequestDtoInterruption(PrepInterruptionRequestDto interruptionRequestDto, String personUuid) {
+    public PrepCompletion interruptionRequestDtoInterruption(PrepInterruptionRequestDto interruptionRequestDto, String personUuid) {
         if (interruptionRequestDto == null) {
             return null;
         }
 
-        PrepInterruption prepInterruption = new PrepInterruption();
+        PrepCompletion prepInterruption = new PrepCompletion();
 
         prepInterruption.setInterruptionType(interruptionRequestDto.getInterruptionType());
         prepInterruption.setInterruptionDate(interruptionRequestDto.getInterruptionDate());
@@ -863,7 +863,7 @@ public class PrepService {
         return prepInterruption;
     }
 
-    public PrepInterruptionDto interruptionToInterruptionDto(PrepInterruption prepInterruption) {
+    public PrepInterruptionDto interruptionToInterruptionDto(PrepCompletion prepInterruption) {
         if (prepInterruption == null) {
             return null;
         }
@@ -897,29 +897,29 @@ public class PrepService {
     }
 
     public PrepClinicDto getCommencementById(Long id) {
-        PrepClinic prepClinic = prepClinicRepository
+        PrepFollowupVisit prepClinic = prepFollowupVisitRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService
                         .getCurrentUserOrganization(), UN_ARCHIVED)
-                .orElseThrow(() -> new EntityNotFoundException(PrepClinic.class, "id", String.valueOf(id)));
+                .orElseThrow(() -> new EntityNotFoundException(PrepFollowupVisit.class, "id", String.valueOf(id)));
 
         return this.clinicToClinicDto(prepClinic);
     }
 
     public PrepEligibilityDto getEligibilityById(Long id) {
-        PrepEligibility prepEligibility = prepEligibilityRepository
+        PrepEligibilityScreening prepEligibility = prepEligibilityScreeningRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService
                         .getCurrentUserOrganization(), UN_ARCHIVED)
-                .orElseThrow(() -> new EntityNotFoundException(PrepEligibility.class, "id", String.valueOf(id)));
+                .orElseThrow(() -> new EntityNotFoundException(PrepEligibilityScreening.class, "id", String.valueOf(id)));
 
         return prepEligibilityToPrepEligibilityDto(prepEligibility);
 
     }
 
     public PrepEnrollmentDto getEnrollmentById(Long id) {
-        PrepEnrollment prepEnrollment = prepEnrollmentRepository
+        PrepPepInitiation prepEnrollment = prepPepInitiationRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService
                         .getCurrentUserOrganization(), UN_ARCHIVED)
-                .orElseThrow(() -> new EntityNotFoundException(PrepEligibility.class, "id", String.valueOf(id)));
+                .orElseThrow(() -> new EntityNotFoundException(PrepEligibilityScreening.class, "id", String.valueOf(id)));
 
         return enrollmentToEnrollmentDto(prepEnrollment);
 

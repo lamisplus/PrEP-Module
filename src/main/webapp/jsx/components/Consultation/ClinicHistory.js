@@ -122,10 +122,10 @@ const PatientnHistory = (props) => {
         setRecord(row)
     }
     const LoadDeletePage = (row) => {
-        if (row.path === 'prep-eligibility-screening') {
+        if (row.path === 'prep-eligibility') {
             setSaving(true)
             axios
-                .delete(`${baseUrl}prep-eligibility-screening/${row.id}`,
+                .delete(`${baseUrl}prep-eligibility/${row.id}`,
                     { headers: { "Authorization": `Bearer ${token}` } }
                 )
                 .then((response) => {
@@ -144,7 +144,7 @@ const PatientnHistory = (props) => {
                         toast.error("Something went wrong. Please try again...");
                     }
                 });
-        } else if (row.path === 'prep-followup-visit') {
+        } else if (row.path === 'prep-clinic') {
             setSaving(true)
             axios
                 .delete(`${baseUrl}prep-followup-visit/${row.id}`,
@@ -168,11 +168,11 @@ const PatientnHistory = (props) => {
                     }
                 });
 
-        } else if (row.path === 'prep-pep-initiation') {
+        } else if (row.path === 'prep-enrollment') {
             setSaving(true)
             //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
             axios
-                .delete(`${baseUrl}prep-pep-initiation/${row.id}`,
+                .delete(`${baseUrl}prep-enrollment/${row.id}`,
                     { headers: { "Authorization": `Bearer ${token}` } }
                 )
                 .then((response) => {
@@ -195,7 +195,7 @@ const PatientnHistory = (props) => {
         } else if (row.path === 'prep-enrollment2') {
             setSaving(true)
             axios
-                .delete(`${baseUrl}prep-pep-initiation/${row.id}`,
+                .delete(`${baseUrl}prep-enrollment/${row.id}`,
                     { headers: { "Authorization": `Bearer ${token}` } }
                 )
                 .then((response) => {
@@ -295,7 +295,7 @@ const PatientnHistory = (props) => {
                     <h4>Are you Sure you want to delete <b>{record && record.name}</b></h4>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={() => LoadDeletePage({ ...record, path: "prep-followup-visit" })} style={{ backgroundColor: "red", color: "#fff" }} disabled={saving}>{saving === false ? "Yes" : "Deleting..."}</Button>
+                    <Button onClick={() => LoadDeletePage({ ...record, path: "prep-clinic" })} style={{ backgroundColor: "red", color: "#fff" }} disabled={saving}>{saving === false ? "Yes" : "Deleting..."}</Button>
                     <Button onClick={toggle} style={{ backgroundColor: "#014d88", color: "#fff" }} disabled={saving}>No</Button>
                 </Modal.Footer>
             </Modal>

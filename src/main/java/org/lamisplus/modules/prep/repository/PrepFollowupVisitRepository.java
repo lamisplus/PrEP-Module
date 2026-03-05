@@ -23,6 +23,7 @@ public interface PrepFollowupVisitRepository extends JpaRepository<PrepFollowupV
     List<PrepFollowupVisit> findAllByPrepEnrollmentUuid(String uuid);
     List<PrepFollowupVisit> findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(String personUuid, Long facilityId, int archived, Boolean isCommenced);
     Optional<PrepFollowupVisit> findByEncounterDateAndPersonUuid(LocalDate encounterDate, String uuid);
+    Optional<PrepFollowupVisit> findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(LocalDate encounterDate, String uuid, Boolean isCommencement, Integer archived);
     Optional<PrepFollowupVisit> findByUuid(String uuid);
 
     @Query(value = "SELECT enableCab FROM (" +

@@ -110,7 +110,7 @@ export const getHts = async () => {
 };
 
 export const getLatestFromEligibility = async personId => {
-  return await axios.get(`${baseUrl}prep-eligibility-screening/person/${personId}`, {
+  return await axios.get(`${baseUrl}prep-eligibility/person/${personId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
