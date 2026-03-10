@@ -15,7 +15,6 @@ import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 import org.lamisplus.modules.base.domain.entities.Audit;
 import org.lamisplus.modules.patient.domain.entity.Person;
-import org.lamisplus.modules.patient.domain.entity.Visit;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -45,9 +44,6 @@ public class PrepPepInitiation extends Audit implements Serializable {
 
     @Column(name = "person_uuid")
     private String personUuid;
-
-    @Column(name = "visit_uuid")
-    private String visitUuid;
 
     @Column(name = "facility_id")
     public Long facilityId;
@@ -158,10 +154,6 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private Person person;
-
-    @ManyToOne
-    @JoinColumn(name = "visit_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
-    private Visit visit;
 
     @OneToOne
     @JoinColumn(name = "prep_eligibility_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)

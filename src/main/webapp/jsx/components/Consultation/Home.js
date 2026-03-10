@@ -500,10 +500,10 @@ const ClinicVisit = props => {
   // ── Vital sign warning helpers ──
 
   const handleInputValueCheckWeight = e => {
-    if (e.target.value < 3 || e.target.value > 150) {
+    if (e.target.value < 1 || e.target.value > 300) {
       setVitalClinicalSupport(prev => ({
         ...prev,
-        weight: "Body weight must not be greater than 150 and less than 3",
+        weight: "Body weight must be between 1 and 300 kg",
       }));
     } else {
       setVitalClinicalSupport(prev => ({ ...prev, weight: "" }));
@@ -511,10 +511,10 @@ const ClinicVisit = props => {
   };
 
   const handleInputValueCheckHeight = e => {
-    if (e.target.value < 48.26 || e.target.value > 216.408) {
+    if (e.target.value < 0.3 || e.target.value > 2.5) {
       setVitalClinicalSupport(prev => ({
         ...prev,
-        height: "Height must be between 48.26 cm and 216.408 cm",
+        height: "Height must be between 0.3 and 2.5 meters",
       }));
     } else {
       setVitalClinicalSupport(prev => ({ ...prev, height: "" }));
@@ -1157,8 +1157,8 @@ const ClinicVisit = props => {
                               handleChange(e);
                               handleInputValueCheckWeight(e);
                             }}
-                            min="3"
-                            max="150"
+                            min="1"
+                            max="300"
                             value={values.weight}
                             style={{
                               ...inputGroupMiddleStyle,
@@ -1196,7 +1196,7 @@ const ClinicVisit = props => {
                             addonType="append"
                             style={inputGroupLeftStyle}
                           >
-                            cm
+                            m
                           </InputGroupText>
                           <Input
                             type="number"
@@ -1206,20 +1206,17 @@ const ClinicVisit = props => {
                               handleChange(e);
                               handleInputValueCheckHeight(e);
                             }}
-                            min="48.26"
-                            max="216.408"
+                            min="0.3"
+                            max="2.5"
+                            step="0.01"
                             value={values.height}
-                            style={inputGroupMiddleStyle}
+                            style={{
+                              ...inputGroupMiddleStyle,
+                              borderTopRightRadius: "0.25rem",
+                              borderBottomRightRadius: "0.25rem",
+                            }}
                             disabled={disabledField}
                           />
-                          <InputGroupText
-                            addonType="append"
-                            style={inputGroupRightStyle}
-                          >
-                            {values.height
-                              ? (values.height / 100).toFixed(2) + "m"
-                              : "m"}
-                          </InputGroupText>
                         </InputGroup>
                         {vitalClinicalSupport.height && (
                           <span className={classes.error}>
@@ -1238,7 +1235,7 @@ const ClinicVisit = props => {
                             type="text"
                             value={(
                               values.weight /
-                              (values.height / 100) ** 2
+                              values.height ** 2
                             ).toFixed(2)}
                             style={inputStyle}
                             disabled
@@ -1323,13 +1320,18 @@ const ClinicVisit = props => {
                           <span style={{ color: "red" }}> *</span>
                         </FormLabelName>
                         <Input
-                          type="text"
+                          type="select"
                           name="hivTestResult"
                           id="hivTestResult"
                           value={hivTestValue}
                           style={inputStyle}
                           disabled={disabledField}
-                        />
+                          onChange={e => setHivTestValue(e.target.value)}
+                        >
+                          <option value="">Select</option>
+                          <option value="Negative">Negative</option>
+                          <option value="Positive">Positive</option>
+                        </Input>
                         {!hivTestValue && (
                           <span className={classes.error}>
                             At least 1 HIV test result is required
@@ -1983,7 +1985,7 @@ const ClinicVisit = props => {
                               codeset?.LIVER_FUNCTION_TEST_RESULT
                             }
                             disabledField={disabledField}
-                            isAutoPop={true}
+                            isAutoPop={false}
                           />
                         </FormGroup>
                       </div>

@@ -167,11 +167,11 @@ const PrEPInitialVisitForm = props => {
   const handleInputValueCheckBodyWeight = e => {
     if (
       e.target.value !== "" &&
-      (Number(e.target.value) > 150 || Number(e.target.value) < 3)
+      (Number(e.target.value) > 300 || Number(e.target.value) < 1)
     ) {
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
-        bodyWeight: "Body weight must not be greater than 150 and less than 3",
+        bodyWeight: "Body weight must be between 1 and 300 kg",
       });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, bodyWeight: "" });
@@ -181,11 +181,11 @@ const PrEPInitialVisitForm = props => {
   const handleInputValueCheckHeight = e => {
     if (
       e.target.value !== "" &&
-      (Number(e.target.value) > 216.408 || Number(e.target.value) < 48.26)
+      (Number(e.target.value) > 2.5 || Number(e.target.value) < 0.3)
     ) {
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
-        height: "Height cannot be greater than 216.408 and less than 48.26",
+        height: "Height must be between 0.3 and 2.5 meters",
       });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: "" });
@@ -670,8 +670,8 @@ const PrEPInitialVisitForm = props => {
                       name="weight"
                       id="weight"
                       onChange={handleInputChange}
-                      min="3"
-                      max="150"
+                      min="1"
+                      max="300"
                       value={objValues.weight}
                       onKeyUp={handleInputValueCheckBodyWeight}
                       style={{
@@ -720,7 +720,7 @@ const PrEPInitialVisitForm = props => {
                         borderBottomLeftRadius: "0.25rem",
                       }}
                     >
-                      cm
+                      m
                     </InputGroupText>
                     <Input
                       type="number"
@@ -728,30 +728,18 @@ const PrEPInitialVisitForm = props => {
                       id="height"
                       onChange={handleInputChange}
                       value={objValues.height}
-                      min="48.26"
-                      max="216.408"
+                      min="0.3"
+                      max="2.5"
+                      step="0.01"
                       disabled={disabledField}
                       onKeyUp={handleInputValueCheckHeight}
                       style={{
                         border: "1px solid #014D88",
                         borderRadius: "0rem",
-                      }}
-                    />
-                    <InputGroupText
-                      addonType="append"
-                      style={{
-                        backgroundColor: "#992E62",
-                        color: "#fff",
-                        border: "1px solid #992E62",
-                        borderRadius: "0rem",
                         borderTopRightRadius: "0.25rem",
                         borderBottomRightRadius: "0.25rem",
                       }}
-                    >
-                      {objValues.height
-                        ? (objValues.height / 100).toFixed(2) + "m"
-                        : "m"}
-                    </InputGroupText>
+                    />
                   </InputGroup>
                   {vitalClinicalSupport.height && (
                     <span className={classes.error}>
@@ -770,7 +758,7 @@ const PrEPInitialVisitForm = props => {
                       type="text"
                       value={(
                         objValues.weight /
-                        (objValues.height / 100) ** 2
+                        objValues.height ** 2
                       ).toFixed(2)}
                       style={{
                         border: "1px solid #014D88",

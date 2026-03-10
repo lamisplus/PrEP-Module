@@ -209,10 +209,10 @@ const PrEPCommencementForm = props => {
     setErrors({ ...errors, [e.target.name]: "" });
     if (
       e.target.name === "height" &&
-      (e.target.value < 48.26 || e.target.value > 216.408)
+      (e.target.value < 0.3 || e.target.value > 2.5)
     ) {
       const message =
-        "Height cannot be greater than 216.408 and less than 48.26";
+        "Height must be between 0.3 and 2.5 meters";
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: "" });
@@ -223,10 +223,10 @@ const PrEPCommencementForm = props => {
     setErrors({ ...errors, [e.target.name]: "" });
     if (
       e.target.name === "weight" &&
-      (e.target.value < 3 || e.target.value > 150)
+      (e.target.value < 1 || e.target.value > 300)
     ) {
       const message =
-        "Body weight must not be greater than 150 and less than 3";
+        "Body weight must be between 1 and 300 kg";
       setVitalClinicalSupport({ ...vitalClinicalSupport, weight: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, weight: "" });
@@ -447,8 +447,8 @@ const PrEPCommencementForm = props => {
                     name="weight"
                     id="weight"
                     onChange={handleInputChange}
-                    min="3"
-                    max="150"
+                    min="1"
+                    max="300"
                     value={objValues.weight}
                     onKeyUp={handleInputValueCheckBodyWeight}
                     style={{
@@ -500,7 +500,7 @@ const PrEPCommencementForm = props => {
                       borderBottomLeftRadius: "0.25rem",
                     }}
                   >
-                    cm
+                    m
                   </InputGroupText>
                   <Input
                     type="number"
@@ -508,30 +508,18 @@ const PrEPCommencementForm = props => {
                     id="height"
                     onChange={handleInputChange}
                     value={objValues.height}
-                    min="48.26"
-                    max="216.408"
+                    min="0.3"
+                    max="2.5"
+                    step="0.01"
                     disabled={disabledField}
                     onKeyUp={handleInputValueCheckHeight}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0rem",
-                    }}
-                  />
-                  <InputGroupText
-                    addonType="append"
-                    style={{
-                      backgroundColor: "#992E62",
-                      color: "#fff",
-                      border: "1px solid #992E62",
-                      borderRadius: "0rem",
                       borderTopRightRadius: "0.25rem",
                       borderBottomRightRadius: "0.25rem",
                     }}
-                  >
-                    {objValues.height
-                      ? (objValues.height / 100).toFixed(2) + "m"
-                      : "m"}
-                  </InputGroupText>
+                  />
                 </InputGroup>
                 {vitalClinicalSupport.height && (
                   <span className={classes.error}>
@@ -551,7 +539,7 @@ const PrEPCommencementForm = props => {
                     type="text"
                     value={(
                       objValues.weight /
-                      (objValues.height / 100) ** 2
+                      objValues.height ** 2
                     ).toFixed(2)}
                     style={{
                       border: "1px solid #014D88",

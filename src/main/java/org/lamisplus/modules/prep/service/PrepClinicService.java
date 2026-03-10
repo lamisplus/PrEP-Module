@@ -338,18 +338,12 @@ public class PrepClinicService {
         prepClinicDto.setHeight(clinic.getHeight());
         prepClinicDto.setPregnant(clinic.getPregnant());
         prepClinicDto.setPrepDistributionSetting(clinic.getPrepDistributionSetting());
-        if (last != null && last) {
-            prepClinicDto.setVisitCount(prepClinicRepository.countAllByPersonUuid(clinic.getPersonUuid()));
-        }
         prepClinicDto.setDateOfFamilyPlanning(clinic.getDateOfFamilyPlanning());
         prepClinicDto.setFamilyPlanning(clinic.getFamilyPlanning());
         prepClinicDto.setVisitType(clinic.getVisitType());
         prepClinicDto.setDateReferred(clinic.getDateReferred());
         prepClinicDto.setPrepEnrollmentUuid(clinic.getPrepEnrollmentUuid());
         prepClinicDto.setRegimenId(clinic.getRegimenId());
-        if (clinic.getRegimenId() != 0L && clinic.getRegimen() != null) {
-            prepClinicDto.setRegimen(clinic.getRegimen().getRegimen());
-        }
         prepClinicDto.setUrinalysisResult(clinic.getUrinalysisResult());
         prepClinicDto.setCreatinineResult(clinic.getCreatinineResult());
         prepClinicDto.setReferred(clinic.getReferred());

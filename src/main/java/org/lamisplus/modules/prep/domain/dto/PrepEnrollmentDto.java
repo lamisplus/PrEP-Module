@@ -21,8 +21,6 @@ public class PrepEnrollmentDto implements Serializable {
 
     private String uniqueId;
 
-    private LocalDate dateOfRegistration;
-
     //@NotBlank(message = "prepEligibilityUuid is mandatory")
     public String prepEligibilityUuid;
 

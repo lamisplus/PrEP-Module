@@ -87,6 +87,7 @@ const INITIAL_VALUES = {
   otherPepRegimen: "",
   dateStartPep: "",
   dateStopPep: "",
+  duration: "",
   followupHivTestResults: [],
   nextAppointment: "",
   healthCareWorkerSignature: "",
@@ -872,6 +873,23 @@ const PEPFollowupVisit = props => {
                       </FormGroup>
                     </div>
 
+                    {/* 12b. Duration on PrEP/PEP (Months) */}
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <FormLabelName>Duration on PrEP/PEP (Months)</FormLabelName>
+                        <Input
+                          type="number"
+                          name="duration"
+                          id="duration"
+                          onChange={handleChange}
+                          value={values.duration}
+                          style={inputStyle}
+                          disabled={disabledField}
+                          min="0"
+                        />
+                      </FormGroup>
+                    </div>
+
                     {/* 13. Follow-up HIV Test Results */}
                     <div className="form-group mb-3 col-md-12">
                       <Label
@@ -938,7 +956,7 @@ const PEPFollowupVisit = props => {
                               onClick={handleAddHivTestEntry}
                               disabled={!hivTestInput.test || !hivTestInput.result}
                             >
-                              <span style={{ textTransform: "capitalize" }}>
+                              <span style={{ textTransform: "capitalize", color: (!hivTestInput.test || !hivTestInput.result) ? "rgba(255,255,255,0.5)" : "#fff" }}>
                                 {editingHivTestIndex !== null ? "Update" : "Add"}
                               </span>
                             </MatButton>

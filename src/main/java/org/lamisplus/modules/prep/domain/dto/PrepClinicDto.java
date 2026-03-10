@@ -28,8 +28,6 @@ public class PrepClinicDto implements Serializable {
 
     private long regimenId;
 
-    private long regimenTypeId;
-
     private String urinalysisResult;
 
     private Boolean referred;
@@ -82,12 +80,9 @@ public class PrepClinicDto implements Serializable {
 
     private Integer duration;
 
-    private String regimen;
     private String otherPrepGiven;
     private String otherPrepType;
     private String otherRegimenId;
-    private int visitCount;
-
     private String prepGiven;
     private String prepDistributionSetting;
     private String familyPlanning;

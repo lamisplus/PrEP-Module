@@ -693,6 +693,11 @@ public class PrepService {
         prepClinic.setOtherRegimenId(prepClinicRequestDto.getOtherRegimenId());
         prepClinic.setComment(prepClinicRequestDto.getComment());
         prepClinic.setPreviousPrepStatus(prepClinicRequestDto.getPreviousPrepStatus());
+        prepClinic.setWhyAdherenceLevelPoor(prepClinicRequestDto.getWhyAdherenceLevelPoor());
+        prepClinic.setOtherReasonForPoorFairAdherence(prepClinicRequestDto.getOtherReasonForPoorFairAdherence());
+        prepClinic.setSyndromicScreening(prepClinicRequestDto.getSyndromicScreening());
+        prepClinic.setOtherSyndromicStiScreening(prepClinicRequestDto.getOtherSyndromicStiScreening());
+        prepClinic.setOtherNotedSideEffects(prepClinicRequestDto.getOtherNotedSideEffects());
         return prepClinic;
     }
 
@@ -764,6 +769,11 @@ public class PrepService {
         prepClinicDto.setOtherRegimenId(clinic.getOtherRegimenId());
         prepClinicDto.setComment(clinic.getComment());
         prepClinicDto.setPreviousPrepStatus(clinic.getPreviousPrepStatus());
+        prepClinicDto.setWhyAdherenceLevelPoor(clinic.getWhyAdherenceLevelPoor());
+        prepClinicDto.setOtherReasonForPoorFairAdherence(clinic.getOtherReasonForPoorFairAdherence());
+        prepClinicDto.setSyndromicScreening(clinic.getSyndromicScreening());
+        prepClinicDto.setOtherSyndromicStiScreening(clinic.getOtherSyndromicStiScreening());
+        prepClinicDto.setOtherNotedSideEffects(clinic.getOtherNotedSideEffects());
 
         return prepClinicDto;
     }

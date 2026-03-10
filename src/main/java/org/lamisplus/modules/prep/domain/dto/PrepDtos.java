@@ -19,6 +19,5 @@ public class PrepDtos {
     private boolean isCommenced;
     //private List<PrepEligibilityDto> prepEligibilityDtos;
     private Boolean hivPositive;
-    private LocalDate dateHivPositive;
     private String enrollmentType;
 }
