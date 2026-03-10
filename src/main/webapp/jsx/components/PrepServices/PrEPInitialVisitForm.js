@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Form, Row, Card, CardBody, FormGroup, Label, Input, InputGroup, InputGroupText } from "reactstrap";
+import {
+  Form,
+  Row,
+  Card,
+  CardBody,
+  FormGroup,
+  Label,
+  Input,
+  InputGroup,
+  InputGroupText,
+} from "reactstrap";
 import MatButton from "@material-ui/core/Button";
 import SaveIcon from "@material-ui/icons/Save";
 import axios from "axios";
@@ -268,8 +278,7 @@ const PrEPInitialVisitForm = props => {
   };
 
   return (
-    <div>
-      <Card>
+      <Card className={classes.root}>
         <CardBody>
           <form>
             <div className="row">
@@ -391,12 +400,23 @@ const PrEPInitialVisitForm = props => {
                     }}
                   >
                     <option value="">Select</option>
-                    <option value="Serodiscordant Couples(SDC)">Serodiscordant Couples(SDC)</option>
+                    <option value="Serodiscordant Couples(SDC)">
+                      Serodiscordant Couples(SDC)
+                    </option>
                     <option value="Sex Workers">Sex Workers</option>
-                    <option value="Partners of Sex workers">Partners of Sex workers</option>
-                    <option value="Injecting Drug Users">Injecting Drug Users</option>
-                    <option value="Individuals who engage in anal sex on a prolonged and regular basis">Individuals who engage in anal sex on a prolonged and regular basis</option>
-                    <option value="Exposed adolescents and young people">Exposed adolescents and young people</option>
+                    <option value="Partners of Sex workers">
+                      Partners of Sex workers
+                    </option>
+                    <option value="Injecting Drug Users">
+                      Injecting Drug Users
+                    </option>
+                    <option value="Individuals who engage in anal sex on a prolonged and regular basis">
+                      Individuals who engage in anal sex on a prolonged and
+                      regular basis
+                    </option>
+                    <option value="Exposed adolescents and young people">
+                      Exposed adolescents and young people
+                    </option>
                     <option value="Transgender">Transgender</option>
                     <option value="At risk Pregnant & Breastfeeding Women">{`At risk Pregnant & Breastfeeding Women`}</option>
                   </select>
@@ -756,10 +776,9 @@ const PrEPInitialVisitForm = props => {
                     <Label>BMI</Label>
                     <Input
                       type="text"
-                      value={(
-                        objValues.weight /
-                        objValues.height ** 2
-                      ).toFixed(2)}
+                      value={(objValues.weight / objValues.height ** 2).toFixed(
+                        2
+                      )}
                       style={{
                         border: "1px solid #014D88",
                         borderRadius: "0.25rem",
@@ -773,31 +792,31 @@ const PrEPInitialVisitForm = props => {
               {/* 16. Pregnant */}
               {(props.patientObj?.gender?.toLowerCase() === "female" ||
                 props.patientObj?.sex?.toLowerCase() === "female") && (
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>Pregnant</Label>
-                  <select
-                    className="form-control"
-                    name="pregnancyStatus"
-                    id="pregnancyStatus"
-                    onChange={handleInputChange}
-                    value={objValues.pregnancyStatus}
-                    disabled={disabledField}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                      padding: "0.5rem",
-                    }}
-                  >
-                    <option value="">Select</option>
-                    {codeset?.PREGNANCY_STATUS?.map(value => (
-                      <option key={value.id} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </select>
-                </FormGroup>
-              </div>
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>Pregnant</Label>
+                    <select
+                      className="form-control"
+                      name="pregnancyStatus"
+                      id="pregnancyStatus"
+                      onChange={handleInputChange}
+                      value={objValues.pregnancyStatus}
+                      disabled={disabledField}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                        padding: "0.5rem",
+                      }}
+                    >
+                      <option value="">Select</option>
+                      {codeset?.PREGNANCY_STATUS?.map(value => (
+                        <option key={value.id} value={value.code}>
+                          {value.display}
+                        </option>
+                      ))}
+                    </select>
+                  </FormGroup>
+                </div>
               )}
 
               {/* 17. PrEP Type at Start */}
@@ -974,7 +993,9 @@ const PrEPInitialVisitForm = props => {
                   <LiverFunctionTest
                     objValues={objValues}
                     handleInputChange={handleLftInputChange}
-                    liverFunctionTestResult={codeset?.LIVER_FUNCTION_TEST_RESULT}
+                    liverFunctionTestResult={
+                      codeset?.LIVER_FUNCTION_TEST_RESULT
+                    }
                     disabledField={disabledField}
                     isAutoPop={false}
                   />
@@ -1037,7 +1058,6 @@ const PrEPInitialVisitForm = props => {
           </form>
         </CardBody>
       </Card>
-    </div>
   );
 };
 

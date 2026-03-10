@@ -267,8 +267,10 @@ const BasicInfo = props => {
         setAssessmentForAcuteHivInfection(assessmentForAcuteHivInfection);
         setServicesReceivedByClient(servicesReceivedByClient);
         setAssessmentForPrepEligibility(assessmentForPrepEligibility);
-        if (considerationForInjections) setConsiderationForInjections(considerationForInjections);
-        if (reasonForDecliningPrep) setReasonForDecliningPrep(reasonForDecliningPrep);
+        if (considerationForInjections)
+          setConsiderationForInjections(considerationForInjections);
+        if (reasonForDecliningPrep)
+          setReasonForDecliningPrep(reasonForDecliningPrep);
       })
       .catch(error => {
         console.error("Error fetching patient eligibility data:", error);
@@ -546,7 +548,10 @@ const BasicInfo = props => {
     score += drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0;
     score += riskCount.length >= 1 ? 1 : 0;
     score +=
-      assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection === "true" ? 1 : 0;
+      assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection ===
+      "true"
+        ? 1
+        : 0;
     score +=
       assessmentForPrepEligibility?.noIndicationForPep === "true" ? 1 : 0;
     if (is30AndAbove()) {
@@ -603,9 +608,7 @@ const BasicInfo = props => {
     <>
       <Card className={classes.root}>
         <CardBody>
-          <h1 style={{ fontSize: "1.1rem" }}>
-            PrEP Eligibility Screening
-          </h1>
+          <h1 style={{ fontSize: "1.1rem" }}>PrEP Eligibility Screening</h1>
           <form>
             <div className="row">
               <div className="form-group col-md-4 p-2">
@@ -933,7 +936,14 @@ const BasicInfo = props => {
                   marginTop: "1.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
+                <h4
+                  style={{
+                    fontWeight: "800",
+                    margin: 0,
+                    color: "#014D88",
+                    fontSize: "1.2rem",
+                  }}
+                >
                   Sex Partner Risk
                 </h4>
               </div>
@@ -1116,7 +1126,14 @@ const BasicInfo = props => {
                   marginTop: "1.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
+                <h4
+                  style={{
+                    fontWeight: "800",
+                    margin: 0,
+                    color: "#014D88",
+                    fontSize: "1.2rem",
+                  }}
+                >
                   Personal HIV Risk Assessment (Last 3 months)
                 </h4>
               </div>
@@ -1275,7 +1292,14 @@ const BasicInfo = props => {
                   marginTop: "1.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
+                <h4
+                  style={{
+                    fontWeight: "800",
+                    margin: 0,
+                    color: "#014D88",
+                    fontSize: "1.2rem",
+                  }}
+                >
                   Drug Use History (last 3months)
                 </h4>
               </div>
@@ -1555,7 +1579,14 @@ const BasicInfo = props => {
                   marginTop: "1.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
+                <h4
+                  style={{
+                    fontWeight: "800",
+                    margin: 0,
+                    color: "#014D88",
+                    fontSize: "1.2rem",
+                  }}
+                >
                   Assessment for PEP Indication
                 </h4>
               </div>
@@ -1647,7 +1678,14 @@ const BasicInfo = props => {
                   marginTop: "1.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
+                <h4
+                  style={{
+                    fontWeight: "800",
+                    margin: 0,
+                    color: "#014D88",
+                    fontSize: "1.2rem",
+                  }}
+                >
                   Assessment Acute HIV Infection
                 </h4>
               </div>
@@ -1735,7 +1773,14 @@ const BasicInfo = props => {
                   marginTop: "1.5rem",
                 }}
               >
-                <h4 style={{ fontWeight: "800", margin: 0, color: "#014D88", fontSize: "1.2rem" }}>
+                <h4
+                  style={{
+                    fontWeight: "800",
+                    margin: 0,
+                    color: "#014D88",
+                    fontSize: "1.2rem",
+                  }}
+                >
                   STI Screening
                 </h4>
               </div>
@@ -2211,32 +2256,32 @@ const BasicInfo = props => {
                   "true" ||
                   assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days ===
                     "true") && (
-                <div className="form-group col-md-6 p-3">
-                  <FormGroup>
-                    <Label>
-                      If the client tests HIV negative and has signs and symptoms
-                      of acute HIV infection, recommend HIV re-testing after 1
-                      month?
-                    </Label>
-                    <select
-                      className="form-control"
-                      name="recommendRetestingAfter1Month"
-                      id="recommendRetestingAfter1Month"
-                      value={drugHistory.recommendRetestingAfter1Month}
-                      onChange={handleInputChangeDrugHistory}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                  </FormGroup>
-                </div>
-              )}
+                  <div className="form-group col-md-6 p-3">
+                    <FormGroup>
+                      <Label>
+                        If the client tests HIV negative and has signs and
+                        symptoms of acute HIV infection, recommend HIV
+                        re-testing after 1 month?
+                      </Label>
+                      <select
+                        className="form-control"
+                        name="recommendRetestingAfter1Month"
+                        id="recommendRetestingAfter1Month"
+                        value={drugHistory.recommendRetestingAfter1Month}
+                        onChange={handleInputChangeDrugHistory}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.2rem",
+                        }}
+                        disabled={disabledField}
+                      >
+                        <option value={""}>Select</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                    </FormGroup>
+                  </div>
+                )}
 
               <Message warning>
                 <h4>HIV Testing Summary</h4>
@@ -2296,9 +2341,7 @@ const BasicInfo = props => {
                   <Label>
                     HIV Negative:{" "}
                     <span className="badge badge-info">{`${
-                      drugHistory.hivTestResultAtvisit === "Negative"
-                        ? 1
-                        : 0
+                      drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0
                     }`}</span>
                   </Label>
                 </FormGroup>
@@ -2320,7 +2363,9 @@ const BasicInfo = props => {
                     className="form-control"
                     name="noSignsAndSymptomsOfAcuteHivInfection"
                     id="noSignsAndSymptomsOfAcuteHivInfection"
-                    value={assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection}
+                    value={
+                      assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection
+                    }
                     onChange={handleInputChangeAssessmentForPrepEligibility}
                     style={{
                       border: "1px solid #014D88",
@@ -2397,7 +2442,8 @@ const BasicInfo = props => {
                   riskCount.length >= 1 ? 1 : 0
                 }`}</h5>
                 <h5>{`No signs and symptoms of Acute HIV Infection: ${
-                  assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection === "true"
+                  assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection ===
+                  "true"
                     ? 1
                     : 0
                 }`}</h5>
@@ -2439,7 +2485,9 @@ const BasicInfo = props => {
                     className="form-control"
                     name="noHistoryOrSignsOfLiverAbnormalitiesInjectable"
                     id="noHistoryOrSignsOfLiverAbnormalitiesInjectable"
-                    value={considerationForInjections?.noHistoryOrSignsOfLiverAbnormalitiesInjectable}
+                    value={
+                      considerationForInjections?.noHistoryOrSignsOfLiverAbnormalitiesInjectable
+                    }
                     onChange={handleInputChangeConsiderationForInjections}
                     style={{
                       border: "1px solid #014D88",
@@ -2460,7 +2508,9 @@ const BasicInfo = props => {
                     className="form-control"
                     name="noHistoryOfDrugToDrugInteractionInjectable"
                     id="noHistoryOfDrugToDrugInteractionInjectable"
-                    value={considerationForInjections?.noHistoryOfDrugToDrugInteractionInjectable}
+                    value={
+                      considerationForInjections?.noHistoryOfDrugToDrugInteractionInjectable
+                    }
                     onChange={handleInputChangeConsiderationForInjections}
                     style={{
                       border: "1px solid #014D88",
@@ -2481,7 +2531,9 @@ const BasicInfo = props => {
                     className="form-control"
                     name="noHistoryOfDrugHypersensitivityInjectable"
                     id="noHistoryOfDrugHypersensitivityInjectable"
-                    value={considerationForInjections?.noHistoryOfDrugHypersensitivityInjectable}
+                    value={
+                      considerationForInjections?.noHistoryOfDrugHypersensitivityInjectable
+                    }
                     onChange={handleInputChangeConsiderationForInjections}
                     style={{
                       border: "1px solid #014D88",
@@ -2498,19 +2550,38 @@ const BasicInfo = props => {
 
               <div className="col-md-12 p-2">
                 {(() => {
-                  const liver = considerationForInjections?.noHistoryOrSignsOfLiverAbnormalitiesInjectable;
-                  const drugInteraction = considerationForInjections?.noHistoryOfDrugToDrugInteractionInjectable;
-                  const hypersensitivity = considerationForInjections?.noHistoryOfDrugHypersensitivityInjectable;
-                  const allSelected = liver !== "" && drugInteraction !== "" && hypersensitivity !== "";
+                  const liver =
+                    considerationForInjections?.noHistoryOrSignsOfLiverAbnormalitiesInjectable;
+                  const drugInteraction =
+                    considerationForInjections?.noHistoryOfDrugToDrugInteractionInjectable;
+                  const hypersensitivity =
+                    considerationForInjections?.noHistoryOfDrugHypersensitivityInjectable;
+                  const allSelected =
+                    liver !== "" &&
+                    drugInteraction !== "" &&
+                    hypersensitivity !== "";
                   if (!allSelected) return null;
-                  const allYes = liver === "true" && drugInteraction === "true" && hypersensitivity === "true";
+                  const allYes =
+                    liver === "true" &&
+                    drugInteraction === "true" &&
+                    hypersensitivity === "true";
                   const eligibleForInjectable = allYes ? "Yes" : "No";
                   return (
-                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "0.5rem",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                      }}
+                    >
                       <span
                         className="badge"
                         style={{
-                          backgroundColor: eligibleForInjectable === "Yes" ? "#28a745" : "#dc3545",
+                          backgroundColor:
+                            eligibleForInjectable === "Yes"
+                              ? "#28a745"
+                              : "#dc3545",
                           color: "#fff",
                           padding: "0.5rem 1rem",
                           fontSize: "0.9rem",
@@ -2628,7 +2699,9 @@ const BasicInfo = props => {
                     className="form-control"
                     name="clientReferredToOtherServices"
                     id="clientReferredToOtherServices"
-                    value={servicesReceivedByClient?.clientReferredToOtherServices}
+                    value={
+                      servicesReceivedByClient?.clientReferredToOtherServices
+                    }
                     onChange={handleInputChangeServicesReceivedByClient}
                     style={{
                       border: "1px solid #014D88",
@@ -2687,14 +2760,47 @@ const BasicInfo = props => {
                         selection
                         search
                         options={[
-                          { key: "no_need", value: "No need for PrEP", text: "No need for PrEP" },
-                          { key: "daily_med", value: "Does not wish to take a daily medication", text: "Does not wish to take a daily medication" },
-                          { key: "side_effects", value: "Concerns about side effects", text: "Concerns about side effects" },
-                          { key: "others_think", value: "Concerns about what others think", text: "Concerns about what others think" },
-                          { key: "clinic_time", value: "Concerns about time required for clinic follow-up", text: "Concerns about time required for clinic follow-up" },
-                          { key: "safety", value: "Concerns about safety of medication", text: "Concerns about safety of medication" },
-                          { key: "effectiveness", value: "Concerns about effectiveness of medication", text: "Concerns about effectiveness of medication" },
-                          { key: "others", value: "Others (Specify)", text: "Others (Specify)" },
+                          {
+                            key: "no_need",
+                            value: "No need for PrEP",
+                            text: "No need for PrEP",
+                          },
+                          {
+                            key: "daily_med",
+                            value: "Does not wish to take a daily medication",
+                            text: "Does not wish to take a daily medication",
+                          },
+                          {
+                            key: "side_effects",
+                            value: "Concerns about side effects",
+                            text: "Concerns about side effects",
+                          },
+                          {
+                            key: "others_think",
+                            value: "Concerns about what others think",
+                            text: "Concerns about what others think",
+                          },
+                          {
+                            key: "clinic_time",
+                            value:
+                              "Concerns about time required for clinic follow-up",
+                            text: "Concerns about time required for clinic follow-up",
+                          },
+                          {
+                            key: "safety",
+                            value: "Concerns about safety of medication",
+                            text: "Concerns about safety of medication",
+                          },
+                          {
+                            key: "effectiveness",
+                            value: "Concerns about effectiveness of medication",
+                            text: "Concerns about effectiveness of medication",
+                          },
+                          {
+                            key: "others",
+                            value: "Others (Specify)",
+                            text: "Others (Specify)",
+                          },
                         ]}
                         value={servicesReceivedByClient.reasonsForDecline || []}
                         onChange={handleInputReasonsForDecline}
@@ -2703,7 +2809,9 @@ const BasicInfo = props => {
                     </FormGroup>
                   </div>
 
-                  {servicesReceivedByClient.reasonsForDecline?.includes("Others (Specify)") && (
+                  {servicesReceivedByClient.reasonsForDecline?.includes(
+                    "Others (Specify)"
+                  ) && (
                     <div className="form-group col-md-4 p-2">
                       <FormGroup className="p-2">
                         <Label>Others (Specify)</Label>
@@ -2711,7 +2819,9 @@ const BasicInfo = props => {
                           className="form-control"
                           name="otherReasonsForDecline"
                           id="otherReasonsForDecline"
-                          value={servicesReceivedByClient?.otherReasonsForDecline}
+                          value={
+                            servicesReceivedByClient?.otherReasonsForDecline
+                          }
                           onChange={handleInputChangeServicesReceivedByClient}
                           style={{
                             border: "1px solid #014D88",

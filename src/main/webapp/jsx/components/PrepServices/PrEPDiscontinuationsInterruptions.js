@@ -252,8 +252,7 @@ const PrEPDiscontinuationsInterruptions = props => {
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label>
-                    PrEP Interruptions{" "}
-                    <span style={{ color: "red" }}>*</span>
+                    PrEP Interruptions <span style={{ color: "red" }}>*</span>
                   </Label>
                   <Input
                     type="select"
@@ -348,9 +347,7 @@ const PrEPDiscontinuationsInterruptions = props => {
               {/* 4. Date of Restart (If Placed Back on Medication) */}
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <Label>
-                    Date of Restart (If Placed Back on Medication)
-                  </Label>
+                  <Label>Date of Restart (If Placed Back on Medication)</Label>
                   <Input
                     type="date"
                     name="dateRestartPlacedBackMedication"
@@ -360,6 +357,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                     max={today}
                     onChange={handleInputChange}
                     value={objValues.dateRestartPlacedBackMedication}
+                    style={{ border: "1px solid #014D88" }}
                     disabled={disabledField}
                   />
                   {errors.dateRestartPlacedBackMedication !== "" ? (
@@ -376,8 +374,7 @@ const PrEPDiscontinuationsInterruptions = props => {
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label>
-                    PEP Completion{" "}
-                    <span style={{ color: "red" }}>*</span>
+                    PEP Completion <span style={{ color: "red" }}>*</span>
                   </Label>
                   <Input
                     type="select"
@@ -503,6 +500,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                     max={today}
                     onChange={handleInputChange}
                     value={objValues.dateClientReferredOut}
+                    style={{ border: "1px solid #014D88" }}
                     disabled={disabledField}
                   />
                   {errors.dateClientReferredOut !== "" ? (
@@ -556,6 +554,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                     max={today}
                     onChange={handleInputChange}
                     value={objValues.dateClientDied}
+                    style={{ border: "1px solid #014D88" }}
                     disabled={disabledField}
                   />
                   {errors.dateClientDied !== "" ? (
@@ -604,8 +603,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
                     <Label>
-                      Cause of death{" "}
-                      <span style={{ color: "red" }}>*</span>
+                      Cause of death <span style={{ color: "red" }}>*</span>
                     </Label>
                     <Input
                       type="select"
