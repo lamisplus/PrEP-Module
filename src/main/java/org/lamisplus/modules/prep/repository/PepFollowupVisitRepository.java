@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
+import org.lamisplus.modules.patient.domain.entity.Person;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +22,7 @@ public interface PepFollowupVisitRepository extends JpaRepository<PepFollowupVis
     Optional<PepFollowupVisit> findByUuid(String uuid);
     Integer countAllByPersonUuid(String personUuid);
     List<PepFollowupVisit> findAllByFacilityId(Long facilityId);
+    List<PepFollowupVisit> findAllByPersonAndArchived(Person person, int archived);
 
     @Query(value = "SELECT * FROM pep_followup_visit WHERE date_modified > ?1 AND facility_id=?2", nativeQuery = true)
     List<PepFollowupVisit> getAllDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);

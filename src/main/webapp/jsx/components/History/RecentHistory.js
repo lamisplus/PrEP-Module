@@ -47,24 +47,32 @@ const RecentHistory = props => {
   };
   console.log("props.patientObj recent history: ", props.patientObj.id);
   const Summary = () => {
-    axios
-      .get(
-        `${baseUrl}prep-followup-visit/person/${
-          props.patientObj.personId || props.patientObj.id
-        }?full=true`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(response => {
-        setSummary(response.data[0]);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
+    const personId = props.patientObj.personId || props.patientObj.id;
+    const headers = { Authorization: `Bearer ${token}` };
+
+    Promise.all([
+      axios.get(`${baseUrl}prep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
+      axios.get(`${baseUrl}pep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
+    ]).then(([prepRes, pepRes]) => {
+      const prepVisit = prepRes.data[0];
+      const pepVisit = pepRes.data[0];
+
+      if (prepVisit && pepVisit) {
+        // Use whichever has the more recent encounter date
+        setSummary(
+          new Date(pepVisit.encounterDate) > new Date(prepVisit.encounterDate)
+            ? pepVisit
+            : prepVisit
+        );
+      } else {
+        setSummary(prepVisit || pepVisit || null);
+      }
+    });
   };
 
   function countPrepEligibility(data) {
     let count = 0;
-    let relevantActivities = ["Prep Commencement", "Prep Clinic"];
+    let relevantActivities = ["Prep Commencement", "Prep Clinic", "PEP Clinic"];
     data.forEach(entry => {
       entry?.activities?.forEach(activity => {
         if (relevantActivities.includes(activity?.name)) {
@@ -81,6 +89,8 @@ const RecentHistory = props => {
       return "HE";
     } else if (name === "Prep Clinic") {
       return "PC";
+    } else if (name === "PEP Clinic") {
+      return "PPC";
     } else if (name === "Prep Enrollment") {
       return "PE";
     } else if (name === "Prep Eligibility") {
@@ -119,6 +129,13 @@ const RecentHistory = props => {
       props.setActiveContent({
         ...props.activeContent,
         route: "prep-commencement",
+        id: row.id,
+        actionType: action,
+      });
+    } else if (row.path === "pep-followup-visit") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "pep-followup",
         id: row.id,
         actionType: action,
       });
@@ -191,6 +208,31 @@ const RecentHistory = props => {
       setSaving(true);
       axios
         .delete(`${baseUrl}prep-pep-initiation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(response => {
+          setSaving(false);
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+        })
+        .catch(error => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+              error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
+    } else if (row.path === "pep-followup-visit") {
+      setSaving(true);
+      axios
+        .delete(`${baseUrl}pep-followup-visit/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
@@ -517,8 +559,8 @@ const RecentHistory = props => {
                                   {summary
                                     ? (
                                         summary?.weight /
-                                        ((summary?.height / 100) *
-                                          (summary?.height / 100))
+                                        (summary?.height *
+                                          summary?.height)
                                       ).toFixed(2)
                                     : "NIL"}{" "}
                                   {summary && (
@@ -555,7 +597,7 @@ const RecentHistory = props => {
                                 <>
                                   <h4 className="m-1">
                                     <span className="counter">
-                                      {summary ? summary.height : "0"} cm
+                                      {summary ? summary.height : "0"} m
                                     </span>
                                   </h4>
                                   <p className="m-0">
