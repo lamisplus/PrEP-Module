@@ -193,6 +193,18 @@ const ClinicVisit = props => {
   const [eligibilityVisitDateSync, setEligibilityVisitDateSync] = useState(false);
   const [notedSideEffects, setNotedSideEffects] = useState([]);
   const [syndromicStiSelected, setSyndromicStiSelected] = useState([]);
+  const [durationOnPrep, setDurationOnPrep] = useState("");
+
+  const calculateDurationOnPrep = (encounterDate) => {
+    if (!encounterDate || !patientDto?.datePrepStarted) {
+      setDurationOnPrep("");
+      return;
+    }
+    const start = new Date(patientDto.datePrepStarted);
+    const end = new Date(encounterDate);
+    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    setDurationOnPrep(months >= 0 ? months : 0);
+  };
 
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     weight: "",
@@ -845,6 +857,14 @@ const ClinicVisit = props => {
     updateTest("hepatitis", setHepatitisTest);
   }, [formInitialValues]);
 
+  // ── Recalculate duration on PrEP when patientDto or encounter date loads ──
+  useEffect(() => {
+    const encounterDate = formikRef.current?.values?.encounterDate;
+    if (encounterDate && patientDto?.datePrepStarted) {
+      calculateDurationOnPrep(encounterDate);
+    }
+  }, [patientDto, formInitialValues]);
+
   // ── Noted side effects handler ──
 
   const handleNotedSideEffectsChange = selected => {
@@ -1045,6 +1065,7 @@ const ClinicVisit = props => {
                             );
                             PrepRegimen(newDate);
                             checkDateMismatch(newDate, latestFromEligibility?.visitDate);
+                            calculateDurationOnPrep(newDate);
                           }}
                           min={
                             patientDto && patientDto.dateEnrolled
@@ -1100,11 +1121,9 @@ const ClinicVisit = props => {
                           type="text"
                           name="durationOnPrep"
                           id="durationOnPrep"
-                          value={
-                            latestFromEligibility?.durationOnPrep || ""
-                          }
+                          value={durationOnPrep !== "" ? durationOnPrep : ""}
                           style={inputStyle}
-                          disabled={disabledField}
+                          disabled
                         />
                       </FormGroup>
                     </div>
