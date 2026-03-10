@@ -238,6 +238,7 @@ const ClinicVisit = props => {
     otherTestName: "",
   });
   const [editingOtherTestIndex, setEditingOtherTestIndex] = useState(null);
+  const [showOtherTests, setShowOtherTests] = useState(false);
   const [liverFunctionTestEnabled, setLiverFunctionTestEnabled] = useState(false);
 
   const [formInitialValues, setFormInitialValues] = useState({
@@ -301,6 +302,7 @@ const ClinicVisit = props => {
         localId: t.localId != null ? t.localId : i,
       }));
       setOtherTest(loadedOtherTests);
+      setShowOtherTests(loadedOtherTests.length > 0);
       if (loadedOtherTests.length > 0) {
         otherTestIdCounter.current = Math.max(...loadedOtherTests.map(t => t.localId)) + 1;
       }
@@ -590,21 +592,13 @@ const ClinicVisit = props => {
   const otherTestIdCounter = useRef(0);
 
   const handleCheckBoxOtherTest = () => {
-    if (otherTest.length > 0) {
+    if (showOtherTests) {
+      setShowOtherTests(false);
       setOtherTest([]);
+      setOtherTestInput({ testDate: "", otherTestsDone: "", result: "", name: "", otherTestName: "" });
+      setEditingOtherTestIndex(null);
     } else {
-      const id = otherTestIdCounter.current++;
-      setOtherTest([
-        {
-          localId: id,
-          otherTest: "Yes",
-          otherTestsDone: "",
-          testDate: "",
-          result: "",
-          name: "",
-          otherTestName: "",
-        },
-      ]);
+      setShowOtherTests(true);
     }
   };
 
@@ -779,6 +773,7 @@ const ClinicVisit = props => {
       setSyphilisTest({ syphilisTest: "No", testDate: "", result: "", others: "" });
       setHepatitisTest({ hepatitisTest: "No", testDate: "", result: "" });
       setOtherTest([]);
+      setShowOtherTests(false);
       setNotedSideEffects([]);
       setSyndromicStiSelected([]);
     }
@@ -2025,7 +2020,7 @@ const ClinicVisit = props => {
                         value="Yes"
                         ref={otherTestInputRef}
                         onChange={handleCheckBoxOtherTest}
-                        checked={otherTest.length > 0}
+                        checked={showOtherTests}
                         disabled={disabledField}
                       />{" "}
                       Result of Other Tests
@@ -2033,7 +2028,7 @@ const ClinicVisit = props => {
                   </Label>
                   <br />
                   <br />
-                  {otherTest.length > 0 && !disabledField && (
+                  {showOtherTests && !disabledField && (
                     <>
                       <div className="row">
                         <div className="mb-1 col-md-3">
