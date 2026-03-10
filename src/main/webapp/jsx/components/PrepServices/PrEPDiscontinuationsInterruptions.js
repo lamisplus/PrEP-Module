@@ -136,42 +136,53 @@ const PrEPDiscontinuationsInterruptions = props => {
     setObjValues({ ...objValues, [name]: value });
   };
 
+  const showHivPositiveFields = objValues.hivResult === "Positive";
+
   const validate = () => {
-    // Validation temporarily disabled
-    // let temp = { ...errors };
-    // if (!objValues.interruptionType) {
-    //   temp.interruptionType = "This field is required";
-    // }
-    // if (showDate && !objValues.interruptionDate) {
-    //   temp.interruptionDate = "This field is required";
-    // }
-    // if (showWhy && !objValues.why) {
-    //   temp.why = "This field is required";
-    // }
-    // if (!objValues.prepCompletion) {
-    //   temp.prepCompletion = "This field is required";
-    // }
-    // if (showFollowUpVisitDate && !objValues.followUpVisitDate) {
-    //   temp.followUpVisitDate = "This field is required";
-    // }
-    // if (!objValues.hivResult) {
-    //   temp.hivResult = "This field is required";
-    // }
-    // if (!objValues.earlyDetectViralLoadResult) {
-    //   temp.earlyDetectViralLoadResult = "This field is required";
-    // }
-    // if (showFacilityReferredTo && !objValues.facilityReferredTo) {
-    //   temp.facilityReferredTo = "This field is required";
-    // }
-    // if (showDeathFields && !objValues.sourceOfDeathInfo) {
-    //   temp.sourceOfDeathInfo = "This field is required";
-    // }
-    // if (showDeathFields && !objValues.causeOfDeath) {
-    //   temp.causeOfDeath = "This field is required";
-    // }
-    // setErrors({ ...temp });
-    // return Object.values(temp).every(x => x === "");
-    return true;
+    let temp = { ...errors };
+    temp.interruptionType = objValues.interruptionType
+      ? ""
+      : "This field is required";
+    if (showDate) {
+      temp.interruptionDate = objValues.interruptionDate
+        ? ""
+        : "This field is required";
+    }
+    if (showWhy) {
+      temp.why = objValues.why ? "" : "This field is required";
+    }
+    temp.pepCompletion = objValues.pepCompletion
+      ? ""
+      : "This field is required";
+    if (showFollowUpVisitDate) {
+      temp.followUpVisitDate = objValues.followUpVisitDate
+        ? ""
+        : "This field is required";
+    }
+    temp.hivResult = objValues.hivResult ? "" : "This field is required";
+    if (showHivPositiveFields) {
+      temp.earlyDetectViralLoadResult = objValues.earlyDetectViralLoadResult
+        ? ""
+        : "This field is required";
+      temp.dateClientReferredOut = objValues.dateClientReferredOut
+        ? ""
+        : "This field is required";
+    }
+    if (showFacilityReferredTo) {
+      temp.facilityReferredTo = objValues.facilityReferredTo
+        ? ""
+        : "This field is required";
+    }
+    if (showDeathFields) {
+      temp.sourceOfDeathInfo = objValues.sourceOfDeathInfo
+        ? ""
+        : "This field is required";
+      temp.causeOfDeath = objValues.causeOfDeath
+        ? ""
+        : "This field is required";
+    }
+    setErrors({ ...temp });
+    return Object.values(temp).every(x => x === "");
   };
 
   const handleSubmit = e => {
@@ -455,37 +466,39 @@ const PrEPDiscontinuationsInterruptions = props => {
                 </FormGroup>
               </div>
 
-              {/* 8. Early Detect Viral Load Result - Always displayed */}
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>
-                    Early Detect Viral Load Result{" "}
-                    <span style={{ color: "red" }}>*</span>
-                  </Label>
-                  <Input
-                    type="select"
-                    name="earlyDetectViralLoadResult"
-                    id="earlyDetectViralLoadResult"
-                    onChange={handleInputChange}
-                    value={objValues.earlyDetectViralLoadResult}
-                    style={{ border: "1px solid #014D88" }}
-                    disabled={disabledField}
-                  >
-                    <option value="">Select</option>
-                    <option value="Target Detected">Target Detected</option>
-                    <option value="Target Not Detected">
-                      Target Not Detected
-                    </option>
-                  </Input>
-                  {errors.earlyDetectViralLoadResult !== "" ? (
-                    <span className={classes.error}>
-                      {errors.earlyDetectViralLoadResult}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
+              {/* 8. Early Detect Viral Load Result - only if HIV Result = Positive */}
+              {showHivPositiveFields && (
+                <div className="form-group mb-3 col-md-6">
+                  <FormGroup>
+                    <Label>
+                      Early Detect Viral Load Result{" "}
+                      <span style={{ color: "red" }}>*</span>
+                    </Label>
+                    <Input
+                      type="select"
+                      name="earlyDetectViralLoadResult"
+                      id="earlyDetectViralLoadResult"
+                      onChange={handleInputChange}
+                      value={objValues.earlyDetectViralLoadResult}
+                      style={{ border: "1px solid #014D88" }}
+                      disabled={disabledField}
+                    >
+                      <option value="">Select</option>
+                      <option value="Target Detected">Target Detected</option>
+                      <option value="Target Not Detected">
+                        Target Not Detected
+                      </option>
+                    </Input>
+                    {errors.earlyDetectViralLoadResult !== "" ? (
+                      <span className={classes.error}>
+                        {errors.earlyDetectViralLoadResult}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+              )}
 
               {/* 9. Date Client Referred Out */}
               <div className="form-group mb-3 col-md-6">

@@ -158,6 +158,7 @@ const PrEPInitialVisitForm = props => {
   };
 
   const handleInputChange = e => {
+    setErrors({ ...errors, [e.target.name]: "" });
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
   };
 
@@ -203,15 +204,44 @@ const PrEPInitialVisitForm = props => {
   };
 
   const validate = () => {
-    // Validation temporarily disabled
-    // let temp = { ...errors };
-    // temp.dateEnrolled = objValues.dateEnrolled ? "" : "This field is required⚠";
-    // temp.uniqueId = objValues.uniqueId ? "" : "This field is required⚠";
-    // setErrors({
-    //   ...temp,
-    // });
-    // return Object.values(temp).every(x => x == "");
-    return true;
+    let temp = { ...errors };
+    temp.dateEnrolled = objValues.dateEnrolled ? "" : "This field is required";
+    temp.uniqueId = objValues.uniqueId ? "" : "This field is required";
+    temp.enrollmentType = objValues.enrollmentType
+      ? ""
+      : "This field is required";
+    temp.populationType = objValues.populationType
+      ? ""
+      : "This field is required";
+    temp.hivTestingPoint = objValues.hivTestingPoint
+      ? ""
+      : "This field is required";
+    temp.dateOfHivTest = objValues.dateOfHivTest
+      ? ""
+      : "This field is required";
+    temp.resultOfHivTest = objValues.resultOfHivTest
+      ? ""
+      : "This field is required";
+    // Conditional: supporter fields required if supporter name is provided
+    if (objValues.supporterName) {
+      temp.supporterRelationshipType = objValues.supporterRelationshipType
+        ? ""
+        : "This field is required";
+      temp.supporterPhone = objValues.supporterPhone
+        ? ""
+        : "This field is required";
+    }
+    // Conditional: dateReferred required if HIV Positive or Early Detect
+    if (
+      objValues.resultOfHivTest === "Positive" ||
+      objValues.resultOfHivTest === "Early Detect"
+    ) {
+      temp.dateReferred = objValues.dateReferred
+        ? ""
+        : "This field is required";
+    }
+    setErrors({ ...temp });
+    return Object.values(temp).every(x => x === "");
   };
 
   const handleSubmit = e => {
@@ -363,7 +393,7 @@ const PrEPInitialVisitForm = props => {
               {/* 3. Enrollment Type */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Enrollment Type</Label>
+                  <Label>Enrollment Type <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="enrollmentType"
@@ -380,13 +410,18 @@ const PrEPInitialVisitForm = props => {
                     <option value="PrEP">PrEP</option>
                     <option value="PEP">PEP</option>
                   </select>
+                  {errors.enrollmentType !== "" ? (
+                    <span className={classes.error}>{errors.enrollmentType}</span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
 
               {/* 4. Population Type */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Population Type</Label>
+                  <Label>Population Type <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="populationType"
@@ -420,45 +455,53 @@ const PrEPInitialVisitForm = props => {
                     <option value="Transgender">Transgender</option>
                     <option value="At risk Pregnant & Breastfeeding Women">{`At risk Pregnant & Breastfeeding Women`}</option>
                   </select>
-                </FormGroup>
-              </div>
-
-              {/* 5. Date Referred for PrEP */}
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
-                  <Label>Date Referred for PrEP</Label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    onKeyDown={e => e.preventDefault()}
-                    name="dateReferred"
-                    id="dateReferred"
-                    value={objValues.dateReferred}
-                    onChange={handleInputChange}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    min={
-                      patientDto && patientDto.visitDate
-                        ? patientDto.visitDate
-                        : ""
-                    }
-                    max={moment(new Date()).format("YYYY-MM-DD")}
-                    disabled={disabledField}
-                  />
-                  {errors.dateReferred !== "" ? (
-                    <span className={classes.error}>{errors.dateReferred}</span>
+                  {errors.populationType !== "" ? (
+                    <span className={classes.error}>{errors.populationType}</span>
                   ) : (
                     ""
                   )}
                 </FormGroup>
               </div>
 
+              {/* 5. Date Referred for PrEP - only if HIV result = Positive or Early Detect */}
+              {(objValues.resultOfHivTest === "Positive" ||
+                objValues.resultOfHivTest === "Early Detect") && (
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>Date Referred for PrEP <span style={{ color: "red" }}> *</span></Label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      onKeyDown={e => e.preventDefault()}
+                      name="dateReferred"
+                      id="dateReferred"
+                      value={objValues.dateReferred}
+                      onChange={handleInputChange}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                      }}
+                      min={
+                        patientDto && patientDto.visitDate
+                          ? patientDto.visitDate
+                          : ""
+                      }
+                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      disabled={disabledField}
+                    />
+                    {errors.dateReferred !== "" ? (
+                      <span className={classes.error}>{errors.dateReferred}</span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+              )}
+
               {/* 6. HIV Testing Point */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>HIV Testing Point</Label>
+                  <Label>HIV Testing Point <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="hivTestingPoint"
@@ -476,6 +519,11 @@ const PrEPInitialVisitForm = props => {
                     <option value="Community">Community</option>
                     <option value="Others">Others</option>
                   </select>
+                  {errors.hivTestingPoint !== "" ? (
+                    <span className={classes.error}>{errors.hivTestingPoint}</span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
               {objValues.hivTestingPoint === "Others" && (
@@ -502,7 +550,7 @@ const PrEPInitialVisitForm = props => {
               {/* 7. Date of HIV Test */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Date of HIV Test</Label>
+                  <Label>Date of HIV Test <span style={{ color: "red" }}> *</span></Label>
                   <input
                     type="date"
                     className="form-control"
@@ -518,13 +566,18 @@ const PrEPInitialVisitForm = props => {
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     disabled={disabledField}
                   />
+                  {errors.dateOfHivTest !== "" ? (
+                    <span className={classes.error}>{errors.dateOfHivTest}</span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
 
               {/* 8. Result of HIV test */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Result of HIV test</Label>
+                  <Label>Result of HIV test <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="resultOfHivTest"
@@ -542,6 +595,11 @@ const PrEPInitialVisitForm = props => {
                     <option value="Negative">Negative</option>
                     <option value="Early Detect">Early Detect</option>
                   </select>
+                  {errors.resultOfHivTest !== "" ? (
+                    <span className={classes.error}>{errors.resultOfHivTest}</span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
 
@@ -568,7 +626,7 @@ const PrEPInitialVisitForm = props => {
               {/* 10. Relationship */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Relationship</Label>
+                  <Label>Relationship{objValues.supporterName && <span style={{ color: "red" }}> *</span>}</Label>
                   <select
                     className="form-control"
                     name="supporterRelationshipType"
@@ -588,13 +646,18 @@ const PrEPInitialVisitForm = props => {
                       </option>
                     ))}
                   </select>
+                  {errors.supporterRelationshipType !== "" ? (
+                    <span className={classes.error}>{errors.supporterRelationshipType}</span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
 
               {/* 11. Telephone number (supporter) */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Telephone number (supporter)</Label>
+                  <Label>Telephone number (supporter){objValues.supporterName && <span style={{ color: "red" }}> *</span>}</Label>
                   <PhoneInput
                     containerStyle={{
                       width: "100%",
@@ -618,6 +681,11 @@ const PrEPInitialVisitForm = props => {
                     }}
                     disabled={disabledField}
                   />
+                  {errors.supporterPhone !== "" ? (
+                    <span className={classes.error}>{errors.supporterPhone}</span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
 

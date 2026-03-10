@@ -186,6 +186,10 @@ const PrEPCommencementForm = props => {
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
   };
 
+  const isFemalePatient =
+    (props.patientObj.gender?.toLowerCase() === "female" ||
+      props.patientObj.sex?.toLowerCase() === "female");
+
   const validate = () => {
     let temp = { ...errors };
     temp.dateInitialAdherenceCounseling =
@@ -201,6 +205,20 @@ const PrEPCommencementForm = props => {
     temp.prepDistributionSetting = objValues.prepDistributionSetting
       ? ""
       : "This field is required";
+    temp.drugAllergies = objValues.drugAllergies
+      ? ""
+      : "This field is required";
+    temp.urinalysisResult = objValues.urinalysisResult
+      ? ""
+      : "This field is required";
+    temp.liverFunctionTestResults =
+      objValues.liverFunctionTestResults &&
+      objValues.liverFunctionTestResults.length > 0
+        ? ""
+        : "This field is required";
+    if (isFemalePatient) {
+      temp.pregnant = objValues.pregnant ? "" : "This field is required";
+    }
     setErrors({ ...temp });
     return Object.values(temp).every(x => x === "");
   };
@@ -554,7 +572,7 @@ const PrEPCommencementForm = props => {
               props.patientObj.sex?.toLowerCase()) === "female" && (
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <Label>Pregnancy Status</Label>
+                  <Label>Pregnancy Status <span style={{ color: "red" }}>*</span></Label>
                   <Input
                     type="select"
                     name="pregnant"
@@ -574,6 +592,9 @@ const PrEPCommencementForm = props => {
                       </option>
                     ))}
                   </Input>
+                  {errors.pregnant && (
+                    <span className={classes.error}>{errors.pregnant}</span>
+                  )}
                 </FormGroup>
               </div>
             )}
@@ -602,7 +623,7 @@ const PrEPCommencementForm = props => {
             )}
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
-                <Label>History of drug Allergies</Label>
+                <Label>History of drug Allergies <span style={{ color: "red" }}>*</span></Label>
                 <Input
                   type="select"
                   name="drugAllergies"
@@ -619,11 +640,14 @@ const PrEPCommencementForm = props => {
                   <option value="true">Yes</option>
                   <option value="false">No</option>
                 </Input>
+                {errors.drugAllergies && (
+                  <span className={classes.error}>{errors.drugAllergies}</span>
+                )}
               </FormGroup>
             </div>
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
-                <Label>Urinalysis Result</Label>
+                <Label>Urinalysis Result <span style={{ color: "red" }}>*</span></Label>
                 <Input
                   type="select"
                   name="urinalysisResult"
@@ -643,6 +667,9 @@ const PrEPCommencementForm = props => {
                     </option>
                   ))}
                 </Input>
+                {errors.urinalysisResult && (
+                  <span className={classes.error}>{errors.urinalysisResult}</span>
+                )}
               </FormGroup>
             </div>
             <div className="form-group mb-3 col-md-6">
@@ -677,7 +704,7 @@ const PrEPCommencementForm = props => {
             </div>
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
-                <Label>Liver Function Tests Result </Label>
+                <Label>Liver Function Tests Result <span style={{ color: "red" }}>*</span></Label>
                 <LiverFunctionTest
                   objValues={objValues}
                   handleInputChange={handleLftInputChange}

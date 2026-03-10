@@ -53,11 +53,16 @@ const validationSchema = Yup.object().shape({
   encounterDate: Yup.string().required("This field is required"),
   modeOfExposure: Yup.string().required("This field is required"),
   durationBeforePep: Yup.string().required("This field is required"),
+  systolic: Yup.string().required("This field is required"),
+  diastolic: Yup.string().required("This field is required"),
   hivStatusAtExposure: Yup.string().required("This field is required"),
+  riskReductionServices: Yup.string().required("This field is required"),
+  adherenceLevel: Yup.string().required("This field is required"),
   pepRegimen: Yup.string().required("This field is required"),
   dateStartPep: Yup.string().required("This field is required"),
   dateStopPep: Yup.string().required("This field is required"),
   nextAppointment: Yup.string().required("This field is required"),
+  healthCareWorkerSignature: Yup.string().required("This field is required"),
   whyAdherenceLevelPoor: Yup.string().when("adherenceLevel", {
     is: val =>
       val?.toUpperCase()?.includes("POOR") ||
@@ -310,6 +315,22 @@ const PEPFollowupVisit = props => {
   }
 
   const handleFormSubmit = async values => {
+    // Manual validation for non-Formik fields
+    const manualErrors = [];
+    if (!notedSideEffects || notedSideEffects.length === 0) {
+      manualErrors.push("Noted Side Effects is required");
+    }
+    if (!syndromicStiSelected || syndromicStiSelected.length === 0) {
+      manualErrors.push("Syndromic STI Screening is required");
+    }
+    if (!hivTestEntries || hivTestEntries.length === 0) {
+      manualErrors.push("At least one HIV Test entry is required");
+    }
+    if (manualErrors.length > 0) {
+      manualErrors.forEach(msg => toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER }));
+      return;
+    }
+
     setSaving(true);
     const payload = { ...values };
     payload.pepNotedSideEffects = notedSideEffects;
@@ -370,7 +391,7 @@ const PEPFollowupVisit = props => {
         innerRef={formikRef}
         initialValues={formInitialValues}
         enableReinitialize
-        // validationSchema={validationSchema} // Validation temporarily disabled
+        validationSchema={validationSchema}
         onSubmit={values => {
           handleFormSubmit(values);
         }}
@@ -483,7 +504,7 @@ const PEPFollowupVisit = props => {
                     {/* 4. Blood Pressure (mmHg) */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Blood Pressure (mmHg)</FormLabelName>
+                        <FormLabelName>Blood Pressure (mmHg) <span style={{ color: "red" }}> *</span></FormLabelName>
                         <InputGroup>
                           <InputGroupText
                             addonType="append"
@@ -545,6 +566,16 @@ const PEPFollowupVisit = props => {
                             {vitalClinicalSupport.diastolic}
                           </span>
                         )}
+                        {getError("systolic") && (
+                          <span className={classes.error}>
+                            {getError("systolic")}
+                          </span>
+                        )}
+                        {getError("diastolic") && (
+                          <span className={classes.error}>
+                            {getError("diastolic")}
+                          </span>
+                        )}
                       </FormGroup>
                     </div>
 
@@ -583,7 +614,7 @@ const PEPFollowupVisit = props => {
                     {codeset?.PREP_SIDE_EFFECTS && (
                       <div className="mb-3 col-md-12">
                         <FormGroup>
-                          <FormLabelName>Noted Side Effects</FormLabelName>
+                          <FormLabelName>Noted Side Effects <span style={{ color: "red" }}> *</span></FormLabelName>
                           <DualListBox
                             options={codeset.PREP_SIDE_EFFECTS.map(effect => ({
                               value: effect?.code,
@@ -622,7 +653,7 @@ const PEPFollowupVisit = props => {
                     {codeset?.SYNDROMIC_STI_SCREENING && (
                       <div className="mb-3 col-md-12">
                         <FormGroup>
-                          <FormLabelName>Syndromic STI Screening</FormLabelName>
+                          <FormLabelName>Syndromic STI Screening <span style={{ color: "red" }}> *</span></FormLabelName>
                           <DualListBox
                             options={codeset.SYNDROMIC_STI_SCREENING.map(item => ({
                               value: item?.code,
@@ -660,7 +691,7 @@ const PEPFollowupVisit = props => {
                     {/* 8. Risk Reduction Services */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Risk Reduction Services</FormLabelName>
+                        <FormLabelName>Risk Reduction Services <span style={{ color: "red" }}> *</span></FormLabelName>
                         <Input
                           type="select"
                           name="riskReductionServices"
@@ -677,13 +708,18 @@ const PEPFollowupVisit = props => {
                             </option>
                           ))}
                         </Input>
+                        {getError("riskReductionServices") && (
+                          <span className={classes.error}>
+                            {getError("riskReductionServices")}
+                          </span>
+                        )}
                       </FormGroup>
                     </div>
 
                     {/* 9. Adherence */}
                     <div className="mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Adherence</FormLabelName>
+                        <FormLabelName>Adherence <span style={{ color: "red" }}> *</span></FormLabelName>
                         <Input
                           type="select"
                           name="adherenceLevel"
@@ -709,6 +745,11 @@ const PEPFollowupVisit = props => {
                             </option>
                           ))}
                         </Input>
+                        {getError("adherenceLevel") && (
+                          <span className={classes.error}>
+                            {getError("adherenceLevel")}
+                          </span>
+                        )}
                       </FormGroup>
                     </div>
 
@@ -1076,7 +1117,7 @@ const PEPFollowupVisit = props => {
                     {/* 15. Signature */}
                     <div className="mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Healthcare Worker Signature</FormLabelName>
+                        <FormLabelName>Healthcare Worker Signature <span style={{ color: "red" }}> *</span></FormLabelName>
                         <Input
                           name="healthCareWorkerSignature"
                           id="healthCareWorkerSignature"
@@ -1086,6 +1127,11 @@ const PEPFollowupVisit = props => {
                           onChange={handleChange}
                           style={inputStyle}
                         />
+                        {getError("healthCareWorkerSignature") && (
+                          <span className={classes.error}>
+                            {getError("healthCareWorkerSignature")}
+                          </span>
+                        )}
                       </FormGroup>
                     </div>
                   </div>
