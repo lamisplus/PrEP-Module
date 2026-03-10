@@ -18,6 +18,7 @@ import { Button } from "semantic-ui-react";
 const RecentHistory = props => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [summary, setSummary] = useState(null);
+  const [summarySource, setSummarySource] = useState(null); // "prep" or "pep"
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = React.useState(false);
   const [record, setRecord] = useState(null);
@@ -58,14 +59,18 @@ const RecentHistory = props => {
       const pepVisit = pepRes.data[0];
 
       if (prepVisit && pepVisit) {
-        // Use whichever has the more recent encounter date
-        setSummary(
-          new Date(pepVisit.encounterDate) > new Date(prepVisit.encounterDate)
-            ? pepVisit
-            : prepVisit
-        );
+        const pepIsNewer = new Date(pepVisit.encounterDate) > new Date(prepVisit.encounterDate);
+        setSummary(pepIsNewer ? pepVisit : prepVisit);
+        setSummarySource(pepIsNewer ? "pep" : "prep");
+      } else if (pepVisit) {
+        setSummary(pepVisit);
+        setSummarySource("pep");
+      } else if (prepVisit) {
+        setSummary(prepVisit);
+        setSummarySource("prep");
       } else {
-        setSummary(prepVisit || pepVisit || null);
+        setSummary(null);
+        setSummarySource(null);
       }
     });
   };
@@ -540,7 +545,9 @@ const RecentHistory = props => {
                               <b>Current Regimen Given</b>
                             </h4>
                             <h4 className="text-info ">
-                              {summary ? summary?.regimen : "NIL"}
+                              {summary
+                                ? summary?.regimen || summary?.pepRegimen || "NIL"
+                                : "NIL"}
                             </h4>
                           </div>
                         </div>
@@ -550,64 +557,114 @@ const RecentHistory = props => {
                   <div className="col-sm-6 col-md-6 col-lg-6">
                     <div className="card-body">
                       <div className="card overflow-hidden">
-                        <div className="social-graph-wrapper widget-linkedin">
-                          <span className="s-icon">
-                            <span style={{ fontSize: "16px" }}>
-                              {
-                                <>
-                                  BMI :{" "}
-                                  {summary
-                                    ? (
-                                        summary?.weight /
-                                        (summary?.height *
-                                          summary?.height)
-                                      ).toFixed(2)
-                                    : "NIL"}{" "}
-                                  {summary && (
+                        {summarySource === "pep" ? (
+                          <>
+                            <div className="social-graph-wrapper widget-linkedin">
+                              <span className="s-icon">
+                                <span style={{ fontSize: "16px" }}>
+                                  Blood Pressure :{" "}
+                                  {summary && summary.systolic && summary.diastolic
+                                    ? `${summary.systolic}/${summary.diastolic} mmHg`
+                                    : "NIL"}
+                                </span>
+                              </span>
+                            </div>
+                            <div className="row">
+                              <div className="col-6 border-right">
+                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                  {summary && summary.systolic && (
                                     <>
-                                      kg/m<sup>2</sup>
-                                      <span></span>
+                                      <h4 className="m-1">
+                                        <span className="counter">
+                                          {summary.systolic}
+                                        </span>
+                                      </h4>
+                                      <p className="m-0">
+                                        <b>Systolic</b>
+                                      </p>
                                     </>
                                   )}
-                                </>
-                              }
-                            </span>
-                          </span>
-                        </div>
-                        <div className="row">
-                          <div className="col-6 border-right">
-                            <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                              {summary && (
-                                <>
-                                  <h4 className="m-1">
-                                    <span className="counter">
-                                      {summary ? summary.weight : "0"} Kg
-                                    </span>
-                                  </h4>
-                                  <p className="m-0">
-                                    <b>Weight </b>
-                                  </p>
-                                </>
-                              )}
+                                </div>
+                              </div>
+                              <div className="col-6">
+                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                  {summary && summary.diastolic && (
+                                    <>
+                                      <h4 className="m-1">
+                                        <span className="counter">
+                                          {summary.diastolic}
+                                        </span>
+                                      </h4>
+                                      <p className="m-0">
+                                        <b>Diastolic</b>
+                                      </p>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          <div className="col-6">
-                            <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                              {summary && (
-                                <>
-                                  <h4 className="m-1">
-                                    <span className="counter">
-                                      {summary ? summary.height : "0"} m
-                                    </span>
-                                  </h4>
-                                  <p className="m-0">
-                                    <b>Height </b>
-                                  </p>
-                                </>
-                              )}
+                          </>
+                        ) : (
+                          <>
+                            <div className="social-graph-wrapper widget-linkedin">
+                              <span className="s-icon">
+                                <span style={{ fontSize: "16px" }}>
+                                  {
+                                    <>
+                                      BMI :{" "}
+                                      {summary && summary.weight && summary.height
+                                        ? (
+                                            summary.weight /
+                                            (summary.height * summary.height)
+                                          ).toFixed(2)
+                                        : "NIL"}{" "}
+                                      {summary && summary.weight && summary.height && (
+                                        <>
+                                          kg/m<sup>2</sup>
+                                          <span></span>
+                                        </>
+                                      )}
+                                    </>
+                                  }
+                                </span>
+                              </span>
                             </div>
-                          </div>
-                        </div>
+                            <div className="row">
+                              <div className="col-6 border-right">
+                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                  {summary && (
+                                    <>
+                                      <h4 className="m-1">
+                                        <span className="counter">
+                                          {summary ? summary.weight : "0"} Kg
+                                        </span>
+                                      </h4>
+                                      <p className="m-0">
+                                        <b>Weight </b>
+                                      </p>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="col-6">
+                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                  {summary && (
+                                    <>
+                                      <h4 className="m-1">
+                                        <span className="counter">
+                                          {summary ? summary.height : "0"} m
+                                        </span>
+                                      </h4>
+                                      <p className="m-0">
+                                        <b>Height </b>
+                                      </p>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
