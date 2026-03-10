@@ -386,7 +386,7 @@ const ClinicVisit = props => {
   const getLatestFromEligibility = async () => {
     try {
       const response = await axios.get(
-        `${baseUrl}prep-eligibility/person/${
+        `${baseUrl}prep-eligibility-screening/person/${
           props.patientObj.personId || props.patientObj.id
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
