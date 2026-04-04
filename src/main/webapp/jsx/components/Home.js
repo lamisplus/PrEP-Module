@@ -11,7 +11,7 @@ import PatientList from "./Patient/PatientList";
 import CheckedInPatients from "./Patient/CheckedInPatients";
 import { useRoles } from "../../hooks/useRoles";
 import NotEnrolledPatients from "./Patient/NotEnrolledPatientList";
-import PatientsWithInterruptedPrepStatus from "./Patient/PatientsWithInterruptedPrepStatus";
+import PepEnrolledPatients from "./Patient/PepEnrolledPatientList";
 
 const divStyle = {
   borderRadius: "2px",
@@ -83,9 +83,9 @@ const Home = () => {
                     </Tab>
                   )}
                   {permissions.canSeeFindPatients && (
-                    <Tab eventKey="enrolled" title="Interrupted PrEP Clients">
+                    <Tab eventKey="pep-enrolled" title="PEP Enrollments">
                       <Suspense>
-                        <PatientsWithInterruptedPrepStatus />
+                        <PepEnrolledPatients />
                       </Suspense>
                     </Tab>
                   )}

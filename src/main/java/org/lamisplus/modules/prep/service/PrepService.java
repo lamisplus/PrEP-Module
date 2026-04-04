@@ -392,6 +392,26 @@ public class PrepService {
         return new PageImpl<>(filteredList, pageable, resultPage.getTotalElements());
     }
 
+    public Page<PrepClient> findAllPepEnrolledPrepPersonPage(String searchValue, int pageNo, int pageSize) {
+        Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<PrepClient> resultPage;
+
+        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
+            searchValue = searchValue.replaceAll("\\\\s", "");
+            String queryParam = "%" + searchValue + "%";
+            resultPage = prepPepInitiationRepository.findAllPepEnrolledPersonPrepAndStatusBySearchParam(UN_ARCHIVED, facilityId, queryParam, pageable);
+        } else {
+            resultPage = prepPepInitiationRepository.findAllPepEnrolledPersonPrepAndStatus(UN_ARCHIVED, facilityId, pageable);
+        }
+        List<PrepClient> filteredList = resultPage.getContent().stream()
+                .filter(prepClient -> !"Not Enrolled".equals(prepClient.getPrepStatus()))
+                .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(filteredList, pageable, resultPage.getTotalElements());
+    }
+
     public Page<PrepClient> findOnlyPrepPersonPage(String searchValue, int pageNo, int pageSize) {
         Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
         Pageable pageable = PageRequest.of(pageNo, pageSize);

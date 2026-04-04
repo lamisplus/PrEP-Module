@@ -96,8 +96,8 @@ const RecentHistory = props => {
       return "PC";
     } else if (name === "PEP Clinic") {
       return "PPC";
-    } else if (name === "Prep Enrollment") {
-      return "PE";
+    } else if (name === "Prep Enrollment" || name === "PrEP & PEP Initiation") {
+      return "PI";
     } else if (name === "Prep Eligibility") {
       return "PE";
     } else if (name === "ART Commencement") {

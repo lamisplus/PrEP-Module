@@ -51,4 +51,5 @@ public class PrepEligibilityScreeningDto implements Serializable {
     private String typeOfSession;
     private String prepStatus;
     private Integer prepEligibilityCount;
+    private String category;
 }

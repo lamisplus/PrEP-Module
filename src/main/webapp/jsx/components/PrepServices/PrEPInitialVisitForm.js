@@ -22,7 +22,7 @@ import moment from "moment";
 import { Spinner } from "reactstrap";
 import { useStyles } from "../../../hooks/styles/prepRegistration/useStyle";
 import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
-import { fetchAllCodesets, fetchPrepRegimens } from "../Consultation/codesets";
+import { fetchAllCodesets, fetchPrepRegimens, getPepRegimenOptions } from "../Consultation/codesets";
 
 const PrEPInitialVisitForm = props => {
   const [entryPoint, setEntryPoint] = useState([]);
@@ -123,16 +123,39 @@ const PrEPInitialVisitForm = props => {
   };
 
   const GetPatientDTOObj = () => {
+    const personId = props.patientObj.personId || props.patientObj.id;
     axios
       .get(
-        `${baseUrl}prep/eligibility/open/patients/${
-          props.patientObj.personId || props.patientObj.id
-        }`,
+        `${baseUrl}prep/eligibility/open/patients/${personId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
         setPatientDto(response.data);
         getTargetGroupvalue();
+        // Auto-populate enrollmentType from latest screening category
+        if (response.data && response.data.category) {
+          setObjValues(prev => ({ ...prev, enrollmentType: response.data.category }));
+        }
+        // Fetch previous initiation records for returning clients
+        axios
+          .get(`${baseUrl}prep-pep-initiation/person/${personId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then(initResponse => {
+            if (initResponse.data && initResponse.data.length > 0) {
+              const prevInitiation = initResponse.data[0]; // most recent
+              setObjValues(prev => ({
+                ...prev,
+                populationType: prevInitiation.populationType || prev.populationType,
+                targetGroup: prevInitiation.targetGroup || prev.targetGroup,
+                hivTestingPoint: prevInitiation.hivTestingPoint || prev.hivTestingPoint,
+                weight: prevInitiation.weight || prev.weight,
+                height: prevInitiation.height || prev.height,
+                // Don't override enrollmentType - it comes from screening category
+              }));
+            }
+          })
+          .catch(() => {});
       })
       .catch(error => {
         //console.log(error);
@@ -222,8 +245,8 @@ const PrEPInitialVisitForm = props => {
     temp.resultOfHivTest = objValues.resultOfHivTest
       ? ""
       : "This field is required";
-    // Conditional: supporter fields required if supporter name is provided
-    if (objValues.supporterName) {
+    // Conditional: supporter fields required if supporter name is provided (only for PrEP)
+    if (objValues.enrollmentType !== 'PEP' && objValues.supporterName) {
       temp.supporterRelationshipType = objValues.supporterRelationshipType
         ? ""
         : "This field is required";
@@ -400,7 +423,7 @@ const PrEPInitialVisitForm = props => {
                     id="enrollmentType"
                     onChange={handleInputChange}
                     value={objValues.enrollmentType}
-                    disabled={disabledField}
+                    disabled={true}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
@@ -603,7 +626,9 @@ const PrEPInitialVisitForm = props => {
                 </FormGroup>
               </div>
 
-              {/* 9. PrEP Supporter */}
+              {/* 9-11. PrEP Supporter fields - hidden when enrollmentType is PEP */}
+              {objValues.enrollmentType !== 'PEP' && (
+              <>
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>PrEP Supporter</Label>
@@ -688,6 +713,8 @@ const PrEPInitialVisitForm = props => {
                   )}
                 </FormGroup>
               </div>
+              </>
+              )}
 
               {/* ====== Section B: PrEP/PEP Initiation ====== */}
               <div
@@ -729,7 +756,7 @@ const PrEPInitialVisitForm = props => {
               {/* 13. Date PrEP started */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Date PrEP started</Label>
+                  <Label>Date Started</Label>
                   <input
                     type="date"
                     className="form-control"
@@ -935,7 +962,7 @@ const PrEPInitialVisitForm = props => {
               {/* 18. PrEP Regimen */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>PrEP Regimen</Label>
+                  <Label>Regimen</Label>
                   <select
                     className="form-control"
                     name="prepRegimen"
@@ -949,11 +976,15 @@ const PrEPInitialVisitForm = props => {
                     }}
                   >
                     <option value="">Select</option>
-                    {prepRegimen.map(value => (
-                      <option key={value.id} value={value.id}>
-                        {value.regimen}
-                      </option>
-                    ))}
+                    {objValues.enrollmentType === 'PEP'
+                      ? getPepRegimenOptions().map(r => (
+                          <option key={r.value} value={r.value}>{r.label}</option>
+                        ))
+                      : prepRegimen.map(value => (
+                          <option key={value.id} value={value.id}>
+                            {value.regimen}
+                          </option>
+                        ))}
                   </select>
                 </FormGroup>
               </div>

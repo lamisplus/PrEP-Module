@@ -912,4 +912,27 @@
             );
         </sql>
     </changeSet>
+
+    <!-- Rename prep_eligibility_screening to prophylaxis_screening -->
+    <changeSet failOnError="true" author="Claude" id="rename-prep-eligibility-screening-to-prophylaxis-screening">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="prep_eligibility_screening"/>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_eligibility_screening RENAME TO prophylaxis_screening;
+        </sql>
+    </changeSet>
+
+    <!-- Add category column to prophylaxis_screening -->
+    <changeSet failOnError="true" author="Claude" id="add-category-to-prophylaxis-screening">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname =
+                'prophylaxis_screening') AND attname = 'category';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prophylaxis_screening ADD COLUMN category character varying;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

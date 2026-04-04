@@ -15,6 +15,9 @@ const PrEPDiscontinuationsInterruptions = props => {
   const patientObj = props.patientObj;
   const classes = useStyles();
   const [disabledField, setDisabledField] = useState(false);
+  const [enrollmentType, setEnrollmentType] = useState(
+    patientObj?.enrollmentType || ""
+  );
   const [objValues, setObjValues] = useState({
     interruptionType: "",
     interruptionDate: "",
@@ -35,14 +38,19 @@ const PrEPDiscontinuationsInterruptions = props => {
   const [errors, setErrors] = useState({});
   const [patientDto, setPatientDto] = useState();
 
+  const isPEP = enrollmentType === "PEP";
+  const isPrEP = enrollmentType === "PrEP" || !isPEP;
+
   // --- Skip logic derived from current form state ---
   const isStopped = objValues.interruptionType === "Stopped";
   const isDefault = objValues.interruptionType === "Default";
-  const showDate = isStopped || isDefault;
-  const showWhy = isStopped || isDefault;
+  const isDead = objValues.interruptionType === "Dead";
+  const isReferred = objValues.interruptionType === "Referred";
+  const showStoppedDefaultFields = isStopped || isDefault;
+  const showDeadFields = isDead;
+  const showReferredFields = isReferred;
   const showFollowUpVisitDate = objValues.pepCompletion === "Yes";
-  const showFacilityReferredTo = !!objValues.dateClientReferredOut;
-  const showDeathFields = !!objValues.dateClientDied;
+  const showHivPositiveFields = objValues.hivResult === "Positive";
 
   useEffect(() => {
     GetPatientDTOObj();
@@ -73,6 +81,9 @@ const PrEPDiscontinuationsInterruptions = props => {
       )
       .then(response => {
         setPatientDto(response.data);
+        if (response.data?.enrollmentType) {
+          setEnrollmentType(response.data.enrollmentType);
+        }
       })
       .catch(error => {
         //console.log(error);
@@ -97,17 +108,23 @@ const PrEPDiscontinuationsInterruptions = props => {
     const { name, value } = e.target;
     setErrors({ ...errors, [name]: "" });
 
-    // Clear dependent fields when parent value changes
+    // Clear dependent fields when interruptionType changes
     if (name === "interruptionType") {
       setObjValues(prev => ({
         ...prev,
         [name]: value,
         interruptionDate: "",
         why: "",
+        dateRestartPlacedBackMedication: "",
+        dateClientDied: "",
+        sourceOfDeathInfo: "",
+        causeOfDeath: "",
+        dateClientReferredOut: "",
+        facilityReferredTo: "",
       }));
       return;
     }
-    if (name === "prepCompletion" && value !== "Yes") {
+    if (name === "pepCompletion" && value !== "Yes") {
       setObjValues(prev => ({
         ...prev,
         [name]: value,
@@ -115,72 +132,66 @@ const PrEPDiscontinuationsInterruptions = props => {
       }));
       return;
     }
-    if (name === "dateClientReferredOut" && !value) {
-      setObjValues(prev => ({
-        ...prev,
-        [name]: value,
-        facilityReferredTo: "",
-      }));
-      return;
-    }
-    if (name === "dateClientDied" && !value) {
-      setObjValues(prev => ({
-        ...prev,
-        [name]: value,
-        sourceOfDeathInfo: "",
-        causeOfDeath: "",
-      }));
-      return;
-    }
 
     setObjValues({ ...objValues, [name]: value });
   };
 
-  const showHivPositiveFields = objValues.hivResult === "Positive";
-
   const validate = () => {
     let temp = { ...errors };
-    temp.interruptionType = objValues.interruptionType
-      ? ""
-      : "This field is required";
-    if (showDate) {
+
+    // PrEP: validate interruption type
+    if (isPrEP) {
+      temp.interruptionType = objValues.interruptionType
+        ? ""
+        : "This field is required";
+    }
+
+    // Stopped/Default fields
+    if (showStoppedDefaultFields) {
       temp.interruptionDate = objValues.interruptionDate
         ? ""
         : "This field is required";
-    }
-    if (showWhy) {
       temp.why = objValues.why ? "" : "This field is required";
     }
-    temp.pepCompletion = objValues.pepCompletion
-      ? ""
-      : "This field is required";
-    if (showFollowUpVisitDate) {
-      temp.followUpVisitDate = objValues.followUpVisitDate
+
+    // Dead fields
+    if (showDeadFields) {
+      temp.dateClientDied = objValues.dateClientDied
+        ? ""
+        : "This field is required";
+      temp.sourceOfDeathInfo = objValues.sourceOfDeathInfo
         ? ""
         : "This field is required";
     }
-    temp.hivResult = objValues.hivResult ? "" : "This field is required";
-    if (showHivPositiveFields) {
-      temp.earlyDetectViralLoadResult = objValues.earlyDetectViralLoadResult
-        ? ""
-        : "This field is required";
+
+    // Referred fields
+    if (showReferredFields) {
       temp.dateClientReferredOut = objValues.dateClientReferredOut
         ? ""
         : "This field is required";
-    }
-    if (showFacilityReferredTo) {
       temp.facilityReferredTo = objValues.facilityReferredTo
         ? ""
         : "This field is required";
     }
-    if (showDeathFields) {
-      temp.sourceOfDeathInfo = objValues.sourceOfDeathInfo
+
+    // PEP-only fields
+    if (isPEP) {
+      temp.pepCompletion = objValues.pepCompletion
         ? ""
         : "This field is required";
-      temp.causeOfDeath = objValues.causeOfDeath
-        ? ""
-        : "This field is required";
+      if (showFollowUpVisitDate) {
+        temp.followUpVisitDate = objValues.followUpVisitDate
+          ? ""
+          : "This field is required";
+      }
+      temp.hivResult = objValues.hivResult ? "" : "This field is required";
+      if (showHivPositiveFields) {
+        temp.earlyDetectViralLoadResult = objValues.earlyDetectViralLoadResult
+          ? ""
+          : "This field is required";
+      }
     }
+
     setErrors({ ...temp });
     return Object.values(temp).every(x => x === "");
   };
@@ -251,358 +262,44 @@ const PrEPDiscontinuationsInterruptions = props => {
   const minDate =
     patientDto && patientDto.dateEnrolled ? patientDto.dateEnrolled : "";
 
+  const formTitle = isPEP
+    ? "PEP Completion"
+    : "PrEP Discontinuation/Interruption";
+
   return (
     <div>
       <Card className={classes.root}>
         <CardBody>
           <form>
             <div className="row">
-              <h2>PrEP Completion/Discontinuation & Interruptions</h2>
+              <h2>{formTitle}</h2>
 
-              {/* 1. PrEP Interruptions - Always displayed */}
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>
-                    PrEP Interruptions <span style={{ color: "red" }}>*</span>
-                  </Label>
-                  <Input
-                    type="select"
-                    name="interruptionType"
-                    id="interruptionType"
-                    onChange={handleInputChange}
-                    value={objValues.interruptionType}
-                    style={{ border: "1px solid #014D88" }}
-                    disabled={disabledField}
-                  >
-                    <option value="">Select</option>
-                    <option value="Stopped">Stopped</option>
-                    <option value="Default">Default</option>
-                  </Input>
-                  {errors.interruptionType !== "" ? (
-                    <span className={classes.error}>
-                      {errors.interruptionType}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              {/* 2. Date - if PrEP Interruptions = Stopped or Default */}
-              {showDate && (
+              {/* PrEP Interruptions Type - shown for PrEP only */}
+              {isPrEP && (
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
                     <Label>
-                      Date <span style={{ color: "red" }}>*</span>
-                    </Label>
-                    <Input
-                      type="date"
-                      name="interruptionDate"
-                      id="interruptionDate"
-                      onKeyDown={e => e.preventDefault()}
-                      min={minDate}
-                      max={today}
-                      onChange={handleInputChange}
-                      value={objValues.interruptionDate}
-                      disabled={disabledField}
-                    />
-                    {errors.interruptionDate !== "" ? (
-                      <span className={classes.error}>
-                        {errors.interruptionDate}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-              )}
-
-              {/* 3. Why - if PrEP Interruptions = Stopped */}
-              {showWhy && (
-                <div className="form-group mb-3 col-md-6">
-                  <FormGroup>
-                    <Label>
-                      Why <span style={{ color: "red" }}>*</span>
-                    </Label>
-                    <Input
-                      type="select"
-                      name="why"
-                      id="why"
-                      onChange={handleInputChange}
-                      value={objValues.why}
-                      style={{ border: "1px solid #014D88" }}
-                      disabled={disabledField}
-                    >
-                      <option value="">Select</option>
-                      <option value="Toxicity/side effects">
-                        Toxicity/side effects
-                      </option>
-                      <option value="Pregnancy">Pregnancy</option>
-                      <option value="Client preference">
-                        Client preference
-                      </option>
-                      <option value="HIV positive">HIV positive</option>
-                      <option value="No longer at substantial risk">
-                        No longer at substantial risk
-                      </option>
-                    </Input>
-                    {errors.why !== "" ? (
-                      <span className={classes.error}>{errors.why}</span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-              )}
-
-              {/* 4. Date of Restart (If Placed Back on Medication) */}
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>Date of Restart (If Placed Back on Medication)</Label>
-                  <Input
-                    type="date"
-                    name="dateRestartPlacedBackMedication"
-                    id="dateRestartPlacedBackMedication"
-                    onKeyDown={e => e.preventDefault()}
-                    min={minDate}
-                    max={today}
-                    onChange={handleInputChange}
-                    value={objValues.dateRestartPlacedBackMedication}
-                    style={{ border: "1px solid #014D88" }}
-                    disabled={disabledField}
-                  />
-                  {errors.dateRestartPlacedBackMedication !== "" ? (
-                    <span className={classes.error}>
-                      {errors.dateRestartPlacedBackMedication}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              {/* 5. PEP Completion - Always displayed */}
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>
-                    PEP Completion <span style={{ color: "red" }}>*</span>
-                  </Label>
-                  <Input
-                    type="select"
-                    name="pepCompletion"
-                    id="pepCompletion"
-                    onChange={handleInputChange}
-                    value={objValues.pepCompletion}
-                    style={{ border: "1px solid #014D88", padding: "0.5rem" }}
-                    disabled={disabledField}
-                  >
-                    <option value="">Select</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                  </Input>
-                  {errors.pepCompletion !== "" ? (
-                    <span className={classes.error}>
-                      {errors.pepCompletion}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              {/* 6. Follow Up Visit Date - if PrEP Completion = Yes */}
-              {showFollowUpVisitDate && (
-                <div className="form-group mb-3 col-md-6">
-                  <FormGroup>
-                    <Label>
-                      Follow Up Visit Date{" "}
-                      <span style={{ color: "red" }}>*</span>
-                    </Label>
-                    <Input
-                      type="date"
-                      name="followUpVisitDate"
-                      id="followUpVisitDate"
-                      onKeyDown={e => e.preventDefault()}
-                      min={minDate}
-                      onChange={handleInputChange}
-                      value={objValues.followUpVisitDate}
-                      disabled={disabledField}
-                    />
-                    {errors.followUpVisitDate !== "" ? (
-                      <span className={classes.error}>
-                        {errors.followUpVisitDate}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-              )}
-
-              {/* 7. HIV Result - Always displayed */}
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>
-                    HIV Result <span style={{ color: "red" }}>*</span>
-                  </Label>
-                  <Input
-                    type="select"
-                    name="hivResult"
-                    id="hivResult"
-                    onChange={handleInputChange}
-                    value={objValues.hivResult}
-                    style={{ border: "1px solid #014D88" }}
-                    disabled={disabledField}
-                  >
-                    <option value="">Select</option>
-                    <option value="Positive">Positive</option>
-                    <option value="Negative">Negative</option>
-                  </Input>
-                  {errors.hivResult !== "" ? (
-                    <span className={classes.error}>{errors.hivResult}</span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              {/* 8. Early Detect Viral Load Result - only if HIV Result = Positive */}
-              {showHivPositiveFields && (
-                <div className="form-group mb-3 col-md-6">
-                  <FormGroup>
-                    <Label>
-                      Early Detect Viral Load Result{" "}
+                      PrEP Interruptions{" "}
                       <span style={{ color: "red" }}>*</span>
                     </Label>
                     <Input
                       type="select"
-                      name="earlyDetectViralLoadResult"
-                      id="earlyDetectViralLoadResult"
+                      name="interruptionType"
+                      id="interruptionType"
                       onChange={handleInputChange}
-                      value={objValues.earlyDetectViralLoadResult}
+                      value={objValues.interruptionType}
                       style={{ border: "1px solid #014D88" }}
                       disabled={disabledField}
                     >
                       <option value="">Select</option>
-                      <option value="Target Detected">Target Detected</option>
-                      <option value="Target Not Detected">
-                        Target Not Detected
-                      </option>
-                    </Input>
-                    {errors.earlyDetectViralLoadResult !== "" ? (
-                      <span className={classes.error}>
-                        {errors.earlyDetectViralLoadResult}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-              )}
-
-              {/* 9. Date Client Referred Out */}
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>Date Client Referred Out</Label>
-                  <Input
-                    type="date"
-                    name="dateClientReferredOut"
-                    id="dateClientReferredOut"
-                    onKeyDown={e => e.preventDefault()}
-                    min={minDate}
-                    max={today}
-                    onChange={handleInputChange}
-                    value={objValues.dateClientReferredOut}
-                    style={{ border: "1px solid #014D88" }}
-                    disabled={disabledField}
-                  />
-                  {errors.dateClientReferredOut !== "" ? (
-                    <span className={classes.error}>
-                      {errors.dateClientReferredOut}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              {/* 10. Facility Referred To - if Date Client Referred Out is provided */}
-              {showFacilityReferredTo && (
-                <div className="form-group mb-3 col-md-6">
-                  <FormGroup>
-                    <Label>
-                      Facility Referred To{" "}
-                      <span style={{ color: "red" }}>*</span>
-                    </Label>
-                    <Input
-                      type="text"
-                      name="facilityReferredTo"
-                      id="facilityReferredTo"
-                      placeholder="Enter facility name"
-                      onChange={handleInputChange}
-                      value={objValues.facilityReferredTo}
-                      disabled={disabledField}
-                    />
-                    {errors.facilityReferredTo !== "" ? (
-                      <span className={classes.error}>
-                        {errors.facilityReferredTo}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-              )}
-
-              {/* 11. Date Client Died */}
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>Date Client Died</Label>
-                  <Input
-                    type="date"
-                    name="dateClientDied"
-                    id="dateClientDied"
-                    onKeyDown={e => e.preventDefault()}
-                    min={minDate}
-                    max={today}
-                    onChange={handleInputChange}
-                    value={objValues.dateClientDied}
-                    style={{ border: "1px solid #014D88" }}
-                    disabled={disabledField}
-                  />
-                  {errors.dateClientDied !== "" ? (
-                    <span className={classes.error}>
-                      {errors.dateClientDied}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-
-              {/* 12. Source of death information - if Date Client Died is provided */}
-              {showDeathFields && (
-                <div className="form-group mb-3 col-md-6">
-                  <FormGroup>
-                    <Label>
-                      Source of death information{" "}
-                      <span style={{ color: "red" }}>*</span>
-                    </Label>
-                    <Input
-                      type="select"
-                      name="sourceOfDeathInfo"
-                      id="sourceOfDeathInfo"
-                      onChange={handleInputChange}
-                      value={objValues.sourceOfDeathInfo}
-                      style={{ border: "1px solid #014D88" }}
-                      disabled={disabledField}
-                    >
-                      <option value="">Select</option>
+                      <option value="Stopped">Stopped</option>
+                      <option value="Default">Default</option>
                       <option value="Dead">Dead</option>
+                      <option value="Referred">Referred</option>
                     </Input>
-                    {errors.sourceOfDeathInfo !== "" ? (
+                    {errors.interruptionType !== "" ? (
                       <span className={classes.error}>
-                        {errors.sourceOfDeathInfo}
+                        {errors.interruptionType}
                       </span>
                     ) : (
                       ""
@@ -611,55 +308,334 @@ const PrEPDiscontinuationsInterruptions = props => {
                 </div>
               )}
 
-              {/* 13. Cause of death - if Date Client Died is provided */}
-              {showDeathFields && (
-                <div className="form-group mb-3 col-md-6">
-                  <FormGroup>
-                    <Label>
-                      Cause of death <span style={{ color: "red" }}>*</span>
-                    </Label>
-                    <Input
-                      type="select"
-                      name="causeOfDeath"
-                      id="causeOfDeath"
-                      onChange={handleInputChange}
-                      value={objValues.causeOfDeath}
-                      style={{ border: "1px solid #014D88" }}
-                      disabled={disabledField}
-                    >
-                      <option value="">Select</option>
-                      <option value="HIV-related (Cancer, parasitic disease)">
-                        HIV-related (Cancer, parasitic disease)
-                      </option>
-                      <option value="Natural Cause">Natural Cause</option>
-                      <option value="Non-natural causes">
-                        Non-natural causes
-                      </option>
-                      <option value="Other cause of death">
-                        Other cause of death
-                      </option>
-                      <option value="Other HIV disease resulting in other disease or conditions leading to death">
-                        Other HIV disease resulting in other disease or
-                        conditions leading to death
-                      </option>
-                      <option value="Suspected ARV Side effect (Specify)">
-                        Suspected ARV Side effect (Specify)
-                      </option>
-                      <option value="Suspected Opportunistic Infection (specify)">
-                        Suspected Opportunistic Infection (specify)
-                      </option>
-                      <option value="Tuberculosis">Tuberculosis</option>
-                      <option value="Unknown">Unknown</option>
-                    </Input>
-                    {errors.causeOfDeath !== "" ? (
-                      <span className={classes.error}>
-                        {errors.causeOfDeath}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
+              {/* Stopped/Default fields: Date Stopped, Why, Date of Restart */}
+              {showStoppedDefaultFields && (
+                <>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Date Stopped <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="date"
+                        name="interruptionDate"
+                        id="interruptionDate"
+                        onKeyDown={e => e.preventDefault()}
+                        min={minDate}
+                        max={today}
+                        onChange={handleInputChange}
+                        value={objValues.interruptionDate}
+                        disabled={disabledField}
+                      />
+                      {errors.interruptionDate !== "" ? (
+                        <span className={classes.error}>
+                          {errors.interruptionDate}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Why <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="select"
+                        name="why"
+                        id="why"
+                        onChange={handleInputChange}
+                        value={objValues.why}
+                        style={{ border: "1px solid #014D88" }}
+                        disabled={disabledField}
+                      >
+                        <option value="">Select</option>
+                        <option value="Toxicity/side effects">
+                          Toxicity/side effects
+                        </option>
+                        <option value="Pregnancy">Pregnancy</option>
+                        <option value="Client preference">
+                          Client preference
+                        </option>
+                        <option value="HIV positive">HIV positive</option>
+                        <option value="No longer at substantial risk">
+                          No longer at substantial risk
+                        </option>
+                      </Input>
+                      {errors.why !== "" ? (
+                        <span className={classes.error}>{errors.why}</span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Date of Restart (If Placed Back on Medication)
+                      </Label>
+                      <Input
+                        type="date"
+                        name="dateRestartPlacedBackMedication"
+                        id="dateRestartPlacedBackMedication"
+                        onKeyDown={e => e.preventDefault()}
+                        min={minDate}
+                        max={today}
+                        onChange={handleInputChange}
+                        value={objValues.dateRestartPlacedBackMedication}
+                        style={{ border: "1px solid #014D88" }}
+                        disabled={disabledField}
+                      />
+                    </FormGroup>
+                  </div>
+                </>
+              )}
+
+              {/* Dead fields: Date Client Died, Source of Death Information */}
+              {showDeadFields && (
+                <>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Date Client Died{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="date"
+                        name="dateClientDied"
+                        id="dateClientDied"
+                        onKeyDown={e => e.preventDefault()}
+                        min={minDate}
+                        max={today}
+                        onChange={handleInputChange}
+                        value={objValues.dateClientDied}
+                        style={{ border: "1px solid #014D88" }}
+                        disabled={disabledField}
+                      />
+                      {errors.dateClientDied !== "" ? (
+                        <span className={classes.error}>
+                          {errors.dateClientDied}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Source of Death Information{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="text"
+                        name="sourceOfDeathInfo"
+                        id="sourceOfDeathInfo"
+                        placeholder="Enter source of death information"
+                        onChange={handleInputChange}
+                        value={objValues.sourceOfDeathInfo}
+                        disabled={disabledField}
+                      />
+                      {errors.sourceOfDeathInfo !== "" ? (
+                        <span className={classes.error}>
+                          {errors.sourceOfDeathInfo}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+                </>
+              )}
+
+              {/* Referred fields: Date Client Referred Out, Facility Referred To */}
+              {showReferredFields && (
+                <>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Date Client Referred Out{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="date"
+                        name="dateClientReferredOut"
+                        id="dateClientReferredOut"
+                        onKeyDown={e => e.preventDefault()}
+                        min={minDate}
+                        max={today}
+                        onChange={handleInputChange}
+                        value={objValues.dateClientReferredOut}
+                        style={{ border: "1px solid #014D88" }}
+                        disabled={disabledField}
+                      />
+                      {errors.dateClientReferredOut !== "" ? (
+                        <span className={classes.error}>
+                          {errors.dateClientReferredOut}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Facility Referred To{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="text"
+                        name="facilityReferredTo"
+                        id="facilityReferredTo"
+                        placeholder="Enter facility name"
+                        onChange={handleInputChange}
+                        value={objValues.facilityReferredTo}
+                        disabled={disabledField}
+                      />
+                      {errors.facilityReferredTo !== "" ? (
+                        <span className={classes.error}>
+                          {errors.facilityReferredTo}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+                </>
+              )}
+
+              {/* PEP-only fields: PEP Completion, Follow Up, HIV Result */}
+              {isPEP && (
+                <>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        PEP Completion{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="select"
+                        name="pepCompletion"
+                        id="pepCompletion"
+                        onChange={handleInputChange}
+                        value={objValues.pepCompletion}
+                        style={{
+                          border: "1px solid #014D88",
+                          padding: "0.5rem",
+                        }}
+                        disabled={disabledField}
+                      >
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </Input>
+                      {errors.pepCompletion !== "" ? (
+                        <span className={classes.error}>
+                          {errors.pepCompletion}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+
+                  {showFollowUpVisitDate && (
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>
+                          Follow Up Visit Date{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </Label>
+                        <Input
+                          type="date"
+                          name="followUpVisitDate"
+                          id="followUpVisitDate"
+                          onKeyDown={e => e.preventDefault()}
+                          min={minDate}
+                          onChange={handleInputChange}
+                          value={objValues.followUpVisitDate}
+                          disabled={disabledField}
+                        />
+                        {errors.followUpVisitDate !== "" ? (
+                          <span className={classes.error}>
+                            {errors.followUpVisitDate}
+                          </span>
+                        ) : (
+                          ""
+                        )}
+                      </FormGroup>
+                    </div>
+                  )}
+
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        HIV Result <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="select"
+                        name="hivResult"
+                        id="hivResult"
+                        onChange={handleInputChange}
+                        value={objValues.hivResult}
+                        style={{ border: "1px solid #014D88" }}
+                        disabled={disabledField}
+                      >
+                        <option value="">Select</option>
+                        <option value="Positive">Positive</option>
+                        <option value="Negative">Negative</option>
+                      </Input>
+                      {errors.hivResult !== "" ? (
+                        <span className={classes.error}>
+                          {errors.hivResult}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+
+                  {showHivPositiveFields && (
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>
+                          Early Detect Viral Load Result{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </Label>
+                        <Input
+                          type="select"
+                          name="earlyDetectViralLoadResult"
+                          id="earlyDetectViralLoadResult"
+                          onChange={handleInputChange}
+                          value={objValues.earlyDetectViralLoadResult}
+                          style={{ border: "1px solid #014D88" }}
+                          disabled={disabledField}
+                        >
+                          <option value="">Select</option>
+                          <option value="Target Detected">
+                            Target Detected
+                          </option>
+                          <option value="Target Not Detected">
+                            Target Not Detected
+                          </option>
+                        </Input>
+                        {errors.earlyDetectViralLoadResult !== "" ? (
+                          <span className={classes.error}>
+                            {errors.earlyDetectViralLoadResult}
+                          </span>
+                        ) : (
+                          ""
+                        )}
+                      </FormGroup>
+                    </div>
+                  )}
+                </>
               )}
             </div>
             {saving ? <Spinner /> : ""}

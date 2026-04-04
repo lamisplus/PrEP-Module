@@ -17,7 +17,7 @@ public interface PrepEligibilityScreeningRepository extends JpaRepository<PrepEl
     Integer countAllByPersonUuid(String personUuid);
     List<PrepEligibilityScreening> findAllByPersonAndArchived(Person person, int archived);
 
-    @Query(value = "SELECT * FROM prep_eligibility_screening pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
+    @Query(value = "SELECT * FROM prophylaxis_screening pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
             "pe.uuid NOT IN (SELECT prep_eligibility_uuid FROM prep_pep_initiation peu WHERE peu.person_uuid=?1 " +
             "AND peu.archived=?2 ) ORDER BY pe.visit_date ASC LIMIT 1", nativeQuery = true)
     PrepEligibilityScreening findByPersonUuidAndArchived(String personUuid, int archived);
@@ -27,6 +27,6 @@ public interface PrepEligibilityScreeningRepository extends JpaRepository<PrepEl
     List<PrepEligibilityScreening> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
     List<PrepEligibilityScreening> findAllByFacilityId(Long facilityId);
 
-    @Query(value = "SELECT * FROM prep_eligibility_screening WHERE date_modified > ?1 AND facility_id=?2", nativeQuery = true)
+    @Query(value = "SELECT * FROM prophylaxis_screening WHERE date_modified > ?1 AND facility_id=?2", nativeQuery = true)
     List<PrepEligibilityScreening> getAllDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
 }

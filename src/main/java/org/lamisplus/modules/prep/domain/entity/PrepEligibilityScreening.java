@@ -23,7 +23,7 @@ import java.util.UUID;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
-@Table(name = "prep_eligibility_screening")
+@Table(name = "prophylaxis_screening")
 @TypeDefs({
         @TypeDef(name = "string-array", typeClass = StringArrayType.class),
         @TypeDef(name = "int-array", typeClass = IntArrayType.class),
@@ -97,6 +97,9 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
 
     @Column(name = "type_of_session")
     private String typeOfSession;
+
+    @Column(name = "category")
+    private String category;
 
     @Column(name = "score")
     private Integer score;

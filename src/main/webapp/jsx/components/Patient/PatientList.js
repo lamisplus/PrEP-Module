@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { token as token, url as baseUrl } from './../../../api';
 import { forwardRef } from 'react';
 import 'semantic-ui-css/semantic.min.css';
-import { Link } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowUpward from '@material-ui/icons/ArrowUpward';
 import Check from '@material-ui/icons/Check';
@@ -24,10 +24,11 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'react-widgets/dist/css/react-widgets.css';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
-import { MdDashboard } from 'react-icons/md';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import PersonAddIcon from '@material-ui/icons/PersonAdd';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import '@reach/menu-button/styles.css';
-import { Label } from 'semantic-ui-react';
 import Moment from 'moment';
 import momentLocalizer from 'react-widgets-moment';
 
@@ -58,17 +59,84 @@ const tableIcons = {
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
 };
 
-// Create styles using makeStyles
 const useStyles = makeStyles({
   statusLabel: {
-    width: '150px', // Set a constant width for the Label component
-    display: 'inline-block', // Ensure the width is respected
-    textAlign: 'center', // Center the text within the label
+    width: '150px',
+    display: 'inline-block',
+    textAlign: 'center',
   },
 });
 
+const EnrollPatientButton = ({ row }) => {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const history = useHistory();
+
+  const handleClick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEnroll = (screeningType) => {
+    handleClose();
+    history.push({
+      pathname: '/patient-dashboard',
+      state: { patientObj: row, screeningType },
+    });
+  };
+
+  const canScreenForPrep = row.canScreenForPrep !== false;
+  const canScreenForPep = row.canScreenForPep !== false;
+
+  return (
+    <div>
+      <Button
+        variant="contained"
+        size="small"
+        onClick={handleClick}
+        style={{
+          backgroundColor: 'rgb(153, 46, 98)',
+          color: '#fff',
+          height: '30px',
+          width: '215px',
+          fontSize: '12px',
+          fontWeight: 'bolder',
+          textTransform: 'none',
+        }}
+        startIcon={<PersonAddIcon />}
+        endIcon={<ArrowDropDownIcon />}
+      >
+        Enroll Patient
+      </Button>
+      <Menu
+        anchorEl={anchorEl}
+        keepMounted
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+      >
+        <MenuItem
+          onClick={() => handleEnroll('PrEP')}
+          disabled={!canScreenForPrep}
+        >
+          PrEP
+        </MenuItem>
+        <MenuItem
+          onClick={() => handleEnroll('PEP')}
+          disabled={!canScreenForPep}
+        >
+          PEP
+        </MenuItem>
+      </Menu>
+    </div>
+  );
+};
+
 const Patients = props => {
-  const classes = useStyles(); // Use the styles
+  const classes = useStyles();
   const [patientList, setPatientList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPPI, setShowPPI] = useState(true);
@@ -112,14 +180,8 @@ const Patients = props => {
             field: 'hospital_number',
             filtering: false,
           },
-          { title: 'PrEP Code', field: 'clientCode', filtering: false },
           { title: 'Sex', field: 'gender', filtering: false },
           { title: 'Age', field: 'age', filtering: false },
-          {
-            title: 'PrEP Status',
-            field: 'status',
-            filtering: false,
-          },
           { title: 'Actions', field: 'actions', filtering: false },
         ]}
         data={query =>
@@ -135,65 +197,9 @@ const Patients = props => {
                   data: result?.data?.records?.map?.(row => ({
                     name: row.firstName + ' ' + row.surname,
                     hospital_number: row.hospitalNumber,
-                    clientCode: row.uniqueId,
                     gender: row && row.gender ? row.gender : '',
                     age: row.age,
-                    status: (
-                      <Label
-                        className={classes.statusLabel}
-                        color="blue"
-                        size="mini"
-                      >
-                        {row.prepStatus}
-                      </Label>
-                    ),
-                    actions: (
-                      <div>
-                        <Link
-                          to={{
-                            pathname: '/patient-dashboard',
-                            state: { patientObj: row },
-                          }}
-                        >
-                          <ButtonGroup
-                            variant="contained"
-                            aria-label="split button"
-                            style={{
-                              backgroundColor: 'rgb(153, 46, 98)',
-                              height: '30px',
-                              width: '215px',
-                            }}
-                            size="large"
-                          >
-                            <Button
-                              color="primary"
-                              size="small"
-                              aria-label="select merge strategy"
-                              aria-haspopup="menu"
-                              style={{
-                                backgroundColor: 'rgb(153, 46, 98)',
-                                margin: 'auto',
-                              }}
-                            >
-                              <MdDashboard />
-                            </Button>
-                            <Button
-                              style={{ backgroundColor: 'rgb(153, 46, 98)' }}
-                            >
-                              <span
-                                style={{
-                                  fontSize: '12px',
-                                  color: '#fff',
-                                  fontWeight: 'bolder',
-                                }}
-                              >
-                                Patient Dashboard
-                              </span>
-                            </Button>
-                          </ButtonGroup>
-                        </Link>
-                      </div>
-                    ),
+                    actions: <EnrollPatientButton row={row} />,
                   })),
                   page: query.page,
                   totalCount: result.data.totalRecords,

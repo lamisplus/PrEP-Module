@@ -75,6 +75,7 @@ export const LiverFunctionTest = ({
 
 const BasicInfo = props => {
   const classes = useStyles();
+  const screeningType = props.activeContent?.screeningType || '';
   const [disabledField, setSisabledField] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -89,6 +90,7 @@ const BasicInfo = props => {
     uniqueClientId: "",
     clientHtsCode: "",
     counselingType: "",
+    category: screeningType,
     drugUseHistory: {},
     extra: {},
     firstTimeVisit: true,
@@ -1191,12 +1193,9 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              <Message warning>
-                <h4>
-                  Sex Partner Risk Assessment score (sum of all 6 answers)
-                </h4>
-                <b>Score: {sexPartRiskCount.length}</b>
-              </Message>
+              <div className="form-group mb-3 col-md-12">
+                <b>Score: {Object.values(riskAssessmentPartner).some(v => v === "true") ? 1 : 0}</b>
+              </div>
 
               <hr />
 
@@ -1357,12 +1356,9 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              <Message warning>
-                <h4>
-                  Personal HIV Risk assessment score (sum of all 6 answers)
-                </h4>
-                <b>Score : {riskCount.length}</b>
-              </Message>
+              <div className="form-group mb-3 col-md-12">
+                <b>Score: {Object.values(riskAssessment).some(v => v === "true") ? 1 : 0}</b>
+              </div>
 
               <hr />
 
@@ -1660,8 +1656,14 @@ const BasicInfo = props => {
                 </>
               )}
 
+              <div className="form-group mb-3 col-md-12">
+                <b>Score: {[drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].some(v => v === "true") ? 1 : 0}</b>
+              </div>
+
               <hr />
 
+              {screeningType !== 'PrEP' && (
+              <>
               {/* --- Subsection: Assessment for PEP Indication --- */}
               <div
                 style={{
@@ -1759,7 +1761,13 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
+              <div className="form-group mb-3 col-md-12">
+                <b>Score: {Object.values(assessmentForPepIndication).some(v => v === "true") ? 1 : 0}</b>
+              </div>
+
               <hr />
+              </>
+              )}
 
               {/* --- Subsection: Assessment Acute HIV Infection --- */}
               <div
@@ -1852,6 +1860,10 @@ const BasicInfo = props => {
                     ""
                   )}
                 </FormGroup>
+              </div>
+
+              <div className="form-group mb-3 col-md-12">
+                <b>Score: {Object.values(assessmentForAcuteHivInfection).some(v => v === "true") ? 1 : 0}</b>
               </div>
 
               <hr />
@@ -2430,133 +2442,17 @@ const BasicInfo = props => {
                 PrEP Eligibilty scoring
               </div>
 
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>
-                    HIV Negative:{" "}
-                    <span className="badge badge-info">{`${
-                      drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0
-                    }`}</span>
-                  </Label>
-                </FormGroup>
-              </div>
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>
-                    {`HIV Risk Score >= 1:`}{" "}
-                    <span className="badge badge-info">{`${
-                      riskCount.length >= 1 ? 1 : 0
-                    }`}</span>
-                  </Label>
-                </FormGroup>
-              </div>
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>No signs and symptoms of Acute HIV Infection</Label>
-                  <select
-                    className="form-control"
-                    name="noSignsAndSymptomsOfAcuteHivInfection"
-                    id="noSignsAndSymptomsOfAcuteHivInfection"
-                    value={
-                      assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection
-                    }
-                    onChange={handleInputChangeAssessmentForPrepEligibility}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </FormGroup>
-              </div>
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>No Indication for PEP</Label>
-                  <select
-                    className="form-control"
-                    name="noIndicationForPep"
-                    id="noIndicationForPep"
-                    value={assessmentForPrepEligibility?.noIndicationForPep}
-                    onChange={handleInputChangeAssessmentForPrepEligibility}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </FormGroup>
-              </div>
-              {is30AndAbove() && (
-                <div className="form-group col-md-4 p-2">
-                  <FormGroup className="p-2">
-                    <Label>{`Has no proteinuria (>30 Years)`}</Label>
-                    <select
-                      className="form-control"
-                      name="hasNoProteinuria"
-                      id="hasNoProteinuria"
-                      value={assessmentForPrepEligibility?.hasNoProteinuria}
-                      onChange={handleInputChangeAssessmentForPrepEligibility}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </select>
-                    {errors.hasNoProteinuria !== "" ? (
-                      <span className={classes.error}>
-                        {errors.hasNoProteinuria}
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
+              <div className="row">
+                <div className="form-group mb-3 col-md-12">
+                  <h3>PrEP Eligibility Score</h3>
+                  <p>HIV Negative: {drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0}</p>
+                  <p>HIV Risk: {Object.values(riskAssessment).some(v => v === "true") ? 1 : 0}</p>
+                  <p>No Acute HIV Infection: {Object.values(assessmentForAcuteHivInfection).every(v => v !== "true") ? 1 : 0}</p>
+                  <p>No PEP Indication: {Object.values(assessmentForPepIndication).every(v => v !== "true") ? 1 : 0}</p>
                 </div>
-              )}
-              <Message warning>
-                <h4>
-                  Calculate the sum of PrEP Eligibility. If {">= "}1 client is
-                  Eligible for PrEP. (Score: Count Yes=1, No=0).
-                </h4>
-                <h5>{`HIV Negative: ${
-                  drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0
-                }`}</h5>
-                <h5>{`HIV risk score >=1 : ${
-                  riskCount.length >= 1 ? 1 : 0
-                }`}</h5>
-                <h5>{`No signs and symptoms of Acute HIV Infection: ${
-                  assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection ===
-                  "true"
-                    ? 1
-                    : 0
-                }`}</h5>
-                <h5>{`No Indication for PEP: ${
-                  assessmentForPrepEligibility?.noIndicationForPep === "true"
-                    ? 1
-                    : 0
-                }`}</h5>
-                {is30AndAbove() && (
-                  <h5>{`Has no proteinuria (>30 Years): ${
-                    assessmentForPrepEligibility?.hasNoProteinuria === "true"
-                      ? 1
-                      : 0
-                  }`}</h5>
-                )}
-              </Message>
-              {/* <Message warning>
-                                <h3>{`Final Prep Eligibility Score: ${getPrepEligibilityScore()}`}</h3>
-                            </Message> */}
+              </div>
+              {screeningType !== 'PEP' && (
+              <>
               <hr />
               <br />
               <div
@@ -2700,7 +2596,11 @@ const BasicInfo = props => {
                   );
                 })()}
               </div>
+              </>
+              )}
 
+              {screeningType !== 'PEP' && (
+              <>
               <hr />
               <br />
               <div
@@ -2931,6 +2831,8 @@ const BasicInfo = props => {
                     </div>
                   )}
                 </>
+              )}
+              </>
               )}
 
               {saving ? <Spinner /> : ""}

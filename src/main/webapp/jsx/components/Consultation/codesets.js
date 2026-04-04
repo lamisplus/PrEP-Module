@@ -378,6 +378,15 @@ export function fetchPrepRegimenByType(prepType) {
  * Replaces: GET /application-codesets/v2/DURATION_OF_CAB-LA_INJECTABLE_REFILL
  * @returns {Promise<Array<{code: string, display: string}>>}
  */
+export function getInterruptionTypeOptions() {
+  return [
+    { value: "Stopped", label: "Stopped" },
+    { value: "Default", label: "Default" },
+    { value: "Dead", label: "Dead" },
+    { value: "Referred", label: "Referred" },
+  ];
+}
+
 export function fetchCabLaRefillDurations() {
   return Promise.resolve([
     { code: "30", display: "30" },

@@ -63,6 +63,15 @@ public class PrepController {
         return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
     }
 
+    @GetMapping(PREP_URL_VERSION_ONE + "/persons/pep-enrolled")
+    @ApiOperation("Get PEP enrolled Persons")
+    public ResponseEntity<PageDTO> getAllPepEnrolledPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,
+                                                            @RequestParam(required = false, defaultValue = "20") int pageSize,
+                                                            @RequestParam(required = false, defaultValue = "0") int pageNo) {
+        Page<PrepClient> page = prepService.findAllPepEnrolledPrepPersonPage(searchValue, pageNo, pageSize);
+        return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
+    }
+
     @GetMapping(PREP_URL_VERSION_ONE + "/only/persons")
     @ApiOperation("Get Only Prep Persons with optimized api")
     public ResponseEntity<PageDTO> getOnlyPrepPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,
@@ -79,9 +88,9 @@ public class PrepController {
         return new ResponseEntity<>(prepService.saveEligibility(prepEligibilityRequestDto), HttpStatus.CREATED);
     }
 
-    @PostMapping(PREP_URL_VERSION_ONE + "/enrollment")
+    @PostMapping({PREP_URL_VERSION_ONE + "/enrollment", PREP_URL_VERSION_ONE + "/prophylaxis-initiation"})
     @ResponseStatus(HttpStatus.CREATED)
-    @ApiOperation("Save Prep Enrollment")
+    @ApiOperation("Save Prophylaxis Initiation")
     public ResponseEntity<PrepEnrollmentDto> saveEnrollment(@Valid @RequestBody PrepEnrollmentRequestDto prepEnrollmentRequestDto) {
         return new ResponseEntity<>(prepService.saveEnrollment(prepEnrollmentRequestDto), HttpStatus.CREATED);
     }

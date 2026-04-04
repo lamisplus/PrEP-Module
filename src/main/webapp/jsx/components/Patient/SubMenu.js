@@ -152,7 +152,9 @@ function SubMenu(props) {
                           <Menu.Item
                             onClick={loadPrEPDiscontinuationsInterruptions}
                           >
-                            PrEP Completion/Discontinuations & Interruptions
+                            {patientObj?.enrollmentType === "PEP"
+                              ? "PEP Completion"
+                              : "PrEP Discontinuation/Interruption"}
                           </Menu.Item>
                         )}
                       />
@@ -230,7 +232,9 @@ function SubMenu(props) {
                 isAuthorized={userPermissions.discontinuation}
                 privateComponent={() => (
                   <Menu.Item onClick={loadPrEPDiscontinuationsInterruptions}>
-                    PrEP Completion/Discontinuations & Interruptions
+                    {patientObj?.enrollmentType === "PEP"
+                      ? "PEP Completion"
+                      : "PrEP Discontinuation/Interruption"}
                   </Menu.Item>
                 )}
               />

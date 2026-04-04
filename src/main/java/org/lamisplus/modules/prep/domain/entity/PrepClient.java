@@ -44,4 +44,8 @@ public interface PrepClient {
     String getAddress();
 
     String getHIVResultAtVisit();
+
+    Boolean getCanScreenForPrep();
+
+    Boolean getCanScreenForPep();
 }

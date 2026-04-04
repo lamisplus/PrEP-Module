@@ -27,7 +27,7 @@ public class PrepEnrollmentActivityProvider implements PatientActivityProvider {
 	
 	@NotNull
 	private PatientActivity buildPatientActivity(PrepPepInitiation prepEnrollment) {
-		String name = "Prep Enrollment";
+		String name = "PrEP & PEP Initiation";
 		assert prepEnrollment.getId() != null;
 		return new PatientActivity(prepEnrollment.getId(), name, prepEnrollment.getDateEnrolled(), "", "prep-pep-initiation");
 	}
