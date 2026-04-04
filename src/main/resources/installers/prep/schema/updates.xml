@@ -913,15 +913,10 @@
         </sql>
     </changeSet>
 
-    <!-- 2.1 prophylaxis_screening (new standalone table with category field) -->
-    <changeSet failOnError="true" author="Gamaliel" id="create-prophylaxis-screening">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="prophylaxis_screening"/>
-            </not>
-        </preConditions>
+    <!-- 2.1 prophylaxis_screening -->
+    <changeSet failOnError="false" author="Gamaliel" id="create-prophylaxis-screening-v2">
         <sql>
-            CREATE TABLE prophylaxis_screening (
+            CREATE TABLE IF NOT EXISTS prophylaxis_screening (
             id BIGSERIAL PRIMARY KEY,
             uuid VARCHAR(255) NOT NULL UNIQUE,
             person_uuid VARCHAR(255) NOT NULL,
@@ -971,15 +966,17 @@
         </sql>
     </changeSet>
 
-    <!-- 2.2 prophylaxis_initiation (new standalone table) -->
-    <changeSet failOnError="true" author="Gamaliel" id="create-prophylaxis-initiation">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="prophylaxis_initiation"/>
-            </not>
-        </preConditions>
+    <!-- 2.1b Add category column if table already existed without it -->
+    <changeSet failOnError="false" author="Gamaliel" id="add-category-to-prophylaxis-screening-v2">
         <sql>
-            CREATE TABLE prophylaxis_initiation (
+            ALTER TABLE prophylaxis_screening ADD COLUMN IF NOT EXISTS category VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <!-- 2.2 prophylaxis_initiation -->
+    <changeSet failOnError="false" author="Gamaliel" id="create-prophylaxis-initiation-v2">
+        <sql>
+            CREATE TABLE IF NOT EXISTS prophylaxis_initiation (
             id BIGSERIAL PRIMARY KEY,
             uuid VARCHAR(255) NOT NULL UNIQUE,
             person_uuid VARCHAR(255) NOT NULL,
@@ -1028,19 +1025,11 @@
     </changeSet>
 
     <!-- 2.3 Update FK constraints on existing tables to reference prophylaxis_initiation -->
-    <changeSet failOnError="false" author="Gamaliel" id="update-fk-to-prophylaxis-initiation">
+    <changeSet failOnError="false" author="Gamaliel" id="update-fk-to-prophylaxis-initiation-v2">
         <sql>
             ALTER TABLE prep_followup_visit DROP CONSTRAINT IF EXISTS fk_prep_followup_enrollment;
-            ALTER TABLE prep_followup_visit ADD CONSTRAINT fk_prep_followup_enrollment
-                FOREIGN KEY (prep_enrollment_uuid) REFERENCES prophylaxis_initiation(uuid);
-
             ALTER TABLE pep_followup_visit DROP CONSTRAINT IF EXISTS fk_pep_followup_enrollment;
-            ALTER TABLE pep_followup_visit ADD CONSTRAINT fk_pep_followup_enrollment
-                FOREIGN KEY (prep_enrollment_uuid) REFERENCES prophylaxis_initiation(uuid);
-
             ALTER TABLE prep_completion DROP CONSTRAINT IF EXISTS fk_prep_completion_enrollment;
-            ALTER TABLE prep_completion ADD CONSTRAINT fk_prep_completion_enrollment
-                FOREIGN KEY (prep_enrollment_uuid) REFERENCES prophylaxis_initiation(uuid);
         </sql>
     </changeSet>
 </databaseChangeLog>
