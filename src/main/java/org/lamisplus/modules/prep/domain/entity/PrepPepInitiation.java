@@ -24,7 +24,7 @@ import java.util.UUID;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
-@Table(name = "prep_pep_initiation")
+@Table(name = "prophylaxis_initiation")
 @TypeDefs({
         @TypeDef(name = "string-array", typeClass = StringArrayType.class),
         @TypeDef(name = "int-array", typeClass = IntArrayType.class),

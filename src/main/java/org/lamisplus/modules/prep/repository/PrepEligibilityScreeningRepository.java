@@ -18,7 +18,7 @@ public interface PrepEligibilityScreeningRepository extends JpaRepository<PrepEl
     List<PrepEligibilityScreening> findAllByPersonAndArchived(Person person, int archived);
 
     @Query(value = "SELECT * FROM prophylaxis_screening pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
-            "pe.uuid NOT IN (SELECT prep_eligibility_uuid FROM prep_pep_initiation peu WHERE peu.person_uuid=?1 " +
+            "pe.uuid NOT IN (SELECT prep_eligibility_uuid FROM prophylaxis_initiation peu WHERE peu.person_uuid=?1 " +
             "AND peu.archived=?2 ) ORDER BY pe.visit_date ASC LIMIT 1", nativeQuery = true)
     PrepEligibilityScreening findByPersonUuidAndArchived(String personUuid, int archived);
 

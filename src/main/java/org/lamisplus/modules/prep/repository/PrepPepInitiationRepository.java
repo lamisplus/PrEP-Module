@@ -20,13 +20,13 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     Optional<PrepPepInitiation> findByPrepEligibilityUuid(String prepEligibilityUuid);
     Optional<PrepPepInitiation> findByUuid(String uuid);
 
-    @Query(value = "SELECT * FROM prep_pep_initiation pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
+    @Query(value = "SELECT * FROM prophylaxis_initiation pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
             "pe.status NOT IN (?4) AND pe.facility_id=?3 ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
     Optional<PrepPepInitiation> findByPersonUuidAndArchived(String personUuid, int archived, Long facilityId, String status);
 
     Optional<PrepPepInitiation> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
 
-    @Query(value = "SELECT * FROM prep_pep_initiation pe WHERE pe.person_uuid=?1 AND pe.archived=?2 ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
+    @Query(value = "SELECT * FROM prophylaxis_initiation pe WHERE pe.person_uuid=?1 AND pe.archived=?2 ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
     Optional<PrepPepInitiation> findTopByPersonUuidAndArchived(String personUuid, int archived);
 
     List<PrepPepInitiation> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
@@ -34,7 +34,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     Integer countAllByPersonUuid(String personUuid);
     List<PrepPepInitiation> findAllByFacilityId(Long facilityId);
 
-    @Query(value = "SELECT * FROM prep_pep_initiation WHERE date_modified > ?1 AND facility_id=?2", nativeQuery = true)
+    @Query(value = "SELECT * FROM prophylaxis_initiation WHERE date_modified > ?1 AND facility_id=?2", nativeQuery = true)
     List<PrepPepInitiation> getAllDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
 
     List<PrepPepInitiation> findFirstByPersonOrderByIdDesc(Person person);
@@ -49,10 +49,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled)::date) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled)::date) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled, CURRENT_DATE)::date) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
+            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled, CURRENT_DATE)::date) >= 28 THEN true ELSE false END AS canScreenForPep  " +
             "FROM patient_person p " +
-            "LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
             "WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
@@ -63,13 +63,15 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     @Query(value = "SELECT pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,   " +
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
-            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount  " +
+            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
+            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled, CURRENT_DATE)::date) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
+            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled, CURRENT_DATE)::date) >= 28 THEN true ELSE false END AS canScreenForPep  " +
             "FROM patient_person p " +
-            "LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
             "WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
-            "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth ", nativeQuery = true)
+            "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled ", nativeQuery = true)
     List<PrepClient> findAllPersonPrepBySearchParam(Integer archived, Long facilityId, String search);
 
 
@@ -77,9 +79,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled)::date) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled)::date) >= 28 THEN true ELSE false END AS canScreenForPep  " +
-            "FROM patient_person p  LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
+            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled, CURRENT_DATE)::date) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
+            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled, CURRENT_DATE)::date) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "FROM patient_person p  LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
             "WHERE p.archived=?1 AND p.facility_id=?2  " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled", nativeQuery = true)
     Page<PrepClient> findAllPersonPrep(Integer archived, Long facilityId, Pageable pageable);
@@ -87,10 +89,12 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     @Query(value = "SELECT pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,   " +
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
-            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount  " +
-            "FROM patient_person p  LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
+            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
+            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled, CURRENT_DATE)::date) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
+            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(pet.date_enrolled, CURRENT_DATE)::date) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "FROM patient_person p  LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
             "WHERE p.archived=?1 AND p.facility_id=?2  " +
-            "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth", nativeQuery = true)
+            "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled", nativeQuery = true)
     List<PrepClient> findAllPersonPrep(Integer archived, Long facilityId);
 
     @Query(value = "SELECT DISTINCT ON (p.hospital_number)\n" +
@@ -159,7 +163,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    WHERE el.archived = ?1\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -287,7 +291,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    WHERE el.archived = ?1\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -416,7 +420,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    WHERE el.archived = ?1\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -498,7 +502,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "FROM patient_person p   LEFT JOIN (SELECT COUNT(el.person_uuid) as eligibility_count,  " +
             "el.person_uuid FROM prophylaxis_screening el WHERE el.archived=?1  " +
             "GROUP BY person_uuid) el ON el.person_uuid = p.uuid  " +
-            "LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid  " +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid  " +
             "AND pet.archived=?1 LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid  " +
             "AND he.archived=?1 LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount,  " +
             "MAX(pc.encounter_date) as encounter_date, pc.duration,   " +
@@ -557,7 +561,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' \n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' \n" +
             "        ELSE prepc.status \n" +
-            "     END) prepStatus\n" +
+            "     END) prepStatus,\n" +
+            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(prepc.encounter_date, pet.date_enrolled)::date) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
+            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(prepc.encounter_date, pet.date_enrolled)::date) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "FROM patient_person p  \n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid \n" +
@@ -565,7 +571,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    WHERE el.archived=?1 \n" +
             "    GROUP BY person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived=?1\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, \n" +
@@ -611,7 +617,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, he.person_uuid, he.date_confirmed_hiv, \n" +
             "         el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, \n" +
             "         p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, \n" +
-            "         p.other_name, p.hospital_number, p.date_of_birth, prepc.status, pet.id \n" +
+            "         p.other_name, p.hospital_number, p.date_of_birth, prepc.status, pet.id, pet.date_enrolled \n" +
             "ORDER BY el_max.HIVResultAtVisit, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Optional<PrepClient> findPersonPrepAndStatusByPatientUuid(Integer archived, Long facilityId, String personUuid);
 
@@ -698,7 +704,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    WHERE el.archived = ?1\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -830,7 +836,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        END AS sendCabLaAlert,\n" +
             "        CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(prepc.encounter_date, pet.date_enrolled)::date) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
             "        CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - COALESCE(prepc.encounter_date, pet.date_enrolled)::date) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
-            "    FROM prep_pep_initiation pet\n" +
+            "    FROM prophylaxis_initiation pet\n" +
             "    JOIN patient_person p ON pet.person_uuid = p.uuid\n" +
             "    LEFT JOIN (\n" +
             "        SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -975,7 +981,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                WHERE el.archived = ?1\n" +
             "                GROUP BY el.person_uuid\n" +
             "            ) el ON el.person_uuid = p.uuid\n" +
-            "            LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "            LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
             "            LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
             "            LEFT JOIN (\n" +
             "                SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -1063,7 +1069,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             " FROM patient_person p  " +
             " INNER JOIN (SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid FROM prophylaxis_screening el " +
             "WHERE el.archived=?1 GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
-            " LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1" +
+            " LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1" +
             " LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived=?1" +
             " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration,   " +
             " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'" +
@@ -1161,7 +1167,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    WHERE el.archived = ?1\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -1307,7 +1313,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    WHERE el.archived = ?1\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prep_pep_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
