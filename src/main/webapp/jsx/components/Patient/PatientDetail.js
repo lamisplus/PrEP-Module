@@ -79,6 +79,10 @@ function PatientCard(props) {
     history.location && history.location.state
       ? history.location.state.prepId
       : {};
+  const screeningTypeFromRoute =
+    history.location && history.location.state
+      ? history.location.state.screeningType
+      : "";
 
   const { userPermissions } = useAuth();
 
@@ -129,6 +133,7 @@ function PatientCard(props) {
             patientObj={patientObjLocation}
             setActiveContent={setActiveContent}
             patientDetail={patientDetail}
+            screeningType={screeningTypeFromRoute}
           />
           <br />
 

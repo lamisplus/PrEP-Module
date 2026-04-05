@@ -394,3 +394,16 @@ export function fetchCabLaRefillDurations() {
     { code: "90", display: "90" },
   ]);
 }
+
+/**
+ * Abstract fetch function for the "Setting" field options.
+ * Returns options for Facility and Community settings.
+ * Replace Promise.resolve with API call when endpoint is ready.
+ * @returns {Promise<Array<{value: string, label: string}>>}
+ */
+export function fetchSettingOptions() {
+  return Promise.resolve([
+    { value: "Facility", label: "Facility" },
+    { value: "Community", label: "Community" },
+  ]);
+}

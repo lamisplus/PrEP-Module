@@ -24,10 +24,8 @@ public class PrepEligibilityScreeningDto implements Serializable {
     private String counselingType;
     private Boolean firstTimeVisit;
     private Integer numChildrenLessThanFive;
-    private Integer numWives;
     private String targetGroup;
     private Object extra;
-    private String uniqueId;
     private Integer score;
     private LocalDate visitDate;
     private Object assessmentForPepIndication;
@@ -36,10 +34,7 @@ public class PrepEligibilityScreeningDto implements Serializable {
     private Object servicesReceivedByClient;
     private Object considerationForInjections;
     private Object reasonForDecliningPrep;
-    private String lftConducted;
     private String reasonForSwitch;
-    private Object liverFunctionTestResults;
-    private LocalDate dateLiverFunctionTestResults;
     private String populationType;
     private String visitType;
     private String pregnancyStatus;

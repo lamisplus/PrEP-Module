@@ -104,7 +104,6 @@ public class PrepEligibilityScreeningService {
         PrepEligibilityScreening e = new PrepEligibilityScreening();
         e.setPersonUuid(personUuid);
         e.setHivRisk(dto.getHivRisk());
-        e.setUniqueId(dto.getUniqueId());
         e.setScore(dto.getScore());
         e.setStiScreening(dto.getStiScreening());
         e.setDrugUseHistory(dto.getDrugUseHistory());
@@ -114,7 +113,6 @@ public class PrepEligibilityScreeningService {
         e.setCounselingType(dto.getCounselingType());
         e.setFirstTimeVisit(dto.getFirstTimeVisit());
         e.setNumChildrenLessThanFive(dto.getNumChildrenLessThanFive());
-        e.setNumWives(dto.getNumWives());
         e.setTargetGroup(dto.getTargetGroup());
         e.setExtra(dto.getExtra());
         e.setAssessmentForPepIndication(dto.getAssessmentForPepIndication());
@@ -128,9 +126,6 @@ public class PrepEligibilityScreeningService {
         e.setPregnancyStatus(dto.getPregnancyStatus());
         e.setReasonForSwitch(dto.getReasonForSwitch());
         e.setVisitDate(dto.getVisitDate());
-        e.setLftConducted(dto.getLftConducted());
-        e.setDateLiverFunctionTestResults(dto.getDateLiverFunctionTestResults());
-        e.setLiverFunctionTestResults(dto.getLiverFunctionTestResults());
         e.setUniqueClientId(dto.getUniqueClientId());
         e.setClientHtsCode(dto.getClientHtsCode());
         e.setReferredFrom(dto.getReferredFrom());
@@ -147,7 +142,6 @@ public class PrepEligibilityScreeningService {
         e.setId(dto.getId());
         e.setPersonUuid(personUuid);
         e.setHivRisk(dto.getHivRisk());
-        e.setUniqueId(dto.getUniqueId());
         e.setScore(dto.getScore());
         e.setStiScreening(dto.getStiScreening());
         e.setDrugUseHistory(dto.getDrugUseHistory());
@@ -157,7 +151,6 @@ public class PrepEligibilityScreeningService {
         e.setCounselingType(dto.getCounselingType());
         e.setFirstTimeVisit(dto.getFirstTimeVisit());
         e.setNumChildrenLessThanFive(dto.getNumChildrenLessThanFive());
-        e.setNumWives(dto.getNumWives());
         e.setTargetGroup(dto.getTargetGroup());
         e.setExtra(dto.getExtra());
         e.setAssessmentForPepIndication(dto.getAssessmentForPepIndication());
@@ -171,9 +164,6 @@ public class PrepEligibilityScreeningService {
         e.setPregnancyStatus(dto.getPregnancyStatus());
         e.setReasonForSwitch(dto.getReasonForSwitch());
         e.setVisitDate(dto.getVisitDate());
-        e.setLftConducted(dto.getLftConducted());
-        e.setDateLiverFunctionTestResults(dto.getDateLiverFunctionTestResults());
-        e.setLiverFunctionTestResults(dto.getLiverFunctionTestResults());
         e.setUniqueClientId(dto.getUniqueClientId());
         e.setClientHtsCode(dto.getClientHtsCode());
         e.setReferredFrom(dto.getReferredFrom());
@@ -190,7 +180,6 @@ public class PrepEligibilityScreeningService {
         dto.setId(e.getId());
         dto.setUuid(e.getUuid());
         dto.setPersonUuid(e.getPersonUuid());
-        dto.setUniqueId(e.getUniqueId());
         dto.setHivRisk(e.getHivRisk());
         dto.setStiScreening(e.getStiScreening());
         dto.setDrugUseHistory(e.getDrugUseHistory());
@@ -200,7 +189,6 @@ public class PrepEligibilityScreeningService {
         dto.setCounselingType(e.getCounselingType());
         dto.setFirstTimeVisit(e.getFirstTimeVisit());
         dto.setNumChildrenLessThanFive(e.getNumChildrenLessThanFive());
-        dto.setNumWives(e.getNumWives());
         dto.setTargetGroup(e.getTargetGroup());
         dto.setExtra(e.getExtra());
         dto.setScore(e.getScore());
@@ -215,9 +203,6 @@ public class PrepEligibilityScreeningService {
         dto.setPregnancyStatus(e.getPregnancyStatus());
         dto.setReasonForSwitch(e.getReasonForSwitch());
         dto.setVisitDate(e.getVisitDate());
-        dto.setLftConducted(e.getLftConducted());
-        dto.setDateLiverFunctionTestResults(e.getDateLiverFunctionTestResults());
-        dto.setLiverFunctionTestResults(e.getLiverFunctionTestResults());
         dto.setUniqueClientId(e.getUniqueClientId());
         dto.setClientHtsCode(e.getClientHtsCode());
         dto.setReferredFrom(e.getReferredFrom());

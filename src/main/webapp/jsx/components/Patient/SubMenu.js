@@ -6,7 +6,7 @@ import { useAuth } from "../../../context/AuthProvider/AuthProvider";
 
 function SubMenu(props) {
   const { userPermissions } = useAuth();
-  let { patientObj, patientDetail } = props;
+  let { patientObj, patientDetail, screeningType } = props;
 
   useEffect(() => {
     //Observation();
@@ -25,7 +25,7 @@ function SubMenu(props) {
     });
   };
   const loadPrEPEligibilityScreeningForm = row => {
-    props.setActiveContent({ ...props.activeContent, route: "prep-screening" });
+    props.setActiveContent({ ...props.activeContent, route: "prep-screening", screeningType: screeningType || "" });
   };
 
   const onClickConsultation = row => {
@@ -81,7 +81,7 @@ function SubMenu(props) {
                 isAuthorized={userPermissions.eligibility}
                 privateComponent={() => (
                   <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
-                    PrEP Eligibility Screening
+                    {screeningType === 'PEP' ? 'PEP' : 'PrEP'} Eligibility Screening
                   </Menu.Item>
                 )}
               />
@@ -185,7 +185,7 @@ function SubMenu(props) {
                 isAuthorized={userPermissions.eligibility}
                 privateComponent={() => (
                   <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
-                    PrEP Eligibility Screening
+                    {screeningType === 'PEP' ? 'PEP' : 'PrEP'} Eligibility Screening
                   </Menu.Item>
                 )}
               />

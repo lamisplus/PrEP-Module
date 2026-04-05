@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import "react-widgets/dist/css/react-widgets.css";
 import { token, url as baseUrl } from "../../../api";
 import "react-phone-input-2/lib/style.css";
-import { fetchAllCodesets as fetchAllCodesetsFromCatalog } from "../Consultation/codesets";
+import { fetchAllCodesets as fetchAllCodesetsFromCatalog, fetchSettingOptions } from "../Consultation/codesets";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
@@ -84,6 +84,7 @@ const BasicInfo = props => {
   const history = useLocation;
   const patientObj = history?.state?.patientObj || props?.patientObj;
   const [codeset, setCodeset] = useState({});
+  const [settingOptions, setSettingOptions] = useState([]);
   let temp = { ...errors };
 
   const [objValues, setObjValues] = useState({
@@ -96,14 +97,12 @@ const BasicInfo = props => {
     firstTimeVisit: true,
     hivRisk: {},
     numChildrenLessThanFive: "",
-    numWives: "",
     personId: "",
     personalHivRiskAssessment: {},
     sexPartner: "",
     sexPartnerRisk: {},
     stiScreening: {},
     targetGroup: "TARGET_GROUP_GEN_POP",
-    uniqueId: "",
     visitDate: "",
     visitType: "",
     reasonForSwitch: "",
@@ -113,9 +112,6 @@ const BasicInfo = props => {
     setting: "",
     serviceStatus: "",
     typeOfSession: "",
-    lftConducted: "",
-    liverFunctionTestResults: [],
-    dateLiverFunctionTestResults: "",
     score: 0,
   });
   const [riskAssessment, setRiskAssessment] = useState({
@@ -218,17 +214,10 @@ const BasicInfo = props => {
     noHistoryOfDrugHypersensitivityInjectable: "",
   });
 
-  const handleLftInputChange = event => {
-    const { name, value } = event.target;
-    setObjValues(prevValues => ({
-      ...prevValues,
-      [name]: value,
-    }));
-  };
-
   // TODO: Replace fetchAllCodesetsFromCatalog() with API call when endpoint is ready.
   useEffect(() => {
     fetchAllCodesetsFromCatalog().then(data => setCodeset(data));
+    fetchSettingOptions().then(data => setSettingOptions(data));
   }, []);
 
   useEffect(async () => {
@@ -420,13 +409,14 @@ const BasicInfo = props => {
       objValues.sexPartnerRisk = riskAssessmentPartner;
       objValues.stiScreening = stiScreening;
       objValues.personId = props?.patientObj?.personId || props?.patientObj?.id;
-      objValues.uniqueId = props?.patientObj?.uniqueId;
       objValues.assessmentForAcuteHivInfection = assessmentForAcuteHivInfection;
-      objValues.assessmentForPepIndication = assessmentForPepIndication;
-      objValues.assessmentForPrepEligibility = assessmentForPrepEligibility;
-      objValues.considerationForInjections = considerationForInjections;
-      objValues.servicesReceivedByClient = servicesReceivedByClient;
-      objValues.reasonForDecliningPrep = reasonForDecliningPrep;
+      // Only include PEP indication if screening type is not PrEP
+      objValues.assessmentForPepIndication = screeningType !== 'PrEP' ? assessmentForPepIndication : {};
+      // Only include PrEP-specific sections if screening type is not PEP
+      objValues.assessmentForPrepEligibility = screeningType !== 'PEP' ? assessmentForPrepEligibility : {};
+      objValues.considerationForInjections = screeningType !== 'PEP' ? considerationForInjections : {};
+      objValues.servicesReceivedByClient = screeningType !== 'PEP' ? servicesReceivedByClient : {};
+      objValues.reasonForDecliningPrep = screeningType !== 'PEP' ? reasonForDecliningPrep : {};
       objValues.score = getPrepEligibilityScore();
       if (props.activeContent && props.activeContent.actionType === "update") {
         axios
@@ -606,16 +596,6 @@ const BasicInfo = props => {
     getRecentActivities();
   }, []);
   useEffect(() => {
-    if (objValues.lftConducted === "false") {
-      setObjValues(prevValues => ({
-        ...prevValues,
-        liverFunctionTestResults: [],
-        dateLiverFunctionTestResults: "",
-      }));
-    }
-  }, [objValues.lftConducted]);
-
-  useEffect(() => {
     if (drugHistory.hivTestedBefore === "false") {
       setDrugHistory(prevHistory => ({
         ...prevHistory,
@@ -628,7 +608,7 @@ const BasicInfo = props => {
     <>
       <Card className={classes.root}>
         <CardBody>
-          <h1 style={{ fontSize: "1.1rem" }}>PrEP Eligibility Screening</h1>
+          <h1 style={{ fontSize: "1.1rem" }}>{screeningType === 'PEP' ? 'PEP' : 'PrEP'} Eligibility Screening</h1>
           <form>
             <div className="row">
               <div className="form-group col-md-4 p-2">
@@ -811,8 +791,7 @@ const BasicInfo = props => {
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
                   <Label>Setting <span style={{ color: "red" }}> *</span></Label>
-                  <input
-                    type="text"
+                  <select
                     className="form-control"
                     name="setting"
                     id="setting"
@@ -823,7 +802,14 @@ const BasicInfo = props => {
                       borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
-                  />
+                  >
+                    <option value="">Select</option>
+                    {settingOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
                   {errors.setting !== "" ? (
                     <span className={classes.error}>{errors.setting}</span>
                   ) : (
@@ -1193,9 +1179,10 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              <div className="form-group mb-3 col-md-12">
-                <b>Score: {Object.values(riskAssessmentPartner).some(v => v === "true") ? 1 : 0}</b>
-              </div>
+              <Message warning style={{ width: "100%" }}>
+                <h4>Sex Partner Risk Score</h4>
+                <b>Score: {sexPartRiskCount.length} (Number of Yes responses)</b>
+              </Message>
 
               <hr />
 
@@ -1356,9 +1343,10 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              <div className="form-group mb-3 col-md-12">
-                <b>Score: {Object.values(riskAssessment).some(v => v === "true") ? 1 : 0}</b>
-              </div>
+              <Message warning style={{ width: "100%" }}>
+                <h4>Personal HIV Risk Assessment Score</h4>
+                <b>Score: {riskCount.length} (Number of Yes responses)</b>
+              </Message>
 
               <hr />
 
@@ -1656,9 +1644,10 @@ const BasicInfo = props => {
                 </>
               )}
 
-              <div className="form-group mb-3 col-md-12">
-                <b>Score: {[drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].some(v => v === "true") ? 1 : 0}</b>
-              </div>
+              <Message warning style={{ width: "100%" }}>
+                <h4>Drug Use History Score</h4>
+                <b>Score: {[drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].filter(v => v === "true").length} (Number of Yes responses)</b>
+              </Message>
 
               <hr />
 
@@ -1761,9 +1750,10 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              <div className="form-group mb-3 col-md-12">
-                <b>Score: {Object.values(assessmentForPepIndication).some(v => v === "true") ? 1 : 0}</b>
-              </div>
+              <Message warning style={{ width: "100%" }}>
+                <h4>Assessment for PEP Indication Score</h4>
+                <b>Score: {Object.values(assessmentForPepIndication).filter(v => v === "true").length} (Number of Yes responses)</b>
+              </Message>
 
               <hr />
               </>
@@ -1862,9 +1852,10 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              <div className="form-group mb-3 col-md-12">
-                <b>Score: {Object.values(assessmentForAcuteHivInfection).some(v => v === "true") ? 1 : 0}</b>
-              </div>
+              <Message warning style={{ width: "100%" }}>
+                <h4>Assessment for Acute HIV Infection Score</h4>
+                <b>Score: {Object.values(assessmentForAcuteHivInfection).filter(v => v === "true").length} (Number of Yes responses)</b>
+              </Message>
 
               <hr />
 
@@ -2429,6 +2420,8 @@ const BasicInfo = props => {
 
               <hr />
               <br />
+              {screeningType !== 'PEP' && (
+              <>
               <div
                 className="form-group  col-md-12 text-center pt-2 mb-4 p-3"
                 style={{
@@ -2439,18 +2432,21 @@ const BasicInfo = props => {
                   fontWeight: "bold",
                 }}
               >
-                PrEP Eligibilty scoring
+                PrEP Eligibility Scoring
               </div>
 
-              <div className="row">
+              <div className="row" style={{ width: "100%" }}>
                 <div className="form-group mb-3 col-md-12">
-                  <h3>PrEP Eligibility Score</h3>
-                  <p>HIV Negative: {drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0}</p>
-                  <p>HIV Risk: {Object.values(riskAssessment).some(v => v === "true") ? 1 : 0}</p>
-                  <p>No Acute HIV Infection: {Object.values(assessmentForAcuteHivInfection).every(v => v !== "true") ? 1 : 0}</p>
-                  <p>No PEP Indication: {Object.values(assessmentForPepIndication).every(v => v !== "true") ? 1 : 0}</p>
+                  <h4>PrEP Eligibility Score (Binary Summary)</h4>
+                  <p>Sex Partner Risk: <b>{sexPartRiskCount.length >= 1 ? 1 : 0}</b> {sexPartRiskCount.length >= 1 ? "(At least 1 Yes)" : "(No Yes responses)"}</p>
+                  <p>Personal HIV Risk Assessment: <b>{riskCount.length >= 1 ? 1 : 0}</b> {riskCount.length >= 1 ? "(At least 1 Yes)" : "(No Yes responses)"}</p>
+                  <p>Drug Use History: <b>{[drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].some(v => v === "true") ? 1 : 0}</b></p>
+                  <p>Assessment for Acute HIV Infection: <b>{Object.values(assessmentForAcuteHivInfection).some(v => v === "true") ? 1 : 0}</b></p>
+                  <p>HIV Negative: <b>{drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0}</b></p>
                 </div>
               </div>
+              </>
+              )}
               {screeningType !== 'PEP' && (
               <>
               <hr />
@@ -2555,7 +2551,6 @@ const BasicInfo = props => {
                     liver === "true" &&
                     drugInteraction === "true" &&
                     hypersensitivity === "true";
-                  const eligibleForInjectable = allYes ? "Yes" : "No";
                   return (
                     <div
                       style={{
@@ -2568,30 +2563,14 @@ const BasicInfo = props => {
                       <span
                         className="badge"
                         style={{
-                          backgroundColor:
-                            eligibleForInjectable === "Yes"
-                              ? "#28a745"
-                              : "#dc3545",
+                          backgroundColor: allYes ? "#28a745" : "#17a2b8",
                           color: "#fff",
                           padding: "0.5rem 1rem",
                           fontSize: "0.9rem",
                         }}
                       >
-                        Eligible for Injectable: {eligibleForInjectable}
+                        {allYes ? "Eligible for Injectable" : "Consider for Oral"}
                       </span>
-                      {eligibleForInjectable === "No" && (
-                        <span
-                          className="badge"
-                          style={{
-                            backgroundColor: "#17a2b8",
-                            color: "#fff",
-                            padding: "0.5rem 1rem",
-                            fontSize: "0.9rem",
-                          }}
-                        >
-                          Consider Oral PrEP
-                        </span>
-                      )}
                     </div>
                   );
                 })()}

@@ -132,9 +132,13 @@ const PrEPInitialVisitForm = props => {
       .then(response => {
         setPatientDto(response.data);
         getTargetGroupvalue();
-        // Auto-populate enrollmentType from latest screening category
-        if (response.data && response.data.category) {
-          setObjValues(prev => ({ ...prev, enrollmentType: response.data.category }));
+        // Auto-populate fields from latest screening data
+        if (response.data) {
+          setObjValues(prev => ({
+            ...prev,
+            enrollmentType: response.data.category || prev.enrollmentType,
+            uniqueId: response.data.uniqueClientId || prev.uniqueId,
+          }));
         }
         // Fetch previous initiation records for returning clients
         axios
