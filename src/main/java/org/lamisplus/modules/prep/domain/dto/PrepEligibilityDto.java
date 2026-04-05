@@ -29,9 +29,7 @@ public class PrepEligibilityDto implements Serializable {
     private String counselingType;
     private Boolean firstTimeVisit;
     private Integer numChildrenLessThanFive;
-    private Integer numWives;
     private String targetGroup;
-    private String uniqueId;
     private Integer score;
 
     private Object extra;
@@ -44,10 +42,7 @@ public class PrepEligibilityDto implements Serializable {
     private  Object servicesReceivedByClient;
     private String populationType;
     private String visitType;
-    private String lftConducted;
     private String reasonForSwitch;
-    private LocalDate dateLiverFunctionTestResults;
-    private Object liverFunctionTestResults;
     private Object considerationForInjections;
     private Object reasonForDecliningPrep;
     private String pregnancyStatus;

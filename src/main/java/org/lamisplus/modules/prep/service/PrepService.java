@@ -511,7 +511,6 @@ public class PrepService {
         PrepEligibilityScreening prepEligibility = new PrepEligibilityScreening();
 
         prepEligibility.setHivRisk(prepEligibilityRequestDto.getHivRisk());
-        prepEligibility.setUniqueId(prepEligibilityRequestDto.getUniqueId());
         prepEligibility.setScore(prepEligibilityRequestDto.getScore());
         prepEligibility.setStiScreening(prepEligibilityRequestDto.getStiScreening());
         prepEligibility.setDrugUseHistory(prepEligibilityRequestDto.getDrugUseHistory());
@@ -522,7 +521,6 @@ public class PrepService {
         prepEligibility.setCounselingType(prepEligibilityRequestDto.getCounselingType());
         prepEligibility.setFirstTimeVisit(prepEligibilityRequestDto.getFirstTimeVisit());
         prepEligibility.setNumChildrenLessThanFive(prepEligibilityRequestDto.getNumChildrenLessThanFive());
-        prepEligibility.setNumWives(prepEligibilityRequestDto.getNumWives());
         prepEligibility.setTargetGroup(prepEligibilityRequestDto.getTargetGroup());
         prepEligibility.setExtra(prepEligibilityRequestDto.getExtra());
         prepEligibility.setAssessmentForPepIndication(prepEligibilityRequestDto.getAssessmentForPepIndication());
@@ -534,9 +532,6 @@ public class PrepService {
         prepEligibility.setPregnancyStatus(prepEligibilityRequestDto.getPregnancyStatus());
         prepEligibility.setVisitDate(prepEligibilityRequestDto.getVisitDate());
         prepEligibility.setReasonForSwitch(prepEligibilityRequestDto.getReasonForSwitch());
-        prepEligibility.setLftConducted(prepEligibilityRequestDto.getLftConducted());
-        prepEligibility.setDateLiverFunctionTestResults(prepEligibilityRequestDto.getDateLiverFunctionTestResults());
-        prepEligibility.setLiverFunctionTestResults(prepEligibilityRequestDto.getLiverFunctionTestResults());
         prepEligibility.setConsiderationForInjections(prepEligibilityRequestDto.getConsiderationForInjections());
         prepEligibility.setReasonForDecliningPrep(prepEligibilityRequestDto.getReasonForDecliningPrep());
         prepEligibility.setUniqueClientId(prepEligibilityRequestDto.getUniqueClientId());
@@ -557,7 +552,6 @@ public class PrepService {
 
         prepEligibilityDto.setId(eligibility.getId());
         prepEligibilityDto.setUuid(eligibility.getUuid());
-        prepEligibilityDto.setUniqueId(eligibility.getUniqueId());
         prepEligibilityDto.setHivRisk(eligibility.getHivRisk());
         prepEligibilityDto.setStiScreening(eligibility.getStiScreening());
         prepEligibilityDto.setDrugUseHistory(eligibility.getDrugUseHistory());
@@ -568,7 +562,6 @@ public class PrepService {
         prepEligibilityDto.setCounselingType(eligibility.getCounselingType());
         prepEligibilityDto.setFirstTimeVisit(eligibility.getFirstTimeVisit());
         prepEligibilityDto.setNumChildrenLessThanFive(eligibility.getNumChildrenLessThanFive());
-        prepEligibilityDto.setNumWives(eligibility.getNumWives());
         prepEligibilityDto.setTargetGroup(eligibility.getTargetGroup());
         prepEligibilityDto.setExtra(eligibility.getExtra());
         prepEligibilityDto.setAssessmentForPepIndication(eligibility.getAssessmentForPepIndication());
@@ -579,9 +572,6 @@ public class PrepService {
         prepEligibilityDto.setVisitType(eligibility.getVisitType());
         prepEligibilityDto.setPregnancyStatus(eligibility.getPregnancyStatus());
         prepEligibilityDto.setReasonForSwitch(eligibility.getReasonForSwitch());
-        prepEligibilityDto.setLftConducted(eligibility.getLftConducted());
-        prepEligibilityDto.setDateLiverFunctionTestResults(eligibility.getDateLiverFunctionTestResults());
-        prepEligibilityDto.setLiverFunctionTestResults(eligibility.getLiverFunctionTestResults());
         prepEligibilityDto.setConsiderationForInjections(eligibility.getConsiderationForInjections());
         prepEligibilityDto.setReasonForDecliningPrep(eligibility.getReasonForDecliningPrep());
         prepEligibilityDto.setUniqueClientId(eligibility.getUniqueClientId());

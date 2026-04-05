@@ -1,7 +1,7 @@
 package org.lamisplus.modules.prep.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
@@ -46,7 +46,6 @@ public class PrepEligibilityService {
     private final PrepClinicRepository prepClinicRepository;
     private final PatientActivityService patientActivityService;
     @Autowired
-    private ObjectMapper objectMapper;
     private ModuleService moduleService;
 
     private PrepInterruptionRepository prepInterruptionRepository;
@@ -129,12 +128,6 @@ public class PrepEligibilityService {
 
     @Transactional
     private void updatePrepClinicSafely(PrepEligibility prepEligibility) {
-        String liverFunctionJson;
-        try {
-            liverFunctionJson = objectMapper.writeValueAsString(prepEligibility.getLiverFunctionTestResults());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize liver function test results", e);
-        }
         try {
             boolean updated = prepClinicService.updateClinicByEligibility(
                     prepEligibility.getVisitDate(),
@@ -142,16 +135,15 @@ public class PrepEligibilityService {
                     prepEligibility.getVisitType(),
                     prepEligibility.getPopulationType(),
                     prepEligibility.getPregnancyStatus(),
-                    liverFunctionJson,
+                    null,
                     prepEligibility.getReasonForSwitch(),
-                    prepEligibility.getDateLiverFunctionTestResults()
+                    null
             );
             if (!updated) {
                 System.out.println("Warning: No matching PrepClinic record found.");
             }
         } catch (Exception e) {
             System.err.println("PrepClinic update failed: " + e.getMessage());
-            // optionally log stack trace or send to monitoring system
         }
     }
 
@@ -182,7 +174,6 @@ public class PrepEligibilityService {
 
         prepEligibility.setId(eligibilityDto.getId());
         prepEligibility.setHivRisk(eligibilityDto.getHivRisk());
-        prepEligibility.setUniqueId(eligibilityDto.getUniqueId());
         prepEligibility.setScore(eligibilityDto.getScore());
         prepEligibility.setStiScreening(eligibilityDto.getStiScreening());
         prepEligibility.setDrugUseHistory(eligibilityDto.getDrugUseHistory());
@@ -193,7 +184,6 @@ public class PrepEligibilityService {
         prepEligibility.setCounselingType(eligibilityDto.getCounselingType());
         prepEligibility.setFirstTimeVisit(eligibilityDto.getFirstTimeVisit());
         prepEligibility.setNumChildrenLessThanFive(eligibilityDto.getNumChildrenLessThanFive());
-        prepEligibility.setNumWives(eligibilityDto.getNumWives());
         prepEligibility.setTargetGroup(eligibilityDto.getTargetGroup());
         prepEligibility.setExtra(eligibilityDto.getExtra());
         prepEligibility.setAssessmentForPepIndication(eligibilityDto.getAssessmentForPepIndication());
@@ -205,9 +195,6 @@ public class PrepEligibilityService {
         prepEligibility.setPregnancyStatus(eligibilityDto.getPregnancyStatus());
         prepEligibility.setReasonForSwitch(eligibilityDto.getReasonForSwitch());
         prepEligibility.setVisitDate(eligibilityDto.getVisitDate());
-        prepEligibility.setLftConducted(eligibilityDto.getLftConducted());
-        prepEligibility.setDateLiverFunctionTestResults(eligibilityDto.getDateLiverFunctionTestResults());
-        prepEligibility.setLiverFunctionTestResults(eligibilityDto.getLiverFunctionTestResults());
         prepEligibility.setConsiderationForInjections(eligibilityDto.getConsiderationForInjections());
         prepEligibility.setReasonForDecliningPrep(eligibilityDto.getReasonForDecliningPrep());
         prepEligibility.setUniqueClientId(eligibilityDto.getUniqueClientId());
@@ -227,7 +214,6 @@ public class PrepEligibilityService {
         PrepEligibility prepEligibility = new PrepEligibility();
 
         prepEligibility.setHivRisk(prepEligibilityRequestDto.getHivRisk());
-        prepEligibility.setUniqueId(prepEligibilityRequestDto.getUniqueId());
         prepEligibility.setScore(prepEligibilityRequestDto.getScore());
         prepEligibility.setStiScreening(prepEligibilityRequestDto.getStiScreening());
         prepEligibility.setDrugUseHistory(prepEligibilityRequestDto.getDrugUseHistory());
@@ -238,7 +224,6 @@ public class PrepEligibilityService {
         prepEligibility.setCounselingType(prepEligibilityRequestDto.getCounselingType());
         prepEligibility.setFirstTimeVisit(prepEligibilityRequestDto.getFirstTimeVisit());
         prepEligibility.setNumChildrenLessThanFive(prepEligibilityRequestDto.getNumChildrenLessThanFive());
-        prepEligibility.setNumWives(prepEligibilityRequestDto.getNumWives());
         prepEligibility.setTargetGroup(prepEligibilityRequestDto.getTargetGroup());
         prepEligibility.setExtra(prepEligibilityRequestDto.getExtra());
         prepEligibility.setAssessmentForPepIndication(prepEligibilityRequestDto.getAssessmentForPepIndication());
@@ -250,10 +235,6 @@ public class PrepEligibilityService {
         prepEligibility.setPregnancyStatus(prepEligibilityRequestDto.getPregnancyStatus());
         prepEligibility.setReasonForSwitch(prepEligibilityRequestDto.getReasonForSwitch());
         prepEligibility.setVisitDate(prepEligibilityRequestDto.getVisitDate());
-        prepEligibility.setLftConducted(prepEligibilityRequestDto.getLftConducted());
-
-        prepEligibility.setDateLiverFunctionTestResults(prepEligibilityRequestDto.getDateLiverFunctionTestResults());
-        prepEligibility.setLiverFunctionTestResults(prepEligibilityRequestDto.getLiverFunctionTestResults());
         prepEligibility.setConsiderationForInjections(prepEligibilityRequestDto.getConsiderationForInjections());
         prepEligibility.setReasonForDecliningPrep(prepEligibilityRequestDto.getReasonForDecliningPrep());
         prepEligibility.setUniqueClientId(prepEligibilityRequestDto.getUniqueClientId());
@@ -274,7 +255,6 @@ public class PrepEligibilityService {
 
         prepEligibilityDto.setId(eligibility.getId());
         prepEligibilityDto.setUuid(eligibility.getUuid());
-        prepEligibilityDto.setUniqueId(eligibility.getUniqueId());
         prepEligibilityDto.setHivRisk(eligibility.getHivRisk());
         prepEligibilityDto.setStiScreening(eligibility.getStiScreening());
         prepEligibilityDto.setDrugUseHistory(eligibility.getDrugUseHistory());
@@ -285,7 +265,6 @@ public class PrepEligibilityService {
         prepEligibilityDto.setCounselingType(eligibility.getCounselingType());
         prepEligibilityDto.setFirstTimeVisit(eligibility.getFirstTimeVisit());
         prepEligibilityDto.setNumChildrenLessThanFive(eligibility.getNumChildrenLessThanFive());
-        prepEligibilityDto.setNumWives(eligibility.getNumWives());
         prepEligibilityDto.setTargetGroup(eligibility.getTargetGroup());
         prepEligibilityDto.setExtra(eligibility.getExtra());
         prepEligibilityDto.setAssessmentForPepIndication(eligibility.getAssessmentForPepIndication());
@@ -299,9 +278,6 @@ public class PrepEligibilityService {
         //prepEligibilityDto.setPersonResponseDto(personResponseDto);
         prepEligibilityDto.setReasonForSwitch(eligibility.getReasonForSwitch());
         prepEligibilityDto.setVisitDate(eligibility.getVisitDate());
-        prepEligibilityDto.setLftConducted(eligibility.getLftConducted());
-        prepEligibilityDto.setDateLiverFunctionTestResults(eligibility.getDateLiverFunctionTestResults());
-        prepEligibilityDto.setLiverFunctionTestResults(eligibility.getLiverFunctionTestResults());
         prepEligibilityDto.setConsiderationForInjections(eligibility.getConsiderationForInjections());
         prepEligibilityDto.setReasonForDecliningPrep(eligibility.getReasonForDecliningPrep());
         prepEligibilityDto.setUniqueClientId(eligibility.getUniqueClientId());

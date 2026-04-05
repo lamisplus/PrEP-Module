@@ -38,9 +38,6 @@ public class PrepEligibility extends Audit implements Serializable {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "unique_id")
-    private String uniqueId;
-
     @Column(name = "visit_date")
     private LocalDate visitDate;
 
@@ -107,9 +104,6 @@ public class PrepEligibility extends Audit implements Serializable {
     @Column(name = "num_children_less_than_five")
     private Integer numChildrenLessThanFive;
 
-    @Column(name = "num_wives")
-    private Integer numWives;
-
     @Column(name = "target_group")
     private String targetGroup;
 
@@ -135,16 +129,8 @@ public class PrepEligibility extends Audit implements Serializable {
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private Person person;
-    @Column(name = "lft_conducted")
-    private String lftConducted;
     @Column(name = "reason_for_switch")
     private String reasonForSwitch;
-    @Column(name = "date_of_liver_function_test_results")
-    private LocalDate dateLiverFunctionTestResults;
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "liver_function_test_results", columnDefinition = "jsonb", nullable = true)
-    private Object liverFunctionTestResults;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
