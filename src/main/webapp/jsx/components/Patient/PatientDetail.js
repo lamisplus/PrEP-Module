@@ -84,11 +84,21 @@ function PatientCard(props) {
       ? history.location.state.screeningType
       : "";
 
+  // Persist screeningType in state so it survives internal navigation
+  const [screeningType, setScreeningType] = useState(screeningTypeFromRoute || "");
+
   const { userPermissions } = useAuth();
 
   useEffect(() => {
     PatientObject();
   }, []);
+
+  // Once patientDetail loads, derive screeningType from enrollmentType if not set from route
+  useEffect(() => {
+    if (!screeningType && patientDetail?.enrollmentType) {
+      setScreeningType(patientDetail.enrollmentType);
+    }
+  }, [patientDetail]);
 
   async function PatientObject() {
     axios
@@ -116,7 +126,7 @@ function PatientCard(props) {
           <li className="breadcrumb-item active">
             <h4>
               {" "}
-              <Link to={"/"}>PrEP /</Link> Patient Dashboard
+              <Link to={"/"}>PrEP/PEP /</Link> Patient Dashboard
             </h4>
           </li>
         </ol>
@@ -133,7 +143,7 @@ function PatientCard(props) {
             patientObj={patientObjLocation}
             setActiveContent={setActiveContent}
             patientDetail={patientDetail}
-            screeningType={screeningTypeFromRoute}
+            screeningType={screeningType}
           />
           <br />
 

@@ -1032,4 +1032,45 @@
             ALTER TABLE prep_completion DROP CONSTRAINT IF EXISTS fk_prep_completion_enrollment;
         </sql>
     </changeSet>
+
+    <!-- 3.0 Create prophylaxis_interruptions table -->
+    <changeSet failOnError="false" author="Gamaliel" id="create-prophylaxis-interruptions-v1">
+        <sql>
+            CREATE TABLE IF NOT EXISTS prophylaxis_interruptions (
+            id BIGSERIAL PRIMARY KEY,
+            uuid VARCHAR(255) NOT NULL UNIQUE,
+            person_uuid VARCHAR(255) NOT NULL,
+            facility_id BIGINT NOT NULL,
+            prep_enrollment_uuid VARCHAR(255),
+            interruption_type VARCHAR(255),
+            interruption_date DATE,
+            interruption_reason VARCHAR(255),
+            date_client_died DATE,
+            cause_of_death VARCHAR(255),
+            source_of_death_info VARCHAR(255),
+            date_client_referred_out DATE,
+            facility_referred_to VARCHAR(255),
+            date_sero_converted DATE,
+            date_restart_placed_back_medication DATE,
+            link_to_art BOOLEAN,
+            reason_stopped VARCHAR(255),
+            reason_stopped_others VARCHAR(255),
+            reason_for_prep_discontinuation VARCHAR(255),
+            previous_prep_status VARCHAR(255),
+            previous_pep_status VARCHAR(255),
+            why VARCHAR(255),
+            pep_completion VARCHAR(255),
+            follow_up_visit_date DATE,
+            hiv_result VARCHAR(255),
+            early_detect_viral_load_result VARCHAR(255),
+            archived INTEGER DEFAULT 0,
+            created_by VARCHAR(255) NOT NULL,
+            date_created TIMESTAMP NOT NULL,
+            modified_by VARCHAR(255),
+            date_modified TIMESTAMP,
+            CONSTRAINT fk_prophylaxis_int_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
+            CONSTRAINT fk_prophylaxis_int_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES prophylaxis_initiation(uuid)
+            );
+        </sql>
+    </changeSet>
 </databaseChangeLog>

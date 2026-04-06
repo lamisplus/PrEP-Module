@@ -12,30 +12,46 @@ function SubMenu(props) {
     //Observation();
   }, [props.patientObj]);
 
-  const loadPrEPDiscontinuationsInterruptions = row => {
+  const loadPrEPDiscontinuationsInterruptions = () => {
     props.setActiveContent({
       ...props.activeContent,
       route: "prep-interruptions",
+      screeningType: effectiveType,
     });
   };
-  const loadPrEPInitialVisitForm = row => {
+  const loadPrEPInitialVisitForm = () => {
     props.setActiveContent({
       ...props.activeContent,
       route: "prep-registration",
+      screeningType: effectiveType,
     });
   };
-  const loadPrEPEligibilityScreeningForm = row => {
-    props.setActiveContent({ ...props.activeContent, route: "prep-screening", screeningType: screeningType || "" });
+  const loadPrEPEligibilityScreeningForm = () => {
+    props.setActiveContent({
+      ...props.activeContent,
+      route: "prep-screening",
+      screeningType: effectiveType,
+    });
   };
-
-  const onClickConsultation = row => {
-    props.setActiveContent({ ...props.activeContent, route: "consultation" });
+  const onClickConsultation = () => {
+    props.setActiveContent({
+      ...props.activeContent,
+      route: "consultation",
+      screeningType: effectiveType,
+    });
   };
-  const loadPEPFollowupVisit = row => {
-    props.setActiveContent({ ...props.activeContent, route: "pep-followup" });
+  const loadPEPFollowupVisit = () => {
+    props.setActiveContent({
+      ...props.activeContent,
+      route: "pep-followup",
+      screeningType: effectiveType,
+    });
   };
-  const onClickHome = row => {
-    props.setActiveContent({ ...props.activeContent, route: "recent-history" });
+  const onClickHome = () => {
+    props.setActiveContent({
+      ...props.activeContent,
+      route: "recent-history",
+    });
   };
   const loadPatientHistory = () => {
     props.setActiveContent({
@@ -49,7 +65,7 @@ function SubMenu(props) {
       route: "patient-visits",
     });
   };
-  console.log("patientObj,patientDetail: ", patientObj, patientDetail);
+
   const history = useHistory();
   let patientDetailCopy = { ...patientDetail };
   patientObj = {
@@ -62,196 +78,96 @@ function SubMenu(props) {
     enrollmentType: patientDetailCopy.enrollmentType || "",
   };
 
+  // Effective type: screeningType from Patient Tab takes priority, then fall back to enrollmentType
+  const effectiveType = screeningType || patientObj?.enrollmentType || "";
+  const isPEP = effectiveType === "PEP";
+  const isPrEP = effectiveType === "PrEP";
+  const typeLabel = isPEP ? "PEP" : "PrEP";
+
+  const renderMenuItems = () => {
+    const isNegative = patientObj?.hivresultAtVisit === "Negative" || patientObj?.hivresultAtVisit === null;
+    const hasEligibility = patientObj?.eligibilityCount > 0;
+    const hasEnrollment = patientObj?.prepCount !== "0" && patientObj?.prepCount !== null;
+
+    return (
+      <>
+        <Menu.Item onClick={onClickHome}>Home</Menu.Item>
+
+        {/* Step 1: Eligibility Screening - always show if not yet done */}
+        {(!hasEligibility || hasEnrollment) && (
+          <ProtectedComponent
+            isAuthorized={userPermissions.eligibility}
+            privateComponent={() => (
+              <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
+                {typeLabel} Eligibility Screening
+              </Menu.Item>
+            )}
+          />
+        )}
+
+        {/* Step 2: Initiation - show after screening is done and before enrollment */}
+        {hasEligibility && !hasEnrollment && isNegative && (
+          <ProtectedComponent
+            isAuthorized={userPermissions.enrollment}
+            privateComponent={() => (
+              <Menu.Item onClick={loadPrEPInitialVisitForm}>
+                {typeLabel} Initiation
+              </Menu.Item>
+            )}
+          />
+        )}
+
+        {/* Step 3: Follow-up Visit - show after enrollment */}
+        {hasEnrollment && isNegative && isPrEP && (
+          <ProtectedComponent
+            isAuthorized={userPermissions.visit}
+            privateComponent={() => (
+              <Menu.Item onClick={onClickConsultation}>
+                PrEP Follow-up Visit
+              </Menu.Item>
+            )}
+          />
+        )}
+        {hasEnrollment && isNegative && isPEP && (
+          <ProtectedComponent
+            isAuthorized={userPermissions.visit}
+            privateComponent={() => (
+              <Menu.Item onClick={loadPEPFollowupVisit}>
+                PEP Follow-up Visit
+              </Menu.Item>
+            )}
+          />
+        )}
+
+        {/* Step 4: Discontinuation/Completion - show after enrollment */}
+        {hasEnrollment && isNegative && (
+          <ProtectedComponent
+            isAuthorized={userPermissions.discontinuation}
+            privateComponent={() => (
+              <Menu.Item onClick={loadPrEPDiscontinuationsInterruptions}>
+                {isPEP ? "PEP Completion" : "PrEP Discontinuation/Interruption"}
+              </Menu.Item>
+            )}
+          />
+        )}
+
+        <ProtectedComponent
+          isAuthorized={userPermissions.patientVisits}
+          privateComponent={() => (
+            <Menu.Item onClick={loadPatientVisits}>
+              Patient Visits
+            </Menu.Item>
+          )}
+        />
+        <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
+      </>
+    );
+  };
+
   return (
     <div>
       <Menu size="large" color={"black"} inverted>
-        {patientObj?.createdBy !== "ETL" ? ( //The menu will show if the patient is not migrated
-          <>
-            <Menu.Item
-              onClick={() => {
-                onClickHome();
-              }}
-            >
-              Home
-            </Menu.Item>
-
-            {patientObj?.eligibilityCount <= 0 ||
-            patientObj?.eligibilityCount === null ? (
-              <ProtectedComponent
-                isAuthorized={userPermissions.eligibility}
-                privateComponent={() => (
-                  <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
-                    {screeningType === 'PEP' ? 'PEP' : 'PrEP'} Eligibility Screening
-                  </Menu.Item>
-                )}
-              />
-            ) : (
-              <>
-                {patientObj?.prepCount === "0" ? (
-                  <>
-                    {patientObj?.prepCount === "0" &&
-                      patientObj?.hivresultAtVisit === "Negative" && (
-                        <ProtectedComponent
-                          isAuthorized={userPermissions.enrollment}
-                          privateComponent={() => (
-                            <Menu.Item onClick={loadPrEPInitialVisitForm}>
-                              PrEP/PEP Initiation
-                            </Menu.Item>
-                          )}
-                        />
-                      )}
-                  </>
-                ) : (
-                  <>
-                    <ProtectedComponent
-                      isAuthorized={userPermissions.eligibility}
-                      privateComponent={() => (
-                        <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
-                          PrEP Eligibility Screening
-                        </Menu.Item>
-                      )}
-                    />
-                    {(patientObj?.prepCount === null ||
-                      patientObj?.prepCount < 0) &&
-                      patientObj?.hivresultAtVisit === "Negative" && (
-                        <ProtectedComponent
-                          isAuthorized={userPermissions.enrollment}
-                          privateComponent={() => (
-                            <Menu.Item onClick={loadPrEPInitialVisitForm}>
-                              PrEP/PEP Initiation
-                            </Menu.Item>
-                          )}
-                        />
-                      )}
-                    {patientObj?.hivresultAtVisit === "Negative" &&
-                      patientObj?.enrollmentType === "PrEP" && (
-                      <ProtectedComponent
-                        isAuthorized={userPermissions.visit}
-                        privateComponent={() => (
-                          <Menu.Item onClick={onClickConsultation}>
-                            PrEP Follow-up Visit
-                          </Menu.Item>
-                        )}
-                      />
-                    )}
-                    {patientObj?.hivresultAtVisit === "Negative" &&
-                      patientObj?.enrollmentType === "PEP" && (
-                      <ProtectedComponent
-                        isAuthorized={userPermissions.visit}
-                        privateComponent={() => (
-                          <Menu.Item onClick={loadPEPFollowupVisit}>
-                            PEP Follow-up Visit
-                          </Menu.Item>
-                        )}
-                      />
-                    )}
-                    {patientObj?.hivresultAtVisit === "Negative" && (
-                      <ProtectedComponent
-                        isAuthorized={userPermissions.discontinuation}
-                        privateComponent={() => (
-                          <Menu.Item
-                            onClick={loadPrEPDiscontinuationsInterruptions}
-                          >
-                            {patientObj?.enrollmentType === "PEP"
-                              ? "PEP Completion"
-                              : "PrEP Discontinuation/Interruption"}
-                          </Menu.Item>
-                        )}
-                      />
-                    )}
-                  </>
-                )}
-              </>
-            )}
-            <ProtectedComponent
-              isAuthorized={userPermissions.patientVisits}
-              privateComponent={() => (
-                <Menu.Item onClick={loadPatientVisits}>
-                  Patient Visits
-                </Menu.Item>
-              )}
-            />
-            <Menu.Item onClick={() => loadPatientHistory(patientObj)}>
-              History
-            </Menu.Item>
-          </>
-        ) : (
-          <>
-            {/* This menu will show only if the patient is migrated  and check if the patient last HIV test result is not positive*/}
-            <Menu.Item onClick={() => onClickHome()}>Home</Menu.Item>
-            {(patientObj?.hivresultAtVisit === "Negative" ||
-              patientObj?.hivresultAtVisit === null) && (
-              <ProtectedComponent
-                isAuthorized={userPermissions.eligibility}
-                privateComponent={() => (
-                  <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
-                    {screeningType === 'PEP' ? 'PEP' : 'PrEP'} Eligibility Screening
-                  </Menu.Item>
-                )}
-              />
-            )}
-            {(patientObj?.hivresultAtVisit === "Negative" ||
-              patientObj?.hivresultAtVisit === null) &&
-              patientObj?.prepCount === "0" && (
-                <ProtectedComponent
-                  isAuthorized={userPermissions.enrollment}
-                  privateComponent={() => (
-                    <Menu.Item onClick={loadPrEPInitialVisitForm}>
-                      PrEP/PEP Initiation
-                    </Menu.Item>
-                  )}
-                />
-              )}
-            {(patientObj?.hivresultAtVisit === "Negative" ||
-              patientObj?.hivresultAtVisit === null) &&
-              patientObj?.enrollmentType === "PrEP" && (
-              <ProtectedComponent
-                isAuthorized={userPermissions.visit}
-                privateComponent={() => (
-                  <Menu.Item onClick={onClickConsultation}>
-                    PrEP Follow-up Visit
-                  </Menu.Item>
-                )}
-              />
-            )}
-            {(patientObj?.hivresultAtVisit === "Negative" ||
-              patientObj?.hivresultAtVisit === null) &&
-              patientObj?.enrollmentType === "PEP" && (
-              <ProtectedComponent
-                isAuthorized={userPermissions.visit}
-                privateComponent={() => (
-                  <Menu.Item onClick={loadPEPFollowupVisit}>
-                    PEP Follow-up Visit
-                  </Menu.Item>
-                )}
-              />
-            )}
-            {(patientObj?.hivresultAtVisit === "Negative" ||
-              patientObj?.hivresultAtVisit === null) && (
-              <ProtectedComponent
-                isAuthorized={userPermissions.discontinuation}
-                privateComponent={() => (
-                  <Menu.Item onClick={loadPrEPDiscontinuationsInterruptions}>
-                    {patientObj?.enrollmentType === "PEP"
-                      ? "PEP Completion"
-                      : "PrEP Discontinuation/Interruption"}
-                  </Menu.Item>
-                )}
-              />
-            )}
-            <ProtectedComponent
-              isAuthorized={userPermissions.patientVisits}
-              privateComponent={() => (
-                <Menu.Item onClick={loadPatientVisits}>
-                  Patient Visits
-                </Menu.Item>
-              )}
-            />
-            <Menu.Item onClick={() => loadPatientHistory(patientObj)}>
-              History
-            </Menu.Item>
-          </>
-        )}
+        {renderMenuItems()}
       </Menu>
     </div>
   );

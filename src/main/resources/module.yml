@@ -5,13 +5,13 @@ store: true
 menus:
   - icon: fa-solid fa-pills
     disabled: false
-    name: PrEP
-    state: PrEP
+    name: PrEP/PEP
+    state: PrEP/PEP
     url: /across/resources/static/prep/index.html
 umdLocation: /across/resources/static/prep/index.html
 gitHubLink: https://api.github.com/repos/lamisplus/Prep-Module/releases/latest
 webModules:
-  - breadcrumb: PrEP
+  - breadcrumb: PrEP/PEP
     name: PrepModule
     path: prep
     position: 99

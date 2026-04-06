@@ -1,0 +1,15 @@
+package org.lamisplus.modules.prep.repository;
+
+import org.lamisplus.modules.patient.domain.entity.Person;
+import org.lamisplus.modules.prep.domain.entity.ProphylaxisInterruption;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface ProphylaxisInterruptionRepository extends JpaRepository<ProphylaxisInterruption, Long> {
+    Optional<ProphylaxisInterruption> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
+    List<ProphylaxisInterruption> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
+    List<ProphylaxisInterruption> findAllByPersonAndArchived(Person person, int archived);
+    Optional<ProphylaxisInterruption> findByUuid(String uuid);
+}

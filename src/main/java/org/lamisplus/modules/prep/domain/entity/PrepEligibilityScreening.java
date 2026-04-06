@@ -71,9 +71,6 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
     @Column(name = "sex_partner")
     private String sexPartner;
 
-    @Column(name = "counseling_type")
-    private String counselingType;
-
     @Column(name = "first_time_visit")
     private Boolean firstTimeVisit;
 
@@ -155,11 +152,6 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
 
     @Column(name = "reason_for_switch")
     private String reasonForSwitch;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "extra", columnDefinition = "jsonb")
-    private Object extra;
 
     @Column(name = "archived")
     private Integer archived;

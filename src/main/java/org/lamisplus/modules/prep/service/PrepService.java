@@ -14,6 +14,7 @@ import org.lamisplus.modules.patient.service.PersonService;
 import org.lamisplus.modules.prep.domain.dto.*;
 import org.lamisplus.modules.prep.domain.entity.*;
 import org.lamisplus.modules.prep.repository.PrepFollowupVisitRepository;
+import org.lamisplus.modules.prep.repository.PepFollowupVisitRepository;
 import org.lamisplus.modules.prep.repository.PrepEligibilityScreeningRepository;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
 import org.lamisplus.modules.prep.repository.PrepCompletionRepository;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,7 @@ public class PrepService {
     private final PrepPepInitiationRepository prepPepInitiationRepository;
     private final PrepEligibilityScreeningRepository prepEligibilityScreeningRepository;
     private final PrepFollowupVisitRepository prepFollowupVisitRepository;
+    private final PepFollowupVisitRepository pepFollowupVisitRepository;
     private final PatientActivityService patientActivityService;
     private final PrepCompletionRepository prepCompletionRepository;
 
@@ -483,6 +486,24 @@ public class PrepService {
             prepDtos.setCreatedBy(prepClient.getCreatedBy());
             //prepDtos.setPrepEligibilityCount(prepClient.getEligibilityCount());
         }
+        // Compute previousProphylaxis by comparing latest PrEP and PEP followup visit dates
+        LocalDate latestPrepVisit = prepFollowupVisitRepository
+                .findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(
+                        person.getUuid(), currentUserOrganizationService.getCurrentUserOrganization(), 0, false)
+                .stream().findFirst().map(PrepFollowupVisit::getEncounterDate).orElse(null);
+        LocalDate latestPepVisit = pepFollowupVisitRepository
+                .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
+                        person.getUuid(), currentUserOrganizationService.getCurrentUserOrganization(), 0)
+                .stream().findFirst().map(PepFollowupVisit::getEncounterDate).orElse(null);
+        if (latestPrepVisit != null && latestPepVisit != null) {
+            prepDtos.setPreviousProphylaxis(latestPrepVisit.isAfter(latestPepVisit) ? "PrEP" : "PEP");
+        } else if (latestPrepVisit != null) {
+            prepDtos.setPreviousProphylaxis("PrEP");
+        } else if (latestPepVisit != null) {
+            prepDtos.setPreviousProphylaxis("PEP");
+        } else {
+            prepDtos.setPreviousProphylaxis(null);
+        }
         return prepDtos;
     }
 
@@ -518,11 +539,9 @@ public class PrepService {
         prepEligibility.setSexPartnerRisk(prepEligibilityRequestDto.getSexPartnerRisk());
         prepEligibility.setPersonUuid(personUuid);
         prepEligibility.setSexPartner(prepEligibilityRequestDto.getSexPartner());
-        prepEligibility.setCounselingType(prepEligibilityRequestDto.getCounselingType());
         prepEligibility.setFirstTimeVisit(prepEligibilityRequestDto.getFirstTimeVisit());
         prepEligibility.setNumChildrenLessThanFive(prepEligibilityRequestDto.getNumChildrenLessThanFive());
         prepEligibility.setTargetGroup(prepEligibilityRequestDto.getTargetGroup());
-        prepEligibility.setExtra(prepEligibilityRequestDto.getExtra());
         prepEligibility.setAssessmentForPepIndication(prepEligibilityRequestDto.getAssessmentForPepIndication());
         prepEligibility.setAssessmentForAcuteHivInfection(prepEligibilityRequestDto.getAssessmentForAcuteHivInfection());
         prepEligibility.setAssessmentForPrepEligibility(prepEligibilityRequestDto.getAssessmentForPrepEligibility());
@@ -559,11 +578,9 @@ public class PrepService {
         prepEligibilityDto.setSexPartnerRisk(eligibility.getSexPartnerRisk());
         prepEligibilityDto.setPersonUuid(eligibility.getPersonUuid());
         prepEligibilityDto.setSexPartner(eligibility.getSexPartner());
-        prepEligibilityDto.setCounselingType(eligibility.getCounselingType());
         prepEligibilityDto.setFirstTimeVisit(eligibility.getFirstTimeVisit());
         prepEligibilityDto.setNumChildrenLessThanFive(eligibility.getNumChildrenLessThanFive());
         prepEligibilityDto.setTargetGroup(eligibility.getTargetGroup());
-        prepEligibilityDto.setExtra(eligibility.getExtra());
         prepEligibilityDto.setAssessmentForPepIndication(eligibility.getAssessmentForPepIndication());
         prepEligibilityDto.setAssessmentForAcuteHivInfection(eligibility.getAssessmentForAcuteHivInfection());
         prepEligibilityDto.setAssessmentForPrepEligibility(eligibility.getAssessmentForPrepEligibility());
@@ -600,9 +617,7 @@ public class PrepService {
         PrepPepInitiation prepEnrollment = new PrepPepInitiation();
 
         prepEnrollment.setPersonUuid(personUuid);
-        prepEnrollment.setExtra(prepEnrollmentRequestDto.getExtra());
         prepEnrollment.setUniqueId(prepEnrollmentRequestDto.getUniqueId());
-        prepEnrollment.setExtra(prepEnrollmentRequestDto.getExtra());
         prepEnrollment.setPrepEligibilityUuid(prepEnrollmentRequestDto.getPrepEligibilityUuid());
         prepEnrollment.setDateEnrolled(prepEnrollmentRequestDto.getDateEnrolled());
         prepEnrollment.setDateReferred(prepEnrollmentRequestDto.getDateReferred());
@@ -611,7 +626,6 @@ public class PrepService {
         prepEnrollment.setSupporterRelationshipType(prepEnrollmentRequestDto.getSupporterRelationshipType());
         prepEnrollment.setSupporterPhone(prepEnrollmentRequestDto.getSupporterPhone());
         prepEnrollment.setStatus("ENROLLED");
-        prepEnrollment.setAncUniqueArtNo(prepEnrollmentRequestDto.getAncUniqueArtNo());
         prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
         prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
         prepEnrollment.setTargetGroup(prepEnrollmentRequestDto.getTargetGroup());
@@ -795,10 +809,8 @@ public class PrepService {
 
         PrepEnrollmentDto enrollmentDto = new PrepEnrollmentDto();
 
-        enrollmentDto.setExtra(enrollment.getExtra());
         enrollmentDto.setId(enrollment.getId());
         enrollmentDto.setUniqueId(enrollment.getUniqueId());
-        enrollmentDto.setExtra(enrollment.getExtra());
         enrollmentDto.setUuid(enrollment.getUuid());
         enrollmentDto.setDateEnrolled(enrollment.getDateEnrolled());
         enrollmentDto.setDateReferred(enrollment.getDateReferred());
@@ -808,7 +820,6 @@ public class PrepService {
         enrollmentDto.setSupporterPhone(enrollment.getSupporterPhone());
         enrollmentDto.setPrepEligibilityUuid(enrollment.getPrepEligibilityUuid());
         enrollmentDto.setCommenced(true);
-        enrollmentDto.setAncUniqueArtNo(enrollment.getAncUniqueArtNo());
         enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
         enrollmentDto.setDateOfLastHivNegativeTest(enrollment.getDateOfLastHivNegativeTest());
         enrollmentDto.setTargetGroup(enrollment.getTargetGroup());
@@ -843,7 +854,6 @@ public class PrepService {
         PrepDto prepDto = new PrepDto();
 
         prepDto.setId(prepEnrollment.getId());
-        prepDto.setExtra(prepEnrollment.getExtra());
         //PersonResponseDto personResponseDto = personService.getDtoFromPerson(prepEnrollment.getPerson());
         //prepDto.setPersonResponseDto(personResponseDto);
         prepDto.setDateStarted(prepEnrollment.getDateEnrolled());

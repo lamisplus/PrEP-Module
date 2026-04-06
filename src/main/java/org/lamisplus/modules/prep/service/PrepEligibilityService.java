@@ -181,11 +181,9 @@ public class PrepEligibilityService {
         prepEligibility.setSexPartnerRisk(eligibilityDto.getSexPartnerRisk());
         prepEligibility.setPersonUuid(personUuid);
         prepEligibility.setSexPartner(eligibilityDto.getSexPartner());
-        prepEligibility.setCounselingType(eligibilityDto.getCounselingType());
         prepEligibility.setFirstTimeVisit(eligibilityDto.getFirstTimeVisit());
         prepEligibility.setNumChildrenLessThanFive(eligibilityDto.getNumChildrenLessThanFive());
         prepEligibility.setTargetGroup(eligibilityDto.getTargetGroup());
-        prepEligibility.setExtra(eligibilityDto.getExtra());
         prepEligibility.setAssessmentForPepIndication(eligibilityDto.getAssessmentForPepIndication());
         prepEligibility.setAssessmentForAcuteHivInfection(eligibilityDto.getAssessmentForAcuteHivInfection());
         prepEligibility.setAssessmentForPrepEligibility(eligibilityDto.getAssessmentForPrepEligibility());
@@ -221,11 +219,9 @@ public class PrepEligibilityService {
         prepEligibility.setSexPartnerRisk(prepEligibilityRequestDto.getSexPartnerRisk());
         prepEligibility.setPersonUuid(personUuid);
         prepEligibility.setSexPartner(prepEligibilityRequestDto.getSexPartner());
-        prepEligibility.setCounselingType(prepEligibilityRequestDto.getCounselingType());
         prepEligibility.setFirstTimeVisit(prepEligibilityRequestDto.getFirstTimeVisit());
         prepEligibility.setNumChildrenLessThanFive(prepEligibilityRequestDto.getNumChildrenLessThanFive());
         prepEligibility.setTargetGroup(prepEligibilityRequestDto.getTargetGroup());
-        prepEligibility.setExtra(prepEligibilityRequestDto.getExtra());
         prepEligibility.setAssessmentForPepIndication(prepEligibilityRequestDto.getAssessmentForPepIndication());
         prepEligibility.setAssessmentForAcuteHivInfection(prepEligibilityRequestDto.getAssessmentForAcuteHivInfection());
         prepEligibility.setAssessmentForPrepEligibility(prepEligibilityRequestDto.getAssessmentForPrepEligibility());
@@ -262,11 +258,9 @@ public class PrepEligibilityService {
         prepEligibilityDto.setSexPartnerRisk(eligibility.getSexPartnerRisk());
         prepEligibilityDto.setPersonUuid(eligibility.getPersonUuid());
         prepEligibilityDto.setSexPartner(eligibility.getSexPartner());
-        prepEligibilityDto.setCounselingType(eligibility.getCounselingType());
         prepEligibilityDto.setFirstTimeVisit(eligibility.getFirstTimeVisit());
         prepEligibilityDto.setNumChildrenLessThanFive(eligibility.getNumChildrenLessThanFive());
         prepEligibilityDto.setTargetGroup(eligibility.getTargetGroup());
-        prepEligibilityDto.setExtra(eligibility.getExtra());
         prepEligibilityDto.setAssessmentForPepIndication(eligibility.getAssessmentForPepIndication());
         prepEligibilityDto.setAssessmentForAcuteHivInfection(eligibility.getAssessmentForAcuteHivInfection());
         prepEligibilityDto.setAssessmentForPrepEligibility(eligibility.getAssessmentForPrepEligibility());

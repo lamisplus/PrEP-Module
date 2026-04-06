@@ -20,13 +20,11 @@ public class PrepPepInitiationDto implements Serializable {
     private LocalDate dateEnrolled;
     private LocalDate dateReferred;
     private String riskType;
-    private Object extra;
     private String supporterName;
     private String supporterRelationshipType;
     private String supporterPhone;
     private boolean isCommenced;
     private String status;
-    private String ancUniqueArtNo;
     private String hivTestingPoint;
     private LocalDate dateOfLastHivNegativeTest;
     private String targetGroup;

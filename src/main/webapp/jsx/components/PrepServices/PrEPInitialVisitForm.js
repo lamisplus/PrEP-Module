@@ -27,6 +27,8 @@ import { fetchAllCodesets, fetchPrepRegimens, getPepRegimenOptions } from "../Co
 const PrEPInitialVisitForm = props => {
   const [entryPoint, setEntryPoint] = useState([]);
   const classes = useStyles();
+  // Get screeningType passed from Patient Tab via activeContent
+  const screeningType = props.activeContent?.screeningType || '';
   const [objValues, setObjValues] = useState({
     dateEnrolled: "",
     dateReferred: "",
@@ -42,7 +44,7 @@ const PrEPInitialVisitForm = props => {
     hivTestingPointOthersSpecify: "",
     dateOfLastHivNegativeTest: "",
     targetGroup: "",
-    enrollmentType: "",
+    enrollmentType: screeningType || "",
     populationType: "",
     weight: "",
     height: "",
@@ -339,7 +341,7 @@ const PrEPInitialVisitForm = props => {
         <CardBody>
           <form>
             <div className="row">
-              <h2>{`PrEP/PEP Initiation`}</h2>
+              <h2>{screeningType === 'PEP' ? 'PEP' : screeningType === 'PrEP' ? 'PrEP' : 'PrEP/PEP'} Initiation</h2>
 
               {/* Section A Header */}
               <div
@@ -353,7 +355,7 @@ const PrEPInitialVisitForm = props => {
                   marginBottom: "1rem",
                 }}
               >
-                {`PrEP/PEP Initial Visit`}
+                {screeningType === 'PEP' ? 'PEP' : screeningType === 'PrEP' ? 'PrEP' : 'PrEP/PEP'} Initial Visit
               </div>
 
               {/* 1. Unique ID */}
@@ -918,7 +920,9 @@ const PrEPInitialVisitForm = props => {
                 </div>
               )}
 
-              {/* 17. PrEP Type at Start */}
+              {/* 17. PrEP Type at Start - hidden for PEP */}
+              {objValues.enrollmentType !== 'PEP' && (
+              <>
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>PrEP Type at Start</Label>
@@ -961,6 +965,8 @@ const PrEPInitialVisitForm = props => {
                     />
                   </FormGroup>
                 </div>
+              )}
+              </>
               )}
 
               {/* 18. PrEP Regimen */}

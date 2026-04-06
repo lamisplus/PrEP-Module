@@ -31,8 +31,6 @@ public class PrepEnrollmentDto implements Serializable {
 
     private String riskType; //applicationCodeSet
 
-    private Object extra;
-
     private String uuid;
 
     private String supporterName;
@@ -44,8 +42,6 @@ public class PrepEnrollmentDto implements Serializable {
     private boolean isCommenced;
 
     private String status;
-
-    private String ancUniqueArtNo;
 
     private String hivTestingPoint;
 

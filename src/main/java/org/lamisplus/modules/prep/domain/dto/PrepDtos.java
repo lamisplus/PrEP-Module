@@ -20,4 +20,5 @@ public class PrepDtos {
     //private List<PrepEligibilityDto> prepEligibilityDtos;
     private Boolean hivPositive;
     private String enrollmentType;
+    private String previousProphylaxis;
 }

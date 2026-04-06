@@ -84,9 +84,6 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @Column(name = "supporter_phone")
     private String supporterPhone;
 
-    @Column(name = "anc_unique_art_no")
-    private String ancUniqueArtNo;
-
     @Column(name = "hiv_testing_point")
     private String hivTestingPoint;
 
@@ -142,11 +139,6 @@ public class PrepPepInitiation extends Audit implements Serializable {
 
     @Column(name = "months_of_refill")
     private Integer monthsOfRefill;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "extra", columnDefinition = "jsonb")
-    private Object extra;
 
     @Column(name = "archived")
     private Integer archived;

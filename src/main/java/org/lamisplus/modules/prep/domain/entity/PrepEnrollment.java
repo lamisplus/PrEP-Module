@@ -70,11 +70,6 @@ public class PrepEnrollment extends Audit implements Serializable {
     @Column(name = "visit_uuid")
     private String visitUuid;
 
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "extra", columnDefinition = "jsonb")
-    private Object extra;
-
     @Column(name = "facility_id")
     public Long facilityId;
 
@@ -96,9 +91,6 @@ public class PrepEnrollment extends Audit implements Serializable {
 
     @Column(name = "risk_type")
     private String riskType;
-
-    @Column(name = "anc_unique_art_no")
-    private String ancUniqueArtNo;
 
     @Column(name = "date_enrolled")
     private LocalDate dateEnrolled;

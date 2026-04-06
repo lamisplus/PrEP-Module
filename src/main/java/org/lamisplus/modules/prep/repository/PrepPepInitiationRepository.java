@@ -49,8 +49,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
+            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
             "FROM patient_person p " +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
             "WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
@@ -64,8 +64,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
+            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
             "FROM patient_person p " +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
             "WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
@@ -79,8 +79,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
+            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
             "FROM patient_person p  LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
             "WHERE p.archived=?1 AND p.facility_id=?2  " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled", nativeQuery = true)
@@ -90,8 +90,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
+            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
             "FROM patient_person p  LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
             "WHERE p.archived=?1 AND p.facility_id=?2  " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled", nativeQuery = true)
@@ -154,8 +154,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            END\n" +
             "        ELSE prepc.status\n" +
             "    END AS prepStatus,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -282,8 +282,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            END\n" +
             "        ELSE prepc.status\n" +
             "    END AS prepStatus,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -411,8 +411,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            END\n" +
             "        ELSE prepc.status\n" +
             "    END AS prepStatus,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -497,8 +497,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' WHEN pet.person_uuid IS NULL  " +
             "THEN 'Not Enrolled' WHEN prepc.person_uuid IS NULL  " +
             "THEN 'Not Commenced' ELSE prepc.status END) prepStatus, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
+            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
             "FROM patient_person p   LEFT JOIN (SELECT COUNT(el.person_uuid) as eligibility_count,  " +
             "el.person_uuid FROM prophylaxis_screening el WHERE el.archived=?1  " +
             "GROUP BY person_uuid) el ON el.person_uuid = p.uuid  " +
@@ -562,8 +562,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' \n" +
             "        ELSE prepc.status \n" +
             "     END) prepStatus,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "FROM patient_person p  \n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid \n" +
@@ -695,8 +695,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            END\n" +
             "        ELSE 0\n" +
             "    END AS sendCabLaAlert,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -834,8 +834,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                END\n" +
             "            ELSE 0\n" +
             "        END AS sendCabLaAlert,\n" +
-            "        CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "        CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "        CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
+            "        CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "    FROM prophylaxis_initiation pet\n" +
             "    JOIN patient_person p ON pet.person_uuid = p.uuid\n" +
             "    LEFT JOIN (\n" +
@@ -972,8 +972,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                        END\n" +
             "                    ELSE 0\n" +
             "                END AS sendCabLaAlert,\n" +
-            "                CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "                CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "                CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
+            "                CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "            FROM patient_person p\n" +
             "            LEFT JOIN (\n" +
             "                SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -1064,8 +1064,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        END\n" +
             "    ELSE 0\n" +
             "            END AS sendCabLaAlert," +
-            " CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep," +
-            " CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep" +
+            " CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep," +
+            " CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep" +
             " FROM patient_person p  " +
             " INNER JOIN (SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid FROM prophylaxis_screening el " +
             "WHERE el.archived=?1 GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
@@ -1158,8 +1158,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            END\n" +
             "        ELSE prepc.status\n" +
             "    END AS prepStatus,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -1304,8 +1304,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            END\n" +
             "        ELSE 0\n" +
             "    END AS sendCabLaAlert,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NOT NULL AND (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
+            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
