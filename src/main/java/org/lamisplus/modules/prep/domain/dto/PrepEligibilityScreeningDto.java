@@ -21,11 +21,9 @@ public class PrepEligibilityScreeningDto implements Serializable {
     private Object personalHivRiskAssessment;
     private Object sexPartnerRisk;
     private String sexPartner;
-    private String counselingType;
     private Boolean firstTimeVisit;
     private Integer numChildrenLessThanFive;
     private String targetGroup;
-    private Object extra;
     private Integer score;
     private LocalDate visitDate;
     private Object assessmentForPepIndication;

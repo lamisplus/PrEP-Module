@@ -25,7 +25,8 @@ public class PrepEligibilityActivityProvider implements PatientActivityProvider 
 	
 	@NotNull
 	private PatientActivity buildPatientActivity(PrepEligibilityScreening prepEligibility) {
-		String name = "Prep Eligibility";
+		String category = prepEligibility.getCategory();
+		String name = "PEP".equals(category) ? "PEP Eligibility Screening" : "PrEP Eligibility Screening";
 		assert prepEligibility.getId() != null;
 		return new PatientActivity(prepEligibility.getId(), name, prepEligibility.getVisitDate(), "", "prep-eligibility-screening");
 	}

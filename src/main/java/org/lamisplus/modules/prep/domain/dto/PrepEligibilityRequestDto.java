@@ -25,13 +25,11 @@ public class PrepEligibilityRequestDto implements Serializable {
     @NotNull(message = "personId is mandatory")
     private Long personId;
     private String sexPartner;
-    private String counselingType;
     @NotNull(message = "firstTimeVisit is mandatory")
     private Boolean firstTimeVisit;
     private Integer numChildrenLessThanFive;
     @NotBlank(message = "targetGroup is mandatory")
     private String targetGroup;
-    private Object extra;
     private Integer score;
     @NotNull(message = "visitDate is mandatory")
     private LocalDate visitDate;

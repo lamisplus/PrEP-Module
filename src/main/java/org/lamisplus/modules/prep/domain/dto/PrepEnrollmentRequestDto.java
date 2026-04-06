@@ -30,15 +30,11 @@ public class PrepEnrollmentRequestDto implements Serializable {
 
     private String riskType; //applicationCodeSet
 
-    private Object extra;
-
     private String supporterName;
 
     private String supporterRelationshipType;
 
     private String supporterPhone;
-
-    private String ancUniqueArtNo;
 
     private String hivTestingPoint;
 

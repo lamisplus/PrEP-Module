@@ -110,11 +110,9 @@ public class PrepEligibilityScreeningService {
         e.setPersonalHivRiskAssessment(dto.getPersonalHivRiskAssessment());
         e.setSexPartnerRisk(dto.getSexPartnerRisk());
         e.setSexPartner(dto.getSexPartner());
-        e.setCounselingType(dto.getCounselingType());
         e.setFirstTimeVisit(dto.getFirstTimeVisit());
         e.setNumChildrenLessThanFive(dto.getNumChildrenLessThanFive());
         e.setTargetGroup(dto.getTargetGroup());
-        e.setExtra(dto.getExtra());
         e.setAssessmentForPepIndication(dto.getAssessmentForPepIndication());
         e.setAssessmentForAcuteHivInfection(dto.getAssessmentForAcuteHivInfection());
         e.setAssessmentForPrepEligibility(dto.getAssessmentForPrepEligibility());
@@ -148,11 +146,9 @@ public class PrepEligibilityScreeningService {
         e.setPersonalHivRiskAssessment(dto.getPersonalHivRiskAssessment());
         e.setSexPartnerRisk(dto.getSexPartnerRisk());
         e.setSexPartner(dto.getSexPartner());
-        e.setCounselingType(dto.getCounselingType());
         e.setFirstTimeVisit(dto.getFirstTimeVisit());
         e.setNumChildrenLessThanFive(dto.getNumChildrenLessThanFive());
         e.setTargetGroup(dto.getTargetGroup());
-        e.setExtra(dto.getExtra());
         e.setAssessmentForPepIndication(dto.getAssessmentForPepIndication());
         e.setAssessmentForAcuteHivInfection(dto.getAssessmentForAcuteHivInfection());
         e.setAssessmentForPrepEligibility(dto.getAssessmentForPrepEligibility());
@@ -186,11 +182,9 @@ public class PrepEligibilityScreeningService {
         dto.setPersonalHivRiskAssessment(e.getPersonalHivRiskAssessment());
         dto.setSexPartnerRisk(e.getSexPartnerRisk());
         dto.setSexPartner(e.getSexPartner());
-        dto.setCounselingType(e.getCounselingType());
         dto.setFirstTimeVisit(e.getFirstTimeVisit());
         dto.setNumChildrenLessThanFive(e.getNumChildrenLessThanFive());
         dto.setTargetGroup(e.getTargetGroup());
-        dto.setExtra(e.getExtra());
         dto.setScore(e.getScore());
         dto.setAssessmentForPepIndication(e.getAssessmentForPepIndication());
         dto.setAssessmentForAcuteHivInfection(e.getAssessmentForAcuteHivInfection());

@@ -53,7 +53,7 @@ const Home = () => {
       <div style={{ marginTop: "3em" }} className="page-titles">
         <ol className="breadcrumb">
           <li className="breadcrumb-item active">
-            <h4>PrEP</h4>
+            <h4>PrEP/PEP</h4>
           </li>
         </ol>
       </div>

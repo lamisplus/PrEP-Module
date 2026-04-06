@@ -48,4 +48,6 @@ public interface PrepClient {
     Boolean getCanScreenForPrep();
 
     Boolean getCanScreenForPep();
+
+    String getPreviousProphylaxis();
 }

@@ -114,9 +114,7 @@ public class PrepPepInitiationService {
         PrepPepInitiation entity = new PrepPepInitiation();
 
         entity.setPersonUuid(personUuid);
-        entity.setExtra(dto.getExtra());
         entity.setUniqueId(dto.getUniqueId());
-        entity.setExtra(dto.getExtra());
         entity.setPrepEligibilityUuid(dto.getPrepEligibilityUuid());
 
         entity.setDateEnrolled(dto.getDateEnrolled());
@@ -126,8 +124,6 @@ public class PrepPepInitiationService {
         entity.setSupporterRelationshipType(dto.getSupporterRelationshipType());
         entity.setSupporterPhone(dto.getSupporterPhone());
         entity.setStatus("ENROLLED");
-
-        entity.setAncUniqueArtNo(dto.getAncUniqueArtNo());
 
         entity.setHivTestingPoint(dto.getHivTestingPoint());
         entity.setDateOfLastHivNegativeTest(dto.getDateOfLastHivNegativeTest());
@@ -164,9 +160,7 @@ public class PrepPepInitiationService {
         PrepPepInitiation entity = new PrepPepInitiation();
 
         entity.setPersonUuid(personUuid);
-        entity.setExtra(dto.getExtra());
         entity.setUniqueId(dto.getUniqueId());
-        entity.setExtra(dto.getExtra());
         entity.setPrepEligibilityUuid(dto.getPrepEligibilityUuid());
 
         entity.setDateEnrolled(dto.getDateEnrolled());
@@ -177,7 +171,6 @@ public class PrepPepInitiationService {
         entity.setSupporterPhone(dto.getSupporterPhone());
         entity.setStatus("Enrolled");
 
-        entity.setAncUniqueArtNo(dto.getAncUniqueArtNo());
         entity.setHivTestingPoint(dto.getHivTestingPoint());
         entity.setDateOfLastHivNegativeTest(dto.getDateOfLastHivNegativeTest());
         entity.setTargetGroup(dto.getTargetGroup());
@@ -211,10 +204,8 @@ public class PrepPepInitiationService {
 
         PrepPepInitiationDto dto = new PrepPepInitiationDto();
 
-        dto.setExtra(entity.getExtra());
         dto.setId(entity.getId());
         dto.setUniqueId(entity.getUniqueId());
-        dto.setExtra(entity.getExtra());
         dto.setUuid(entity.getUuid());
 
         dto.setDateEnrolled(entity.getDateEnrolled());
@@ -225,8 +216,6 @@ public class PrepPepInitiationService {
         dto.setSupporterPhone(entity.getSupporterPhone());
         dto.setPrepEligibilityUuid(entity.getPrepEligibilityUuid());
         dto.setCommenced(true);
-
-        dto.setAncUniqueArtNo(entity.getAncUniqueArtNo());
 
         dto.setHivTestingPoint(entity.getHivTestingPoint());
         dto.setDateOfLastHivNegativeTest(entity.getDateOfLastHivNegativeTest());

@@ -108,9 +108,7 @@ public class PrepEnrollmentService {
         PrepEnrollment prepEnrollment = new PrepEnrollment();
 
         prepEnrollment.setPersonUuid( personUuid);
-        prepEnrollment.setExtra( enrollmentDto.getExtra() );
         prepEnrollment.setUniqueId( enrollmentDto.getUniqueId() );
-        prepEnrollment.setExtra( enrollmentDto.getExtra() );
         prepEnrollment.setPrepEligibilityUuid( enrollmentDto.getPrepEligibilityUuid() );
 
         prepEnrollment.setDateEnrolled( enrollmentDto.getDateEnrolled() );
@@ -121,7 +119,6 @@ public class PrepEnrollmentService {
         prepEnrollment.setSupporterPhone( enrollmentDto.getSupporterPhone() );
         prepEnrollment.setStatus("Enrolled");
 
-        prepEnrollment.setAncUniqueArtNo( enrollmentDto.getAncUniqueArtNo() );
         prepEnrollment.setHivTestingPoint(enrollmentDto.getHivTestingPoint());
         prepEnrollment.setDateOfLastHivNegativeTest(enrollmentDto.getDateOfLastHivNegativeTest());
         prepEnrollment.setTargetGroup(enrollmentDto.getTargetGroup());
@@ -156,9 +153,7 @@ public class PrepEnrollmentService {
         PrepEnrollment prepEnrollment = new PrepEnrollment();
 
         prepEnrollment.setPersonUuid( personUuid);
-        prepEnrollment.setExtra( prepEnrollmentRequestDto.getExtra() );
         prepEnrollment.setUniqueId( prepEnrollmentRequestDto.getUniqueId() );
-        prepEnrollment.setExtra( prepEnrollmentRequestDto.getExtra() );
         prepEnrollment.setPrepEligibilityUuid( prepEnrollmentRequestDto.getPrepEligibilityUuid() );
 
         prepEnrollment.setDateEnrolled( prepEnrollmentRequestDto.getDateEnrolled() );
@@ -169,7 +164,7 @@ public class PrepEnrollmentService {
         prepEnrollment.setSupporterPhone( prepEnrollmentRequestDto.getSupporterPhone() );
         prepEnrollment.setStatus("ENROLLED");
 
-        prepEnrollment.setAncUniqueArtNo( prepEnrollmentRequestDto.getAncUniqueArtNo() );
+
 
         prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
         prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
@@ -206,10 +201,8 @@ public class PrepEnrollmentService {
 
         PrepEnrollmentDto enrollmentDto = new PrepEnrollmentDto();
 
-        enrollmentDto.setExtra( enrollment.getExtra() );
         enrollmentDto.setId( enrollment.getId() );
         enrollmentDto.setUniqueId( enrollment.getUniqueId() );
-        enrollmentDto.setExtra( enrollment.getExtra() );
         enrollmentDto.setUuid(enrollment.getUuid());
 
         if(enrollment.getCreatedBy().equals("ETL")){
@@ -224,8 +217,6 @@ public class PrepEnrollmentService {
         enrollmentDto.setSupporterPhone( enrollment.getSupporterPhone() );
         enrollmentDto.setPrepEligibilityUuid(enrollment.getPrepEligibilityUuid());
         enrollmentDto.setCommenced(true);
-
-        enrollmentDto.setAncUniqueArtNo(enrollment.getAncUniqueArtNo());
 
         enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
         enrollmentDto.setDateOfLastHivNegativeTest(enrollment.getDateOfLastHivNegativeTest());

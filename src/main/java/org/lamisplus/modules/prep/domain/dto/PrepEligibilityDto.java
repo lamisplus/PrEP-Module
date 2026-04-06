@@ -26,13 +26,11 @@ public class PrepEligibilityDto implements Serializable {
     private Object sexPartnerRisk;
     private String personUuid;
     private String sexPartner;
-    private String counselingType;
     private Boolean firstTimeVisit;
     private Integer numChildrenLessThanFive;
     private String targetGroup;
     private Integer score;
 
-    private Object extra;
     private String prepStatus;
     private Integer prepEligibilityCount;
 
