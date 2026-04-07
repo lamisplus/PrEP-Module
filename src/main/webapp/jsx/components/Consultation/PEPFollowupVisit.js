@@ -133,21 +133,35 @@ const PEPFollowupVisit = props => {
   };
 
   const getPatientDtoObj = () => {
+    const personId = props.patientObj.personId || props.patientObj.id;
     axios
       .get(
-        `${baseUrl}prep/enrollment/open/patients/${
-          props.patientObj.personId || props.patientObj.id
-        }`,
+        `${baseUrl}prep/enrollment/open/patients/${personId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
         setPatientDto(response.data);
-        // Auto-populate pregnancy status from latest screening for female patients
-        if (isFemale() && response.data?.pregnancyStatus && formikRef.current) {
-          formikRef.current.setFieldValue("pregnant", response.data.pregnancyStatus);
-        }
       })
       .catch(error => {});
+
+    // Auto-populate pregnancy status from latest eligibility screening for female patients
+    if (isFemale()) {
+      axios
+        .get(
+          `${baseUrl}prep-eligibility-screening/person/${personId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+        .then(response => {
+          if (response.data && response.data.length > 0) {
+            const sorted = response.data.sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate));
+            const latestPregnancyStatus = sorted[0]?.pregnancyStatus;
+            if (latestPregnancyStatus && formikRef.current) {
+              formikRef.current.setFieldValue("pregnant", latestPregnancyStatus);
+            }
+          }
+        })
+        .catch(error => {});
+    }
   };
 
   const getPatientVisit = async () => {

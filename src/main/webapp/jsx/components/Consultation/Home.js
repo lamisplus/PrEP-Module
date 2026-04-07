@@ -1162,11 +1162,9 @@ const ClinicVisit = props => {
                             style={inputStyle}
                           >
                             <option value="">Select Pregnancy Status</option>
-                            {codeset?.PREGNANCY_STATUS?.map(value => (
-                              <option key={value.id} value={value.code}>
-                                {value.display}
-                              </option>
-                            ))}
+                            <option value="Pregnant">Pregnant</option>
+                            <option value="Breastfeeding">Breastfeeding</option>
+                            <option value="Non-pregnant">Non-pregnant</option>
                           </Input>
                           {getError("pregnant") && (
                             <span className={classes.error}>

@@ -17,13 +17,13 @@ public interface PrepCompletionRepository extends JpaRepository<PrepCompletion, 
     List<PrepCompletion> findAllByPersonAndArchived(Person person, int archived);
     Optional<PrepCompletion> findByInterruptionDateAndPersonUuid(LocalDate interruptionDate, String personUuid);
 
-    @Query(value = "SELECT * FROM prep_completion WHERE interruption_date = ?1 AND person_uuid = ?2 AND archived = ?3 ORDER BY id LIMIT 1", nativeQuery = true)
+    @Query(value = "SELECT * FROM prep_completion WHERE interruption_date = CAST(?1 AS DATE) AND person_uuid = ?2 AND archived = ?3 ORDER BY id LIMIT 1", nativeQuery = true)
     Optional<PrepCompletion> findFirstByInterruptionDateAndPersonUuidAndArchived(LocalDate interruptionDate, String personUuid, int archived);
 
     Optional<PrepCompletion> findByInterruptionDateAndPersonUuidAndArchived(LocalDate interruptionDate, String personUuid, int archived);
     Optional<PrepCompletion> findByUuid(String uuid);
     List<PrepCompletion> findAllByFacilityId(Long facilityId);
 
-    @Query(value = "SELECT * FROM prep_completion WHERE date_modified > ?1 AND facility_id=?2", nativeQuery = true)
+    @Query(value = "SELECT * FROM prep_completion WHERE date_modified > CAST(?1 AS TIMESTAMP) AND facility_id=?2", nativeQuery = true)
     List<PrepCompletion> getAllDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
 }
