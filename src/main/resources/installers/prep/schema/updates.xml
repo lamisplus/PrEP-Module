@@ -567,17 +567,17 @@
         </sql>
     </changeSet>
 
-    <!-- ========== NEW TABLES (Phase 1) ========== -->
+    <!-- ========== DEPRECATED TABLES (Phase 1) - Replaced by prophylaxis_screening and prophylaxis_initiation ========== -->
 
-    <!-- 1.1 prep_eligibility_screening (replaces prep_eligibility) -->
-    <changeSet failOnError="true" author="Gamaliel" id="04-03-2026-01">
+    <!-- 1.1 prep_eligibility_screening - DEPRECATED: replaced by prophylaxis_screening -->
+    <changeSet failOnError="false" author="Gamaliel" id="04-03-2026-01">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="prep_eligibility_screening"/>
             </not>
         </preConditions>
         <sql>
-            CREATE TABLE prep_eligibility_screening (
+            CREATE TABLE IF NOT EXISTS prep_eligibility_screening (
             id BIGSERIAL PRIMARY KEY,
             uuid VARCHAR(255) NOT NULL UNIQUE,
             person_uuid VARCHAR(255) NOT NULL,
@@ -626,15 +626,15 @@
         </sql>
     </changeSet>
 
-    <!-- 1.2 prep_pep_initiation (replaces prep_enrollment) -->
-    <changeSet failOnError="true" author="Gamaliel" id="04-03-2026-02">
+    <!-- 1.2 prep_pep_initiation - DEPRECATED: replaced by prophylaxis_initiation -->
+    <changeSet failOnError="false" author="Gamaliel" id="04-03-2026-02">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="prep_pep_initiation"/>
             </not>
         </preConditions>
         <sql>
-            CREATE TABLE prep_pep_initiation (
+            CREATE TABLE IF NOT EXISTS prep_pep_initiation (
             id BIGSERIAL PRIMARY KEY,
             uuid VARCHAR(255) NOT NULL UNIQUE,
             person_uuid VARCHAR(255) NOT NULL,

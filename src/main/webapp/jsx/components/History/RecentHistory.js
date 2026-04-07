@@ -77,7 +77,11 @@ const RecentHistory = props => {
 
   function countPrepEligibility(data) {
     let count = 0;
-    let relevantActivities = ["Prep Commencement", "Prep Clinic", "PEP Clinic"];
+    let relevantActivities = [
+      "Prep Commencement", "Prep Clinic", "PEP Clinic",
+      "PrEP Initiation", "PEP Initiation",
+      "PrEP Discontinuation/Interruption", "PEP Completion"
+    ];
     data.forEach(entry => {
       entry?.activities?.forEach(activity => {
         if (relevantActivities.includes(activity?.name)) {
@@ -96,12 +100,18 @@ const RecentHistory = props => {
       return "PC";
     } else if (name === "PEP Clinic") {
       return "PPC";
-    } else if (name === "Prep Enrollment" || name === "PrEP & PEP Initiation") {
+    } else if (name === "PrEP Initiation" || name === "Prep Enrollment" || name === "PrEP & PEP Initiation") {
       return "PI";
-    } else if (name === "Prep Eligibility") {
+    } else if (name === "PEP Initiation") {
+      return "PPI";
+    } else if (name === "PrEP Eligibility Screening" || name === "PEP Eligibility Screening" || name === "Prep Eligibility") {
       return "PE";
-    } else if (name === "ART Commencement") {
+    } else if (name === "ART Commencement" || name === "Prep Commencement") {
       return "AC";
+    } else if (name === "PrEP Discontinuation/Interruption") {
+      return "PD";
+    } else if (name === "PEP Completion") {
+      return "PPC";
     } else {
       return "RA";
     }

@@ -637,6 +637,14 @@ const ClinicVisit = props => {
 
   const handleAddOtherTestEntry = () => {
     if (!otherTestInput.testDate || !otherTestInput.otherTestsDone || !otherTestInput.result) return;
+    // Prevent duplicate test types (skip check when editing)
+    if (editingOtherTestIndex === null) {
+      const isDuplicate = otherTest.some(t => t.otherTestsDone === otherTestInput.otherTestsDone);
+      if (isDuplicate) {
+        toast.error("This test has already been added. Please edit the existing entry instead.", { position: toast.POSITION.BOTTOM_CENTER });
+        return;
+      }
+    }
     if (editingOtherTestIndex !== null) {
       setOtherTest(prev =>
         prev.map((item, idx) =>

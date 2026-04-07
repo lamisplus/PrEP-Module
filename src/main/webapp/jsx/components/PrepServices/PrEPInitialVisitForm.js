@@ -111,10 +111,12 @@ const PrEPInitialVisitForm = props => {
         setPatientDto(response.data);
         // Auto-populate fields from latest screening data
         if (response.data) {
+          const hivResult = response.data.drugUseHistory?.hivTestResultAtvisit;
           setObjValues(prev => ({
             ...prev,
             enrollmentType: response.data.category || prev.enrollmentType,
             uniqueId: response.data.uniqueClientId || prev.uniqueId,
+            resultOfHivTest: hivResult || prev.resultOfHivTest,
           }));
         }
         // Fetch previous initiation records for returning clients
@@ -224,6 +226,10 @@ const PrEPInitialVisitForm = props => {
     temp.resultOfHivTest = objValues.resultOfHivTest
       ? ""
       : "This field is required";
+    // Block save if HIV result is Positive
+    if (objValues.resultOfHivTest === "Positive") {
+      temp.resultOfHivTest = "Client with Positive HIV result cannot be initiated on PrEP/PEP";
+    }
     // Conditional: supporter fields required if supporter name is provided (only for PrEP)
     if (objValues.enrollmentType !== 'PEP' && objValues.supporterName) {
       temp.supporterRelationshipType = objValues.supporterRelationshipType
@@ -233,10 +239,11 @@ const PrEPInitialVisitForm = props => {
         ? ""
         : "This field is required";
     }
-    // Conditional: dateReferred required if HIV Positive or Early Detect
+    // Conditional: dateReferred required only for PrEP when HIV Positive or Early Detect
     if (
-      objValues.resultOfHivTest === "Positive" ||
-      objValues.resultOfHivTest === "Early Detect"
+      objValues.enrollmentType !== 'PEP' &&
+      (objValues.resultOfHivTest === "Positive" ||
+       objValues.resultOfHivTest === "Early Detect")
     ) {
       temp.dateReferred = objValues.dateReferred
         ? ""
@@ -462,8 +469,9 @@ const PrEPInitialVisitForm = props => {
                 </FormGroup>
               </div>
 
-              {/* 5. Date Referred for PrEP - only if HIV result = Positive or Early Detect */}
-              {(objValues.resultOfHivTest === "Positive" ||
+              {/* 5. Date Referred for PrEP - only for PrEP and when HIV result = Positive or Early Detect */}
+              {objValues.enrollmentType !== 'PEP' &&
+               (objValues.resultOfHivTest === "Positive" ||
                 objValues.resultOfHivTest === "Early Detect") && (
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>

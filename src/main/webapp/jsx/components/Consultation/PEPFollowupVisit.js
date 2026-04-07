@@ -242,6 +242,14 @@ const PEPFollowupVisit = props => {
 
   const handleAddHivTestEntry = () => {
     if (!hivTestInput.test || !hivTestInput.result) return;
+    // Prevent duplicate test types (skip check when editing)
+    if (editingHivTestIndex === null) {
+      const isDuplicate = hivTestEntries.some(t => t.test === hivTestInput.test);
+      if (isDuplicate) {
+        toast.error("This test has already been added. Please edit the existing entry instead.", { position: toast.POSITION.BOTTOM_CENTER });
+        return;
+      }
+    }
     if (editingHivTestIndex !== null) {
       const updated = [...hivTestEntries];
       updated[editingHivTestIndex] = { ...hivTestInput };
@@ -1090,7 +1098,7 @@ const PEPFollowupVisit = props => {
                             {hivTestEntries.map((entry, index) => (
                               <tr key={index}>
                                 <td>{index + 1}</td>
-                                <td>{entry.test}</td>
+                                <td>{codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.find(v => v.code === entry.test)?.display || entry.test}</td>
                                 <td>
                                   <span
                                     style={{

@@ -2151,7 +2151,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group col-md-6 p-3">
+              <div className="form-group col-md-4 p-3">
                 <FormGroup>
                   <Label>Anal discharge?</Label>
                   <select
@@ -2356,7 +2356,7 @@ const BasicInfo = props => {
                   "true" ||
                   assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days ===
                     "true") && (
-                  <div className="form-group col-md-6 p-3">
+                  <div className="form-group col-md-4 p-3">
                     <FormGroup>
                       <Label>
                         If the client tests HIV negative and has signs and
@@ -2486,7 +2486,7 @@ const BasicInfo = props => {
                 Consideration for Injections
               </div>
 
-              <div className="form-group col-md-4 p-2">
+              <div className="form-group col-md-6 p-2">
                 <FormGroup className="p-2">
                   <Label>{`No history / signs & symptoms of Liver abnormalities (Injectable)`}</Label>
                   <select
@@ -2509,7 +2509,7 @@ const BasicInfo = props => {
                   </select>
                 </FormGroup>
               </div>
-              <div className="form-group col-md-4 p-2">
+              <div className="form-group col-md-6 p-2">
                 <FormGroup className="p-2">
                   <Label>{`No history of drug-drug interaction (Injectable)`}</Label>
                   <select
@@ -2532,7 +2532,7 @@ const BasicInfo = props => {
                   </select>
                 </FormGroup>
               </div>
-              <div className="form-group col-md-4 p-2">
+              <div className="form-group col-md-6 p-2">
                 <FormGroup className="p-2">
                   <Label>{`No history of drug hypersensitivity (Injectable)`}</Label>
                   <select
