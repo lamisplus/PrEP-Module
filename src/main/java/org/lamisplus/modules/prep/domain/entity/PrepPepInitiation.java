@@ -66,12 +66,6 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @Column(name = "date_referred")
     private LocalDate dateReferred;
 
-    @Column(name = "risk_type")
-    private String riskType;
-
-    @Column(name = "target_group")
-    private String targetGroup;
-
     @Column(name = "population_type")
     private String populationType;
 
@@ -86,12 +80,6 @@ public class PrepPepInitiation extends Audit implements Serializable {
 
     @Column(name = "hiv_testing_point")
     private String hivTestingPoint;
-
-    @Column(name = "hiv_testing_point_others_specify")
-    private String hivTestingPointOthersSpecify;
-
-    @Column(name = "date_of_last_hiv_negative_test")
-    private LocalDate dateOfLastHivNegativeTest;
 
     @Column(name = "weight")
     private Double weight;

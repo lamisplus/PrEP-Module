@@ -19,7 +19,6 @@ import java.time.LocalDate;
 public class PrepEligibilityDto implements Serializable {
     private Long id;
     private String uuid;
-    private Object hivRisk;
     private Object stiScreening;
     private Object drugUseHistory;
     private Object personalHivRiskAssessment;

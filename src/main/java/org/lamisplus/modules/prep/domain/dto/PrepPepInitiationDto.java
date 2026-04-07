@@ -19,15 +19,12 @@ public class PrepPepInitiationDto implements Serializable {
     private LocalDate dateOfRegistration;
     private LocalDate dateEnrolled;
     private LocalDate dateReferred;
-    private String riskType;
     private String supporterName;
     private String supporterRelationshipType;
     private String supporterPhone;
     private boolean isCommenced;
     private String status;
     private String hivTestingPoint;
-    private LocalDate dateOfLastHivNegativeTest;
-    private String targetGroup;
     private String enrollmentType;
     private String populationType;
     private Double weight;
@@ -45,5 +42,4 @@ public class PrepPepInitiationDto implements Serializable {
     private String prepTypeAtStartOthersSpecify;
     private String prepRegimen;
     private Integer monthsOfRefill;
-    private String hivTestingPointOthersSpecify;
 }

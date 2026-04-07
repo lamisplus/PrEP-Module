@@ -28,8 +28,6 @@ public class PrepEnrollmentRequestDto implements Serializable {
 
     private LocalDate dateReferred;
 
-    private String riskType; //applicationCodeSet
-
     private String supporterName;
 
     private String supporterRelationshipType;
@@ -37,10 +35,6 @@ public class PrepEnrollmentRequestDto implements Serializable {
     private String supporterPhone;
 
     private String hivTestingPoint;
-
-    private LocalDate dateOfLastHivNegativeTest;
-
-    private String targetGroup;
 
     private String enrollmentType;
 
@@ -75,6 +69,4 @@ public class PrepEnrollmentRequestDto implements Serializable {
     private String prepRegimen;
 
     private Integer monthsOfRefill;
-
-    private String hivTestingPointOthersSpecify;
 }

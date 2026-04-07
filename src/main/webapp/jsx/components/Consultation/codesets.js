@@ -403,7 +403,14 @@ export function fetchCabLaRefillDurations() {
  */
 export function fetchSettingOptions() {
   return Promise.resolve([
-    { value: "Facility", label: "Facility" },
-    { value: "Community", label: "Community" },
+    { value: "CT", label: "CT" },
+    { value: "FP", label: "FP" },
+    { value: "TB", label: "TB" },
+    { value: "STI", label: "STI" },
+    { value: "OPD", label: "OPD" },
+    { value: "Ward", label: "Ward" },
+    { value: "Outreach", label: "Outreach" },
+    { value: "Standalone HTS", label: "Standalone HTS" },
+    { value: "Others", label: "Others" },
   ]);
 }

@@ -103,7 +103,6 @@ public class PrepEligibilityScreeningService {
         if (dto == null) return null;
         PrepEligibilityScreening e = new PrepEligibilityScreening();
         e.setPersonUuid(personUuid);
-        e.setHivRisk(dto.getHivRisk());
         e.setScore(dto.getScore());
         e.setStiScreening(dto.getStiScreening());
         e.setDrugUseHistory(dto.getDrugUseHistory());
@@ -139,7 +138,6 @@ public class PrepEligibilityScreeningService {
         PrepEligibilityScreening e = new PrepEligibilityScreening();
         e.setId(dto.getId());
         e.setPersonUuid(personUuid);
-        e.setHivRisk(dto.getHivRisk());
         e.setScore(dto.getScore());
         e.setStiScreening(dto.getStiScreening());
         e.setDrugUseHistory(dto.getDrugUseHistory());
@@ -176,7 +174,6 @@ public class PrepEligibilityScreeningService {
         dto.setId(e.getId());
         dto.setUuid(e.getUuid());
         dto.setPersonUuid(e.getPersonUuid());
-        dto.setHivRisk(e.getHivRisk());
         dto.setStiScreening(e.getStiScreening());
         dto.setDrugUseHistory(e.getDrugUseHistory());
         dto.setPersonalHivRiskAssessment(e.getPersonalHivRiskAssessment());

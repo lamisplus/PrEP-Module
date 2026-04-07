@@ -15,7 +15,6 @@ public class PrepEligibilityScreeningDto implements Serializable {
     private String uuid;
     private String personUuid;
     private Long personId;
-    private Object hivRisk;
     private Object stiScreening;
     private Object drugUseHistory;
     private Object personalHivRiskAssessment;

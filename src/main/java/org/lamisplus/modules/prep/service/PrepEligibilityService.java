@@ -173,7 +173,6 @@ public class PrepEligibilityService {
         PrepEligibility prepEligibility = new PrepEligibility();
 
         prepEligibility.setId(eligibilityDto.getId());
-        prepEligibility.setHivRisk(eligibilityDto.getHivRisk());
         prepEligibility.setScore(eligibilityDto.getScore());
         prepEligibility.setStiScreening(eligibilityDto.getStiScreening());
         prepEligibility.setDrugUseHistory(eligibilityDto.getDrugUseHistory());
@@ -211,7 +210,6 @@ public class PrepEligibilityService {
 
         PrepEligibility prepEligibility = new PrepEligibility();
 
-        prepEligibility.setHivRisk(prepEligibilityRequestDto.getHivRisk());
         prepEligibility.setScore(prepEligibilityRequestDto.getScore());
         prepEligibility.setStiScreening(prepEligibilityRequestDto.getStiScreening());
         prepEligibility.setDrugUseHistory(prepEligibilityRequestDto.getDrugUseHistory());
@@ -251,7 +249,6 @@ public class PrepEligibilityService {
 
         prepEligibilityDto.setId(eligibility.getId());
         prepEligibilityDto.setUuid(eligibility.getUuid());
-        prepEligibilityDto.setHivRisk(eligibility.getHivRisk());
         prepEligibilityDto.setStiScreening(eligibility.getStiScreening());
         prepEligibilityDto.setDrugUseHistory(eligibility.getDrugUseHistory());
         prepEligibilityDto.setPersonalHivRiskAssessment(eligibility.getPersonalHivRiskAssessment());

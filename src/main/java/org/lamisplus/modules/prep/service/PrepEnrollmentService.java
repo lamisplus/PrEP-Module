@@ -113,15 +113,12 @@ public class PrepEnrollmentService {
 
         prepEnrollment.setDateEnrolled( enrollmentDto.getDateEnrolled() );
         prepEnrollment.setDateReferred( enrollmentDto.getDateReferred() );
-        prepEnrollment.setRiskType( enrollmentDto.getRiskType() );
         prepEnrollment.setSupporterName( enrollmentDto.getSupporterName() );
         prepEnrollment.setSupporterRelationshipType( enrollmentDto.getSupporterRelationshipType() );
         prepEnrollment.setSupporterPhone( enrollmentDto.getSupporterPhone() );
         prepEnrollment.setStatus("Enrolled");
 
         prepEnrollment.setHivTestingPoint(enrollmentDto.getHivTestingPoint());
-        prepEnrollment.setDateOfLastHivNegativeTest(enrollmentDto.getDateOfLastHivNegativeTest());
-        prepEnrollment.setTargetGroup(enrollmentDto.getTargetGroup());
 
         prepEnrollment.setEnrollmentType(enrollmentDto.getEnrollmentType());
         prepEnrollment.setPopulationType(enrollmentDto.getPopulationType());
@@ -140,7 +137,6 @@ public class PrepEnrollmentService {
         prepEnrollment.setPrepTypeAtStartOthersSpecify(enrollmentDto.getPrepTypeAtStartOthersSpecify());
         prepEnrollment.setPrepRegimen(enrollmentDto.getPrepRegimen());
         prepEnrollment.setMonthsOfRefill(enrollmentDto.getMonthsOfRefill());
-        prepEnrollment.setHivTestingPointOthersSpecify(enrollmentDto.getHivTestingPointOthersSpecify());
 
         return prepEnrollment;
     }
@@ -158,18 +154,12 @@ public class PrepEnrollmentService {
 
         prepEnrollment.setDateEnrolled( prepEnrollmentRequestDto.getDateEnrolled() );
         prepEnrollment.setDateReferred( prepEnrollmentRequestDto.getDateReferred() );
-        prepEnrollment.setRiskType( prepEnrollmentRequestDto.getRiskType() );
         prepEnrollment.setSupporterName( prepEnrollmentRequestDto.getSupporterName() );
         prepEnrollment.setSupporterRelationshipType( prepEnrollmentRequestDto.getSupporterRelationshipType() );
         prepEnrollment.setSupporterPhone( prepEnrollmentRequestDto.getSupporterPhone() );
         prepEnrollment.setStatus("ENROLLED");
 
-
-
         prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
-        prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
-
-        prepEnrollment.setTargetGroup( prepEnrollmentRequestDto.getTargetGroup() );
 
         prepEnrollment.setEnrollmentType(prepEnrollmentRequestDto.getEnrollmentType());
         prepEnrollment.setPopulationType(prepEnrollmentRequestDto.getPopulationType());
@@ -188,7 +178,6 @@ public class PrepEnrollmentService {
         prepEnrollment.setPrepTypeAtStartOthersSpecify(prepEnrollmentRequestDto.getPrepTypeAtStartOthersSpecify());
         prepEnrollment.setPrepRegimen(prepEnrollmentRequestDto.getPrepRegimen());
         prepEnrollment.setMonthsOfRefill(prepEnrollmentRequestDto.getMonthsOfRefill());
-        prepEnrollment.setHivTestingPointOthersSpecify(prepEnrollmentRequestDto.getHivTestingPointOthersSpecify());
 
         return prepEnrollment;
     }
@@ -211,7 +200,6 @@ public class PrepEnrollmentService {
         }
         enrollmentDto.setDateEnrolled( enrollment.getDateEnrolled() );
         enrollmentDto.setDateReferred( enrollment.getDateReferred() );
-        enrollmentDto.setRiskType( enrollment.getRiskType() );
         enrollmentDto.setSupporterName( enrollment.getSupporterName() );
         enrollmentDto.setSupporterRelationshipType( enrollment.getSupporterRelationshipType() );
         enrollmentDto.setSupporterPhone( enrollment.getSupporterPhone() );
@@ -219,8 +207,6 @@ public class PrepEnrollmentService {
         enrollmentDto.setCommenced(true);
 
         enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
-        enrollmentDto.setDateOfLastHivNegativeTest(enrollment.getDateOfLastHivNegativeTest());
-        enrollmentDto.setTargetGroup(enrollment.getTargetGroup());
 
         enrollmentDto.setEnrollmentType(enrollment.getEnrollmentType());
         enrollmentDto.setPopulationType(enrollment.getPopulationType());
@@ -239,7 +225,6 @@ public class PrepEnrollmentService {
         enrollmentDto.setPrepTypeAtStartOthersSpecify(enrollment.getPrepTypeAtStartOthersSpecify());
         enrollmentDto.setPrepRegimen(enrollment.getPrepRegimen());
         enrollmentDto.setMonthsOfRefill(enrollment.getMonthsOfRefill());
-        enrollmentDto.setHivTestingPointOthersSpecify(enrollment.getHivTestingPointOthersSpecify());
 
         return enrollmentDto;
     }

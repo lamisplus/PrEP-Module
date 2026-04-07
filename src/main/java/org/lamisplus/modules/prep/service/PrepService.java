@@ -531,7 +531,6 @@ public class PrepService {
 
         PrepEligibilityScreening prepEligibility = new PrepEligibilityScreening();
 
-        prepEligibility.setHivRisk(prepEligibilityRequestDto.getHivRisk());
         prepEligibility.setScore(prepEligibilityRequestDto.getScore());
         prepEligibility.setStiScreening(prepEligibilityRequestDto.getStiScreening());
         prepEligibility.setDrugUseHistory(prepEligibilityRequestDto.getDrugUseHistory());
@@ -571,7 +570,6 @@ public class PrepService {
 
         prepEligibilityDto.setId(eligibility.getId());
         prepEligibilityDto.setUuid(eligibility.getUuid());
-        prepEligibilityDto.setHivRisk(eligibility.getHivRisk());
         prepEligibilityDto.setStiScreening(eligibility.getStiScreening());
         prepEligibilityDto.setDrugUseHistory(eligibility.getDrugUseHistory());
         prepEligibilityDto.setPersonalHivRiskAssessment(eligibility.getPersonalHivRiskAssessment());
@@ -621,14 +619,11 @@ public class PrepService {
         prepEnrollment.setPrepEligibilityUuid(prepEnrollmentRequestDto.getPrepEligibilityUuid());
         prepEnrollment.setDateEnrolled(prepEnrollmentRequestDto.getDateEnrolled());
         prepEnrollment.setDateReferred(prepEnrollmentRequestDto.getDateReferred());
-        prepEnrollment.setRiskType(prepEnrollmentRequestDto.getRiskType());
         prepEnrollment.setSupporterName(prepEnrollmentRequestDto.getSupporterName());
         prepEnrollment.setSupporterRelationshipType(prepEnrollmentRequestDto.getSupporterRelationshipType());
         prepEnrollment.setSupporterPhone(prepEnrollmentRequestDto.getSupporterPhone());
         prepEnrollment.setStatus("ENROLLED");
         prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
-        prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
-        prepEnrollment.setTargetGroup(prepEnrollmentRequestDto.getTargetGroup());
 
         prepEnrollment.setEnrollmentType(prepEnrollmentRequestDto.getEnrollmentType());
         prepEnrollment.setPopulationType(prepEnrollmentRequestDto.getPopulationType());
@@ -647,7 +642,6 @@ public class PrepService {
         prepEnrollment.setPrepTypeAtStartOthersSpecify(prepEnrollmentRequestDto.getPrepTypeAtStartOthersSpecify());
         prepEnrollment.setPrepRegimen(prepEnrollmentRequestDto.getPrepRegimen());
         prepEnrollment.setMonthsOfRefill(prepEnrollmentRequestDto.getMonthsOfRefill());
-        prepEnrollment.setHivTestingPointOthersSpecify(prepEnrollmentRequestDto.getHivTestingPointOthersSpecify());
 
         return prepEnrollment;
     }
@@ -814,15 +808,12 @@ public class PrepService {
         enrollmentDto.setUuid(enrollment.getUuid());
         enrollmentDto.setDateEnrolled(enrollment.getDateEnrolled());
         enrollmentDto.setDateReferred(enrollment.getDateReferred());
-        enrollmentDto.setRiskType(enrollment.getRiskType());
         enrollmentDto.setSupporterName(enrollment.getSupporterName());
         enrollmentDto.setSupporterRelationshipType(enrollment.getSupporterRelationshipType());
         enrollmentDto.setSupporterPhone(enrollment.getSupporterPhone());
         enrollmentDto.setPrepEligibilityUuid(enrollment.getPrepEligibilityUuid());
         enrollmentDto.setCommenced(true);
         enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
-        enrollmentDto.setDateOfLastHivNegativeTest(enrollment.getDateOfLastHivNegativeTest());
-        enrollmentDto.setTargetGroup(enrollment.getTargetGroup());
 
         enrollmentDto.setEnrollmentType(enrollment.getEnrollmentType());
         enrollmentDto.setPopulationType(enrollment.getPopulationType());
@@ -841,7 +832,6 @@ public class PrepService {
         enrollmentDto.setPrepTypeAtStartOthersSpecify(enrollment.getPrepTypeAtStartOthersSpecify());
         enrollmentDto.setPrepRegimen(enrollment.getPrepRegimen());
         enrollmentDto.setMonthsOfRefill(enrollment.getMonthsOfRefill());
-        enrollmentDto.setHivTestingPointOthersSpecify(enrollment.getHivTestingPointOthersSpecify());
 
         return enrollmentDto;
     }

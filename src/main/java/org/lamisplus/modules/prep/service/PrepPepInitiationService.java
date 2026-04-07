@@ -119,16 +119,12 @@ public class PrepPepInitiationService {
 
         entity.setDateEnrolled(dto.getDateEnrolled());
         entity.setDateReferred(dto.getDateReferred());
-        entity.setRiskType(dto.getRiskType());
         entity.setSupporterName(dto.getSupporterName());
         entity.setSupporterRelationshipType(dto.getSupporterRelationshipType());
         entity.setSupporterPhone(dto.getSupporterPhone());
         entity.setStatus("ENROLLED");
 
         entity.setHivTestingPoint(dto.getHivTestingPoint());
-        entity.setDateOfLastHivNegativeTest(dto.getDateOfLastHivNegativeTest());
-
-        entity.setTargetGroup(dto.getTargetGroup());
 
         entity.setEnrollmentType(dto.getEnrollmentType());
         entity.setPopulationType(dto.getPopulationType());
@@ -147,7 +143,6 @@ public class PrepPepInitiationService {
         entity.setPrepTypeAtStartOthersSpecify(dto.getPrepTypeAtStartOthersSpecify());
         entity.setPrepRegimen(dto.getPrepRegimen());
         entity.setMonthsOfRefill(dto.getMonthsOfRefill());
-        entity.setHivTestingPointOthersSpecify(dto.getHivTestingPointOthersSpecify());
 
         return entity;
     }
@@ -165,15 +160,12 @@ public class PrepPepInitiationService {
 
         entity.setDateEnrolled(dto.getDateEnrolled());
         entity.setDateReferred(dto.getDateReferred());
-        entity.setRiskType(dto.getRiskType());
         entity.setSupporterName(dto.getSupporterName());
         entity.setSupporterRelationshipType(dto.getSupporterRelationshipType());
         entity.setSupporterPhone(dto.getSupporterPhone());
         entity.setStatus("Enrolled");
 
         entity.setHivTestingPoint(dto.getHivTestingPoint());
-        entity.setDateOfLastHivNegativeTest(dto.getDateOfLastHivNegativeTest());
-        entity.setTargetGroup(dto.getTargetGroup());
 
         entity.setEnrollmentType(dto.getEnrollmentType());
         entity.setPopulationType(dto.getPopulationType());
@@ -192,7 +184,6 @@ public class PrepPepInitiationService {
         entity.setPrepTypeAtStartOthersSpecify(dto.getPrepTypeAtStartOthersSpecify());
         entity.setPrepRegimen(dto.getPrepRegimen());
         entity.setMonthsOfRefill(dto.getMonthsOfRefill());
-        entity.setHivTestingPointOthersSpecify(dto.getHivTestingPointOthersSpecify());
 
         return entity;
     }
@@ -210,7 +201,6 @@ public class PrepPepInitiationService {
 
         dto.setDateEnrolled(entity.getDateEnrolled());
         dto.setDateReferred(entity.getDateReferred());
-        dto.setRiskType(entity.getRiskType());
         dto.setSupporterName(entity.getSupporterName());
         dto.setSupporterRelationshipType(entity.getSupporterRelationshipType());
         dto.setSupporterPhone(entity.getSupporterPhone());
@@ -218,8 +208,6 @@ public class PrepPepInitiationService {
         dto.setCommenced(true);
 
         dto.setHivTestingPoint(entity.getHivTestingPoint());
-        dto.setDateOfLastHivNegativeTest(entity.getDateOfLastHivNegativeTest());
-        dto.setTargetGroup(entity.getTargetGroup());
 
         dto.setEnrollmentType(entity.getEnrollmentType());
         dto.setPopulationType(entity.getPopulationType());
@@ -238,7 +226,6 @@ public class PrepPepInitiationService {
         dto.setPrepTypeAtStartOthersSpecify(entity.getPrepTypeAtStartOthersSpecify());
         dto.setPrepRegimen(entity.getPrepRegimen());
         dto.setMonthsOfRefill(entity.getMonthsOfRefill());
-        dto.setHivTestingPointOthersSpecify(entity.getHivTestingPointOthersSpecify());
 
         return dto;
     }

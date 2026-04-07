@@ -96,6 +96,7 @@ const INITIAL_VALUES = {
   followupHivTestResults: [],
   nextAppointment: "",
   healthCareWorkerSignature: "",
+  pregnant: "",
   personId: "",
 };
 
@@ -126,6 +127,11 @@ const PEPFollowupVisit = props => {
 
   // ── API Calls ──
 
+  const isFemale = () => {
+    const sex = props.patientObj?.gender || props.patientObj?.sex || "";
+    return sex.toLowerCase() === "female";
+  };
+
   const getPatientDtoObj = () => {
     axios
       .get(
@@ -136,6 +142,10 @@ const PEPFollowupVisit = props => {
       )
       .then(response => {
         setPatientDto(response.data);
+        // Auto-populate pregnancy status from latest screening for female patients
+        if (isFemale() && response.data?.pregnancyStatus && formikRef.current) {
+          formikRef.current.setFieldValue("pregnant", response.data.pregnancyStatus);
+        }
       })
       .catch(error => {});
   };
@@ -293,6 +303,30 @@ const PEPFollowupVisit = props => {
       setEditingHivTestIndex(null);
     }
   }, [props.activeContent.actionType]);
+
+  // ── Auto-calculate next appointment from encounterDate + duration ──
+  const calculateNextAppointment = (encounterDate, durationMonths) => {
+    if (!encounterDate || !durationMonths || isNaN(Number(durationMonths))) return "";
+    const date = new Date(encounterDate);
+    date.setMonth(date.getMonth() + Number(durationMonths));
+    return date.toISOString().split("T")[0];
+  };
+
+  const handleDurationChange = (e, setFieldValue, encounterDate) => {
+    const duration = e.target.value;
+    setFieldValue("duration", duration);
+    const nextAppt = calculateNextAppointment(encounterDate, duration);
+    if (nextAppt) setFieldValue("nextAppointment", nextAppt);
+  };
+
+  const handleEncounterDateChangeForAppt = (e, setFieldValue, duration) => {
+    const encounterDate = e.target.value;
+    setFieldValue("encounterDate", encounterDate);
+    if (duration) {
+      const nextAppt = calculateNextAppointment(encounterDate, duration);
+      if (nextAppt) setFieldValue("nextAppointment", nextAppt);
+    }
+  };
 
   // ── Submit ──
 
@@ -578,6 +612,29 @@ const PEPFollowupVisit = props => {
                         )}
                       </FormGroup>
                     </div>
+
+                    {/* Pregnancy Status - female only */}
+                    {isFemale() && (
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>Pregnancy Status</FormLabelName>
+                          <Input
+                            type="select"
+                            name="pregnant"
+                            id="pregnant"
+                            value={values.pregnant}
+                            onChange={handleChange}
+                            disabled={disabledField}
+                            style={{ border: "1px solid #014D88", borderRadius: "0.2rem" }}
+                          >
+                            <option value="">Select</option>
+                            <option value="Pregnant">Pregnant</option>
+                            <option value="Breastfeeding">Breastfeeding</option>
+                            <option value="Non-pregnant">Non-pregnant</option>
+                          </Input>
+                        </FormGroup>
+                      </div>
+                    )}
 
                     {/* 5. HIV Status at Exposure */}
                     <div className="form-group mb-3 col-md-6">
@@ -922,7 +979,7 @@ const PEPFollowupVisit = props => {
                           type="number"
                           name="duration"
                           id="duration"
-                          onChange={handleChange}
+                          onChange={e => handleDurationChange(e, setFieldValue, values.encounterDate)}
                           value={values.duration}
                           style={inputStyle}
                           disabled={disabledField}

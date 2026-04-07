@@ -89,9 +89,6 @@ public class PrepEnrollment extends Audit implements Serializable {
     @Column(name = "supporter_phone")
     private String supporterPhone;
 
-    @Column(name = "risk_type")
-    private String riskType;
-
     @Column(name = "date_enrolled")
     private LocalDate dateEnrolled;
 
@@ -100,12 +97,6 @@ public class PrepEnrollment extends Audit implements Serializable {
 
     @Column(name = "hiv_testing_point")
     private String hivTestingPoint;
-
-    @Column(name = "date_last_hiv_negative_test")
-    private LocalDate dateOfLastHivNegativeTest;
-
-    @Column(name = "target_group")
-    private String targetGroup;
 
     @Column(name = "enrollment_type")
     private String enrollmentType;
@@ -159,9 +150,6 @@ public class PrepEnrollment extends Audit implements Serializable {
 
     @Column(name = "months_of_refill")
     private Integer monthsOfRefill;
-
-    @Column(name = "hiv_testing_point_others_specify")
-    private String hivTestingPointOthersSpecify;
 
     @PrePersist
     public void setFields(){

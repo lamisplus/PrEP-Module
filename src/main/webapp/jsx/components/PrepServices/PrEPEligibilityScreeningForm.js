@@ -93,9 +93,7 @@ const BasicInfo = props => {
     counselingType: "",
     category: screeningType,
     drugUseHistory: {},
-    extra: {},
     firstTimeVisit: true,
-    hivRisk: {},
     numChildrenLessThanFive: "",
     personId: "",
     personalHivRiskAssessment: {},
@@ -1180,8 +1178,7 @@ const BasicInfo = props => {
               </div>
 
               <Message warning style={{ width: "100%" }}>
-                <h4>Sex Partner Risk Score</h4>
-                <b>Score: {sexPartRiskCount.length} (Number of Yes responses)</b>
+                <b>Score: {sexPartRiskCount.length}</b>
               </Message>
 
               <hr />
@@ -1344,8 +1341,7 @@ const BasicInfo = props => {
               </div>
 
               <Message warning style={{ width: "100%" }}>
-                <h4>Personal HIV Risk Assessment Score</h4>
-                <b>Score: {riskCount.length} (Number of Yes responses)</b>
+                <b>Score: {riskCount.length}</b>
               </Message>
 
               <hr />
@@ -1645,8 +1641,7 @@ const BasicInfo = props => {
               )}
 
               <Message warning style={{ width: "100%" }}>
-                <h4>Drug Use History Score</h4>
-                <b>Score: {[drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].filter(v => v === "true").length} (Number of Yes responses)</b>
+                <b>Score: {[drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].filter(v => v === "true").length}</b>
               </Message>
 
               <hr />
@@ -1751,9 +1746,15 @@ const BasicInfo = props => {
               </div>
 
               <Message warning style={{ width: "100%" }}>
-                <h4>Assessment for PEP Indication Score</h4>
-                <b>Score: {Object.values(assessmentForPepIndication).filter(v => v === "true").length} (Number of Yes responses)</b>
+                <b>Score: {Object.values(assessmentForPepIndication).filter(v => v === "true").length}</b>
               </Message>
+              {Object.values(assessmentForPepIndication).some(v => v === "true") && (
+                <div style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
+                  <span className="badge" style={{ backgroundColor: "#dc3545", color: "#fff", padding: "0.5rem 1rem", fontSize: "0.9rem" }}>
+                    Refer for PEP
+                  </span>
+                </div>
+              )}
 
               <hr />
               </>
@@ -1853,8 +1854,7 @@ const BasicInfo = props => {
               </div>
 
               <Message warning style={{ width: "100%" }}>
-                <h4>Assessment for Acute HIV Infection Score</h4>
-                <b>Score: {Object.values(assessmentForAcuteHivInfection).filter(v => v === "true").length} (Number of Yes responses)</b>
+                <b>Score: {Object.values(assessmentForAcuteHivInfection).filter(v => v === "true").length}</b>
               </Message>
 
               <hr />
@@ -2180,12 +2180,15 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
               <Message warning>
-                <h4>
-                  Calculate the sum of the STI screening. If {">= "}1, should be
-                  referred for STI test{" "}
-                </h4>
-                <b>Score :{stiCount.length}</b>
+                <b>Score: {stiCount.length}</b>
               </Message>
+              {stiCount.length >= 1 && (
+                <div style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
+                  <span className="badge" style={{ backgroundColor: "#dc3545", color: "#fff", padding: "0.5rem 1rem", fontSize: "0.9rem" }}>
+                    Enroll in Syndromic STI management or Refer
+                  </span>
+                </div>
+              )}
 
               <hr />
               <br />
@@ -2435,16 +2438,28 @@ const BasicInfo = props => {
                 PrEP Eligibility Scoring
               </div>
 
-              <div className="row" style={{ width: "100%" }}>
-                <div className="form-group mb-3 col-md-12">
-                  <h4>PrEP Eligibility Score (Binary Summary)</h4>
-                  <p>Sex Partner Risk: <b>{sexPartRiskCount.length >= 1 ? 1 : 0}</b> {sexPartRiskCount.length >= 1 ? "(At least 1 Yes)" : "(No Yes responses)"}</p>
-                  <p>Personal HIV Risk Assessment: <b>{riskCount.length >= 1 ? 1 : 0}</b> {riskCount.length >= 1 ? "(At least 1 Yes)" : "(No Yes responses)"}</p>
-                  <p>Drug Use History: <b>{[drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].some(v => v === "true") ? 1 : 0}</b></p>
-                  <p>Assessment for Acute HIV Infection: <b>{Object.values(assessmentForAcuteHivInfection).some(v => v === "true") ? 1 : 0}</b></p>
-                  <p>HIV Negative: <b>{drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0}</b></p>
-                </div>
-              </div>
+              {(() => {
+                const binaryScore =
+                  (sexPartRiskCount.length >= 1 ? 1 : 0) +
+                  (riskCount.length >= 1 ? 1 : 0) +
+                  ([drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].some(v => v === "true") ? 1 : 0) +
+                  (Object.values(assessmentForAcuteHivInfection).some(v => v === "true") ? 1 : 0) +
+                  (drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0);
+                return (
+                  <div style={{ width: "100%" }}>
+                    <Message warning style={{ width: "100%" }}>
+                      <b>Score: {binaryScore}</b>
+                    </Message>
+                    {binaryScore >= 2 && (
+                      <div style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
+                        <span className="badge" style={{ backgroundColor: "#28a745", color: "#fff", padding: "0.5rem 1rem", fontSize: "0.9rem" }}>
+                          Client is Eligible for PrEP
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               </>
               )}
               {screeningType !== 'PEP' && (

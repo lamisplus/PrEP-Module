@@ -32,18 +32,13 @@ const PrEPInitialVisitForm = props => {
   const [objValues, setObjValues] = useState({
     dateEnrolled: "",
     dateReferred: "",
-    extra: {},
     personId: 0,
     prepEligibilityUuid: "",
-    riskType: "",
     supporterName: "",
     supporterPhone: "",
     supporterRelationshipType: "",
     uniqueId: "",
     hivTestingPoint: "",
-    hivTestingPointOthersSpecify: "",
-    dateOfLastHivNegativeTest: "",
-    targetGroup: "",
     enrollmentType: screeningType || "",
     populationType: "",
     weight: "",
@@ -68,7 +63,6 @@ const PrEPInitialVisitForm = props => {
   const [relatives, setRelatives] = useState([]);
   const [patientDto, setPatientDto] = useState();
   const [disabledField, setSisabledField] = useState(false);
-  const [targetGroupValue, setTargetGroupValue] = useState("");
   const [codeset, setCodeset] = useState({});
   const [prepRegimen, setPrepRegimen] = useState([]);
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
@@ -106,24 +100,6 @@ const PrEPInitialVisitForm = props => {
     }
   }, []);
 
-  const getTargetGroupvalue = () => {
-    axios
-      .get(
-        `${baseUrl}hts/persons/${
-          props.patientObj.personId || props.patientObj.id
-        }`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-      .then(response => {
-        setTargetGroupValue(response.data?.htsClientDtoList[0]?.targetGroup);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
   const GetPatientDTOObj = () => {
     const personId = props.patientObj.personId || props.patientObj.id;
     axios
@@ -153,11 +129,9 @@ const PrEPInitialVisitForm = props => {
               setObjValues(prev => ({
                 ...prev,
                 populationType: prevInitiation.populationType || prev.populationType,
-                targetGroup: prevInitiation.targetGroup || prev.targetGroup,
                 hivTestingPoint: prevInitiation.hivTestingPoint || prev.hivTestingPoint,
                 weight: prevInitiation.weight || prev.weight,
                 height: prevInitiation.height || prev.height,
-                // Don't override enrollmentType - it comes from screening category
               }));
             }
           })
@@ -278,9 +252,6 @@ const PrEPInitialVisitForm = props => {
     if (validate()) {
       objValues.personId = props.patientObj.personId || props.patientObj.id;
       objValues.prepEligibilityUuid = patientDto.uuid;
-      objValues.targetGroup = targetGroupValue;
-      // Sanitize: convert empty strings to null for FK-constrained fields
-      if (!objValues.riskType) objValues.riskType = null;
       setSaving(true);
       if (props.activeContent && props.activeContent.actionType) {
         axios
@@ -555,26 +526,6 @@ const PrEPInitialVisitForm = props => {
                   )}
                 </FormGroup>
               </div>
-              {objValues.hivTestingPoint === "Others" && (
-                <div className="form-group mb-3 col-md-4">
-                  <FormGroup>
-                    <Label>Specify</Label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="hivTestingPointOthersSpecify"
-                      id="hivTestingPointOthersSpecify"
-                      value={objValues.hivTestingPointOthersSpecify}
-                      onChange={handleInputChange}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    />
-                  </FormGroup>
-                </div>
-              )}
 
               {/* 7. Date of HIV Test */}
               <div className="form-group mb-3 col-md-4">

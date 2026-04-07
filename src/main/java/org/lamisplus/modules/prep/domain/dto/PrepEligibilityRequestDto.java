@@ -15,8 +15,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PrepEligibilityRequestDto implements Serializable {
-    @NotNull(message = "hivRisk is mandatory")
-    private Object hivRisk;
     private Object stiScreening;
     private Object drugUseHistory;
     @NotNull(message = "personalHivRiskAssessment is mandatory")
