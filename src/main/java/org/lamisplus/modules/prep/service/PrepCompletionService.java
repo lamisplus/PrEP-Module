@@ -8,10 +8,9 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.prep.domain.dto.PrepCompletionDto;
 import org.lamisplus.modules.prep.domain.dto.PrepCompletionRequestDto;
-import org.lamisplus.modules.prep.domain.entity.PrepCompletion;
-import org.lamisplus.modules.prep.repository.PrepCompletionRepository;
+import org.lamisplus.modules.prep.domain.entity.ProphylaxisInterruption;
+import org.lamisplus.modules.prep.repository.ProphylaxisInterruptionRepository;
 import org.springframework.stereotype.Service;
-
 
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +25,7 @@ import static org.lamisplus.modules.base.util.Constants.ArchiveStatus.UN_ARCHIVE
 public class PrepCompletionService {
     private final PersonRepository personRepository;
     private final CurrentUserOrganizationService currentUserOrganizationService;
-    private final PrepCompletionRepository prepCompletionRepository;
+    private final ProphylaxisInterruptionRepository prophylaxisInterruptionRepository;
 
     public Person getPerson(Long personId) {
         return personRepository.findById(personId)
@@ -35,164 +34,138 @@ public class PrepCompletionService {
 
     public PrepCompletionDto save(PrepCompletionRequestDto requestDto) {
         Person person = this.getPerson(requestDto.getPersonId());
-        PrepCompletion entity = requestDtoToEntity(requestDto, person.getUuid());
+        ProphylaxisInterruption entity = requestDtoToEntity(requestDto, person.getUuid());
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setUuid(UUID.randomUUID().toString());
 
-        prepCompletionRepository
-                .findByInterruptionDateAndPersonUuidAndArchived(requestDto.getInterruptionDate(), person.getUuid(), 0)
+        prophylaxisInterruptionRepository
+                .findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(requestDto.getInterruptionDate(), person.getUuid(), 0)
                 .ifPresent(existing -> {
-                    throw new RecordExistException(PrepCompletion.class, "Interruption date",
+                    throw new RecordExistException(ProphylaxisInterruption.class, "Interruption date",
                             String.valueOf(requestDto.getInterruptionDate()));
                 });
 
-        entity = prepCompletionRepository.save(entity);
+        entity = prophylaxisInterruptionRepository.save(entity);
         return entityToDto(entity);
     }
 
     public void delete(Long id) {
-        PrepCompletion entity = prepCompletionRepository
+        ProphylaxisInterruption entity = prophylaxisInterruptionRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
-                .orElseThrow(() -> new EntityNotFoundException(PrepCompletion.class, "id", String.valueOf(id)));
+                .orElseThrow(() -> new EntityNotFoundException(ProphylaxisInterruption.class, "id", String.valueOf(id)));
         entity.setArchived(ARCHIVED);
-        prepCompletionRepository.save(entity);
+        prophylaxisInterruptionRepository.save(entity);
     }
 
     public PrepCompletionDto update(Long id, PrepCompletionDto dto) {
-        PrepCompletion entity = prepCompletionRepository
+        ProphylaxisInterruption entity = prophylaxisInterruptionRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
-                .orElseThrow(() -> new EntityNotFoundException(PrepCompletion.class, "id", String.valueOf(id)));
+                .orElseThrow(() -> new EntityNotFoundException(ProphylaxisInterruption.class, "id", String.valueOf(id)));
         String uuid = entity.getUuid();
         entity = dtoToEntity(dto, entity.getPersonUuid());
         entity.setArchived(UN_ARCHIVED);
         entity.setUuid(uuid);
         entity.setId(id);
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
-        return entityToDto(prepCompletionRepository.save(entity));
+        return entityToDto(prophylaxisInterruptionRepository.save(entity));
     }
 
     public PrepCompletionDto getById(Long id) {
-        Long userOrgId = currentUserOrganizationService.getCurrentUserOrganization();
-        log.info("USER ORG UNIT ID :" + userOrgId);
-        PrepCompletion entity = prepCompletionRepository
+        ProphylaxisInterruption entity = prophylaxisInterruptionRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
-                .orElseThrow(() -> new EntityNotFoundException(PrepCompletion.class, "id", String.valueOf(id)));
+                .orElseThrow(() -> new EntityNotFoundException(ProphylaxisInterruption.class, "id", String.valueOf(id)));
         return entityToDto(entity);
     }
 
     public List<PrepCompletionDto> getByPersonId(Long personId) {
-        List<PrepCompletion> list = prepCompletionRepository
+        List<ProphylaxisInterruption> list = prophylaxisInterruptionRepository
                 .findAllByPersonUuidAndFacilityIdAndArchived(getPerson(personId).getUuid(),
                         currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED);
-
-        return list.stream()
-                .map(entity -> entityToDto(entity))
-                .collect(Collectors.toList());
+        return list.stream().map(this::entityToDto).collect(Collectors.toList());
     }
 
-    public PrepCompletion requestDtoToEntity(PrepCompletionRequestDto dto, String personUuid) {
-        if (dto == null) {
-            return null;
-        }
-
-        PrepCompletion entity = new PrepCompletion();
-
-        entity.setInterruptionType(dto.getInterruptionType());
-        entity.setPreviousPrepStatus(dto.getPreviousPrepStatus());
-        entity.setInterruptionDate(dto.getInterruptionDate());
-        entity.setDateClientDied(dto.getDateClientDied());
-        entity.setCauseOfDeath(dto.getCauseOfDeath());
-        entity.setSourceOfDeathInfo(dto.getSourceOfDeathInfo());
-        entity.setDateClientReferredOut(dto.getDateClientReferredOut());
-        entity.setFacilityReferredTo(dto.getFacilityReferredTo());
-        entity.setInterruptionReason(dto.getInterruptionReason());
-        entity.setDateSeroConverted(dto.getDateSeroConverted());
-        entity.setPersonUuid(personUuid);
-        entity.setDateRestartPlacedBackMedication(dto.getDateRestartPlacedBackMedication());
-        entity.setLinkToArt(dto.getLinkToArt());
-
-        entity.setReasonStopped(dto.getReasonStopped());
-        entity.setReasonStoppedOthers(dto.getReasonStoppedOthers());
-        entity.setReasonForPrepDiscontinuation(dto.getReasonForPrepDiscontinuation());
-
-        entity.setWhy(dto.getWhy());
-        entity.setPepCompletion(dto.getPepCompletion());
-        entity.setFollowUpVisitDate(dto.getFollowUpVisitDate());
-        entity.setHivResult(dto.getHivResult());
-        entity.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
-        entity.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
-
-        return entity;
+    private ProphylaxisInterruption requestDtoToEntity(PrepCompletionRequestDto dto, String personUuid) {
+        if (dto == null) return null;
+        ProphylaxisInterruption e = new ProphylaxisInterruption();
+        e.setPersonUuid(personUuid);
+        e.setInterruptionType(dto.getInterruptionType());
+        e.setPreviousPrepStatus(dto.getPreviousPrepStatus());
+        e.setInterruptionDate(dto.getInterruptionDate());
+        e.setInterruptionReason(dto.getInterruptionReason());
+        e.setDateClientDied(dto.getDateClientDied());
+        e.setCauseOfDeath(dto.getCauseOfDeath());
+        e.setSourceOfDeathInfo(dto.getSourceOfDeathInfo());
+        e.setDateClientReferredOut(dto.getDateClientReferredOut());
+        e.setFacilityReferredTo(dto.getFacilityReferredTo());
+        e.setDateSeroConverted(dto.getDateSeroConverted());
+        e.setDateRestartPlacedBackMedication(dto.getDateRestartPlacedBackMedication());
+        e.setLinkToArt(dto.getLinkToArt());
+        e.setReasonStopped(dto.getReasonStopped());
+        e.setReasonStoppedOthers(dto.getReasonStoppedOthers());
+        e.setReasonForPrepDiscontinuation(dto.getReasonForPrepDiscontinuation());
+        e.setWhy(dto.getWhy());
+        e.setPepCompletion(dto.getPepCompletion());
+        e.setFollowUpVisitDate(dto.getFollowUpVisitDate());
+        e.setHivResult(dto.getHivResult());
+        e.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
+        e.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
+        return e;
     }
 
-    public PrepCompletion dtoToEntity(PrepCompletionDto dto, String personUuid) {
-        if (dto == null) {
-            return null;
-        }
-
-        PrepCompletion entity = new PrepCompletion();
-
-        entity.setId(dto.getId());
-        entity.setInterruptionType(dto.getInterruptionType());
-        entity.setPreviousPrepStatus(dto.getPreviousPrepStatus());
-        entity.setInterruptionDate(dto.getInterruptionDate());
-        entity.setDateClientDied(dto.getDateClientDied());
-        entity.setCauseOfDeath(dto.getCauseOfDeath());
-        entity.setSourceOfDeathInfo(dto.getSourceOfDeathInfo());
-        entity.setDateClientReferredOut(dto.getDateClientReferredOut());
-        entity.setFacilityReferredTo(dto.getFacilityReferredTo());
-        entity.setInterruptionReason(dto.getInterruptionReason());
-        entity.setDateSeroConverted(dto.getDateSeroConverted());
-        entity.setPersonUuid(personUuid);
-        entity.setDateRestartPlacedBackMedication(dto.getDateRestartPlacedBackMedication());
-        entity.setLinkToArt(dto.getLinkToArt());
-
-        entity.setReasonStopped(dto.getReasonStopped());
-        entity.setReasonStoppedOthers(dto.getReasonStoppedOthers());
-        entity.setReasonForPrepDiscontinuation(dto.getReasonForPrepDiscontinuation());
-
-        entity.setWhy(dto.getWhy());
-        entity.setPepCompletion(dto.getPepCompletion());
-        entity.setFollowUpVisitDate(dto.getFollowUpVisitDate());
-        entity.setHivResult(dto.getHivResult());
-        entity.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
-        entity.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
-
-        return entity;
+    private ProphylaxisInterruption dtoToEntity(PrepCompletionDto dto, String personUuid) {
+        if (dto == null) return null;
+        ProphylaxisInterruption e = new ProphylaxisInterruption();
+        e.setId(dto.getId());
+        e.setPersonUuid(personUuid);
+        e.setInterruptionType(dto.getInterruptionType());
+        e.setPreviousPrepStatus(dto.getPreviousPrepStatus());
+        e.setInterruptionDate(dto.getInterruptionDate());
+        e.setInterruptionReason(dto.getInterruptionReason());
+        e.setDateClientDied(dto.getDateClientDied());
+        e.setCauseOfDeath(dto.getCauseOfDeath());
+        e.setSourceOfDeathInfo(dto.getSourceOfDeathInfo());
+        e.setDateClientReferredOut(dto.getDateClientReferredOut());
+        e.setFacilityReferredTo(dto.getFacilityReferredTo());
+        e.setDateSeroConverted(dto.getDateSeroConverted());
+        e.setDateRestartPlacedBackMedication(dto.getDateRestartPlacedBackMedication());
+        e.setLinkToArt(dto.getLinkToArt());
+        e.setReasonStopped(dto.getReasonStopped());
+        e.setReasonStoppedOthers(dto.getReasonStoppedOthers());
+        e.setReasonForPrepDiscontinuation(dto.getReasonForPrepDiscontinuation());
+        e.setWhy(dto.getWhy());
+        e.setPepCompletion(dto.getPepCompletion());
+        e.setFollowUpVisitDate(dto.getFollowUpVisitDate());
+        e.setHivResult(dto.getHivResult());
+        e.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
+        e.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
+        return e;
     }
 
-    public PrepCompletionDto entityToDto(PrepCompletion entity) {
-        if (entity == null) {
-            return null;
-        }
-
+    private PrepCompletionDto entityToDto(ProphylaxisInterruption e) {
+        if (e == null) return null;
         PrepCompletionDto dto = new PrepCompletionDto();
-
-        dto.setId(entity.getId());
-        dto.setInterruptionType(entity.getInterruptionType());
-        dto.setPreviousPrepStatus(entity.getPreviousPrepStatus());
-        dto.setInterruptionDate(entity.getInterruptionDate());
-        dto.setDateClientDied(entity.getDateClientDied());
-        dto.setCauseOfDeath(entity.getCauseOfDeath());
-        dto.setSourceOfDeathInfo(entity.getSourceOfDeathInfo());
-        dto.setDateClientReferredOut(entity.getDateClientReferredOut());
-        dto.setFacilityReferredTo(entity.getFacilityReferredTo());
-        dto.setInterruptionReason(entity.getInterruptionReason());
-        dto.setDateSeroConverted(entity.getDateSeroConverted());
-        dto.setDateRestartPlacedBackMedication(entity.getDateRestartPlacedBackMedication());
-        dto.setLinkToArt(entity.getLinkToArt());
-
-        dto.setReasonStopped(entity.getReasonStopped());
-        dto.setReasonStoppedOthers(entity.getReasonStoppedOthers());
-        dto.setReasonForPrepDiscontinuation(entity.getReasonForPrepDiscontinuation());
-
-        dto.setWhy(entity.getWhy());
-        dto.setPepCompletion(entity.getPepCompletion());
-        dto.setFollowUpVisitDate(entity.getFollowUpVisitDate());
-        dto.setHivResult(entity.getHivResult());
-        dto.setEarlyDetectViralLoadResult(entity.getEarlyDetectViralLoadResult());
-        dto.setPrepEnrollmentUuid(entity.getPrepEnrollmentUuid());
-
+        dto.setId(e.getId());
+        dto.setInterruptionType(e.getInterruptionType());
+        dto.setPreviousPrepStatus(e.getPreviousPrepStatus());
+        dto.setInterruptionDate(e.getInterruptionDate());
+        dto.setInterruptionReason(e.getInterruptionReason());
+        dto.setDateClientDied(e.getDateClientDied());
+        dto.setCauseOfDeath(e.getCauseOfDeath());
+        dto.setSourceOfDeathInfo(e.getSourceOfDeathInfo());
+        dto.setDateClientReferredOut(e.getDateClientReferredOut());
+        dto.setFacilityReferredTo(e.getFacilityReferredTo());
+        dto.setDateSeroConverted(e.getDateSeroConverted());
+        dto.setDateRestartPlacedBackMedication(e.getDateRestartPlacedBackMedication());
+        dto.setLinkToArt(e.getLinkToArt());
+        dto.setReasonStopped(e.getReasonStopped());
+        dto.setReasonStoppedOthers(e.getReasonStoppedOthers());
+        dto.setReasonForPrepDiscontinuation(e.getReasonForPrepDiscontinuation());
+        dto.setWhy(e.getWhy());
+        dto.setPepCompletion(e.getPepCompletion());
+        dto.setFollowUpVisitDate(e.getFollowUpVisitDate());
+        dto.setHivResult(e.getHivResult());
+        dto.setEarlyDetectViralLoadResult(e.getEarlyDetectViralLoadResult());
+        dto.setPrepEnrollmentUuid(e.getPrepEnrollmentUuid());
         return dto;
     }
 }

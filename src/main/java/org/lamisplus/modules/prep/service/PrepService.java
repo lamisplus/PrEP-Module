@@ -17,7 +17,7 @@ import org.lamisplus.modules.prep.repository.PrepFollowupVisitRepository;
 import org.lamisplus.modules.prep.repository.PepFollowupVisitRepository;
 import org.lamisplus.modules.prep.repository.PrepEligibilityScreeningRepository;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
-import org.lamisplus.modules.prep.repository.PrepCompletionRepository;
+import org.lamisplus.modules.prep.repository.ProphylaxisInterruptionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -44,7 +44,7 @@ public class PrepService {
     private final PrepFollowupVisitRepository prepFollowupVisitRepository;
     private final PepFollowupVisitRepository pepFollowupVisitRepository;
     private final PatientActivityService patientActivityService;
-    private final PrepCompletionRepository prepCompletionRepository;
+    private final ProphylaxisInterruptionRepository prophylaxisInterruptionRepository;
 
     public Person getPerson(Long personId) {
         return personRepository.findById(personId)
@@ -175,27 +175,26 @@ public class PrepService {
 
     public PrepInterruptionDto saveInterruption(PrepInterruptionRequestDto interruptionRequestDto) {
         Person person = this.getPerson(interruptionRequestDto.getPersonId());
-        PrepCompletion prepInterruption = interruptionRequestDtoInterruption(interruptionRequestDto, person.getUuid());
-        prepInterruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
-        prepInterruption.setPreviousPrepStatus(interruptionRequestDto.getPreviousPrepStatus());
+        ProphylaxisInterruption interruption = interruptionRequestDtoToEntity(interruptionRequestDto, person.getUuid());
+        interruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
+        interruption.setPreviousPrepStatus(interruptionRequestDto.getPreviousPrepStatus());
 
-        prepCompletionRepository
+        prophylaxisInterruptionRepository
                 .findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(interruptionRequestDto.getInterruptionDate(), person.getUuid(), 0)
-                .ifPresent(existingInterruption -> {
-                    if (existingInterruption.getArchived() == 0) {
-                        throw new RecordExistException(PrepCompletion.class, "Encounter date", String.valueOf(interruptionRequestDto.getInterruptionDate()));
+                .ifPresent(existing -> {
+                    if (existing.getArchived() == 0) {
+                        throw new RecordExistException(ProphylaxisInterruption.class, "Encounter date", String.valueOf(interruptionRequestDto.getInterruptionDate()));
                     }
                 });
 
         try {
-            prepInterruption = prepCompletionRepository.save(prepInterruption);
+            interruption = prophylaxisInterruptionRepository.save(interruption);
         } catch (Exception e) {
             throw new RuntimeException("Input or Server error. Please Try again.");
         }
 
-        prepInterruption.setPerson(person);
-        PrepInterruptionDto prepInterruptionDto = this.interruptionToInterruptionDto(prepInterruption);
-        return prepInterruptionDto;
+        interruption.setPerson(person);
+        return interruptionEntityToDto(interruption);
     }
 
     private PrepDtos prepToPrepDtos(List<PrepPepInitiation> clients) {
@@ -851,69 +850,56 @@ public class PrepService {
         return prepDto;
     }
 
-    public PrepCompletion interruptionRequestDtoInterruption(PrepInterruptionRequestDto interruptionRequestDto, String personUuid) {
-        if (interruptionRequestDto == null) {
-            return null;
-        }
-
-        PrepCompletion prepInterruption = new PrepCompletion();
-
-        prepInterruption.setInterruptionType(interruptionRequestDto.getInterruptionType());
-        prepInterruption.setInterruptionDate(interruptionRequestDto.getInterruptionDate());
-        prepInterruption.setDateClientDied(interruptionRequestDto.getDateClientDied());
-        prepInterruption.setCauseOfDeath(interruptionRequestDto.getCauseOfDeath());
-        prepInterruption.setSourceOfDeathInfo(interruptionRequestDto.getSourceOfDeathInfo());
-        prepInterruption.setDateClientReferredOut(interruptionRequestDto.getDateClientReferredOut());
-        prepInterruption.setFacilityReferredTo(interruptionRequestDto.getFacilityReferredTo());
-        prepInterruption.setInterruptionReason(interruptionRequestDto.getInterruptionReason());
-        prepInterruption.setDateSeroConverted(interruptionRequestDto.getDateSeroConverted());
-        prepInterruption.setPersonUuid(personUuid);
-        prepInterruption.setDateRestartPlacedBackMedication(interruptionRequestDto.getDateRestartPlacedBackMedication());
-        prepInterruption.setLinkToArt(interruptionRequestDto.getLinkToArt());
-        prepInterruption.setReasonStopped(interruptionRequestDto.getReasonStopped());
-        prepInterruption.setReasonStoppedOthers(interruptionRequestDto.getReasonStoppedOthers());
-        prepInterruption.setReasonForPrepDiscontinuation(interruptionRequestDto.getReasonForPrepDiscontinuation());
-
-        prepInterruption.setWhy(interruptionRequestDto.getWhy());
-        prepInterruption.setPepCompletion(interruptionRequestDto.getPepCompletion());
-        prepInterruption.setFollowUpVisitDate(interruptionRequestDto.getFollowUpVisitDate());
-        prepInterruption.setHivResult(interruptionRequestDto.getHivResult());
-        prepInterruption.setEarlyDetectViralLoadResult(interruptionRequestDto.getEarlyDetectViralLoadResult());
-
-        return prepInterruption;
+    private ProphylaxisInterruption interruptionRequestDtoToEntity(PrepInterruptionRequestDto dto, String personUuid) {
+        if (dto == null) return null;
+        ProphylaxisInterruption e = new ProphylaxisInterruption();
+        e.setPersonUuid(personUuid);
+        e.setInterruptionType(dto.getInterruptionType());
+        e.setInterruptionDate(dto.getInterruptionDate());
+        e.setInterruptionReason(dto.getInterruptionReason());
+        e.setDateClientDied(dto.getDateClientDied());
+        e.setCauseOfDeath(dto.getCauseOfDeath());
+        e.setSourceOfDeathInfo(dto.getSourceOfDeathInfo());
+        e.setDateClientReferredOut(dto.getDateClientReferredOut());
+        e.setFacilityReferredTo(dto.getFacilityReferredTo());
+        e.setDateSeroConverted(dto.getDateSeroConverted());
+        e.setDateRestartPlacedBackMedication(dto.getDateRestartPlacedBackMedication());
+        e.setLinkToArt(dto.getLinkToArt());
+        e.setReasonStopped(dto.getReasonStopped());
+        e.setReasonStoppedOthers(dto.getReasonStoppedOthers());
+        e.setReasonForPrepDiscontinuation(dto.getReasonForPrepDiscontinuation());
+        e.setWhy(dto.getWhy());
+        e.setPepCompletion(dto.getPepCompletion());
+        e.setFollowUpVisitDate(dto.getFollowUpVisitDate());
+        e.setHivResult(dto.getHivResult());
+        e.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
+        return e;
     }
 
-    public PrepInterruptionDto interruptionToInterruptionDto(PrepCompletion prepInterruption) {
-        if (prepInterruption == null) {
-            return null;
-        }
-
-        PrepInterruptionDto prepInterruptionDto = new PrepInterruptionDto();
-
-        prepInterruptionDto.setId(prepInterruption.getId());
-        prepInterruptionDto.setInterruptionType(prepInterruption.getInterruptionType());
-        prepInterruptionDto.setInterruptionDate(prepInterruption.getInterruptionDate());
-        prepInterruptionDto.setDateClientDied(prepInterruption.getDateClientDied());
-        prepInterruptionDto.setCauseOfDeath(prepInterruption.getCauseOfDeath());
-        prepInterruptionDto.setSourceOfDeathInfo(prepInterruption.getSourceOfDeathInfo());
-        prepInterruptionDto.setDateClientReferredOut(prepInterruption.getDateClientReferredOut());
-        prepInterruptionDto.setFacilityReferredTo(prepInterruption.getFacilityReferredTo());
-        prepInterruptionDto.setInterruptionReason(prepInterruption.getInterruptionReason());
-        prepInterruptionDto.setDateSeroConverted(prepInterruption.getDateSeroConverted());
-        prepInterruptionDto.setDateRestartPlacedBackMedication(prepInterruption.getDateRestartPlacedBackMedication());
-        prepInterruptionDto.setLinkToArt(prepInterruption.getLinkToArt());
-
-        prepInterruptionDto.setReasonStopped(prepInterruption.getReasonStopped());
-        prepInterruptionDto.setReasonStoppedOthers(prepInterruption.getReasonStoppedOthers());
-        prepInterruptionDto.setReasonForPrepDiscontinuation(prepInterruption.getReasonForPrepDiscontinuation());
-
-        prepInterruptionDto.setWhy(prepInterruption.getWhy());
-        prepInterruptionDto.setPepCompletion(prepInterruption.getPepCompletion());
-        prepInterruptionDto.setFollowUpVisitDate(prepInterruption.getFollowUpVisitDate());
-        prepInterruptionDto.setHivResult(prepInterruption.getHivResult());
-        prepInterruptionDto.setEarlyDetectViralLoadResult(prepInterruption.getEarlyDetectViralLoadResult());
-
-        return prepInterruptionDto;
+    private PrepInterruptionDto interruptionEntityToDto(ProphylaxisInterruption e) {
+        if (e == null) return null;
+        PrepInterruptionDto dto = new PrepInterruptionDto();
+        dto.setId(e.getId());
+        dto.setInterruptionType(e.getInterruptionType());
+        dto.setInterruptionDate(e.getInterruptionDate());
+        dto.setInterruptionReason(e.getInterruptionReason());
+        dto.setDateClientDied(e.getDateClientDied());
+        dto.setCauseOfDeath(e.getCauseOfDeath());
+        dto.setSourceOfDeathInfo(e.getSourceOfDeathInfo());
+        dto.setDateClientReferredOut(e.getDateClientReferredOut());
+        dto.setFacilityReferredTo(e.getFacilityReferredTo());
+        dto.setDateSeroConverted(e.getDateSeroConverted());
+        dto.setDateRestartPlacedBackMedication(e.getDateRestartPlacedBackMedication());
+        dto.setLinkToArt(e.getLinkToArt());
+        dto.setReasonStopped(e.getReasonStopped());
+        dto.setReasonStoppedOthers(e.getReasonStoppedOthers());
+        dto.setReasonForPrepDiscontinuation(e.getReasonForPrepDiscontinuation());
+        dto.setWhy(e.getWhy());
+        dto.setPepCompletion(e.getPepCompletion());
+        dto.setFollowUpVisitDate(e.getFollowUpVisitDate());
+        dto.setHivResult(e.getHivResult());
+        dto.setEarlyDetectViralLoadResult(e.getEarlyDetectViralLoadResult());
+        return dto;
     }
 
     public PrepClinicDto getCommencementById(Long id) {
