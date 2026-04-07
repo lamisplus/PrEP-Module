@@ -1,44 +1,44 @@
-import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
-import MaterialTable, { MTableToolbar } from 'material-table';
-import { token as token, url as baseUrl } from './../../../api';
-import { forwardRef } from 'react';
-import 'semantic-ui-css/semantic.min.css';
-import { useHistory } from 'react-router-dom';
-import AddBox from '@material-ui/icons/AddBox';
-import ArrowUpward from '@material-ui/icons/ArrowUpward';
-import Check from '@material-ui/icons/Check';
-import ChevronLeft from '@material-ui/icons/ChevronLeft';
-import ChevronRight from '@material-ui/icons/ChevronRight';
-import Clear from '@material-ui/icons/Clear';
-import DeleteOutline from '@material-ui/icons/DeleteOutline';
-import Edit from '@material-ui/icons/Edit';
-import FilterList from '@material-ui/icons/FilterList';
-import FirstPage from '@material-ui/icons/FirstPage';
-import LastPage from '@material-ui/icons/LastPage';
-import Remove from '@material-ui/icons/Remove';
-import SaveAlt from '@material-ui/icons/SaveAlt';
-import Search from '@material-ui/icons/Search';
-import ViewColumn from '@material-ui/icons/ViewColumn';
-import 'react-toastify/dist/ReactToastify.css';
-import 'react-widgets/dist/css/react-widgets.css';
-import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
-import Popper from '@material-ui/core/Popper';
-import Grow from '@material-ui/core/Grow';
-import Paper from '@material-ui/core/Paper';
-import ClickAwayListener from '@material-ui/core/ClickAwayListener';
-import MenuList from '@material-ui/core/MenuList';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import PersonAddIcon from '@material-ui/icons/PersonAdd';
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import '@reach/menu-button/styles.css';
-import Moment from 'moment';
-import momentLocalizer from 'react-widgets-moment';
+import React, { useEffect, useState, useRef } from "react";
+import axios from "axios";
+import MaterialTable, { MTableToolbar } from "material-table";
+import { token as token, url as baseUrl } from "./../../../api";
+import { forwardRef } from "react";
+import "semantic-ui-css/semantic.min.css";
+import { useHistory } from "react-router-dom";
+import AddBox from "@material-ui/icons/AddBox";
+import ArrowUpward from "@material-ui/icons/ArrowUpward";
+import Check from "@material-ui/icons/Check";
+import ChevronLeft from "@material-ui/icons/ChevronLeft";
+import ChevronRight from "@material-ui/icons/ChevronRight";
+import Clear from "@material-ui/icons/Clear";
+import DeleteOutline from "@material-ui/icons/DeleteOutline";
+import Edit from "@material-ui/icons/Edit";
+import FilterList from "@material-ui/icons/FilterList";
+import FirstPage from "@material-ui/icons/FirstPage";
+import LastPage from "@material-ui/icons/LastPage";
+import Remove from "@material-ui/icons/Remove";
+import SaveAlt from "@material-ui/icons/SaveAlt";
+import Search from "@material-ui/icons/Search";
+import ViewColumn from "@material-ui/icons/ViewColumn";
+import "react-toastify/dist/ReactToastify.css";
+import "react-widgets/dist/css/react-widgets.css";
+import { makeStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import ButtonGroup from "@material-ui/core/ButtonGroup";
+import Popper from "@material-ui/core/Popper";
+import Grow from "@material-ui/core/Grow";
+import Paper from "@material-ui/core/Paper";
+import ClickAwayListener from "@material-ui/core/ClickAwayListener";
+import MenuList from "@material-ui/core/MenuList";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import PersonAddIcon from "@material-ui/icons/PersonAdd";
+import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
+import "@reach/menu-button/styles.css";
+import Moment from "moment";
+import momentLocalizer from "react-widgets-moment";
 
-Moment.locale('en');
+Moment.locale("en");
 momentLocalizer();
 
 const tableIcons = {
@@ -67,9 +67,9 @@ const tableIcons = {
 
 const useStyles = makeStyles({
   statusLabel: {
-    width: '150px',
-    display: 'inline-block',
-    textAlign: 'center',
+    width: "150px",
+    display: "inline-block",
+    textAlign: "center",
   },
 });
 
@@ -78,23 +78,23 @@ const EnrollPatientButton = ({ row }) => {
   const anchorRef = useRef(null);
   const history = useHistory();
 
-  const handleToggle = (event) => {
+  const handleToggle = event => {
     event.preventDefault();
     event.stopPropagation();
-    setOpen((prevOpen) => !prevOpen);
+    setOpen(prevOpen => !prevOpen);
   };
 
-  const handleClose = (event) => {
+  const handleClose = event => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
     }
     setOpen(false);
   };
 
-  const handleEnroll = (screeningType) => {
+  const handleEnroll = screeningType => {
     setOpen(false);
     history.push({
-      pathname: '/patient-dashboard',
+      pathname: "/patient-dashboard",
       state: { patientObj: row, screeningType },
     });
   };
@@ -103,38 +103,38 @@ const EnrollPatientButton = ({ row }) => {
   const canScreenForPep = row.canScreenForPep !== false;
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <div style={{ position: "relative", display: "inline-block" }}>
       <ButtonGroup
         variant="contained"
         size="small"
         ref={anchorRef}
         aria-label="enroll patient button group"
-        style={{ height: '30px' }}
+        style={{ height: "30px" }}
       >
         <Button
           style={{
-            backgroundColor: 'rgb(153, 46, 98)',
-            color: '#fff',
-            fontSize: '12px',
-            fontWeight: 'bolder',
-            textTransform: 'none',
-            borderRight: '1px solid rgba(255,255,255,0.3)',
-            pointerEvents: 'none',
+            backgroundColor: "rgb(153, 46, 98)",
+            color: "#fff",
+            fontSize: "12px",
+            fontWeight: "bolder",
+            textTransform: "none",
+            borderRight: "1px solid rgba(255,255,255,0.3)",
+            pointerEvents: "none",
           }}
-          startIcon={<PersonAddIcon style={{ fontSize: '16px' }} />}
+          startIcon={<PersonAddIcon style={{ fontSize: "16px" }} />}
         >
           Enroll Patient
         </Button>
         <Button
           style={{
-            backgroundColor: 'rgb(153, 46, 98)',
-            color: '#fff',
-            minWidth: '30px',
-            padding: '0 4px',
+            backgroundColor: "rgb(153, 46, 98)",
+            color: "#fff",
+            minWidth: "30px",
+            padding: "0 4px",
           }}
           onClick={handleToggle}
-          aria-controls={open ? 'enroll-menu-list' : undefined}
-          aria-expanded={open ? 'true' : undefined}
+          aria-controls={open ? "enroll-menu-list" : undefined}
+          aria-expanded={open ? "true" : undefined}
           aria-haspopup="menu"
         >
           <ArrowDropDownIcon />
@@ -155,14 +155,14 @@ const EnrollPatientButton = ({ row }) => {
               <ClickAwayListener onClickAway={handleClose}>
                 <MenuList id="enroll-menu-list" autoFocusItem>
                   <MenuItem
-                    onClick={() => handleEnroll('PrEP')}
-                    disabled={!canScreenForPrep}
+                    onClick={() => handleEnroll("PrEP")}
+                    // disabled={!canScreenForPrep}
                   >
                     PrEP
                   </MenuItem>
                   <MenuItem
-                    onClick={() => handleEnroll('PEP')}
-                    disabled={!canScreenForPep}
+                    onClick={() => handleEnroll("PEP")}
+                    // disabled={!canScreenForPep}
                   >
                     PEP
                   </MenuItem>
@@ -215,15 +215,15 @@ const Patients = props => {
         icons={tableIcons}
         title="Find Patient"
         columns={[
-          { title: 'Patient Name', field: 'name', hidden: showPPI },
+          { title: "Patient Name", field: "name", hidden: showPPI },
           {
-            title: 'Hospital Number',
-            field: 'hospital_number',
+            title: "Hospital Number",
+            field: "hospital_number",
             filtering: false,
           },
-          { title: 'Sex', field: 'gender', filtering: false },
-          { title: 'Age', field: 'age', filtering: false },
-          { title: 'Actions', field: 'actions', filtering: false },
+          { title: "Sex", field: "gender", filtering: false },
+          { title: "Age", field: "age", filtering: false },
+          { title: "Actions", field: "actions", filtering: false },
         ]}
         data={query =>
           new Promise((resolve, reject) => {
@@ -236,9 +236,9 @@ const Patients = props => {
               .then(result => {
                 resolve({
                   data: result?.data?.records?.map?.(row => ({
-                    name: row.firstName + ' ' + row.surname,
+                    name: row.firstName + " " + row.surname,
                     hospital_number: row.hospitalNumber,
-                    gender: row && row.gender ? row.gender : '',
+                    gender: row && row.gender ? row.gender : "",
                     age: row.age,
                     actions: <EnrollPatientButton row={row} />,
                   })),
@@ -250,15 +250,15 @@ const Patients = props => {
         }
         options={{
           headerStyle: {
-            backgroundColor: '#014d88',
-            color: '#fff',
+            backgroundColor: "#014d88",
+            color: "#fff",
           },
           searchFieldStyle: {
-            width: '100%',
-            margingLeft: '250px',
+            width: "100%",
+            margingLeft: "250px",
           },
           filtering: false,
-          searchFieldAlignment: 'left',
+          searchFieldAlignment: "left",
           pageSizeOptions: [10, 20, 100],
           pageSize: 10,
           debounceInterval: 400,
@@ -276,14 +276,14 @@ const Patients = props => {
                   checked={showPPI === true ? false : true}
                   onChange={handleCheckBox}
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                 />
                 <label className="form-check-label" htmlFor="basic_checkbox_1">
-                  <b style={{ color: '#014d88', fontWeight: 'bold' }}>
-                    {' '}
-                    SHOW PII{' '}
+                  <b style={{ color: "#014d88", fontWeight: "bold" }}>
+                    {" "}
+                    SHOW PII{" "}
                   </b>
                 </label>
               </div>
