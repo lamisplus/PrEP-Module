@@ -180,7 +180,7 @@ public class PrepService {
         prepInterruption.setPreviousPrepStatus(interruptionRequestDto.getPreviousPrepStatus());
 
         prepCompletionRepository
-                .findFirstByInterruptionDateAndPersonUuidAndArchived(interruptionRequestDto.getInterruptionDate(), person.getUuid(), 0)
+                .findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(interruptionRequestDto.getInterruptionDate(), person.getUuid(), 0)
                 .ifPresent(existingInterruption -> {
                     if (existingInterruption.getArchived() == 0) {
                         throw new RecordExistException(PrepCompletion.class, "Encounter date", String.valueOf(interruptionRequestDto.getInterruptionDate()));
