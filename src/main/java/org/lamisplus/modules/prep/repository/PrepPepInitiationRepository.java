@@ -182,10 +182,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
-            "    FROM prep_completion pi\n" +
+            "    FROM prophylaxis_interruptions pi\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
-            "        FROM prep_completion pi\n" +
+            "        FROM prophylaxis_interruptions pi\n" +
             "        WHERE pi.archived = ?1\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
@@ -310,10 +310,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
-            "    FROM prep_completion pi\n" +
+            "    FROM prophylaxis_interruptions pi\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
-            "        FROM prep_completion pi\n" +
+            "        FROM prophylaxis_interruptions pi\n" +
             "        WHERE pi.archived = ?1\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
@@ -439,10 +439,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
-            "    FROM prep_completion pi\n" +
+            "    FROM prophylaxis_interruptions pi\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
-            "        FROM prep_completion pi\n" +
+            "        FROM prophylaxis_interruptions pi\n" +
             "        WHERE pi.archived = ?1\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
@@ -514,9 +514,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             " WHERE pc.archived=?1  GROUP BY pc.person_uuid, pc.duration, status ) prepc  " +
             " ON prepc.person_uuid=p.uuid  LEFT JOIN (SELECT pi.id, pi.person_uuid,  " +
             " pi.interruption_date , pi.interruption_type  " +
-            " FROM prep_completion pi  " +
+            " FROM prophylaxis_interruptions pi  " +
             " INNER JOIN (SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date)interruption_date  " +
-            " FROM prep_completion pi WHERE pi.archived=?1  " +
+            " FROM prophylaxis_interruptions pi WHERE pi.archived=?1  " +
             " GROUP BY pi.person_uuid)pit ON pit.interruption_date=pi.interruption_date  " +
             " AND pit.person_uuid=pi.person_uuid WHERE pi.archived=?1  " +
             " GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi  " +
@@ -590,10 +590,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ") prepc ON prepc.person_uuid=p.uuid  \n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type \n" +
-            "    FROM prep_completion pi \n" +
+            "    FROM prophylaxis_interruptions pi \n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) interruption_date \n" +
-            "        FROM prep_completion pi \n" +
+            "        FROM prophylaxis_interruptions pi \n" +
             "        WHERE pi.archived=?1 \n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date \n" +
@@ -723,10 +723,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
-            "    FROM prep_completion pi\n" +
+            "    FROM prophylaxis_interruptions pi\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
-            "        FROM prep_completion pi\n" +
+            "        FROM prophylaxis_interruptions pi\n" +
             "        WHERE pi.archived = ?1\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
@@ -862,10 +862,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    ) prepc ON prepc.person_uuid = pet.person_uuid\n" +
             "    LEFT JOIN (\n" +
             "        SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
-            "        FROM prep_completion pi\n" +
+            "        FROM prophylaxis_interruptions pi\n" +
             "        INNER JOIN (\n" +
             "            SELECT MAX(interruption_date) AS interruption_date, person_uuid\n" +
-            "            FROM prep_completion\n" +
+            "            FROM prophylaxis_interruptions\n" +
             "            WHERE archived = ?1\n" +
             "            GROUP BY person_uuid\n" +
             "        ) max_pi ON max_pi.interruption_date = pi.interruption_date AND max_pi.person_uuid = pi.person_uuid\n" +
@@ -1000,10 +1000,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            ) prepc ON prepc.person_uuid = p.uuid\n" +
             "            LEFT JOIN (\n" +
             "                SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
-            "                FROM prep_completion pi\n" +
+            "                FROM prophylaxis_interruptions pi\n" +
             "                INNER JOIN (\n" +
             "                    SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
-            "                    FROM prep_completion pi\n" +
+            "                    FROM prophylaxis_interruptions pi\n" +
             "                    WHERE pi.archived = ?1\n" +
             "                    GROUP BY pi.person_uuid\n" +
             "                ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
@@ -1080,9 +1080,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
             "LEFT JOIN (" +
             "SELECT pi.id, pi.person_uuid, pi.interruption_date , pi.interruption_type " +
-            "FROM prep_completion pi " +
+            "FROM prophylaxis_interruptions pi " +
             "INNER JOIN (SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date)interruption_date " +
-            "FROM prep_completion pi WHERE pi.archived=?1 " +
+            "FROM prophylaxis_interruptions pi WHERE pi.archived=?1 " +
             "GROUP BY pi.person_uuid)pit ON pit.interruption_date=pi.interruption_date " +
             "AND pit.person_uuid=pi.person_uuid " +
             "WHERE pi.archived=?1 " +
@@ -1186,10 +1186,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
-            "    FROM prep_completion pi\n" +
+            "    FROM prophylaxis_interruptions pi\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
-            "        FROM prep_completion pi\n" +
+            "        FROM prophylaxis_interruptions pi\n" +
             "        WHERE pi.archived = ?1\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
@@ -1332,10 +1332,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
-            "    FROM prep_completion pi\n" +
+            "    FROM prophylaxis_interruptions pi\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
-            "        FROM prep_completion pi\n" +
+            "        FROM prophylaxis_interruptions pi\n" +
             "        WHERE pi.archived = ?1\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
