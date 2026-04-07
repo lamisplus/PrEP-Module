@@ -2439,14 +2439,21 @@ const BasicInfo = props => {
               </div>
 
               {(() => {
-                const binaryScore =
-                  (sexPartRiskCount.length >= 1 ? 1 : 0) +
-                  (riskCount.length >= 1 ? 1 : 0) +
-                  ([drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].some(v => v === "true") ? 1 : 0) +
-                  (Object.values(assessmentForAcuteHivInfection).some(v => v === "true") ? 1 : 0) +
-                  (drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0);
+                const sexPartnerRiskBinary = sexPartRiskCount.length >= 1 ? 1 : 0;
+                const personalHivRiskBinary = riskCount.length >= 1 ? 1 : 0;
+                const drugUseBinary = [drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].some(v => v === "true") ? 1 : 0;
+                const acuteHivBinary = Object.values(assessmentForAcuteHivInfection).some(v => v === "true") ? 1 : 0;
+                const hivNegativeBinary = drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0;
+                const binaryScore = sexPartnerRiskBinary + personalHivRiskBinary + drugUseBinary + acuteHivBinary + hivNegativeBinary;
                 return (
                   <div style={{ width: "100%" }}>
+                    <div className="form-group mb-3 col-md-12">
+                      <p>Sex Partner Risk: <b>{sexPartnerRiskBinary}</b></p>
+                      <p>Personal HIV Risk Assessment: <b>{personalHivRiskBinary}</b></p>
+                      <p>Drug Use History: <b>{drugUseBinary}</b></p>
+                      <p>Assessment for Acute HIV Infection: <b>{acuteHivBinary}</b></p>
+                      <p>HIV Negative: <b>{hivNegativeBinary}</b></p>
+                    </div>
                     <Message warning style={{ width: "100%" }}>
                       <b>Score: {binaryScore}</b>
                     </Message>
