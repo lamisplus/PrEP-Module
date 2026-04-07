@@ -567,122 +567,6 @@
         </sql>
     </changeSet>
 
-    <!-- ========== DEPRECATED TABLES (Phase 1) - Replaced by prophylaxis_screening and prophylaxis_initiation ========== -->
-
-    <!-- 1.1 prep_eligibility_screening - DEPRECATED: replaced by prophylaxis_screening -->
-    <changeSet failOnError="false" author="Gamaliel" id="04-03-2026-01">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="prep_eligibility_screening"/>
-            </not>
-        </preConditions>
-        <sql>
-            CREATE TABLE IF NOT EXISTS prep_eligibility_screening (
-            id BIGSERIAL PRIMARY KEY,
-            uuid VARCHAR(255) NOT NULL UNIQUE,
-            person_uuid VARCHAR(255) NOT NULL,
-            facility_id BIGINT NOT NULL,
-            visit_date DATE,
-            unique_id VARCHAR(255),
-            unique_client_id VARCHAR(255),
-            client_hts_code VARCHAR(255),
-            target_group VARCHAR(255),
-            population_type VARCHAR(255),
-            visit_type VARCHAR(255),
-            pregnancy_status VARCHAR(255),
-            sex_partner VARCHAR(255),
-            counseling_type VARCHAR(255),
-            first_time_visit BOOLEAN,
-            num_children_less_than_five INTEGER,
-            num_wives INTEGER,
-            referred_from VARCHAR(255),
-            setting VARCHAR(255),
-            service_status VARCHAR(255),
-            type_of_session VARCHAR(255),
-            score INTEGER,
-            hiv_risk JSONB,
-            sti_screening JSONB,
-            drug_use_history JSONB,
-            personal_hiv_risk_assessment JSONB,
-            sex_partner_risk JSONB,
-            assessment_for_pep_indication JSONB,
-            assessment_for_acute_hiv_infection JSONB,
-            assessment_for_prep_eligibility JSONB,
-            services_received_by_client JSONB,
-            consideration_for_injections JSONB,
-            reason_for_declining_prep JSONB,
-            lft_conducted VARCHAR(255),
-            reason_for_switch VARCHAR(255),
-            date_of_liver_function_test_results DATE,
-            liver_function_test_results JSONB,
-            extra JSONB,
-            archived INTEGER NOT NULL DEFAULT 0,
-            created_by VARCHAR(255) NOT NULL,
-            date_created TIMESTAMP NOT NULL,
-            modified_by VARCHAR(255),
-            date_modified TIMESTAMP,
-            CONSTRAINT fk_prep_elig_scr_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid)
-            );
-        </sql>
-    </changeSet>
-
-    <!-- 1.2 prep_pep_initiation - DEPRECATED: replaced by prophylaxis_initiation -->
-    <changeSet failOnError="false" author="Gamaliel" id="04-03-2026-02">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="prep_pep_initiation"/>
-            </not>
-        </preConditions>
-        <sql>
-            CREATE TABLE IF NOT EXISTS prep_pep_initiation (
-            id BIGSERIAL PRIMARY KEY,
-            uuid VARCHAR(255) NOT NULL UNIQUE,
-            person_uuid VARCHAR(255) NOT NULL,
-            facility_id BIGINT NOT NULL,
-            prep_eligibility_uuid VARCHAR(255),
-            unique_id VARCHAR(255),
-            status VARCHAR(255),
-            enrollment_type VARCHAR(255),
-            date_enrolled DATE,
-            date_referred DATE,
-            risk_type VARCHAR(255),
-            target_group VARCHAR(255),
-            population_type VARCHAR(255),
-            supporter_name VARCHAR(255),
-            supporter_relationship_type VARCHAR(255),
-            supporter_phone VARCHAR(255),
-            anc_unique_art_no VARCHAR(255),
-            hiv_testing_point VARCHAR(255),
-            hiv_testing_point_others_specify VARCHAR(255),
-            date_of_last_hiv_negative_test DATE,
-            weight DOUBLE PRECISION,
-            height DOUBLE PRECISION,
-            pregnancy_status VARCHAR(255),
-            history_of_drug_allergies VARCHAR(255),
-            history_of_drug_to_drug_interaction VARCHAR(255),
-            urinalysis_result VARCHAR(255),
-            liver_function_test_results JSONB,
-            date_of_hiv_test DATE,
-            result_of_hiv_test VARCHAR(255),
-            date_of_initial_adherence_counseling DATE,
-            date_prep_started DATE,
-            prep_type_at_start VARCHAR(255),
-            prep_type_at_start_others_specify VARCHAR(255),
-            prep_regimen VARCHAR(255),
-            months_of_refill INTEGER,
-            extra JSONB,
-            archived INTEGER NOT NULL DEFAULT 0,
-            created_by VARCHAR(255) NOT NULL,
-            date_created TIMESTAMP NOT NULL,
-            modified_by VARCHAR(255),
-            date_modified TIMESTAMP,
-            CONSTRAINT fk_prep_pep_init_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
-            CONSTRAINT fk_prep_pep_init_elig FOREIGN KEY (prep_eligibility_uuid) REFERENCES
-            prep_eligibility_screening(uuid)
-            );
-        </sql>
-    </changeSet>
-
     <!-- 1.3 prep_followup_visit (replaces prep_clinic) -->
     <changeSet failOnError="true" author="Gamaliel" id="04-03-2026-03">
         <preConditions onFail="MARK_RAN">
@@ -765,7 +649,7 @@
             date_modified TIMESTAMP,
             CONSTRAINT fk_prep_followup_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
             CONSTRAINT fk_prep_followup_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES
-            prep_pep_initiation(uuid)
+            prophylaxis_initiation(uuid)
             );
         </sql>
     </changeSet>
@@ -861,7 +745,7 @@
             date_modified TIMESTAMP,
             CONSTRAINT fk_pep_followup_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
             CONSTRAINT fk_pep_followup_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES
-            prep_pep_initiation(uuid)
+            prophylaxis_initiation(uuid)
             );
         </sql>
     </changeSet>
@@ -908,7 +792,7 @@
             date_modified TIMESTAMP,
             CONSTRAINT fk_prep_completion_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
             CONSTRAINT fk_prep_completion_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES
-            prep_pep_initiation(uuid)
+            prophylaxis_initiation(uuid)
             );
         </sql>
     </changeSet>
