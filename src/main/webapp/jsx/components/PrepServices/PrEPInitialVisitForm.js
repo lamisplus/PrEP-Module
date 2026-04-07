@@ -109,7 +109,6 @@ const PrEPInitialVisitForm = props => {
       )
       .then(response => {
         setPatientDto(response.data);
-        getTargetGroupvalue();
         // Auto-populate fields from latest screening data
         if (response.data) {
           setObjValues(prev => ({
