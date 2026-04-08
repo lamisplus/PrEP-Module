@@ -31,6 +31,8 @@ public class PrepInterruptionRequestDto implements Serializable {
     private String reasonStopped;
     private String reasonStoppedOthers;
     private String previousPrepStatus;
+    private String enrollmentType;
+    private String prepEnrollmentUuid;
 
     private String why;
     private String pepCompletion;

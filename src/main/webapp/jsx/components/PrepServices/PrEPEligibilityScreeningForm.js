@@ -442,26 +442,7 @@ const BasicInfo = props => {
           })
           .catch(error => {
             setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                error.response.data.apierror &&
-                error.response.data.apierror.message !== ""
-                  ? error.response.data.apierror.message
-                  : "Something went wrong ❌ please try again";
-              if (error.response.data.apierror) {
-                toast.error(error.response.data.apierror.message, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              } else {
-                toast.error(errorMessage, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              }
-            } else {
-              toast.error("Something went wrong ❌ please try again...", {
-                position: toast.POSITION.BOTTOM_CENTER,
-              });
-            }
+            handleSaveError(error);
           });
       } else {
         axios
@@ -484,26 +465,7 @@ const BasicInfo = props => {
           })
           .catch(error => {
             setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                error.response.data.apierror &&
-                error.response.data.apierror.message !== ""
-                  ? error.response.data.apierror.message
-                  : "Something went wrong ❌ please try again";
-              if (error.response.data.apierror) {
-                toast.error(error.response.data.apierror.message, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              } else {
-                toast.error(errorMessage, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              }
-            } else {
-              toast.error("Something went wrong ❌ please try again...", {
-                position: toast.POSITION.BOTTOM_CENTER,
-              });
-            }
+            handleSaveError(error);
           });
       }
     } else {
@@ -512,6 +474,27 @@ const BasicInfo = props => {
         position: toast.POSITION.BOTTOM_CENTER,
       });
     }
+  };
+
+  // Robust error handler that surfaces backend messages (e.g. duplicate visit date)
+  const handleSaveError = error => {
+    let message = "Something went wrong ❌ please try again";
+    const status = error?.response?.status;
+    const data = error?.response?.data;
+    if (data) {
+      if (data?.apierror?.message) message = data.apierror.message;
+      else if (data?.message) message = data.message;
+      else if (data?.error) message = data.error;
+      else if (typeof data === "string") message = data;
+    }
+    // Specific friendlier message when an eligibility already exists for the visit date
+    if (
+      status === 409 ||
+      (typeof message === "string" && /exist|already/i.test(message))
+    ) {
+      message = `An eligibility screening with the same visit date (${objValues.visitDate}) already exists for this client.`;
+    }
+    toast.error(message, { position: toast.POSITION.BOTTOM_CENTER });
   };
 
   const isFemale = () => {
@@ -1019,7 +1002,7 @@ const BasicInfo = props => {
                 </h4>
               </div>
 
-              <div className="form-group col-md-4 p-3">
+              <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>
                     Have you had sex with a partner who is HIV positive?
@@ -1050,7 +1033,7 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              <div className="form-group col-md-4 p-3">
+              <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>
                     Have you had sex with a partner who injects drugs?
@@ -1081,7 +1064,7 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              <div className="form-group col-md-4 p-3">
+              <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>
                     Have you had sex with a partner who has sex with men?
@@ -1750,7 +1733,7 @@ const BasicInfo = props => {
               </Message>
               {Object.values(assessmentForPepIndication).some(v => v === "true") && (
                 <div style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
-                  <span className="badge" style={{ backgroundColor: "#dc3545", color: "#fff", padding: "0.5rem 1rem", fontSize: "0.9rem" }}>
+                  <span className="badge" style={{ backgroundColor: "#dc3545", color: "#fff", padding: "0.75rem 1rem", fontSize: "0.9rem", borderRadius: "0.28571429rem" }}>
                     Refer for PEP
                   </span>
                 </div>
@@ -1885,7 +1868,7 @@ const BasicInfo = props => {
               {props.patientDetail &&
                 props.patientDetail.personResponseDto?.sex === "Female" && (
                   <>
-                    <div className="form-group col-md-4 p-3">
+                    <div className="form-group col-md-6 p-3">
                       <FormGroup>
                         <Label>
                           Complaints of vaginal discharge or burning when
@@ -1917,7 +1900,7 @@ const BasicInfo = props => {
                       </FormGroup>
                     </div>
 
-                    <div className="form-group col-md-4 p-3">
+                    <div className="form-group col-md-6 p-3">
                       <FormGroup>
                         <Label>
                           Complaints of lower abdominal pains with or without
@@ -1953,7 +1936,7 @@ const BasicInfo = props => {
               {props.patientObj?.personResponseDto &&
                 props.patientDetail?.personResponseDto.sex === "Male" && (
                   <>
-                    <div className="form-group col-md-4 p-3">
+                    <div className="form-group col-md-6 p-3">
                       <FormGroup>
                         <Label>
                           Complaints of urethral discharge or burning when
@@ -1984,7 +1967,7 @@ const BasicInfo = props => {
                         )}
                       </FormGroup>
                     </div>
-                    <div className="form-group col-md-4 p-3">
+                    <div className="form-group col-md-6 p-3">
                       <FormGroup>
                         <Label>Complaints of scrotal swelling and pain</Label>
                         <select
@@ -2012,7 +1995,7 @@ const BasicInfo = props => {
                         )}
                       </FormGroup>
                     </div>
-                    <div className="form-group col-md-4 p-3">
+                    <div className="form-group col-md-6 p-3">
                       <FormGroup>
                         <Label>
                           Complaints of genital sore(s) or swollen inguinal
@@ -2045,7 +2028,7 @@ const BasicInfo = props => {
                     </div>
                   </>
                 )}
-              <div className="form-group col-md-4 p-3">
+              <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>Genital sore +/-pains?</Label>
                   <select
@@ -2071,7 +2054,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group col-md-4 p-3">
+              <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>Swollen iguinal lymph node +/-pains?</Label>
                   <select
@@ -2099,7 +2082,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group col-md-4 p-3">
+              <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>Anal pain on stooling?</Label>
                   <select
@@ -2125,7 +2108,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              <div className="form-group col-md-4 p-3">
+              <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>Anal itching?</Label>
                   <select
@@ -2184,7 +2167,7 @@ const BasicInfo = props => {
               </Message>
               {stiCount.length >= 1 && (
                 <div style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
-                  <span className="badge" style={{ backgroundColor: "#dc3545", color: "#fff", padding: "0.5rem 1rem", fontSize: "0.9rem" }}>
+                  <span className="badge" style={{ backgroundColor: "#dc3545", color: "#fff", padding: "0.75rem 1rem", fontSize: "0.9rem", borderRadius: "0.28571429rem" }}>
                     Enroll in Syndromic STI management or Refer
                   </span>
                 </div>
@@ -2459,7 +2442,7 @@ const BasicInfo = props => {
                     </Message>
                     {binaryScore >= 2 && (
                       <div style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
-                        <span className="badge" style={{ backgroundColor: "#28a745", color: "#fff", padding: "0.5rem 1rem", fontSize: "0.9rem" }}>
+                        <span className="badge" style={{ backgroundColor: "#28a745", color: "#fff", padding: "0.75rem 1rem", fontSize: "0.9rem", borderRadius: "0.28571429rem" }}>
                           Client is Eligible for PrEP
                         </span>
                       </div>
@@ -2587,8 +2570,9 @@ const BasicInfo = props => {
                         style={{
                           backgroundColor: allYes ? "#28a745" : "#17a2b8",
                           color: "#fff",
-                          padding: "0.5rem 1rem",
+                          padding: "0.75rem 1rem",
                           fontSize: "0.9rem",
+                          borderRadius: "0.28571429rem",
                         }}
                       >
                         {allYes ? "Eligible for Injectable" : "Consider for Oral"}

@@ -15,8 +15,10 @@ const PrEPDiscontinuationsInterruptions = props => {
   const patientObj = props.patientObj;
   const classes = useStyles();
   const [disabledField, setDisabledField] = useState(false);
+  // Prefer the screeningType from the active route (set when user clicked a tab) so PrEP/PEP context is preserved
+  const screeningTypeFromRoute = props.activeContent?.screeningType || "";
   const [enrollmentType, setEnrollmentType] = useState(
-    patientObj?.enrollmentType || ""
+    screeningTypeFromRoute || patientObj?.enrollmentType || ""
   );
   const [objValues, setObjValues] = useState({
     interruptionType: "",
@@ -81,7 +83,8 @@ const PrEPDiscontinuationsInterruptions = props => {
       )
       .then(response => {
         setPatientDto(response.data);
-        if (response.data?.enrollmentType) {
+        // Only override enrollmentType from patientDto if no route-based type was provided
+        if (!screeningTypeFromRoute && response.data?.enrollmentType) {
           setEnrollmentType(response.data.enrollmentType);
         }
       })
@@ -200,6 +203,8 @@ const PrEPDiscontinuationsInterruptions = props => {
     e.preventDefault();
     if (validate()) {
       objValues.previousPrepStatus = props.patientObj?.prepStatus;
+      objValues.enrollmentType = enrollmentType;
+      objValues.prepEnrollmentUuid = patientDto?.uuid;
       setSaving(true);
       if (props.activeContent && props.activeContent.actionType === "update") {
         axios
@@ -288,7 +293,6 @@ const PrEPDiscontinuationsInterruptions = props => {
                       id="interruptionType"
                       onChange={handleInputChange}
                       value={objValues.interruptionType}
-                      style={{ border: "1px solid #014D88" }}
                       disabled={disabledField}
                     >
                       <option value="">Select</option>
@@ -348,8 +352,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                         id="why"
                         onChange={handleInputChange}
                         value={objValues.why}
-                        style={{ border: "1px solid #014D88" }}
-                        disabled={disabledField}
+                          disabled={disabledField}
                       >
                         <option value="">Select</option>
                         <option value="Toxicity/side effects">
@@ -386,8 +389,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                         max={today}
                         onChange={handleInputChange}
                         value={objValues.dateRestartPlacedBackMedication}
-                        style={{ border: "1px solid #014D88" }}
-                        disabled={disabledField}
+                          disabled={disabledField}
                       />
                     </FormGroup>
                   </div>
@@ -412,8 +414,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                         max={today}
                         onChange={handleInputChange}
                         value={objValues.dateClientDied}
-                        style={{ border: "1px solid #014D88" }}
-                        disabled={disabledField}
+                          disabled={disabledField}
                       />
                       {errors.dateClientDied !== "" ? (
                         <span className={classes.error}>
@@ -470,8 +471,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                         max={today}
                         onChange={handleInputChange}
                         value={objValues.dateClientReferredOut}
-                        style={{ border: "1px solid #014D88" }}
-                        disabled={disabledField}
+                          disabled={disabledField}
                       />
                       {errors.dateClientReferredOut !== "" ? (
                         <span className={classes.error}>
@@ -525,10 +525,6 @@ const PrEPDiscontinuationsInterruptions = props => {
                         id="pepCompletion"
                         onChange={handleInputChange}
                         value={objValues.pepCompletion}
-                        style={{
-                          border: "1px solid #014D88",
-                          padding: "0.5rem",
-                        }}
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
@@ -584,8 +580,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                         id="hivResult"
                         onChange={handleInputChange}
                         value={objValues.hivResult}
-                        style={{ border: "1px solid #014D88" }}
-                        disabled={disabledField}
+                          disabled={disabledField}
                       >
                         <option value="">Select</option>
                         <option value="Positive">Positive</option>
@@ -614,8 +609,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                           id="earlyDetectViralLoadResult"
                           onChange={handleInputChange}
                           value={objValues.earlyDetectViralLoadResult}
-                          style={{ border: "1px solid #014D88" }}
-                          disabled={disabledField}
+                              disabled={disabledField}
                         >
                           <option value="">Select</option>
                           <option value="Target Detected">

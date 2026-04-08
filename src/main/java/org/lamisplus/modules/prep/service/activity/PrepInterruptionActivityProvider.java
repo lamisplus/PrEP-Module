@@ -27,8 +27,13 @@ public class PrepInterruptionActivityProvider implements PatientActivityProvider
 	@NotNull
 	private PatientActivity buildPatientActivity(ProphylaxisInterruption interruption) {
 		String name;
-		PrepPepInitiation initiation = interruption.getPrepPepInitiation();
-		if (initiation != null && "PEP".equals(initiation.getEnrollmentType())) {
+		// Prefer the stored enrollmentType (set when the form was saved); fall back to the joined initiation
+		String type = interruption.getEnrollmentType();
+		if (type == null || type.isEmpty()) {
+			PrepPepInitiation initiation = interruption.getPrepPepInitiation();
+			type = initiation != null ? initiation.getEnrollmentType() : null;
+		}
+		if ("PEP".equals(type)) {
 			name = "PEP Completion";
 		} else {
 			name = "PrEP Discontinuation/Interruption";

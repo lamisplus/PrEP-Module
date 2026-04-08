@@ -85,6 +85,9 @@ public class ProphylaxisInterruption extends Audit implements Serializable {
     @Column(name = "previous_pep_status")
     private String previousPepStatus;
 
+    @Column(name = "enrollment_type")
+    private String enrollmentType;
+
     @Column(name = "why")
     private String why;
 

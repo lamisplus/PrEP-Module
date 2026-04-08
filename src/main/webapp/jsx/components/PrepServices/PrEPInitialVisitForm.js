@@ -109,7 +109,7 @@ const PrEPInitialVisitForm = props => {
       )
       .then(response => {
         setPatientDto(response.data);
-        // Auto-populate fields from latest screening data
+        // Auto-populate fields from latest screening data — all fields common to both forms
         if (response.data) {
           const hivResult = response.data.drugUseHistory?.hivTestResultAtvisit;
           setObjValues(prev => ({
@@ -117,6 +117,9 @@ const PrEPInitialVisitForm = props => {
             enrollmentType: response.data.category || prev.enrollmentType,
             uniqueId: response.data.uniqueClientId || prev.uniqueId,
             resultOfHivTest: hivResult || prev.resultOfHivTest,
+            populationType: response.data.populationType || prev.populationType,
+            pregnancyStatus: response.data.pregnancyStatus || prev.pregnancyStatus,
+            dateOfHivTest: response.data.visitDate || prev.dateOfHivTest,
           }));
         }
         // Fetch previous initiation records for returning clients
@@ -226,10 +229,6 @@ const PrEPInitialVisitForm = props => {
     temp.resultOfHivTest = objValues.resultOfHivTest
       ? ""
       : "This field is required";
-    // Block save if HIV result is Positive
-    if (objValues.resultOfHivTest === "Positive") {
-      temp.resultOfHivTest = "Client with Positive HIV result cannot be initiated on PrEP/PEP";
-    }
     // Conditional: supporter fields required if supporter name is provided (only for PrEP)
     if (objValues.enrollmentType !== 'PEP' && objValues.supporterName) {
       temp.supporterRelationshipType = objValues.supporterRelationshipType
@@ -255,6 +254,13 @@ const PrEPInitialVisitForm = props => {
 
   const handleSubmit = e => {
     e.preventDefault();
+    // Block save if HIV result is Positive — show as toast, not inline
+    if (objValues.resultOfHivTest === "Positive") {
+      toast.error("Client with Positive HIV result cannot be initiated on PrEP/PEP", {
+        position: toast.POSITION.BOTTOM_CENTER,
+      });
+      return;
+    }
     if (validate()) {
       objValues.personId = props.patientObj.personId || props.patientObj.id;
       objValues.prepEligibilityUuid = patientDto.uuid;
@@ -307,7 +313,26 @@ const PrEPInitialVisitForm = props => {
           });
       }
     } else {
-      toast.error("All fields are required❌", {
+      // Build a specific list of missing/invalid fields from the errors map
+      const fieldLabels = {
+        dateEnrolled: "Date Enrolled",
+        uniqueId: "Unique ID",
+        enrollmentType: "Enrollment Type",
+        populationType: "Population Type",
+        hivTestingPoint: "HIV Testing Point",
+        dateOfHivTest: "Date of HIV Test",
+        resultOfHivTest: "Result of HIV Test",
+        supporterRelationshipType: "Supporter Relationship",
+        supporterPhone: "Supporter Phone",
+        dateReferred: "Date Referred",
+      };
+      const missing = Object.keys(errors)
+        .filter(k => errors[k])
+        .map(k => fieldLabels[k] || k);
+      const message = missing.length > 0
+        ? `Please fix: ${missing.join(", ")}`
+        : "Please complete all required fields";
+      toast.error(message, {
         position: toast.POSITION.BOTTOM_CENTER,
       });
     }

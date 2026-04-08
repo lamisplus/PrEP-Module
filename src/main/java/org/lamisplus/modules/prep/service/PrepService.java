@@ -868,6 +868,8 @@ public class PrepService {
         e.setReasonStopped(dto.getReasonStopped());
         e.setReasonStoppedOthers(dto.getReasonStoppedOthers());
         e.setReasonForPrepDiscontinuation(dto.getReasonForPrepDiscontinuation());
+        e.setEnrollmentType(dto.getEnrollmentType());
+        e.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
         e.setWhy(dto.getWhy());
         e.setPepCompletion(dto.getPepCompletion());
         e.setFollowUpVisitDate(dto.getFollowUpVisitDate());
@@ -894,6 +896,8 @@ public class PrepService {
         dto.setReasonStopped(e.getReasonStopped());
         dto.setReasonStoppedOthers(e.getReasonStoppedOthers());
         dto.setReasonForPrepDiscontinuation(e.getReasonForPrepDiscontinuation());
+        dto.setEnrollmentType(e.getEnrollmentType());
+        dto.setPrepEnrollmentUuid(e.getPrepEnrollmentUuid());
         dto.setWhy(e.getWhy());
         dto.setPepCompletion(e.getPepCompletion());
         dto.setFollowUpVisitDate(e.getFollowUpVisitDate());

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { token as token, url as baseUrl } from "./../../../api";
@@ -23,17 +23,7 @@ import ViewColumn from "@material-ui/icons/ViewColumn";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { makeStyles } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import ButtonGroup from "@material-ui/core/ButtonGroup";
-import Popper from "@material-ui/core/Popper";
-import Grow from "@material-ui/core/Grow";
-import Paper from "@material-ui/core/Paper";
-import ClickAwayListener from "@material-ui/core/ClickAwayListener";
-import MenuList from "@material-ui/core/MenuList";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import PersonAddIcon from "@material-ui/icons/PersonAdd";
-import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
+import { Dropdown as SuiDropdown, Menu as SuiMenu, Button as SuiButton, Icon } from "semantic-ui-react";
 import "@reach/menu-button/styles.css";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
@@ -74,104 +64,46 @@ const useStyles = makeStyles({
 });
 
 const EnrollPatientButton = ({ row }) => {
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef(null);
   const history = useHistory();
 
-  const handleToggle = event => {
-    event.preventDefault();
-    event.stopPropagation();
-    setOpen(prevOpen => !prevOpen);
-  };
-
-  const handleClose = event => {
-    if (anchorRef.current && anchorRef.current.contains(event.target)) {
-      return;
-    }
-    setOpen(false);
-  };
-
   const handleEnroll = screeningType => {
-    setOpen(false);
     history.push({
       pathname: "/patient-dashboard",
-      state: { patientObj: row, screeningType },
+      state: { patientObj: row, screeningType, freshEnroll: true },
     });
   };
 
-  const canScreenForPrep = row.canScreenForPrep !== false;
-  const canScreenForPep = row.canScreenForPep !== false;
-
   return (
-    <div style={{ position: "relative", display: "inline-block" }}>
-      <ButtonGroup
-        variant="contained"
-        size="small"
-        ref={anchorRef}
-        aria-label="enroll patient button group"
-        style={{ height: "30px" }}
-      >
-        <Button
-          style={{
-            backgroundColor: "rgb(153, 46, 98)",
-            color: "#fff",
-            fontSize: "12px",
-            fontWeight: "bolder",
-            textTransform: "none",
-            borderRight: "1px solid rgba(255,255,255,0.3)",
-            pointerEvents: "none",
-          }}
-          startIcon={<PersonAddIcon style={{ fontSize: "16px" }} />}
-        >
-          Enroll Patient
-        </Button>
-        <Button
-          style={{
-            backgroundColor: "rgb(153, 46, 98)",
-            color: "#fff",
-            minWidth: "30px",
-            padding: "0 4px",
-          }}
-          onClick={handleToggle}
-          aria-controls={open ? "enroll-menu-list" : undefined}
-          aria-expanded={open ? "true" : undefined}
-          aria-haspopup="menu"
-        >
-          <ArrowDropDownIcon />
-        </Button>
-      </ButtonGroup>
-      <Popper
-        open={open}
-        anchorEl={anchorRef.current}
-        role={undefined}
-        transition
-        disablePortal
-        placement="bottom-end"
-        style={{ zIndex: 1300 }}
-      >
-        {({ TransitionProps }) => (
-          <Grow {...TransitionProps}>
-            <Paper>
-              <ClickAwayListener onClickAway={handleClose}>
-                <MenuList id="enroll-menu-list" autoFocusItem>
-                  <MenuItem
-                    onClick={() => handleEnroll("PrEP")}
-                    // disabled={!canScreenForPrep}
-                  >
-                    PrEP
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => handleEnroll("PEP")}
-                    // disabled={!canScreenForPep}
-                  >
-                    PEP
-                  </MenuItem>
-                </MenuList>
-              </ClickAwayListener>
-            </Paper>
-          </Grow>
-        )}
-      </Popper>
+    <div>
+      <SuiMenu.Menu position="right">
+        <SuiMenu.Item style={{ padding: 0 }}>
+          <SuiButton
+            style={{
+              backgroundColor: "rgb(153, 46, 98)",
+              color: "#fff",
+              padding: "8px 12px",
+              margin: 0,
+            }}
+            primary
+          >
+            <SuiDropdown
+              item
+              text="Enroll Patient"
+              icon="caret down"
+              style={{ color: "#fff", fontSize: "12px", fontWeight: "bolder" }}
+            >
+              <SuiDropdown.Menu style={{ marginTop: "10px" }}>
+                <SuiDropdown.Item onClick={() => handleEnroll("PrEP")}>
+                  <Icon name="user plus" /> PrEP
+                </SuiDropdown.Item>
+                <SuiDropdown.Item onClick={() => handleEnroll("PEP")}>
+                  <Icon name="user plus" /> PEP
+                </SuiDropdown.Item>
+              </SuiDropdown.Menu>
+            </SuiDropdown>
+          </SuiButton>
+        </SuiMenu.Item>
+      </SuiMenu.Menu>
     </div>
   );
 };

@@ -83,13 +83,17 @@ function PatientCard(props) {
     history.location && history.location.state
       ? history.location.state.screeningType
       : "";
+  const freshEnrollFromRoute =
+    history.location && history.location.state
+      ? !!history.location.state.freshEnroll
+      : false;
 
   // Persist screeningType in state so it survives internal navigation
   const [screeningType, setScreeningType] = useState(screeningTypeFromRoute || "");
 
-  // Workflow staging: when user comes from Patient Tab, walk through screening -> initiation -> all
-  // freshWorkflow = true when user explicitly clicked Enroll on Patient Tab (screeningType from route)
-  const freshWorkflow = !!screeningTypeFromRoute;
+  // Workflow staging: walk through screening -> initiation -> all
+  // freshWorkflow = true ONLY when user clicked Enroll on Patient Tab (freshEnroll flag set)
+  const freshWorkflow = freshEnrollFromRoute;
   const [sessionStage, setSessionStage] = useState(freshWorkflow ? "screening" : "all");
 
   const { userPermissions } = useAuth();
@@ -98,9 +102,10 @@ function PatientCard(props) {
     PatientObject();
   }, []);
 
-  // Once patientDetail loads, derive screeningType from enrollmentType if not set from route
+  // Once patientDetail loads, derive screeningType from enrollmentType ONLY if not set from route
+  // (route-passed screeningType always wins so PrEP enrollment tab shows PrEP forms even if patient is also enrolled in PEP)
   useEffect(() => {
-    if (!screeningType && patientDetail?.enrollmentType) {
+    if (!screeningTypeFromRoute && patientDetail?.enrollmentType) {
       setScreeningType(patientDetail.enrollmentType);
     }
   }, [patientDetail]);

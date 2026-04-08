@@ -706,6 +706,7 @@
             reason_for_prep_discontinuation VARCHAR(255),
             previous_prep_status VARCHAR(255),
             previous_pep_status VARCHAR(255),
+            enrollment_type VARCHAR(255),
             why VARCHAR(255),
             pep_completion VARCHAR(255),
             follow_up_visit_date DATE,

@@ -152,7 +152,7 @@ const NotEnrolledPatients = props => {
                         <Link
                           to={{
                             pathname: "/patient-dashboard",
-                            state: { patientObj: row },
+                            state: { patientObj: row, screeningType: "PrEP" },
                           }}
                         >
                           <ButtonGroup
