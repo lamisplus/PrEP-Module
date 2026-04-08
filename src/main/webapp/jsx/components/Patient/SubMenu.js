@@ -6,7 +6,7 @@ import { useAuth } from "../../../context/AuthProvider/AuthProvider";
 
 function SubMenu(props) {
   const { userPermissions } = useAuth();
-  let { patientObj, patientDetail, screeningType } = props;
+  let { patientObj, patientDetail, screeningType, freshWorkflow, sessionStage } = props;
 
   useEffect(() => {
     //Observation();
@@ -86,15 +86,12 @@ function SubMenu(props) {
 
   const renderMenuItems = () => {
     const isNegative = patientObj?.hivresultAtVisit === "Negative" || patientObj?.hivresultAtVisit === null;
-    const hasEligibility = patientObj?.eligibilityCount > 0;
-    const hasEnrollment = patientObj?.prepCount !== "0" && patientObj?.prepCount !== null;
 
-    return (
-      <>
-        <Menu.Item onClick={onClickHome}>Home</Menu.Item>
-
-        {/* Step 1: Eligibility Screening - always show if not yet done */}
-        {(!hasEligibility || hasEnrollment) && (
+    // Fresh workflow (came from Patient Tab): walk the user through Screening -> Initiation -> All forms
+    if (freshWorkflow && sessionStage === "screening") {
+      return (
+        <>
+          <Menu.Item onClick={onClickHome}>Home</Menu.Item>
           <ProtectedComponent
             isAuthorized={userPermissions.eligibility}
             privateComponent={() => (
@@ -103,10 +100,43 @@ function SubMenu(props) {
               </Menu.Item>
             )}
           />
-        )}
+          <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
+        </>
+      );
+    }
 
-        {/* Step 2: Initiation - show after screening is done and before enrollment */}
-        {hasEligibility && !hasEnrollment && isNegative && (
+    if (freshWorkflow && sessionStage === "initiation") {
+      return (
+        <>
+          <Menu.Item onClick={onClickHome}>Home</Menu.Item>
+          <ProtectedComponent
+            isAuthorized={userPermissions.enrollment}
+            privateComponent={() => (
+              <Menu.Item onClick={loadPrEPInitialVisitForm}>
+                {typeLabel} Initiation
+              </Menu.Item>
+            )}
+          />
+          <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
+        </>
+      );
+    }
+
+    // sessionStage === "all" OR returning client (not fresh workflow): show full menu
+    return (
+      <>
+        <Menu.Item onClick={onClickHome}>Home</Menu.Item>
+
+        <ProtectedComponent
+          isAuthorized={userPermissions.eligibility}
+          privateComponent={() => (
+            <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
+              {typeLabel} Eligibility Screening
+            </Menu.Item>
+          )}
+        />
+
+        {isNegative && (
           <ProtectedComponent
             isAuthorized={userPermissions.enrollment}
             privateComponent={() => (
@@ -117,8 +147,7 @@ function SubMenu(props) {
           />
         )}
 
-        {/* Step 3: Follow-up Visit - show after enrollment */}
-        {hasEnrollment && isNegative && isPrEP && (
+        {isNegative && isPrEP && (
           <ProtectedComponent
             isAuthorized={userPermissions.visit}
             privateComponent={() => (
@@ -128,7 +157,7 @@ function SubMenu(props) {
             )}
           />
         )}
-        {hasEnrollment && isNegative && isPEP && (
+        {isNegative && isPEP && (
           <ProtectedComponent
             isAuthorized={userPermissions.visit}
             privateComponent={() => (
@@ -139,8 +168,7 @@ function SubMenu(props) {
           />
         )}
 
-        {/* Step 4: Discontinuation/Completion - show after enrollment */}
-        {hasEnrollment && isNegative && (
+        {isNegative && (
           <ProtectedComponent
             isAuthorized={userPermissions.discontinuation}
             privateComponent={() => (

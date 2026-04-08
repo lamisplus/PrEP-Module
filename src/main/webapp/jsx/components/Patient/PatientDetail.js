@@ -87,6 +87,11 @@ function PatientCard(props) {
   // Persist screeningType in state so it survives internal navigation
   const [screeningType, setScreeningType] = useState(screeningTypeFromRoute || "");
 
+  // Workflow staging: when user comes from Patient Tab, walk through screening -> initiation -> all
+  // freshWorkflow = true when user explicitly clicked Enroll on Patient Tab (screeningType from route)
+  const freshWorkflow = !!screeningTypeFromRoute;
+  const [sessionStage, setSessionStage] = useState(freshWorkflow ? "screening" : "all");
+
   const { userPermissions } = useAuth();
 
   useEffect(() => {
@@ -99,6 +104,20 @@ function PatientCard(props) {
       setScreeningType(patientDetail.enrollmentType);
     }
   }, [patientDetail]);
+
+  // Callbacks to advance the workflow stage after each form is saved
+  const onScreeningSaved = () => {
+    PatientObject();
+    if (freshWorkflow && sessionStage === "screening") {
+      setSessionStage("initiation");
+    }
+  };
+  const onInitiationSaved = () => {
+    PatientObject();
+    if (freshWorkflow && sessionStage === "initiation") {
+      setSessionStage("all");
+    }
+  };
 
   async function PatientObject() {
     axios
@@ -144,6 +163,8 @@ function PatientCard(props) {
             setActiveContent={setActiveContent}
             patientDetail={patientDetail}
             screeningType={screeningType}
+            freshWorkflow={freshWorkflow}
+            sessionStage={sessionStage}
           />
           <br />
 
@@ -207,7 +228,7 @@ function PatientCard(props) {
               activeContent={activeContent}
               prepId={prepId}
               patientDetail={patientDetail}
-              PatientObject={() => PatientObject()}
+              PatientObject={() => onScreeningSaved()}
             />
           )}
           {activeContent.route === "patient-visits" && (
@@ -230,7 +251,7 @@ function PatientCard(props) {
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
-              PatientObject={() => PatientObject()}
+              PatientObject={() => onInitiationSaved()}
             />
           )}
           {activeContent.route === "patient-history" && (
