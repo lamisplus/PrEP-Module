@@ -222,7 +222,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
-            "ORDER BY pet.date_created DESC NULLS LAST, p.hospital_number", nativeQuery = true)
+            "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
 
     @Query(value = "SELECT * FROM (SELECT DISTINCT ON (p.hospital_number)\n" +
@@ -351,7 +351,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
-            "ORDER BY pet.date_created DESC NULLS LAST, p.hospital_number) res where res.prepStatus = 'Not Enrolled' ", nativeQuery = true)
+            "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST) res where res.prepStatus = 'Not Enrolled' ", nativeQuery = true)
     Page<PrepClient> findAllNotEnrolledPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
 
     @Query(value = "SELECT * FROM (SELECT DISTINCT ON (p.hospital_number)\n" +
@@ -480,7 +480,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
-            "ORDER BY pet.date_created DESC NULLS LAST, p.hospital_number) res WHERE prepStatus IN ('Stopped', 'Discontinued', 'Death')\n" +
+            "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST) res WHERE prepStatus IN ('Stopped', 'Discontinued', 'Death')\n" +
             "   OR prepi.interruption_type IS NOT NULL", nativeQuery = true)
     Page<PrepClient> findAllInterruptedPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
 
@@ -534,7 +534,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             " el.eligibility_count, pet.created_by, pet.unique_id, p.id, p.first_name,  " +
             " p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, pet.date_created,  " +
             " p.other_name, p.hospital_number, p.date_of_birth, prepc.status, he.person_uuid,  " +
-            " he.date_confirmed_hiv, pet.id, pet.date_enrolled ORDER BY pet.date_created DESC NULLS LAST, p.hospital_number", nativeQuery = true)
+            " he.date_confirmed_hiv, pet.id, pet.date_enrolled ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findOnlyPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
 
     @Query(value = "SELECT DISTINCT ON (el_max.HIVResultAtVisit) \n" +
@@ -757,7 +757,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
-            "ORDER BY pet.date_created DESC NULLS LAST, p.hospital_number", nativeQuery = true)
+            "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
 
     @Query(value = "SELECT *\n" +
@@ -892,7 +892,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        bac.display, prepi.interruption_type, he.person_uuid,\n" +
             "        prepc.person_uuid, prepc.visit_type, prepc.prep_type, prepc.duration,\n" +
             "        prepc.status, pet.date_enrolled\n" +
-            "    ORDER BY pet.date_created DESC NULLS LAST, p.hospital_number\n" +
+            "    ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST\n" +
             ") res\n" +
             "WHERE res.prepStatus IN ('Stopped', 'Discontinued', 'Death')\n" +
             "   OR res.interruption_type IS NOT NULL\n", nativeQuery = true)
@@ -1034,7 +1034,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "                prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "                pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
-            "            ORDER BY pet.date_created DESC NULLS LAST, p.hospital_number) res where res.prepStatus = 'Not Enrolled' ", nativeQuery = true)
+            "            ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST) res where res.prepStatus = 'Not Enrolled' ", nativeQuery = true)
     Page<PrepClient> findAllNotEnrolledPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
 
     @Query(value = "SELECT el_max.HIVResultAtVisit, p.date_of_registration AS dateOfRegistration, prepc.commencementCount, el.eligibility_count as eligibilityCount, " +
@@ -1227,7 +1227,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
-            "ORDER BY pet.date_created DESC NULLS LAST, p.hospital_number", nativeQuery = true)
+            "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPepEnrolledPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
 
     @Query(value = "SELECT DISTINCT ON (p.hospital_number)\n" +
@@ -1367,7 +1367,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
-            "ORDER BY pet.date_created DESC NULLS LAST, p.hospital_number", nativeQuery = true)
+            "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPepEnrolledPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
 
 }
