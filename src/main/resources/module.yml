@@ -1,5 +1,5 @@
 basePackage: org.lamisplus.modules.prep
-name: PrepModule
+name: hiv-prevention
 #dependencies: {PatientModule: 2.0.2, HivModule: 2.1.1}
 store: true
 menus:
@@ -7,12 +7,12 @@ menus:
     disabled: false
     name: HIV Prevention
     state: HIV Prevention
-    url: /across/resources/static/prep/index.html
-umdLocation: /across/resources/static/prep/index.html
+    url: /across/resources/static/hiv-prevention/index.html
+umdLocation: /across/resources/static/hiv-prevention/index.html
 gitHubLink: https://api.github.com/repos/lamisplus/Prep-Module/releases/latest
 webModules:
   - breadcrumb: HIV Prevention
-    name: HIV Prevention
-    path: prep
+    name: hiv-prevention
+    path: hiv-prevention
     position: 99
     ##fa-solid fa-file
