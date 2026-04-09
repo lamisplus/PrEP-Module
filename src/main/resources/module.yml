@@ -5,14 +5,14 @@ store: true
 menus:
   - icon: fa-solid fa-pills
     disabled: false
-    name: PrEP/PEP
-    state: PrEP/PEP
+    name: HIV Prevention
+    state: HIV Prevention
     url: /across/resources/static/prep/index.html
 umdLocation: /across/resources/static/prep/index.html
 gitHubLink: https://api.github.com/repos/lamisplus/Prep-Module/releases/latest
 webModules:
-  - breadcrumb: PrEP/PEP
-    name: PrepModule
+  - breadcrumb: HIV Prevention
+    name: HIV Prevention
     path: prep
     position: 99
     ##fa-solid fa-file

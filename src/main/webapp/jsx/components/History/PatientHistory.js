@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MaterialTable from "material-table";
 import axios from "axios";
 import { url as baseUrl } from "./../../../api";
@@ -26,6 +26,8 @@ import ViewColumn from "@material-ui/icons/ViewColumn";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { makeStyles } from "@material-ui/core/styles";
+import MuiButton from "@material-ui/core/Button";
+import ButtonGroup from "@material-ui/core/ButtonGroup";
 //import { useHistory } from "react-router-dom";
 //import {Menu,MenuList,MenuButton,MenuItem,} from "@reach/menu-button";
 import "@reach/menu-button/styles.css";
@@ -54,6 +56,74 @@ const tableIcons = {
   SortArrow: forwardRef((props, ref) => <ArrowUpward {...props} ref={ref} />),
   ThirdStateCheck: forwardRef((props, ref) => <Remove {...props} ref={ref} />),
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
+};
+
+const splitBtnStyle = {
+  backgroundColor: "rgb(153,46,98)",
+  color: "#fff",
+  padding: "0 10px",
+  minWidth: 0,
+  height: "30px",
+  lineHeight: 1,
+  border: "none",
+  boxShadow: "none",
+};
+
+const ActionButton = ({ row, onView, onEdit, onDelete }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = e => {
+      if (ref.current && !ref.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const toggle = () => setMenuOpen(p => !p);
+
+  return (
+    <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
+      <ButtonGroup variant="contained" size="small" style={{ height: "30px", boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }}>
+        <MuiButton onClick={toggle} style={{ ...splitBtnStyle, borderRight: "1px solid rgba(255,255,255,0.35)", minWidth: "30px" }}>
+          ▾
+        </MuiButton>
+        <MuiButton onClick={toggle} style={{ ...splitBtnStyle, fontSize: "12px", fontWeight: "bolder", paddingLeft: "12px", paddingRight: "12px" }}>
+          Action
+        </MuiButton>
+      </ButtonGroup>
+      {menuOpen && (
+        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 9999, background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", borderRadius: "4px", minWidth: "120px", marginTop: "4px" }}>
+          {row.viewable && (
+            <div onClick={() => { setMenuOpen(false); onView(row); }}
+              style={{ padding: "8px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+            >
+              <Icon name="eye" /> View
+            </div>
+          )}
+          {row.editable && (
+            <div onClick={() => { setMenuOpen(false); onEdit(row); }}
+              style={{ padding: "8px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+            >
+              <Icon name="edit" /> Edit
+            </div>
+          )}
+          <div onClick={() => { setMenuOpen(false); onDelete(row); }}
+            style={{ padding: "8px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+          >
+            <Icon name="trash" /> Delete
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const PatientnHistory = props => {
@@ -289,44 +359,12 @@ const PatientnHistory = props => {
             name: row.name,
             date: row.date,
             actions: (
-              <div>
-                <Menu.Menu position="right">
-                  <Menu.Item>
-                    <Button
-                      style={{ backgroundColor: "rgb(153,46,98)" }}
-                      primary
-                    >
-                      <Dropdown item text="Action">
-                        <Dropdown.Menu style={{ marginTop: "10px" }}>
-                          {row.viewable && (
-                            <Dropdown.Item
-                              onClick={() => LoadViewPage(row, "view")}
-                            >
-                              {" "}
-                              <Icon name="eye" />
-                              View{" "}
-                            </Dropdown.Item>
-                          )}
-                          {row.editable && (
-                            <Dropdown.Item
-                              onClick={() => LoadViewPage(row, "update")}
-                            >
-                              <Icon name="edit" />
-                              Edit
-                            </Dropdown.Item>
-                          )}
-                          <Dropdown.Item
-                            onClick={() => LoadModal(row, "delete")}
-                          >
-                            {" "}
-                            <Icon name="trash" /> Delete
-                          </Dropdown.Item>
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    </Button>
-                  </Menu.Item>
-                </Menu.Menu>
-              </div>
+              <ActionButton
+                row={row}
+                onView={r => LoadViewPage(r, "view")}
+                onEdit={r => LoadViewPage(r, "update")}
+                onDelete={r => LoadModal(r, "delete")}
+              />
             ),
           }))
         }

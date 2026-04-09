@@ -150,7 +150,7 @@ function PatientCard(props) {
           <li className="breadcrumb-item active">
             <h4>
               {" "}
-              <Link to={"/"}>PrEP/PEP /</Link> Patient Dashboard
+              <Link to={"/"}>HIV Prevention /</Link> Patient Dashboard
             </h4>
           </li>
         </ol>

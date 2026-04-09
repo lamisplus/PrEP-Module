@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { token as token, url as baseUrl } from "./../../../api";
@@ -23,7 +23,9 @@ import ViewColumn from "@material-ui/icons/ViewColumn";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { makeStyles } from "@material-ui/core/styles";
-import { Dropdown as SuiDropdown, Menu as SuiMenu, Button as SuiButton, Icon } from "semantic-ui-react";
+import MuiButton from "@material-ui/core/Button";
+import ButtonGroup from "@material-ui/core/ButtonGroup";
+import { Icon } from "semantic-ui-react";
 import "@reach/menu-button/styles.css";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
@@ -63,10 +65,32 @@ const useStyles = makeStyles({
   },
 });
 
+const enrollSplitBtnStyle = {
+  backgroundColor: "rgb(153,46,98)",
+  color: "#fff",
+  padding: "0 10px",
+  minWidth: 0,
+  height: "30px",
+  lineHeight: 1,
+  border: "none",
+  boxShadow: "none",
+};
+
 const EnrollPatientButton = ({ row }) => {
   const history = useHistory();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = e => {
+      if (ref.current && !ref.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const handleEnroll = screeningType => {
+    setMenuOpen(false);
     history.push({
       pathname: "/patient-dashboard",
       state: { patientObj: row, screeningType, freshEnroll: true },
@@ -74,36 +98,41 @@ const EnrollPatientButton = ({ row }) => {
   };
 
   return (
-    <div>
-      <SuiMenu.Menu position="right">
-        <SuiMenu.Item style={{ padding: 0 }}>
-          <SuiButton
-            style={{
-              backgroundColor: "rgb(153, 46, 98)",
-              color: "#fff",
-              padding: "8px 12px",
-              margin: 0,
-            }}
-            primary
+    <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
+      <ButtonGroup variant="contained" size="small" style={{ height: "30px", boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }}>
+        <MuiButton
+          onClick={() => setMenuOpen(p => !p)}
+          style={{ ...enrollSplitBtnStyle, borderRight: "1px solid rgba(255,255,255,0.35)", minWidth: "30px" }}
+        >
+          ▾
+        </MuiButton>
+        <MuiButton
+          onClick={() => setMenuOpen(p => !p)}
+          style={{ ...enrollSplitBtnStyle, fontSize: "12px", fontWeight: "bolder", paddingLeft: "12px", paddingRight: "12px" }}
+        >
+          Enroll Patient
+        </MuiButton>
+      </ButtonGroup>
+      {menuOpen && (
+        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 9999, background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", borderRadius: "4px", minWidth: "130px", marginTop: "4px" }}>
+          <div
+            onClick={() => handleEnroll("PrEP")}
+            style={{ padding: "8px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
           >
-            <SuiDropdown
-              item
-              text="Enroll Patient"
-              icon="caret down"
-              style={{ color: "#fff", fontSize: "12px", fontWeight: "bolder" }}
-            >
-              <SuiDropdown.Menu style={{ marginTop: "10px" }}>
-                <SuiDropdown.Item onClick={() => handleEnroll("PrEP")}>
-                  <Icon name="user plus" /> PrEP
-                </SuiDropdown.Item>
-                <SuiDropdown.Item onClick={() => handleEnroll("PEP")}>
-                  <Icon name="user plus" /> PEP
-                </SuiDropdown.Item>
-              </SuiDropdown.Menu>
-            </SuiDropdown>
-          </SuiButton>
-        </SuiMenu.Item>
-      </SuiMenu.Menu>
+            <Icon name="user plus" /> PrEP
+          </div>
+          <div
+            onClick={() => handleEnroll("PEP")}
+            style={{ padding: "8px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+          >
+            <Icon name="user plus" /> PEP
+          </div>
+        </div>
+      )}
     </div>
   );
 };
