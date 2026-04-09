@@ -136,7 +136,7 @@ function SubMenu(props) {
           )}
         />
 
-        {isNegative && (
+        {isNegative && freshWorkflow && (
           <ProtectedComponent
             isAuthorized={userPermissions.enrollment}
             privateComponent={() => (

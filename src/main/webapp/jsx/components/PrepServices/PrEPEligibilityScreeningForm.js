@@ -1732,10 +1732,8 @@ const BasicInfo = props => {
                 <b>Score: {Object.values(assessmentForPepIndication).filter(v => v === "true").length}</b>
               </Message>
               {Object.values(assessmentForPepIndication).some(v => v === "true") && (
-                <div style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
-                  <span className="badge" style={{ backgroundColor: "#dc3545", color: "#fff", padding: "0.75rem 1rem", fontSize: "0.9rem", borderRadius: "0.28571429rem" }}>
-                    Refer for PEP
-                  </span>
+                <div style={{ backgroundColor: "rgba(220,53,69,0.1)", border: "1px solid #dc3545", borderRadius: "0.28571429rem", padding: "0.75rem 1rem", marginTop: "0.5rem", marginBottom: "0.5rem", color: "#dc3545", fontSize: "0.9rem", width: "100%" }}>
+                  Refer for PEP
                 </div>
               )}
 
@@ -2166,10 +2164,8 @@ const BasicInfo = props => {
                 <b>Score: {stiCount.length}</b>
               </Message>
               {stiCount.length >= 1 && (
-                <div style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
-                  <span className="badge" style={{ backgroundColor: "#dc3545", color: "#fff", padding: "0.75rem 1rem", fontSize: "0.9rem", borderRadius: "0.28571429rem" }}>
-                    Enroll in Syndromic STI management or Refer
-                  </span>
+                <div style={{ backgroundColor: "rgba(220,53,69,0.1)", border: "1px solid #dc3545", borderRadius: "0.28571429rem", padding: "0.75rem 1rem", marginTop: "0.5rem", marginBottom: "0.5rem", color: "#dc3545", fontSize: "0.9rem", width: "100%" }}>
+                  Enroll in Syndromic STI management or Refer
                 </div>
               )}
 
@@ -2394,14 +2390,10 @@ const BasicInfo = props => {
                   "true" ||
                   assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days ===
                     "true") && (
-                  <Message negative style={{ width: "100%" }}>
-                    <h4>HIV Re-Testing Recommended</h4>
-                    <p>
-                      Client tested HIV Negative but has signs/symptoms of acute
-                      HIV infection. HIV re-testing is recommended after 1
-                      month.
-                    </p>
-                  </Message>
+                  <div style={{ backgroundColor: "rgba(220,53,69,0.1)", border: "1px solid #dc3545", borderRadius: "0.28571429rem", padding: "0.75rem 1rem", marginTop: "0.5rem", marginBottom: "0.5rem", color: "#dc3545", fontSize: "0.9rem", width: "100%" }}>
+                    <div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>HIV Re-Testing Recommended</div>
+                    <span>Client tested HIV Negative but has signs/symptoms of acute HIV infection. HIV re-testing is recommended after 1 month.</span>
+                  </div>
                 )}
 
               <hr />
@@ -2441,10 +2433,8 @@ const BasicInfo = props => {
                       <b>Score: {binaryScore}</b>
                     </Message>
                     {binaryScore >= 2 && (
-                      <div style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
-                        <span className="badge" style={{ backgroundColor: "#28a745", color: "#fff", padding: "0.75rem 1rem", fontSize: "0.9rem", borderRadius: "0.28571429rem" }}>
-                          Client is Eligible for PrEP
-                        </span>
+                      <div style={{ backgroundColor: "rgba(40,167,69,0.1)", border: "1px solid #28a745", borderRadius: "0.28571429rem", padding: "0.75rem 1rem", marginTop: "0.5rem", marginBottom: "0.5rem", color: "#28a745", fontSize: "0.9rem", width: "100%" }}>
+                        Client is Eligible for PrEP
                       </div>
                     )}
                   </div>
@@ -2559,24 +2549,18 @@ const BasicInfo = props => {
                   return (
                     <div
                       style={{
-                        display: "flex",
-                        gap: "0.5rem",
-                        flexWrap: "wrap",
-                        alignItems: "center",
+                        backgroundColor: allYes ? "rgba(40,167,69,0.1)" : "rgba(23,162,184,0.1)",
+                        border: `1px solid ${allYes ? "#28a745" : "#17a2b8"}`,
+                        borderRadius: "0.28571429rem",
+                        padding: "0.75rem 1rem",
+                        marginTop: "0.5rem",
+                        marginBottom: "0.5rem",
+                        color: allYes ? "#28a745" : "#17a2b8",
+                        fontSize: "0.9rem",
+                        width: "100%",
                       }}
                     >
-                      <span
-                        className="badge"
-                        style={{
-                          backgroundColor: allYes ? "#28a745" : "#17a2b8",
-                          color: "#fff",
-                          padding: "0.75rem 1rem",
-                          fontSize: "0.9rem",
-                          borderRadius: "0.28571429rem",
-                        }}
-                      >
-                        {allYes ? "Eligible for Injectable" : "Consider for Oral"}
-                      </span>
+                      {allYes ? "Eligible for Injectable" : "Consider for Oral"}
                     </div>
                   );
                 })()}

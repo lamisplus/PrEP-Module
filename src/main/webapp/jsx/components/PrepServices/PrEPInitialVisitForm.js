@@ -286,7 +286,8 @@ const PrEPInitialVisitForm = props => {
           })
           .catch(error => {
             setSaving(false);
-            toast.error("Something went wrong❌");
+            const msg = error?.response?.data?.message || error?.response?.data?.apierror?.message || "Something went wrong❌";
+            toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER });
           });
       } else {
         axios
@@ -309,7 +310,8 @@ const PrEPInitialVisitForm = props => {
           })
           .catch(error => {
             setSaving(false);
-            toast.error("Something went wrong❌");
+            const msg = error?.response?.data?.message || error?.response?.data?.apierror?.message || "Something went wrong❌";
+            toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER });
           });
       }
     } else {

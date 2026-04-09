@@ -34,6 +34,12 @@ export const useStyles = makeStyles(theme => ({
     "& .form-control": {
       borderRadius: "0.25rem",
       height: "41px",
+      border: "1px solid #014d88",
+      "&:focus": {
+        borderColor: "#014d88",
+        boxShadow: "0 0 0 0.1rem rgba(1, 77, 136, 0.25)",
+        outline: "none",
+      },
     },
     "& .card-header:first-child": {
       borderRadius: "calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0",
