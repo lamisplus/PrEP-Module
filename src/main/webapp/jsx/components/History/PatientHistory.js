@@ -59,14 +59,15 @@ const tableIcons = {
 };
 
 const splitBtnStyle = {
-  backgroundColor: "rgb(153,46,98)",
+  backgroundColor: "rgb(153, 46, 98)",
   color: "#fff",
-  padding: "0 10px",
   minWidth: 0,
-  height: "30px",
+  height: "2.2rem",
   lineHeight: 1,
   border: "none",
   boxShadow: "none",
+  textTransform: "capitalize",
+  fontFamily: "inherit",
 };
 
 const ActionButton = ({ row, onView, onEdit, onDelete }) => {
@@ -85,19 +86,19 @@ const ActionButton = ({ row, onView, onEdit, onDelete }) => {
 
   return (
     <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
-      <ButtonGroup variant="contained" size="small" style={{ height: "30px", boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }}>
-        <MuiButton onClick={toggle} style={{ ...splitBtnStyle, fontSize: "12px", fontWeight: "bolder", paddingLeft: "12px", paddingRight: "12px" }}>
+      <ButtonGroup variant="contained" size="small" style={{ height: "2.2rem", boxShadow: "0 0.125rem 0.25rem rgba(0,0,0,0.2)" }}>
+        <MuiButton onClick={toggle} style={{ ...splitBtnStyle, fontSize: "0.875rem", fontWeight: "bolder", paddingLeft: "0.875rem", paddingRight: "0.875rem" }}>
           Action
         </MuiButton>
-        <MuiButton onClick={toggle} style={{ ...splitBtnStyle, borderLeft: "1px solid rgba(255,255,255,0.35)", minWidth: "30px", paddingLeft: "8px", paddingRight: "8px" }}>
+        <MuiButton onClick={toggle} style={{ ...splitBtnStyle, borderLeft: "0.0625rem solid rgba(255,255,255,0.35)", minWidth: "2.125rem", fontSize: "1.125rem", paddingLeft: "0.375rem", paddingRight: "0.375rem" }}>
           ▾
         </MuiButton>
       </ButtonGroup>
       {menuOpen && (
-        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 9999, background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", borderRadius: "4px", minWidth: "120px", marginTop: "4px" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 9999, background: "#fff", boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.18)", borderRadius: "0.25rem", minWidth: "7.5rem", marginTop: "0.25rem" }}>
           {row.viewable && (
             <div onClick={() => { setMenuOpen(false); onView(row); }}
-              style={{ padding: "8px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}
+              style={{ padding: "0.5rem 1rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.8125rem" }}
               onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
               onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
             >
@@ -106,7 +107,7 @@ const ActionButton = ({ row, onView, onEdit, onDelete }) => {
           )}
           {row.editable && (
             <div onClick={() => { setMenuOpen(false); onEdit(row); }}
-              style={{ padding: "8px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}
+              style={{ padding: "0.5rem 1rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.8125rem" }}
               onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
               onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
             >
@@ -114,7 +115,7 @@ const ActionButton = ({ row, onView, onEdit, onDelete }) => {
             </div>
           )}
           <div onClick={() => { setMenuOpen(false); onDelete(row); }}
-            style={{ padding: "8px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}
+            style={{ padding: "0.5rem 1rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.8125rem" }}
             onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
             onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
           >
