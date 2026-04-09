@@ -21,7 +21,10 @@ public class PrepInterruptionActivityProvider implements PatientActivityProvider
 	@Override
 	public List<PatientActivity> getActivitiesFor(Person person) {
 		return interruptionRepository.findAllByPersonAndArchived(person, 0)
-				.stream().map(this::buildPatientActivity).collect(Collectors.toList());
+				.stream()
+				.filter(i -> i.getInterruptionDate() != null || i.getFollowUpVisitDate() != null)
+				.map(this::buildPatientActivity)
+				.collect(Collectors.toList());
 	}
 
 	@NotNull
@@ -38,7 +41,11 @@ public class PrepInterruptionActivityProvider implements PatientActivityProvider
 		} else {
 			name = "PrEP Discontinuation/Interruption";
 		}
+		// PEP completion may not set interruptionDate; fall back to followUpVisitDate
+		java.time.LocalDate date = interruption.getInterruptionDate() != null
+				? interruption.getInterruptionDate()
+				: interruption.getFollowUpVisitDate();
 		assert interruption.getId() != null;
-		return new PatientActivity(interruption.getId(), name, interruption.getInterruptionDate(), "", "prep-completion");
+		return new PatientActivity(interruption.getId(), name, date, "", "prep-completion");
 	}
 }

@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.apierror.RecordExistException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.prep.domain.dto.PrepPepInitiationDto;
@@ -50,6 +52,15 @@ public class PrepPepInitiationService {
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setUuid(UUID.randomUUID().toString());
         entity.setStatus("ENROLLED");
+
+        if (requestDto.getDateEnrolled() != null) {
+            prepPepInitiationRepository
+                    .findByDateEnrolledAndPersonUuid(requestDto.getDateEnrolled(), person.getUuid())
+                    .ifPresent(existing -> {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "An initiation record already exists for this enrollment date: " + requestDto.getDateEnrolled());
+                    });
+        }
 
         entity = prepPepInitiationRepository.save(entity);
         entity.setPerson(person);

@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.apierror.RecordExistException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.prep.domain.dto.PrepEligibilityScreeningDto;
@@ -44,9 +46,8 @@ public class PrepEligibilityScreeningService {
         prepEligibilityScreeningRepository
                 .findByVisitDateAndPersonUuidAndArchived(requestDto.getVisitDate(), person.getUuid(), 0)
                 .ifPresent(existing -> {
-                    if (existing.getArchived() == 0) {
-                        throw new RecordExistException(PrepEligibilityScreening.class, "Visit date", String.valueOf(requestDto.getVisitDate()));
-                    }
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "A screening record already exists for this visit date: " + requestDto.getVisitDate());
                 });
 
         entity = prepEligibilityScreeningRepository.save(entity);
