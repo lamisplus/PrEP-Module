@@ -102,15 +102,15 @@ const EnrollPatientButton = ({ row }) => {
       <ButtonGroup variant="contained" size="small" style={{ height: "30px", boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }}>
         <MuiButton
           onClick={() => setMenuOpen(p => !p)}
-          style={{ ...enrollSplitBtnStyle, borderRight: "1px solid rgba(255,255,255,0.35)", minWidth: "30px" }}
-        >
-          ▾
-        </MuiButton>
-        <MuiButton
-          onClick={() => setMenuOpen(p => !p)}
           style={{ ...enrollSplitBtnStyle, fontSize: "12px", fontWeight: "bolder", paddingLeft: "12px", paddingRight: "12px" }}
         >
           Enroll Patient
+        </MuiButton>
+        <MuiButton
+          onClick={() => setMenuOpen(p => !p)}
+          style={{ ...enrollSplitBtnStyle, borderLeft: "1px solid rgba(255,255,255,0.35)", minWidth: "30px", paddingLeft: "8px", paddingRight: "8px" }}
+        >
+          ▾
         </MuiButton>
       </ButtonGroup>
       {menuOpen && (
