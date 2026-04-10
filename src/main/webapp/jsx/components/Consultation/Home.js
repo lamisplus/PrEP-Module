@@ -23,7 +23,7 @@ import DurationWrapper from "./DurationWrapper/DurationWrapper";
 import { useStyles } from "../../../hooks/styles/prepVisit/useStyle";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import { fetchFollowupVisitCodesets } from "../../../../apiCalls/hivPreventionCodesets";
+import { fetchFollowupVisitCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { fetchPrepRegimens, fetchPrepRegimenByType } from "./codesets";
 
 export const CleanupWrapper = ({ cleanup, children }) => {

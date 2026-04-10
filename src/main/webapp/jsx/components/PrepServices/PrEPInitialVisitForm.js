@@ -22,7 +22,7 @@ import moment from "moment";
 import { Spinner } from "reactstrap";
 import { useStyles } from "../../../hooks/styles/prepRegistration/useStyle";
 import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
-import { fetchInitialVisitCodesets } from "../../../../apiCalls/hivPreventionCodesets";
+import { fetchInitialVisitCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { fetchPrepRegimens, getPepRegimenOptions } from "../Consultation/codesets";
 
 const PrEPInitialVisitForm = props => {

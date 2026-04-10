@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import "react-widgets/dist/css/react-widgets.css";
 import { token, url as baseUrl } from "../../../api";
 import "react-phone-input-2/lib/style.css";
-import { fetchEligibilityScreeningCodesets } from "../../../../apiCalls/hivPreventionCodesets";
+import { fetchEligibilityScreeningCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";

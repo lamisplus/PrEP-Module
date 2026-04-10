@@ -21,7 +21,7 @@ import { Spinner } from "reactstrap";
 import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 import DurationWrapper from "../Consultation/DurationWrapper/DurationWrapper";
 import { useStyles } from "../../../hooks/styles/prepCommencement/useStyles";
-import { fetchCommencementCodesets } from "../../../../apiCalls/hivPreventionCodesets";
+import { fetchCommencementCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { fetchPrepRegimens, fetchPrepRegimenByType } from "../Consultation/codesets";
 
 const durationMap = {
