@@ -22,7 +22,8 @@ import moment from "moment";
 import { Spinner } from "reactstrap";
 import { useStyles } from "../../../hooks/styles/prepRegistration/useStyle";
 import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
-import { fetchAllCodesets, fetchPrepRegimens, getPepRegimenOptions } from "../Consultation/codesets";
+import { fetchInitialVisitCodesets } from "../../../../apiCalls/hivPreventionCodesets";
+import { fetchPrepRegimens, getPepRegimenOptions } from "../Consultation/codesets";
 
 const PrEPInitialVisitForm = props => {
   const [entryPoint, setEntryPoint] = useState([]);
@@ -70,9 +71,8 @@ const PrEPInitialVisitForm = props => {
     height: "",
   });
 
-  // TODO: Replace fetchAllCodesets / fetchPrepRegimens with API calls when endpoints are ready.
   useEffect(() => {
-    fetchAllCodesets().then(data => {
+    fetchInitialVisitCodesets().then(data => {
       setCodeset(data);
       setEntryPoint(data.HTS_ENTRY_POINT || []);
       setRelatives(data.RELATIONSHIP || []);

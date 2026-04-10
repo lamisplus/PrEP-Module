@@ -23,11 +23,8 @@ import DurationWrapper from "./DurationWrapper/DurationWrapper";
 import { useStyles } from "../../../hooks/styles/prepVisit/useStyle";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import {
-  fetchAllCodesets,
-  fetchPrepRegimens,
-  fetchPrepRegimenByType,
-} from "./codesets";
+import { fetchFollowupVisitCodesets } from "../../../../apiCalls/hivPreventionCodesets";
+import { fetchPrepRegimens, fetchPrepRegimenByType } from "./codesets";
 
 export const CleanupWrapper = ({ cleanup, children }) => {
   useEffect(() => {
@@ -728,10 +725,9 @@ const ClinicVisit = props => {
   };
 
   // ── Codeset fetch ──
-  // TODO: Replace fetchAllCodesets() with API call when endpoints are ready.
 
   useEffect(() => {
-    fetchAllCodesets().then(data => {
+    fetchFollowupVisitCodesets().then(data => {
       setCodeset(data);
     });
   }, []);

@@ -21,11 +21,8 @@ import { Spinner } from "reactstrap";
 import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 import DurationWrapper from "../Consultation/DurationWrapper/DurationWrapper";
 import { useStyles } from "../../../hooks/styles/prepCommencement/useStyles";
-import {
-  fetchAllCodesets as fetchAllCodesetsFromCatalog,
-  fetchPrepRegimens,
-  fetchPrepRegimenByType,
-} from "../Consultation/codesets";
+import { fetchCommencementCodesets } from "../../../../apiCalls/hivPreventionCodesets";
+import { fetchPrepRegimens, fetchPrepRegimenByType } from "../Consultation/codesets";
 
 const durationMap = {
   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": "30",
@@ -101,10 +98,9 @@ const PrEPCommencementForm = props => {
     }
   }, []);
 
-  // TODO: Replace with API calls when endpoints are ready.
   const fetchAllCodesets = async () => {
     try {
-      const data = await fetchAllCodesetsFromCatalog();
+      const data = await fetchCommencementCodesets();
       setCodeset(data);
     } catch (error) {
       console.error("Error fetching codesets:", error);

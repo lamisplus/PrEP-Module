@@ -19,7 +19,7 @@ import "react-dual-listbox/lib/react-dual-listbox.css";
 import { useStyles } from "../../../hooks/styles/prepVisit/useStyle";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import { fetchAllCodesets } from "./codesets";
+import { fetchPEPFollowupCodesets } from "../../../../apiCalls/hivPreventionCodesets";
 
 const inputStyle = {
   border: "1px solid #014D88",
@@ -287,7 +287,7 @@ const PEPFollowupVisit = props => {
   // ── Codeset fetch ──
 
   useEffect(() => {
-    fetchAllCodesets().then(data => {
+    fetchPEPFollowupCodesets().then(data => {
       setCodeset(data);
     });
   }, []);

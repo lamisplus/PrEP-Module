@@ -73,8 +73,10 @@ const enrollSplitBtnStyle = {
   lineHeight: 1,
   border: "none",
   boxShadow: "none",
-  textTransform: "capitalize",
+  textTransform: "uppercase",
   fontFamily: "inherit",
+  fontWeight: "bold",
+  letterSpacing: "0.05em",
 };
 
 const EnrollPatientButton = ({ row }) => {
@@ -103,22 +105,23 @@ const EnrollPatientButton = ({ row }) => {
       <ButtonGroup variant="contained" size="small" style={{ height: "2.2rem", boxShadow: "0 0.125rem 0.25rem rgba(0,0,0,0.2)" }}>
         <MuiButton
           onClick={() => setMenuOpen(p => !p)}
-          style={{ ...enrollSplitBtnStyle, fontSize: "0.875rem", fontWeight: "bolder", paddingLeft: "0.875rem", paddingRight: "0.875rem" }}
+          style={{ ...enrollSplitBtnStyle, fontSize: "0.8rem", paddingLeft: "0.875rem", paddingRight: "0.75rem" }}
         >
+          <Icon name="user plus" style={{ marginRight: "0.375rem", fontSize: "0.9rem" }} />
           Enroll Patient
         </MuiButton>
         <MuiButton
           onClick={() => setMenuOpen(p => !p)}
-          style={{ ...enrollSplitBtnStyle, borderLeft: "0.0625rem solid rgba(255,255,255,0.35)", minWidth: "2.125rem", fontSize: "1.125rem", paddingLeft: "0.375rem", paddingRight: "0.375rem" }}
+          style={{ ...enrollSplitBtnStyle, borderLeft: "0.0625rem solid rgba(255,255,255,0.35)", minWidth: "2.25rem", fontSize: "1.4rem", paddingLeft: "0.375rem", paddingRight: "0.375rem" }}
         >
           ▾
         </MuiButton>
       </ButtonGroup>
       {menuOpen && (
-        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 9999, background: "#fff", boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.18)", borderRadius: "0.25rem", minWidth: "8.125rem", marginTop: "0.25rem" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 9999, background: "#fff", boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.18)", borderRadius: "0.25rem", width: "100%", marginTop: "0.25rem" }}>
           <div
             onClick={() => handleEnroll("PrEP")}
-            style={{ padding: "0.5rem 1rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.8125rem" }}
+            style={{ padding: "0.5rem 1rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem" }}
             onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
             onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
           >
@@ -126,7 +129,7 @@ const EnrollPatientButton = ({ row }) => {
           </div>
           <div
             onClick={() => handleEnroll("PEP")}
-            style={{ padding: "0.5rem 1rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.8125rem" }}
+            style={{ padding: "0.5rem 1rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem" }}
             onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
             onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
           >

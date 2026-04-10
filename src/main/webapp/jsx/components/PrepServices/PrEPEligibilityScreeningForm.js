@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import "react-widgets/dist/css/react-widgets.css";
 import { token, url as baseUrl } from "../../../api";
 import "react-phone-input-2/lib/style.css";
-import { fetchAllCodesets as fetchAllCodesetsFromCatalog, fetchSettingOptions } from "../Consultation/codesets";
+import { fetchEligibilityScreeningCodesets } from "../../../../apiCalls/hivPreventionCodesets";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
@@ -212,10 +212,11 @@ const BasicInfo = props => {
     noHistoryOfDrugHypersensitivityInjectable: "",
   });
 
-  // TODO: Replace fetchAllCodesetsFromCatalog() with API call when endpoint is ready.
   useEffect(() => {
-    fetchAllCodesetsFromCatalog().then(data => setCodeset(data));
-    fetchSettingOptions().then(data => setSettingOptions(data));
+    fetchEligibilityScreeningCodesets().then(({ codeset, settingOptions }) => {
+      setCodeset(codeset);
+      setSettingOptions(settingOptions);
+    });
   }, []);
 
   useEffect(async () => {
