@@ -650,9 +650,9 @@ const PEPFollowupVisit = props => {
                             style={{ border: "1px solid #014D88", borderRadius: "0.2rem" }}
                           >
                             <option value="">Select</option>
-                            <option value="Pregnant">Pregnant</option>
-                            <option value="Breastfeeding">Breastfeeding</option>
-                            <option value="Non-pregnant">Non-pregnant</option>
+                            {(codeset?.PREGNANCY_STATUS || []).map(item => (
+                              <option key={item.code} value={item.code}>{item.display}</option>
+                            ))}
                           </Input>
                         </FormGroup>
                       </div>

@@ -1166,9 +1166,9 @@ const ClinicVisit = props => {
                             style={inputStyle}
                           >
                             <option value="">Select Pregnancy Status</option>
-                            <option value="Pregnant">Pregnant</option>
-                            <option value="Breastfeeding">Breastfeeding</option>
-                            <option value="Non-pregnant">Non-pregnant</option>
+                            {(codeset?.PREGNANCY_STATUS || []).map(item => (
+                              <option key={item.code} value={item.code}>{item.display}</option>
+                            ))}
                           </Input>
                           {getError("pregnant") && (
                             <span className={classes.error}>
@@ -1376,8 +1376,9 @@ const ClinicVisit = props => {
                           onChange={e => setHivTestValue(e.target.value)}
                         >
                           <option value="">Select</option>
-                          <option value="Negative">Negative</option>
-                          <option value="Positive">Positive</option>
+                          {(codeset?.HIV_TEST_RESULT || []).map(item => (
+                            <option key={item.code} value={item.code}>{item.display}</option>
+                          ))}
                         </Input>
                         {!hivTestValue && (
                           <span className={classes.error}>

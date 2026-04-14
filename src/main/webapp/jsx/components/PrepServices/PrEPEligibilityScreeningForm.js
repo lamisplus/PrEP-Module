@@ -871,8 +871,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="Civilian">Civilian</option>
-                    <option value="Military">Military</option>
+                    {(codeset?.PREP_SERVICE_STATUS || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.serviceStatus !== "" ? (
                     <span className={classes.error}>{errors.serviceStatus}</span>
@@ -898,8 +899,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="Individual">Individual</option>
-                    <option value="Couple">Couple</option>
+                    {(codeset?.COUNSELING_TYPE || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -949,9 +951,9 @@ const BasicInfo = props => {
                       disabled={disabledField}
                     >
                       <option value={""}>Select</option>
-                      <option value="Pregnant">Pregnant</option>
-                      <option value="Breastfeeding">Breastfeeding</option>
-                      <option value="Non-pregnant">Non-pregnant</option>
+                      {(codeset?.PREGNANCY_STATUS || []).map(item => (
+                        <option key={item.code} value={item.code}>{item.display}</option>
+                      ))}
                     </select>
                     {errors.pregnancyStatus !== "" ? (
                       <span className={classes.error}>{errors.pregnancyStatus}</span>
@@ -2198,9 +2200,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="<1 month">{"<"}1 month</option>
-                    <option value="1-3 months">1–3 months</option>
-                    <option value="4-6 months">4–6 months</option>
+                    {(codeset?.TIME_LAST_NEGATIVE_TEST_RESULT || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -2267,8 +2269,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="Negative">Negative</option>
-                    <option value="Positive">Positive</option>
+                    {(codeset?.HIV_TEST_RESULT || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.hivTestResultAtvisit !== "" ? (
                     <span className={classes.error}>

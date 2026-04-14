@@ -468,25 +468,9 @@ const PrEPInitialVisitForm = props => {
                     }}
                   >
                     <option value="">Select</option>
-                    <option value="Serodiscordant Couples(SDC)">
-                      Serodiscordant Couples(SDC)
-                    </option>
-                    <option value="Sex Workers">Sex Workers</option>
-                    <option value="Partners of Sex workers">
-                      Partners of Sex workers
-                    </option>
-                    <option value="Injecting Drug Users">
-                      Injecting Drug Users
-                    </option>
-                    <option value="Individuals who engage in anal sex on a prolonged and regular basis">
-                      Individuals who engage in anal sex on a prolonged and
-                      regular basis
-                    </option>
-                    <option value="Exposed adolescents and young people">
-                      Exposed adolescents and young people
-                    </option>
-                    <option value="Transgender">Transgender</option>
-                    <option value="At risk Pregnant & Breastfeeding Women">{`At risk Pregnant & Breastfeeding Women`}</option>
+                    {(codeset?.POPULATION_TYPE || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.populationType !== "" ? (
                     <span className={classes.error}>{errors.populationType}</span>
@@ -498,8 +482,8 @@ const PrEPInitialVisitForm = props => {
 
               {/* 5. Date Referred for PrEP - only for PrEP and when HIV result = Positive or Early Detect */}
               {objValues.enrollmentType !== 'PEP' &&
-               (objValues.resultOfHivTest === "Positive" ||
-                objValues.resultOfHivTest === "Early Detect") && (
+               (objValues.resultOfHivTest?.toLowerCase().includes("positive") ||
+                objValues.resultOfHivTest?.toLowerCase().includes("early")) && (
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>
                     <Label>Date Referred for PrEP <span style={{ color: "red" }}> *</span></Label>
@@ -605,9 +589,9 @@ const PrEPInitialVisitForm = props => {
                     }}
                   >
                     <option value="">Select</option>
-                    <option value="Positive">Positive</option>
-                    <option value="Negative">Negative</option>
-                    <option value="Early Detect">Early Detect</option>
+                    {(codeset?.HIV_TEST_RESULT || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.resultOfHivTest !== "" ? (
                     <span className={classes.error}>{errors.resultOfHivTest}</span>
@@ -924,14 +908,13 @@ const PrEPInitialVisitForm = props => {
                     }}
                   >
                     <option value="">Select</option>
-                    <option value="Oral">Oral</option>
-                    <option value="Injectable">Injectable</option>
-                    <option value="Ring">Ring</option>
-                    <option value="Others">Others</option>
+                    {(codeset?.PrEP_TYPE || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
-              {objValues.prepTypeAtStart === "Others" && (
+              {objValues.prepTypeAtStart?.toLowerCase().includes("other") && (
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>
                     <Label>Specify</Label>

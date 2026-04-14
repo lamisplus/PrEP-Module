@@ -63,6 +63,10 @@ export async function fetchEligibilityScreeningCodesets() {
       "COUNSELING_TYPE",
       "REASON_PREP_DECLINED",
       "PREP_SETTINGS",
+      "PREP_SERVICE_STATUS",
+      "PREGNANCY_STATUS",
+      "TIME_LAST_NEGATIVE_TEST_RESULT",
+      "HIV_TEST_RESULT",
     ]);
 
     // Convert PREP_SETTINGS to the { value, label } shape the form uses
@@ -98,6 +102,9 @@ export async function fetchInitialVisitCodesets() {
       "LIVER_FUNCTION_TEST_RESULT",
       "HTS_ENTRY_POINT",
       "PREP_RISK_TYPE",
+      "POPULATION_TYPE",
+      "HIV_TEST_RESULT",
+      "PrEP_TYPE",
     ]);
   } catch (_err) {
     return hardcodedFallback();
@@ -156,6 +163,8 @@ export async function fetchFollowupVisitCodesets() {
       "PREP_OTHER_TEST",
       "REASON_METHOD_SWITCH",
       "FAMILY_PLANNING_METHOD",
+      "PREGNANCY_STATUS",
+      "HIV_TEST_RESULT",
     ]);
     return remap(data, {
       PREP_PEP_SIDE_EFFECTS: "PREP_SIDE_EFFECTS",
@@ -193,6 +202,7 @@ export async function fetchPEPFollowupCodesets() {
       "WHY_POOR_FAIR_ADHERENCE",
       "PEP_REGIMEN",
       "PEP_FOLLOW_UP_HIV_TEST_RESULT",
+      "PREGNANCY_STATUS",
     ]);
     return remap(data, {
       DURATION_BEFORE_PEP_PROVIDED: "PEP_DURATION_BEFORE_PEP",
