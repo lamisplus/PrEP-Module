@@ -681,10 +681,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value="">Select</option>
-                    <option value="Self">Self</option>
-                    <option value="Counsellor">Counsellor</option>
-                    <option value="Peers">Peers</option>
-                    <option value="Others (Specify)">Others (Specify)</option>
+                    {(codeset?.SOURCE_REFERRAL || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.referredFrom !== "" ? (
                     <span className={classes.error}>{errors.referredFrom}</span>
@@ -693,7 +692,7 @@ const BasicInfo = props => {
                   )}
                 </FormGroup>
               </div>
-              {objValues.referredFrom === "Others (Specify)" && (
+              {objValues.referredFrom?.toLowerCase().includes("other") && (
                 <div className="form-group col-md-4 p-2">
                   <FormGroup className="p-2">
                     <Label>Specify</Label>
@@ -811,16 +810,11 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    {codeset?.POPULATION_TYPE?.map(value => (
+                    {(codeset?.POPULATION_TYPE || []).map(value => (
                       <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
                     ))}
-                    {!codeset?.POPULATION_TYPE?.find(
-                      pType => pType.display === "GenPop"
-                    ) && (
-                      <option value="POPULATION_TYPE_GEN_POP">GenPop</option>
-                    )}
                   </select>
                   {errors.populationType !== "" ? (
                     <span className={classes.error}>{errors.populationType}</span>
@@ -922,9 +916,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Both">Both</option>
+                    {(codeset?.SEX || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.sexPartner !== "" ? (
                     <span className={classes.error}>{errors.sexPartner}</span>

@@ -533,9 +533,9 @@ const PrEPInitialVisitForm = props => {
                     }}
                   >
                     <option value="">Select</option>
-                    <option value="Facility">Facility</option>
-                    <option value="Community">Community</option>
-                    <option value="Others">Others</option>
+                    {(codeset?.HTS_ENTRY_POINT || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.hivTestingPoint !== "" ? (
                     <span className={classes.error}>{errors.hivTestingPoint}</span>

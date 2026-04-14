@@ -67,6 +67,8 @@ export async function fetchEligibilityScreeningCodesets() {
       "PREGNANCY_STATUS",
       "TIME_LAST_NEGATIVE_TEST_RESULT",
       "HIV_TEST_RESULT",
+      "SOURCE_REFERRAL",
+      "SEX",
     ]);
 
     // Convert PREP_SETTINGS to the { value, label } shape the form uses

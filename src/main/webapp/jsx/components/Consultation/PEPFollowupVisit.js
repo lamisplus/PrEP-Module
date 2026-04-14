@@ -281,7 +281,7 @@ const PEPFollowupVisit = props => {
   };
 
   const hasPositiveHivResult = hivTestEntries.some(
-    entry => entry.result?.toLowerCase() === "positive"
+    entry => entry.result?.toLowerCase().includes("positive")
   );
 
   // ── Codeset fetch ──
@@ -1060,9 +1060,9 @@ const PEPFollowupVisit = props => {
                                 style={inputStyle}
                               >
                                 <option value="">Select</option>
-                                <option value="Positive">Positive</option>
-                                <option value="Negative">Negative</option>
-                                <option value="Indeterminate">Indeterminate</option>
+                                {(codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT || []).map(item => (
+                                  <option key={item.code} value={item.code}>{item.display}</option>
+                                ))}
                               </Input>
                             </FormGroup>
                           </div>
