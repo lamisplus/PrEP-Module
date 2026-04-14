@@ -649,12 +649,7 @@ const BasicInfo = props => {
                     id="visitDate"
                     value={objValues.visitDate}
                     onChange={handleInputChange}
-                    min={
-                      props.patientDetail &&
-                      props.patientDetail.dateHivPositive !== null
-                        ? props.patientDetail.dateHivPositive
-                        : props.patientObj.dateOfRegistration
-                    }
+                    min={props.patientObj?.dateOfBirth || ""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     style={{
                       border: "1px solid #014D88",
@@ -2640,7 +2635,7 @@ const BasicInfo = props => {
               {servicesReceivedByClient?.willingToCommencePrep === "true" && (
                 <div className="form-group col-md-4 p-2">
                   <FormGroup className="p-2">
-                    <Label>Received PrEP for the first time this year</Label>
+                    <Label>PrEP Accepted</Label>
                     <select
                       className="form-control"
                       name="prepAccepted"
@@ -2683,25 +2678,27 @@ const BasicInfo = props => {
                   </select>
                 </FormGroup>
               </div>
-              <div className="form-group col-md-4 p-2">
-                <FormGroup className="p-2">
-                  <Label>Others (Specify)</Label>
-                  <Input
-                    className="form-control"
-                    name="othersSpecify"
-                    id="othersSpecify"
-                    value={servicesReceivedByClient?.othersSpecify}
-                    onChange={handleInputChangeServicesReceivedByClient}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  />
-                </FormGroup>
-              </div>
+              {servicesReceivedByClient?.clientReferredToOtherServices === "true" && (
+                <div className="form-group col-md-4 p-2">
+                  <FormGroup className="p-2">
+                    <Label>Others (Specify)</Label>
+                    <Input
+                      className="form-control"
+                      name="othersSpecify"
+                      id="othersSpecify"
+                      value={servicesReceivedByClient?.othersSpecify}
+                      onChange={handleInputChangeServicesReceivedByClient}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                      }}
+                      disabled={disabledField}
+                    />
+                  </FormGroup>
+                </div>
+              )}
 
-              {servicesReceivedByClient?.prepAccepted === "false" && (
+              {servicesReceivedByClient?.willingToCommencePrep === "false" && (
                 <>
                   <hr />
                   <br />
@@ -2727,49 +2724,11 @@ const BasicInfo = props => {
                         multiple
                         selection
                         search
-                        options={[
-                          {
-                            key: "no_need",
-                            value: "No need for PrEP",
-                            text: "No need for PrEP",
-                          },
-                          {
-                            key: "daily_med",
-                            value: "Does not wish to take a daily medication",
-                            text: "Does not wish to take a daily medication",
-                          },
-                          {
-                            key: "side_effects",
-                            value: "Concerns about side effects",
-                            text: "Concerns about side effects",
-                          },
-                          {
-                            key: "others_think",
-                            value: "Concerns about what others think",
-                            text: "Concerns about what others think",
-                          },
-                          {
-                            key: "clinic_time",
-                            value:
-                              "Concerns about time required for clinic follow-up",
-                            text: "Concerns about time required for clinic follow-up",
-                          },
-                          {
-                            key: "safety",
-                            value: "Concerns about safety of medication",
-                            text: "Concerns about safety of medication",
-                          },
-                          {
-                            key: "effectiveness",
-                            value: "Concerns about effectiveness of medication",
-                            text: "Concerns about effectiveness of medication",
-                          },
-                          {
-                            key: "others",
-                            value: "Others (Specify)",
-                            text: "Others (Specify)",
-                          },
-                        ]}
+                        options={(codeset?.REASON_PREP_DECLINED || []).map(item => ({
+                          key: item.code,
+                          value: item.code,
+                          text: item.display,
+                        }))}
                         value={servicesReceivedByClient.reasonsForDecline || []}
                         onChange={handleInputReasonsForDecline}
                         disabled={disabledField}
@@ -2777,8 +2736,8 @@ const BasicInfo = props => {
                     </FormGroup>
                   </div>
 
-                  {servicesReceivedByClient.reasonsForDecline?.includes(
-                    "Others (Specify)"
+                  {servicesReceivedByClient.reasonsForDecline?.some(v =>
+                    v.toLowerCase().includes("other")
                   ) && (
                     <div className="form-group col-md-4 p-2">
                       <FormGroup className="p-2">
