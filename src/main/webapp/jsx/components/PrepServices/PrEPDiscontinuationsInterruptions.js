@@ -6,6 +6,7 @@ import CancelIcon from "@material-ui/icons/Cancel";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
+import { fetchDiscontinuationCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import { Spinner } from "reactstrap";
@@ -39,23 +40,25 @@ const PrEPDiscontinuationsInterruptions = props => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [patientDto, setPatientDto] = useState();
+  const [codeset, setCodeset] = useState({});
 
   const isPEP = enrollmentType === "PEP";
   const isPrEP = enrollmentType === "PrEP" || !isPEP;
 
   // --- Skip logic derived from current form state ---
-  const isStopped = objValues.interruptionType === "Stopped";
-  const isDefault = objValues.interruptionType === "Default";
-  const isDead = objValues.interruptionType === "Dead";
-  const isReferred = objValues.interruptionType === "Referred";
+  const isStopped = objValues.interruptionType?.toLowerCase().includes("stopped");
+  const isDefault = objValues.interruptionType?.toLowerCase().includes("default");
+  const isDead = objValues.interruptionType?.toLowerCase().includes("dead");
+  const isReferred = objValues.interruptionType?.toLowerCase().includes("referred");
   const showStoppedDefaultFields = isStopped || isDefault;
   const showDeadFields = isDead;
   const showReferredFields = isReferred;
   const showFollowUpVisitDate = objValues.pepCompletion === "Yes";
-  const showHivPositiveFields = objValues.hivResult === "Positive";
+  const showHivPositiveFields = objValues.hivResult?.toLowerCase().includes("positive");
 
   useEffect(() => {
     GetPatientDTOObj();
+    fetchDiscontinuationCodesets().then(data => setCodeset(data));
     if (
       props.activeContent.id &&
       props.activeContent.id !== "" &&
@@ -296,10 +299,9 @@ const PrEPDiscontinuationsInterruptions = props => {
                       disabled={disabledField}
                     >
                       <option value="">Select</option>
-                      <option value="Stopped">Stopped</option>
-                      <option value="Default">Default</option>
-                      <option value="Dead">Dead</option>
-                      <option value="Referred">Referred</option>
+                      {(codeset?.PREP_DISCONTINUATION_TYPE || []).map(item => (
+                        <option key={item.code} value={item.code}>{item.display}</option>
+                      ))}
                     </Input>
                     {errors.interruptionType !== "" ? (
                       <span className={classes.error}>
@@ -355,17 +357,9 @@ const PrEPDiscontinuationsInterruptions = props => {
                           disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        <option value="Toxicity/side effects">
-                          Toxicity/side effects
-                        </option>
-                        <option value="Pregnancy">Pregnancy</option>
-                        <option value="Client preference">
-                          Client preference
-                        </option>
-                        <option value="HIV positive">HIV positive</option>
-                        <option value="No longer at substantial risk">
-                          No longer at substantial risk
-                        </option>
+                        {(codeset?.PREP_DISCONTINUATION_REASON || []).map(item => (
+                          <option key={item.code} value={item.code}>{item.display}</option>
+                        ))}
                       </Input>
                       {errors.why !== "" ? (
                         <span className={classes.error}>{errors.why}</span>
@@ -583,8 +577,9 @@ const PrEPDiscontinuationsInterruptions = props => {
                           disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        <option value="Positive">Positive</option>
-                        <option value="Negative">Negative</option>
+                        {(codeset?.HIV_TEST_RESULT || []).map(item => (
+                          <option key={item.code} value={item.code}>{item.display}</option>
+                        ))}
                       </Input>
                       {errors.hivResult !== "" ? (
                         <span className={classes.error}>
@@ -612,12 +607,9 @@ const PrEPDiscontinuationsInterruptions = props => {
                               disabled={disabledField}
                         >
                           <option value="">Select</option>
-                          <option value="Target Detected">
-                            Target Detected
-                          </option>
-                          <option value="Target Not Detected">
-                            Target Not Detected
-                          </option>
+                          {(codeset?.EARLY_DETECT_VIRAL_LOAD_RESULT || []).map(item => (
+                            <option key={item.code} value={item.code}>{item.display}</option>
+                          ))}
                         </Input>
                         {errors.earlyDetectViralLoadResult !== "" ? (
                           <span className={classes.error}>

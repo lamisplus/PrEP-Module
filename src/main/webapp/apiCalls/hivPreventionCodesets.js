@@ -191,6 +191,25 @@ export async function fetchFollowupVisitCodesets() {
 //            PEP_FOLLOW_UP_HIV_TEST_RESULT → PEP_FOLLOWUP_HIV_TEST_RESULT
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Discontinuation / Interruption form
+// API codes: PREP_DISCONTINUATION_TYPE, PREP_DISCONTINUATION_REASON,
+//            HIV_TEST_RESULT, EARLY_DETECT_VIRAL_LOAD_RESULT
+// ---------------------------------------------------------------------------
+
+export async function fetchDiscontinuationCodesets() {
+  try {
+    return await callApi([
+      "PREP_DISCONTINUATION_TYPE",
+      "PREP_DISCONTINUATION_REASON",
+      "HIV_TEST_RESULT",
+      "EARLY_DETECT_VIRAL_LOAD_RESULT",
+    ]);
+  } catch (_err) {
+    return hardcodedFallback();
+  }
+}
+
 export async function fetchPEPFollowupCodesets() {
   try {
     const data = await callApi([

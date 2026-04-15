@@ -537,7 +537,7 @@ const BasicInfo = props => {
 
   const getPrepEligibilityScore = () => {
     var score = 0;
-    score += drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0;
+    score += drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") ? 1 : 0;
     score += riskCount.length >= 1 ? 1 : 0;
     score +=
       assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection ===
@@ -2323,7 +2323,7 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              {drugHistory.hivTestResultAtvisit === "Negative" &&
+              {drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") &&
                 (assessmentForAcuteHivInfection?.acuteHivSymptomsLasttwoWeeks ===
                   "true" ||
                   assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days ===
@@ -2358,7 +2358,9 @@ const BasicInfo = props => {
               <Message warning>
                 <h4>HIV Testing Summary</h4>
                 <b>{`HIV Test Result at Visit: ${
-                  drugHistory.hivTestResultAtvisit || "Not provided"
+                  codeset?.HIV_TEST_RESULT?.find(item => item.code === drugHistory.hivTestResultAtvisit)?.display
+                  || drugHistory.hivTestResultAtvisit
+                  || "Not provided"
                 }`}</b>
                 <br />
                 <b>{`Ongoing HIV risk behaviors: ${
@@ -2378,7 +2380,7 @@ const BasicInfo = props => {
                 }`}</b>
               </Message>
 
-              {drugHistory.hivTestResultAtvisit === "Negative" &&
+              {drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") &&
                 (assessmentForAcuteHivInfection?.acuteHivSymptomsLasttwoWeeks ===
                   "true" ||
                   assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days ===
@@ -2411,7 +2413,7 @@ const BasicInfo = props => {
                 const personalHivRiskBinary = riskCount.length >= 1 ? 1 : 0;
                 const drugUseBinary = [drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].some(v => v === "true") ? 1 : 0;
                 const acuteHivBinary = Object.values(assessmentForAcuteHivInfection).some(v => v === "true") ? 1 : 0;
-                const hivNegativeBinary = drugHistory.hivTestResultAtvisit === "Negative" ? 1 : 0;
+                const hivNegativeBinary = drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") ? 1 : 0;
                 const binaryScore = sexPartnerRiskBinary + personalHivRiskBinary + drugUseBinary + acuteHivBinary + hivNegativeBinary;
                 return (
                   <div style={{ width: "100%" }}>
