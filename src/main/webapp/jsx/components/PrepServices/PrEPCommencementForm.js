@@ -214,6 +214,15 @@ const PrEPCommencementForm = props => {
         : "This field is required";
     if (isFemalePatient) {
       temp.pregnant = objValues.pregnant ? "" : "This field is required";
+      // Skip-logic: Breastfeeding only displayed (and thus required) when
+      // pregnancy status indicates breastfeeding.
+      if (objValues.pregnant === "PREGANACY_STATUS_BREASTFEEDING") {
+        temp.breastFeeding = objValues.breastFeeding
+          ? ""
+          : "This field is required";
+      } else {
+        temp.breastFeeding = "";
+      }
     }
     setErrors({ ...temp });
     return Object.values(temp).every(x => x === "");
@@ -597,7 +606,7 @@ const PrEPCommencementForm = props => {
             {objValues.pregnant === "PREGANACY_STATUS_BREASTFEEDING" && (
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <Label>Breast Feeding</Label>
+                  <Label>Breast Feeding <span style={{ color: "red" }}>*</span></Label>
                   <Input
                     type="select"
                     name="breastFeeding"
@@ -614,6 +623,9 @@ const PrEPCommencementForm = props => {
                     <option value="Yes">Yes</option>
                     <option value="No">No</option>
                   </Input>
+                  {errors.breastFeeding && (
+                    <span className={classes.error}>{errors.breastFeeding}</span>
+                  )}
                 </FormGroup>
               </div>
             )}
