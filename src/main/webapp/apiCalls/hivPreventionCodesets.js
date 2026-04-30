@@ -42,11 +42,23 @@ async function callApi(codes) {
 function remap(data, aliasMap) {
   const result = { ...data };
   for (const [apiKey, formKey] of Object.entries(aliasMap)) {
-    if (data[apiKey] !== undefined) {
+    if (Array.isArray(data[apiKey]) && data[apiKey].length > 0) {
       result[formKey] = data[apiKey];
     }
   }
   return result;
+}
+
+// Drop entries that are missing or empty so they don't overwrite richer
+// fallback values when merged.
+function pruneEmpty(obj) {
+  const out = {};
+  for (const [k, v] of Object.entries(obj || {})) {
+    if (Array.isArray(v) ? v.length > 0 : v != null) {
+      out[k] = v;
+    }
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -149,6 +161,7 @@ export async function fetchCommencementCodesets() {
 // ---------------------------------------------------------------------------
 
 export async function fetchFollowupVisitCodesets() {
+  const fallback = hardcodedFallback();
   try {
     const data = await callApi([
       "PrEP_VISIT_TYPE",
@@ -168,13 +181,14 @@ export async function fetchFollowupVisitCodesets() {
       "PREGNANCY_STATUS",
       "HIV_TEST_RESULT",
     ]);
-    return remap(data, {
+    const remapped = remap(data, {
       PREP_PEP_SIDE_EFFECTS: "PREP_SIDE_EFFECTS",
       PREP_PEP_RISK_REDUCTION_PLAN: "PrEP_RISK_REDUCTION_PLAN",
       PREP_PEP_LEVEL_OF_ADHERENCE: "PrEP_LEVEL_OF_ADHERENCE",
     });
+    return { ...fallback, ...pruneEmpty(remapped) };
   } catch (_err) {
-    return hardcodedFallback();
+    return fallback;
   }
 }
 
@@ -211,6 +225,7 @@ export async function fetchDiscontinuationCodesets() {
 }
 
 export async function fetchPEPFollowupCodesets() {
+  const fallback = hardcodedFallback();
   try {
     const data = await callApi([
       "PEP_MODE_OF_EXPOSURE",
@@ -225,7 +240,7 @@ export async function fetchPEPFollowupCodesets() {
       "PEP_FOLLOW_UP_HIV_TEST_RESULT",
       "PREGNANCY_STATUS",
     ]);
-    return remap(data, {
+    const remapped = remap(data, {
       DURATION_BEFORE_PEP_PROVIDED: "PEP_DURATION_BEFORE_PEP",
       HIV_STATUS_AT_EXPOSURE: "PEP_HIV_STATUS_AT_EXPOSURE",
       PREP_PEP_SIDE_EFFECTS: "PREP_SIDE_EFFECTS",
@@ -233,7 +248,8 @@ export async function fetchPEPFollowupCodesets() {
       PREP_PEP_LEVEL_OF_ADHERENCE: "PrEP_LEVEL_OF_ADHERENCE",
       PEP_FOLLOW_UP_HIV_TEST_RESULT: "PEP_FOLLOWUP_HIV_TEST_RESULT",
     });
+    return { ...fallback, ...pruneEmpty(remapped) };
   } catch (_err) {
-    return hardcodedFallback();
+    return fallback;
   }
 }

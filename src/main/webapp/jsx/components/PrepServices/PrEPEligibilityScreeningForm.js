@@ -372,11 +372,22 @@ const BasicInfo = props => {
 
   const validate = () => {
     temp.visitDate = objValues.visitDate ? "" : "This field is required";
+    temp.uniqueClientId = objValues.uniqueClientId
+      ? ""
+      : "This field is required";
     temp.clientHtsCode = objValues.clientHtsCode
       ? ""
       : "This field is required";
     temp.referredFrom = objValues.referredFrom ? "" : "This field is required";
     temp.visitType = objValues.visitType ? "" : "This field is required";
+    // Skip-logic: Reason for Switch is required only when Visit Type = Method Switch
+    if (objValues.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH") {
+      temp.reasonForSwitch = objValues.reasonForSwitch
+        ? ""
+        : "This field is required";
+    } else {
+      temp.reasonForSwitch = "";
+    }
     temp.setting = objValues.setting ? "" : "This field is required";
     temp.populationType = objValues.populationType
       ? ""
@@ -595,7 +606,7 @@ const BasicInfo = props => {
             <div className="row">
               <div className="form-group col-md-4 p-2">
                 <FormGroup className="p-2">
-                  <Label>Unique Client ID</Label>
+                  <Label>Unique Client ID <span style={{ color: "red" }}> *</span></Label>
                   <input
                     type="text"
                     className="form-control"
@@ -609,6 +620,11 @@ const BasicInfo = props => {
                     }}
                     disabled={disabledField}
                   />
+                  {errors.uniqueClientId !== "" ? (
+                    <span className={classes.error}>{errors.uniqueClientId}</span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
 
@@ -746,7 +762,7 @@ const BasicInfo = props => {
               {objValues.visitType === "PREP_VISIT_TYPE_METHOD_SWITCH" && (
                 <div className="form-group col-md-4 p-2">
                   <FormGroup className="p-2">
-                    <Label>Reason for Switch</Label>
+                    <Label>Reason for Switch <span style={{ color: "red" }}> *</span></Label>
                     <input
                       type="text"
                       className="form-control"
@@ -760,6 +776,11 @@ const BasicInfo = props => {
                       }}
                       disabled={disabledField}
                     />
+                    {errors.reasonForSwitch !== "" ? (
+                      <span className={classes.error}>{errors.reasonForSwitch}</span>
+                    ) : (
+                      ""
+                    )}
                   </FormGroup>
                 </div>
               )}

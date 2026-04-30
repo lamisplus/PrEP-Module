@@ -168,6 +168,9 @@ const PrEPDiscontinuationsInterruptions = props => {
       temp.sourceOfDeathInfo = objValues.sourceOfDeathInfo
         ? ""
         : "This field is required";
+      temp.causeOfDeath = objValues.causeOfDeath
+        ? ""
+        : "This field is required";
     }
 
     // Referred fields
@@ -438,6 +441,31 @@ const PrEPDiscontinuationsInterruptions = props => {
                       {errors.sourceOfDeathInfo !== "" ? (
                         <span className={classes.error}>
                           {errors.sourceOfDeathInfo}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Cause of Death{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="text"
+                        name="causeOfDeath"
+                        id="causeOfDeath"
+                        placeholder="Enter cause of death"
+                        onChange={handleInputChange}
+                        value={objValues.causeOfDeath}
+                        disabled={disabledField}
+                      />
+                      {errors.causeOfDeath !== "" ? (
+                        <span className={classes.error}>
+                          {errors.causeOfDeath}
                         </span>
                       ) : (
                         ""

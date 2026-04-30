@@ -940,6 +940,31 @@ const ClinicVisit = props => {
     if (!syndromicStiSelected || syndromicStiSelected.length === 0) {
       manualErrors.push("Syndromic STI Screening is required");
     }
+    // Skip-logic-aware: tests are required only when their date is populated.
+    if (urinalysisTest?.testDate && !urinalysisTest.result) {
+      manualErrors.push("Urinalysis Result is required");
+    }
+    if (hepatitisTest?.testDate && !hepatitisTest.result) {
+      manualErrors.push("Hepatitis Result is required");
+    }
+    if (syphilisTest?.testDate && !syphilisTest.result) {
+      manualErrors.push("Syphilis Result is required");
+    }
+    if (
+      values?.dateLiverFunctionTestResults &&
+      (!values?.liverFunctionTestResults ||
+        values.liverFunctionTestResults.length === 0)
+    ) {
+      manualErrors.push("Liver Function Test Result is required");
+    }
+    otherTest.forEach((t, idx) => {
+      if (t?.testDate && !t.result) {
+        manualErrors.push(`Other Test #${idx + 1}: Result is required`);
+      }
+      if (t?.result && !t.testDate) {
+        manualErrors.push(`Other Test #${idx + 1}: Date is required`);
+      }
+    });
     if (manualErrors.length > 0) {
       manualErrors.forEach(msg => toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER }));
       return;
