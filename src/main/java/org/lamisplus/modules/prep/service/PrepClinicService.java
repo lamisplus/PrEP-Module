@@ -187,7 +187,6 @@ public class PrepClinicService {
         PrepClinic prepClinic = new PrepClinic();
         prepClinic.setId(prepClinicDto.getId());
         prepClinic.setPersonUuid(personUuid);
-        prepClinic.setExtra(sanitizeJsonb(prepClinicDto.getExtra()));
         prepClinic.setDateInitialAdherenceCounseling(prepClinicDto.getDateInitialAdherenceCounseling());
         prepClinic.setWeight(prepClinicDto.getWeight());
         prepClinic.setHeight(prepClinicDto.getHeight());
@@ -260,7 +259,6 @@ public class PrepClinicService {
         }
         PrepClinic prepClinic = new PrepClinic();
         prepClinic.setPersonUuid(personUuid);
-        prepClinic.setExtra(sanitizeJsonb(prepClinicRequestDto.getExtra()));
         prepClinic.setDateInitialAdherenceCounseling(prepClinicRequestDto.getDateInitialAdherenceCounseling());
         prepClinic.setWeight(prepClinicRequestDto.getWeight());
         prepClinic.setHeight(prepClinicRequestDto.getHeight());
@@ -332,7 +330,6 @@ public class PrepClinicService {
         }
         PrepClinicDto prepClinicDto = new PrepClinicDto();
         prepClinicDto.setId(clinic.getId());
-        prepClinicDto.setExtra(clinic.getExtra());
         prepClinicDto.setDateInitialAdherenceCounseling(clinic.getDateInitialAdherenceCounseling());
         prepClinicDto.setWeight(clinic.getWeight());
         prepClinicDto.setHeight(clinic.getHeight());

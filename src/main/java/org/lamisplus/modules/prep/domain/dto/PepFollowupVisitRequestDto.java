@@ -23,7 +23,6 @@ public class PepFollowupVisitRequestDto implements Serializable {
     private Long personId;
     private LocalDate nextAppointment;
     private LocalDate encounterDate;
-    private Object extra;
     private LocalDate datePrepStart;
     private Double pulse;
     private Double respiratoryRate;

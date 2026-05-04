@@ -168,7 +168,6 @@ const BasicInfo = props => {
     hivExposure: "",
     hivTestResultAtvisit: "",
     lastTest: "",
-    recommendRetestingAfter1Month: "",
   });
   const [assessmentForPepIndication, setAssessmentForPepIndication] = useState({
     unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours: "",
@@ -2343,38 +2342,6 @@ const BasicInfo = props => {
                   </select>
                 </FormGroup>
               </div>
-
-              {drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") &&
-                (assessmentForAcuteHivInfection?.acuteHivSymptomsLasttwoWeeks ===
-                  "true" ||
-                  assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days ===
-                    "true") && (
-                  <div className="form-group col-md-4 p-3">
-                    <FormGroup>
-                      <Label>
-                        If the client tests HIV negative and has signs and
-                        symptoms of acute HIV infection, recommend HIV
-                        re-testing after 1 month?
-                      </Label>
-                      <select
-                        className="form-control"
-                        name="recommendRetestingAfter1Month"
-                        id="recommendRetestingAfter1Month"
-                        value={drugHistory.recommendRetestingAfter1Month}
-                        onChange={handleInputChangeDrugHistory}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.2rem",
-                        }}
-                        disabled={disabledField}
-                      >
-                        <option value={""}>Select</option>
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                      </select>
-                    </FormGroup>
-                  </div>
-                )}
 
               <Message warning>
                 <h4>HIV Testing Summary</h4>

@@ -110,6 +110,20 @@ function PatientCard(props) {
     }
   }, [patientDetail]);
 
+  // After tab-switch + return: if user already submitted screening (and/or initiation) earlier
+  // in this enrollment, advance sessionStage so they don't get sent back to the screening form.
+  // Counts come from the patient detail endpoint and survive remounts because they're persisted server-side.
+  useEffect(() => {
+    if (!freshWorkflow || !patientDetail) return;
+    const eligibilityCount = Number(patientDetail.prepEligibilityCount ?? 0);
+    const commencementCount = Number(patientDetail.prepCommencementCount ?? 0);
+    if (commencementCount > 0 && sessionStage !== "all") {
+      setSessionStage("all");
+    } else if (eligibilityCount > 0 && commencementCount === 0 && sessionStage === "screening") {
+      setSessionStage("initiation");
+    }
+  }, [patientDetail, freshWorkflow]);
+
   // Callbacks to advance the workflow stage after each form is saved
   const onScreeningSaved = () => {
     PatientObject();

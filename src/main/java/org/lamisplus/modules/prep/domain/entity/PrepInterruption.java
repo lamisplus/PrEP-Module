@@ -88,11 +88,6 @@ public class PrepInterruption extends Audit implements Serializable {
     @Column(name = "facility_id")
     private Long facilityId;
 
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "extra", columnDefinition = "jsonb")
-    private Object extra;
-
     @Column(name = "date_sero_converted")
     private LocalDate dateSeroConverted;
 

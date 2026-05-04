@@ -125,11 +125,6 @@ public class PrepClinic extends Audit implements Serializable {
     @Column(name = "is_commencement")
     private Boolean isCommencement;
 
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "extra", columnDefinition = "jsonb")
-    private Object extra;
-
     //For clinic
     @Column(name = "pulse")
     private Double pulse;

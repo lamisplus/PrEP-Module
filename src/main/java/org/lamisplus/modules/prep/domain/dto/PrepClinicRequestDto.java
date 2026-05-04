@@ -44,8 +44,6 @@ public class PrepClinicRequestDto implements Serializable {
 
     private LocalDate encounterDate;
 
-    private Object extra;
-
     private LocalDate datePrepStart;
 
     //For clinic

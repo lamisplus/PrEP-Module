@@ -652,7 +652,6 @@ public class PrepService {
 
         PrepFollowupVisit prepClinic = new PrepFollowupVisit();
         prepClinic.setPersonUuid(personUuid);
-        prepClinic.setExtra(prepClinicRequestDto.getExtra());
         prepClinic.setDateInitialAdherenceCounseling(prepClinicRequestDto.getDateInitialAdherenceCounseling());
         prepClinic.setWeight(prepClinicRequestDto.getWeight());
         prepClinic.setHeight(prepClinicRequestDto.getHeight());
@@ -669,7 +668,6 @@ public class PrepService {
         prepClinic.setDateReferred(prepClinicRequestDto.getDateReferred());
         prepClinic.setNextAppointment(prepClinicRequestDto.getNextAppointment());
         prepClinic.setEncounterDate(prepClinicRequestDto.getEncounterDate());
-        prepClinic.setExtra(prepClinicRequestDto.getExtra());
         prepClinic.setDatePrepStart(prepClinicRequestDto.getDatePrepStart());
         prepClinic.setPulse(prepClinicRequestDto.getPulse());
         prepClinic.setRespiratoryRate(prepClinicRequestDto.getRespiratoryRate());
@@ -726,7 +724,6 @@ public class PrepService {
         PrepClinicDto prepClinicDto = new PrepClinicDto();
 
         prepClinicDto.setId(clinic.getId());
-        prepClinicDto.setExtra(clinic.getExtra());
         prepClinicDto.setDateInitialAdherenceCounseling(clinic.getDateInitialAdherenceCounseling());
         prepClinicDto.setWeight(clinic.getWeight());
         prepClinicDto.setHeight(clinic.getHeight());

@@ -158,7 +158,6 @@ public class PepFollowupVisitService {
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
         entity.setPreviousPrepStatus(dto.getPreviousPrepStatus());
         entity.setComment(dto.getComment());
-        entity.setExtra(sanitizeJsonb(dto.getExtra()));
         entity.setUrinalysis(sanitizeJsonb(dto.getUrinalysis()));
         entity.setCreatinine(sanitizeJsonb(dto.getCreatinine()));
         entity.setCreatinineResult(dto.getCreatinineResult());
@@ -235,7 +234,6 @@ public class PepFollowupVisitService {
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
         entity.setPreviousPrepStatus(dto.getPreviousPrepStatus());
         entity.setComment(dto.getComment());
-        entity.setExtra(sanitizeJsonb(dto.getExtra()));
         entity.setUrinalysis(sanitizeJsonb(dto.getUrinalysis()));
         entity.setCreatinine(sanitizeJsonb(dto.getCreatinine()));
         entity.setCreatinineResult(dto.getCreatinineResult());
@@ -313,7 +311,6 @@ public class PepFollowupVisitService {
         dto.setHealthCareWorkerSignature(entity.getHealthCareWorkerSignature());
         dto.setPreviousPrepStatus(entity.getPreviousPrepStatus());
         dto.setComment(entity.getComment());
-        dto.setExtra(entity.getExtra());
         dto.setUrinalysis(entity.getUrinalysis());
         dto.setCreatinine(entity.getCreatinine());
         dto.setCreatinineResult(entity.getCreatinineResult());

@@ -238,15 +238,24 @@ const PrEPInitialVisitForm = props => {
         ? ""
         : "This field is required";
     }
-    // Conditional: dateReferred required only for PrEP when HIV Positive or Early Detect
+    // Conditional: dateReferred required (PrEP or PEP) when HIV result is Positive or Early Detect.
     if (
-      objValues.enrollmentType !== 'PEP' &&
-      (objValues.resultOfHivTest === "Positive" ||
-       objValues.resultOfHivTest === "Early Detect")
+      objValues.resultOfHivTest?.toLowerCase().includes("positive") ||
+      objValues.resultOfHivTest?.toLowerCase().includes("early")
     ) {
       temp.dateReferred = objValues.dateReferred
         ? ""
         : "This field is required";
+    } else {
+      temp.dateReferred = "";
+    }
+    // Date of HIV Test must be on or before Date Enrolled
+    if (
+      objValues.dateOfHivTest &&
+      objValues.dateEnrolled &&
+      objValues.dateOfHivTest > objValues.dateEnrolled
+    ) {
+      temp.dateOfHivTest = "Date of HIV Test must be on or before Date Enrolled";
     }
     setErrors({ ...temp });
     return Object.values(temp).every(x => x === "");
@@ -480,42 +489,6 @@ const PrEPInitialVisitForm = props => {
                 </FormGroup>
               </div>
 
-              {/* 5. Date Referred for PrEP - only for PrEP and when HIV result = Positive or Early Detect */}
-              {objValues.enrollmentType !== 'PEP' &&
-               (objValues.resultOfHivTest?.toLowerCase().includes("positive") ||
-                objValues.resultOfHivTest?.toLowerCase().includes("early")) && (
-                <div className="form-group mb-3 col-md-4">
-                  <FormGroup>
-                    <Label>Date Referred for PrEP <span style={{ color: "red" }}> *</span></Label>
-                    <input
-                      type="date"
-                      className="form-control"
-                      onKeyDown={e => e.preventDefault()}
-                      name="dateReferred"
-                      id="dateReferred"
-                      value={objValues.dateReferred}
-                      onChange={handleInputChange}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      min={
-                        patientDto && patientDto.visitDate
-                          ? patientDto.visitDate
-                          : ""
-                      }
-                      max={moment(new Date()).format("YYYY-MM-DD")}
-                      disabled={disabledField}
-                    />
-                    {errors.dateReferred !== "" ? (
-                      <span className={classes.error}>{errors.dateReferred}</span>
-                    ) : (
-                      ""
-                    )}
-                  </FormGroup>
-                </div>
-              )}
-
               {/* 6. HIV Testing Point */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
@@ -561,7 +534,7 @@ const PrEPInitialVisitForm = props => {
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
                     }}
-                    max={moment(new Date()).format("YYYY-MM-DD")}
+                    max={objValues.dateEnrolled || moment(new Date()).format("YYYY-MM-DD")}
                     disabled={disabledField}
                   />
                   {errors.dateOfHivTest !== "" ? (
@@ -600,6 +573,36 @@ const PrEPInitialVisitForm = props => {
                   )}
                 </FormGroup>
               </div>
+
+              {/* 8b. Date Referred - shown when HIV result = Positive or Early Detect (PrEP or PEP) */}
+              {(objValues.resultOfHivTest?.toLowerCase().includes("positive") ||
+                objValues.resultOfHivTest?.toLowerCase().includes("early")) && (
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>Date Referred <span style={{ color: "red" }}> *</span></Label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      onKeyDown={e => e.preventDefault()}
+                      name="dateReferred"
+                      id="dateReferred"
+                      value={objValues.dateReferred}
+                      onChange={handleInputChange}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                      }}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      disabled={disabledField}
+                    />
+                    {errors.dateReferred !== "" ? (
+                      <span className={classes.error}>{errors.dateReferred}</span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+              )}
 
               {/* 9-11. PrEP Supporter fields - hidden when enrollmentType is PEP */}
               {objValues.enrollmentType !== 'PEP' && (
@@ -703,7 +706,7 @@ const PrEPInitialVisitForm = props => {
                   marginBottom: "1rem",
                 }}
               >
-                {`PrEP/PEP Initiation`}
+                {`${objValues.enrollmentType === 'PEP' ? 'PEP' : objValues.enrollmentType === 'PrEP' ? 'PrEP' : 'PrEP/PEP'} Initiation`}
               </div>
 
               {/* 12. Date of Initial Adherence Counseling */}

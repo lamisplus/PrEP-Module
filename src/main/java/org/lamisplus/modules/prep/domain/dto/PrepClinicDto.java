@@ -38,8 +38,6 @@ public class PrepClinicDto implements Serializable {
 
     private LocalDate nextAppointment;
 
-    private Object extra;
-
     //private String status;
 
     private Boolean isCommencement;

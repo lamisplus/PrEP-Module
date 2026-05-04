@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { token as token, url as baseUrl } from "./../../../api";
@@ -24,7 +24,11 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { makeStyles } from "@material-ui/core/styles";
 import MuiButton from "@material-ui/core/Button";
-import ButtonGroup from "@material-ui/core/ButtonGroup";
+import Dialog from "@material-ui/core/Dialog";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
 import { Icon } from "semantic-ui-react";
 import "@reach/menu-button/styles.css";
 import Moment from "moment";
@@ -79,21 +83,93 @@ const enrollSplitBtnStyle = {
   letterSpacing: "0.05em",
 };
 
+const ENTRY_POINTS = [
+  {
+    code: "PrEP",
+    label: "PrEP",
+    title: "Pre-Exposure Prophylaxis",
+    description:
+      "Enroll a client at risk of HIV exposure into the PrEP service line.",
+    accent: "#014D88",
+  },
+  {
+    code: "PEP",
+    label: "PEP",
+    title: "Post-Exposure Prophylaxis",
+    description:
+      "Enroll a client following a recent potential HIV exposure into the PEP service line.",
+    accent: "#992E62",
+  },
+];
+
+const EntryPointCard = ({ entry, onSelect }) => (
+  <div
+    role="button"
+    tabIndex={0}
+    onClick={() => onSelect(entry.code)}
+    onKeyDown={(e) => {
+      if (e.key === "Enter" || e.key === " ") onSelect(entry.code);
+    }}
+    style={{
+      flex: "1 1 0",
+      cursor: "pointer",
+      borderRadius: "0.5rem",
+      border: `0.125rem solid ${entry.accent}`,
+      background: "#fff",
+      padding: "1.25rem 1rem",
+      textAlign: "center",
+      transition: "transform 0.12s ease, box-shadow 0.12s ease",
+      outline: "none",
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = "translateY(-0.125rem)";
+      e.currentTarget.style.boxShadow = "0 0.5rem 1rem rgba(0,0,0,0.12)";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = "none";
+      e.currentTarget.style.boxShadow = "none";
+    }}
+  >
+    <div
+      style={{
+        width: "3rem",
+        height: "3rem",
+        borderRadius: "50%",
+        background: entry.accent,
+        color: "#fff",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: "0.75rem",
+      }}
+    >
+      <Icon name="user plus" style={{ fontSize: "1.25rem", margin: 0 }} />
+    </div>
+    <div
+      style={{
+        fontSize: "1.1rem",
+        fontWeight: 700,
+        color: entry.accent,
+        marginBottom: "0.25rem",
+      }}
+    >
+      {entry.label}
+    </div>
+    <div style={{ fontSize: "0.85rem", color: "#333", marginBottom: "0.5rem" }}>
+      {entry.title}
+    </div>
+    <div style={{ fontSize: "0.75rem", color: "#666", lineHeight: 1.4 }}>
+      {entry.description}
+    </div>
+  </div>
+);
+
 const EnrollPatientButton = ({ row }) => {
   const history = useHistory();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const ref = useRef(null);
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    const handler = e => {
-      if (ref.current && !ref.current.contains(e.target)) setMenuOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const handleEnroll = screeningType => {
-    setMenuOpen(false);
+  const handleEnroll = (screeningType) => {
+    setOpen(false);
     history.push({
       pathname: "/patient-dashboard",
       state: { patientObj: row, screeningType, freshEnroll: true },
@@ -101,47 +177,85 @@ const EnrollPatientButton = ({ row }) => {
   };
 
   return (
-    <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
-      <ButtonGroup variant="contained" size="small" style={{ height: "2.2rem", boxShadow: "0 0.125rem 0.25rem rgba(0,0,0,0.2)" }}>
-        <MuiButton
-          onClick={() => setMenuOpen(p => !p)}
-          style={{ ...enrollSplitBtnStyle, fontSize: "0.8rem", paddingLeft: "0.875rem", paddingRight: "0.75rem" }}
+    <>
+      <MuiButton
+        onClick={() => setOpen(true)}
+        variant="contained"
+        size="small"
+        style={{
+          ...enrollSplitBtnStyle,
+          fontSize: "0.8rem",
+          paddingLeft: "0.875rem",
+          paddingRight: "0.875rem",
+          boxShadow: "0 0.125rem 0.25rem rgba(0,0,0,0.2)",
+        }}
+      >
+        <Icon
+          name="user plus"
+          style={{ marginRight: "0.375rem", fontSize: "0.9rem" }}
+        />
+        Enroll Patient
+      </MuiButton>
+
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ style: { borderRadius: "0.5rem" } }}
+      >
+        <DialogTitle
+          disableTypography
+          style={{
+            background: "rgb(153, 46, 98)",
+            color: "#fff",
+            padding: "0.75rem 1rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <Icon name="user plus" style={{ marginRight: "0.375rem", fontSize: "0.9rem" }} />
-          Enroll Patient
-        </MuiButton>
-        <MuiButton
-          onClick={() => setMenuOpen(p => !p)}
-          style={{ ...enrollSplitBtnStyle, borderLeft: "0.0625rem solid rgba(255,255,255,0.35)", minWidth: "2.25rem", fontSize: "1.4rem", paddingLeft: "0.375rem", paddingRight: "0.375rem" }}
-        >
-          ▾
-        </MuiButton>
-      </ButtonGroup>
-      {menuOpen && (
-        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 9999, background: "#fff", boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.18)", borderRadius: "0.25rem", width: "100%", marginTop: "0.25rem" }}>
-          <div
-            onClick={() => handleEnroll("PrEP")}
-            style={{ padding: "0.5rem 1rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem" }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+          <span style={{ fontSize: "1rem", fontWeight: 600 }}>
+            Select Enrollment Type
+          </span>
+          <IconButton
+            size="small"
+            onClick={() => setOpen(false)}
+            style={{ color: "#fff" }}
           >
-            <Icon name="user plus" /> PrEP
-          </div>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent style={{ padding: "1.25rem" }}>
           <div
-            onClick={() => handleEnroll("PEP")}
-            style={{ padding: "0.5rem 1rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem" }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f5f5f5"}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+            style={{
+              marginBottom: "1rem",
+              fontSize: "0.875rem",
+              color: "#444",
+            }}
           >
-            <Icon name="user plus" /> PEP
+            Choose the service line to enroll{" "}
+            <strong>
+              {row?.firstName} {row?.surname}
+            </strong>{" "}
+            into.
           </div>
-        </div>
-      )}
-    </div>
+          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+            {ENTRY_POINTS.map((entry) => (
+              <EntryPointCard
+                key={entry.code}
+                entry={entry}
+                onSelect={handleEnroll}
+              />
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
-const Patients = props => {
+const Patients = (props) => {
   const classes = useStyles();
   const [patientList, setPatientList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -157,16 +271,16 @@ const Patients = props => {
       .get(`${baseUrl}prep/persons`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then(response => {
+      .then((response) => {
         setLoading(false);
         setPatientList(response.data);
       })
-      .catch(error => {
+      .catch((error) => {
         setLoading(false);
       });
   }
 
-  const handleCheckBox = e => {
+  const handleCheckBox = (e) => {
     if (e.target.checked) {
       setShowPPI(false);
     } else {
@@ -190,17 +304,17 @@ const Patients = props => {
           { title: "Age", field: "age", filtering: false },
           { title: "Actions", field: "actions", filtering: false },
         ]}
-        data={query =>
+        data={(query) =>
           new Promise((resolve, reject) => {
             axios
               .get(
                 `${baseUrl}prep/persons?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
                 { headers: { Authorization: `Bearer ${token}` } }
               )
-              .then(response => response)
-              .then(result => {
+              .then((response) => response)
+              .then((result) => {
                 resolve({
-                  data: result?.data?.records?.map?.(row => ({
+                  data: result?.data?.records?.map?.((row) => ({
                     name: row.firstName + " " + row.surname,
                     hospital_number: row.hospitalNumber,
                     gender: row && row.gender ? row.gender : "",
@@ -229,7 +343,7 @@ const Patients = props => {
           debounceInterval: 400,
         }}
         components={{
-          Toolbar: props => (
+          Toolbar: (props) => (
             <div className="p-2">
               <div className="form-check custom-checkbox float-left mt-4 ml-3">
                 <input

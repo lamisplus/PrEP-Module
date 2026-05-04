@@ -723,5 +723,22 @@
         </sql>
     </changeSet>
 
+    <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-pep-followup-visit">
+        <sql>
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS extra;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-prep-clinic">
+        <sql>
+            ALTER TABLE IF EXISTS prep_clinic DROP COLUMN IF EXISTS extra;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-prep-interruption">
+        <sql>
+            ALTER TABLE IF EXISTS prep_interruption DROP COLUMN IF EXISTS extra;
+        </sql>
+    </changeSet>
 
 </databaseChangeLog>

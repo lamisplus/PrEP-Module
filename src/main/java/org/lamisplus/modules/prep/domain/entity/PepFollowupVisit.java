@@ -278,11 +278,6 @@ public class PepFollowupVisit extends Audit implements Serializable {
     @Column(name = "followup_hiv_test_results", columnDefinition = "jsonb")
     private Object followupHivTestResults;
 
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "extra", columnDefinition = "jsonb")
-    private Object extra;
-
     @Column(name = "archived")
     private Integer archived;
 

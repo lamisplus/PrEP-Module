@@ -67,7 +67,6 @@ const PrEPCommencementForm = props => {
     drugAllergies: "",
     referred: "",
     datereferred: "",
-    extra: {},
     nextAppointment: "",
     pregnant: "",
     prepEnrollmentUuid: "",

@@ -16,7 +16,5 @@ public class PrepDto implements Serializable {
 
     private LocalDate dateStarted;
 
-    private Object extra;
-
     private String status;
 }
