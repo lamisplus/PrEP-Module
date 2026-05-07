@@ -29,6 +29,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     @Query(value = "SELECT * FROM prophylaxis_initiation pe WHERE pe.person_uuid=?1 AND pe.archived=?2 ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
     Optional<PrepPepInitiation> findTopByPersonUuidAndArchived(String personUuid, int archived);
 
+    @Query(value = "SELECT * FROM prophylaxis_initiation pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
+            "LOWER(pe.enrollment_type)=LOWER(?3) ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
+    Optional<PrepPepInitiation> findLatestByPersonUuidAndEnrollmentType(String personUuid, int archived, String enrollmentType);
+
     List<PrepPepInitiation> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
     Optional<PrepPepInitiation> findByDateEnrolledAndPersonUuid(LocalDate dateEnrolled, String personUuid);
     Integer countAllByPersonUuid(String personUuid);

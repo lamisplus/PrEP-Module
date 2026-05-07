@@ -358,11 +358,13 @@ const ClinicVisit = props => {
   };
 
   const getPatientDtoObj = () => {
+    // Use the type-aware latest-initiation endpoint so duration / visit-date checks
+    // are anchored to the correct PrEP enrollment (a patient may also have a PEP record).
     axios
       .get(
-        `${baseUrl}prep/enrollment/open/patients/${
+        `${baseUrl}prep/initiation/latest/${
           props.patientObj.personId || props.patientObj.id
-        }`,
+        }?enrollmentType=PrEP`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -483,6 +485,17 @@ const ClinicVisit = props => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
+  }
+
+  function addMonthsToDate(dateString, monthsToAdd) {
+    const date = new Date(dateString);
+    const months = parseInt(monthsToAdd, 10);
+    if (isNaN(date.getTime()) || isNaN(months)) return "";
+    date.setMonth(date.getMonth() + months);
+    const year = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${year}-${m}-${d}`;
   }
 
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
@@ -870,18 +883,45 @@ const ClinicVisit = props => {
   }, [patientDto, formInitialValues]);
 
   // ── Noted side effects handler ──
+  // "No side effects" must be mutually exclusive with every other side-effect option.
+  const NO_SIDE_EFFECTS_CODE = "PREP_SIDE_EFFECTS_NO_SIDE_EFFECTS";
+  const NO_STI_CODE = "SYNDROMIC_STI_SCREENING_NO_STI_SYMPTOMSSIGNS";
+
+  const enforceExclusive = (prev, next, exclusiveCode) => {
+    const wasExclusive = prev?.includes(exclusiveCode);
+    const isExclusive = next?.includes(exclusiveCode);
+    if (isExclusive && !wasExclusive) {
+      // user just selected the exclusive option — drop everything else
+      return [exclusiveCode];
+    }
+    if (wasExclusive && next.length > 1) {
+      // user added other options while exclusive was set — drop the exclusive one
+      return next.filter(c => c !== exclusiveCode);
+    }
+    return next;
+  };
 
   const handleNotedSideEffectsChange = selected => {
-    setNotedSideEffects(selected);
+    const finalSelection = enforceExclusive(
+      notedSideEffects,
+      selected,
+      NO_SIDE_EFFECTS_CODE
+    );
+    setNotedSideEffects(finalSelection);
     if (formikRef.current) {
-      formikRef.current.setFieldValue("notedSideEffects", selected);
+      formikRef.current.setFieldValue("notedSideEffects", finalSelection);
     }
   };
 
   const handleSyndromicStiChange = selected => {
-    setSyndromicStiSelected(selected);
+    const finalSelection = enforceExclusive(
+      syndromicStiSelected,
+      selected,
+      NO_STI_CODE
+    );
+    setSyndromicStiSelected(finalSelection);
     if (formikRef.current) {
-      formikRef.current.setFieldValue("syndromicStiScreening", selected);
+      formikRef.current.setFieldValue("syndromicStiScreening", finalSelection);
     }
   };
 
@@ -1061,10 +1101,10 @@ const ClinicVisit = props => {
           handleSubmit,
           setFieldValue,
         }) => {
-          // Auto-calculate next appointment when encounterDate or monthsOfRefill changes
+          // Auto-calculate next appointment = Visit Date + Months of Refill
           const autoCalcNextAppointment = () => {
             if (!["update", "view"].includes(props.activeContent.actionType)) {
-              const nextAppt = addDaysToDate(
+              const nextAppt = addMonthsToDate(
                 values.encounterDate,
                 parseInt(getDuration(values.monthsOfRefill))
               );
@@ -1776,8 +1816,9 @@ const ClinicVisit = props => {
                           disabled={disabledField}
                         >
                           <option value="">Select</option>
-                          <option value="true">Yes</option>
-                          <option value="false">No</option>
+                          {(codeset?.YES_NO || []).map(item => (
+                            <option key={item.code} value={item.code}>{item.display}</option>
+                          ))}
                         </Input>
                       </FormGroup>
                     </div>

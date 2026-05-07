@@ -1032,8 +1032,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.haveSexWithHIVPositive !== "" ? (
                     <span className={classes.error}>
@@ -1063,8 +1064,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.haveSexWithPartnerInjectDrug !== "" ? (
                     <span className={classes.error}>
@@ -1096,8 +1098,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.haveSexWithPartnerWhoHasSexWithMen !== "" ? (
                     <span className={classes.error}>
@@ -1127,8 +1130,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.haveSexWithPartnerTransgender !== "" ? (
                     <span className={classes.error}>
@@ -1159,8 +1163,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.sexWithPartnersWithoutCondoms !== "" ? (
                     <span className={classes.error}>
@@ -1217,8 +1222,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1239,8 +1245,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1261,8 +1268,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1283,8 +1291,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1305,8 +1314,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1329,8 +1339,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1389,8 +1400,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1411,8 +1423,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1433,8 +1446,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1455,8 +1469,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1477,8 +1492,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1537,8 +1553,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1559,8 +1576,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1581,8 +1599,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1603,8 +1622,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1627,8 +1647,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -1687,8 +1708,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours !==
                   "" ? (
@@ -1724,8 +1746,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.sharedInjectionOrNeedleWithHivPositiveOrUnknownStatusLast72Hours !==
                   "" ? (
@@ -1798,8 +1821,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.acuteHivSymptomsLasttwoWeeks !== "" ? (
                     <span className={classes.error}>
@@ -1832,8 +1856,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days !==
                   "" ? (
@@ -1897,8 +1922,9 @@ const BasicInfo = props => {
                           disabled={disabledField}
                         >
                           <option value={""}>Select</option>
-                          <option value="true">Yes</option>
-                          <option value="false">No</option>
+                          {(codeset?.YES_NO || []).map(item => (
+                            <option key={item.code} value={item.code}>{item.display}</option>
+                          ))}
                         </select>
                         {errors.vaginalDischarge !== "" ? (
                           <span className={classes.error}>
@@ -1929,8 +1955,9 @@ const BasicInfo = props => {
                           disabled={disabledField}
                         >
                           <option value={""}>Select</option>
-                          <option value="true">Yes</option>
-                          <option value="false">No</option>
+                          {(codeset?.YES_NO || []).map(item => (
+                            <option key={item.code} value={item.code}>{item.display}</option>
+                          ))}
                         </select>
                         {errors.lowerAbdominalPains !== "" ? (
                           <span className={classes.error}>
@@ -1965,8 +1992,9 @@ const BasicInfo = props => {
                           disabled={disabledField}
                         >
                           <option value={""}>Select</option>
-                          <option value="true">Yes</option>
-                          <option value="false">No</option>
+                          {(codeset?.YES_NO || []).map(item => (
+                            <option key={item.code} value={item.code}>{item.display}</option>
+                          ))}
                         </select>
                         {errors.urethralDischarge !== "" ? (
                           <span className={classes.error}>
@@ -1993,8 +2021,9 @@ const BasicInfo = props => {
                           disabled={disabledField}
                         >
                           <option value={""}>Select</option>
-                          <option value="true">Yes</option>
-                          <option value="false">No</option>
+                          {(codeset?.YES_NO || []).map(item => (
+                            <option key={item.code} value={item.code}>{item.display}</option>
+                          ))}
                         </select>
                         {errors.complaintsOfScrotal !== "" ? (
                           <span className={classes.error}>
@@ -2024,8 +2053,9 @@ const BasicInfo = props => {
                           disabled={disabledField}
                         >
                           <option value={""}>Select</option>
-                          <option value="true">Yes</option>
-                          <option value="false">No</option>
+                          {(codeset?.YES_NO || []).map(item => (
+                            <option key={item.code} value={item.code}>{item.display}</option>
+                          ))}
                         </select>
                         {errors.complaintsGenitalSore !== "" ? (
                           <span className={classes.error}>
@@ -2054,8 +2084,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.genitalScore !== "" ? (
                     <span className={classes.error}>{errors.genitalScore}</span>
@@ -2080,8 +2111,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.swollenIguinal !== "" ? (
                     <span className={classes.error}>
@@ -2108,8 +2140,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.analpain !== "" ? (
                     <span className={classes.error}>{errors.analpain}</span>
@@ -2134,8 +2167,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.analItching !== "" ? (
                     <span className={classes.error}>{errors.analItching}</span>
@@ -2160,8 +2194,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                   {errors.analDischarge !== "" ? (
                     <span className={classes.error}>
@@ -2237,8 +2272,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -2248,8 +2284,7 @@ const BasicInfo = props => {
                   <Label>
                     Tested in other clinical settings such as STI clinic
                   </Label>
-                  <input
-                    type="text"
+                  <select
                     className="form-control"
                     name="clinicalSetting"
                     id="clinicalSetting"
@@ -2260,7 +2295,12 @@ const BasicInfo = props => {
                       borderRadius: "0.2rem",
                     }}
                     disabled={disabledField}
-                  />
+                  >
+                    <option value="">Select</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
+                  </select>
                 </FormGroup>
               </div>
 
@@ -2313,8 +2353,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -2337,8 +2378,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -2460,8 +2502,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -2483,8 +2526,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -2506,8 +2550,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -2584,8 +2629,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>
@@ -2606,8 +2652,9 @@ const BasicInfo = props => {
                       disabled={disabledField}
                     >
                       <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
+                      {(codeset?.YES_NO || []).map(item => (
+                        <option key={item.code} value={item.code}>{item.display}</option>
+                      ))}
                     </select>
                     {errors.willingToCommencePrep !== "" ? (
                       <span className={classes.error}>
@@ -2636,8 +2683,9 @@ const BasicInfo = props => {
                       disabled={disabledField}
                     >
                       <option value={""}>Select</option>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
+                      {(codeset?.YES_NO || []).map(item => (
+                        <option key={item.code} value={item.code}>{item.display}</option>
+                      ))}
                     </select>
                   </FormGroup>
                 </div>
@@ -2660,8 +2708,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    {(codeset?.YES_NO || []).map(item => (
+                      <option key={item.code} value={item.code}>{item.display}</option>
+                    ))}
                   </select>
                 </FormGroup>
               </div>

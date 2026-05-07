@@ -81,6 +81,7 @@ export async function fetchEligibilityScreeningCodesets() {
       "HIV_TEST_RESULT",
       "SOURCE_REFERRAL",
       "SEX",
+      "YES_NO",
     ]);
 
     // Convert PREP_SETTINGS to the { value, label } shape the form uses
@@ -119,6 +120,7 @@ export async function fetchInitialVisitCodesets() {
       "POPULATION_TYPE",
       "HIV_TEST_RESULT",
       "PrEP_TYPE",
+      "YES_NO",
     ]);
   } catch (_err) {
     return hardcodedFallback();
@@ -141,6 +143,7 @@ export async function fetchCommencementCodesets() {
       "LIVER_FUNCTION_TEST_RESULT",
       "PrEP_TYPE",
       "PrEP_ENTRY_POINT",
+      "YES_NO",
     ]);
   } catch (_err) {
     return hardcodedFallback();
@@ -165,7 +168,7 @@ export async function fetchFollowupVisitCodesets() {
   try {
     const data = await callApi([
       "PrEP_VISIT_TYPE",
-      "PREP_PEP_SIDE_EFFECTS",
+      "PREP_SIDE_EFFECTS",
       "SYNDROMIC_STI_SCREENING",
       "PREP_PEP_RISK_REDUCTION_PLAN",
       "PREP_PEP_LEVEL_OF_ADHERENCE",
@@ -180,9 +183,11 @@ export async function fetchFollowupVisitCodesets() {
       "FAMILY_PLANNING_METHOD",
       "PREGNANCY_STATUS",
       "HIV_TEST_RESULT",
+      "YES_NO",
     ]);
+    // Forms reference PrEP_RISK_REDUCTION_PLAN / PrEP_LEVEL_OF_ADHERENCE; alias from the
+    // PREP_PEP_* group names that the API actually exposes.
     const remapped = remap(data, {
-      PREP_PEP_SIDE_EFFECTS: "PREP_SIDE_EFFECTS",
       PREP_PEP_RISK_REDUCTION_PLAN: "PrEP_RISK_REDUCTION_PLAN",
       PREP_PEP_LEVEL_OF_ADHERENCE: "PrEP_LEVEL_OF_ADHERENCE",
     });
@@ -231,7 +236,7 @@ export async function fetchPEPFollowupCodesets() {
       "PEP_MODE_OF_EXPOSURE",
       "DURATION_BEFORE_PEP_PROVIDED",
       "HIV_STATUS_AT_EXPOSURE",
-      "PREP_PEP_SIDE_EFFECTS",
+      "PREP_SIDE_EFFECTS",
       "SYNDROMIC_STI_SCREENING",
       "PREP_PEP_RISK_REDUCTION_PLAN",
       "PREP_PEP_LEVEL_OF_ADHERENCE",
@@ -239,11 +244,11 @@ export async function fetchPEPFollowupCodesets() {
       "PEP_REGIMEN",
       "PEP_FOLLOW_UP_HIV_TEST_RESULT",
       "PREGNANCY_STATUS",
+      "YES_NO",
     ]);
     const remapped = remap(data, {
       DURATION_BEFORE_PEP_PROVIDED: "PEP_DURATION_BEFORE_PEP",
       HIV_STATUS_AT_EXPOSURE: "PEP_HIV_STATUS_AT_EXPOSURE",
-      PREP_PEP_SIDE_EFFECTS: "PREP_SIDE_EFFECTS",
       PREP_PEP_RISK_REDUCTION_PLAN: "PrEP_RISK_REDUCTION_PLAN",
       PREP_PEP_LEVEL_OF_ADHERENCE: "PrEP_LEVEL_OF_ADHERENCE",
       PEP_FOLLOW_UP_HIV_TEST_RESULT: "PEP_FOLLOWUP_HIV_TEST_RESULT",

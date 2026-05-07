@@ -110,19 +110,60 @@ function PatientCard(props) {
     }
   }, [patientDetail]);
 
-  // After tab-switch + return: if user already submitted screening (and/or initiation) earlier
-  // in this enrollment, advance sessionStage so they don't get sent back to the screening form.
-  // Counts come from the patient detail endpoint and survive remounts because they're persisted server-side.
+  // After tab-switch + return: resume the workflow only if the *open* (not-yet-completed)
+  // record matches the enrollment type the user just selected on the Patient List.
+  // Switching from PrEP → PEP must restart at screening (not jump to a stale PrEP initiation).
   useEffect(() => {
-    if (!freshWorkflow || !patientDetail) return;
-    const eligibilityCount = Number(patientDetail.prepEligibilityCount ?? 0);
-    const commencementCount = Number(patientDetail.prepCommencementCount ?? 0);
-    if (commencementCount > 0 && sessionStage !== "all") {
-      setSessionStage("all");
-    } else if (eligibilityCount > 0 && commencementCount === 0 && sessionStage === "screening") {
-      setSessionStage("initiation");
-    }
-  }, [patientDetail, freshWorkflow]);
+    if (!freshWorkflow) return;
+    const personId = patientObjLocation?.personId || patientObjLocation?.id;
+    if (!personId) return;
+    let cancelled = false;
+
+    const matches = (recordType, target) => {
+      if (!recordType || !target) return false;
+      return recordType.toLowerCase() === target.toLowerCase();
+    };
+
+    (async () => {
+      try {
+        // Open initiation = a saved initiation that is not stopped/dead. If its enrollment type
+        // matches the type the user just selected, the workflow is past initiation → show the
+        // full menu. Otherwise (or if missing) fall through to the screening check.
+        const enrollmentResp = await axios.get(
+          `${baseUrl}prep/enrollment/open/patients/${personId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const openInitiationType = enrollmentResp?.data?.enrollmentType;
+        if (cancelled) return;
+        if (matches(openInitiationType, screeningType)) {
+          setSessionStage("all");
+          return;
+        }
+
+        // Open screening = a screening saved but with no initiation yet. If its category matches
+        // the selected type, advance to the initiation step. Otherwise restart at screening so a
+        // user switching from PrEP → PEP gets a PEP screening, not a stale PrEP initiation.
+        const eligibilityResp = await axios.get(
+          `${baseUrl}prep/eligibility/open/patients/${personId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const openScreeningCategory = eligibilityResp?.data?.category;
+        if (cancelled) return;
+        if (matches(openScreeningCategory, screeningType)) {
+          setSessionStage("initiation");
+          return;
+        }
+
+        setSessionStage("screening");
+      } catch (_e) {
+        if (!cancelled) setSessionStage("screening");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [freshWorkflow, screeningType, patientObjLocation?.personId, patientObjLocation?.id]);
 
   // Callbacks to advance the workflow stage after each form is saved
   const onScreeningSaved = () => {

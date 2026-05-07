@@ -181,4 +181,12 @@ public class PrepController {
     public ResponseEntity<PrepEnrollmentDto> getOpenEnrollment(@PathVariable Long patientId) {
         return ResponseEntity.ok(prepService.getOpenEnrollment(patientId));
     }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/initiation/latest/{patientId}")
+    @ApiOperation("Get latest PrEP/PEP initiation by patient Id and enrollment type")
+    public ResponseEntity<PrepEnrollmentDto> getLatestInitiation(
+            @PathVariable Long patientId,
+            @RequestParam(value = "enrollmentType", defaultValue = "PrEP") String enrollmentType) {
+        return ResponseEntity.ok(prepService.getLatestInitiation(patientId, enrollmentType));
+    }
 }

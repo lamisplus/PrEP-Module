@@ -134,9 +134,11 @@ const PEPFollowupVisit = props => {
 
   const getPatientDtoObj = () => {
     const personId = props.patientObj.personId || props.patientObj.id;
+    // Use the type-aware latest-initiation endpoint so this PEP follow-up form
+    // anchors to the patient's latest PEP initiation (not their PrEP record).
     axios
       .get(
-        `${baseUrl}prep/enrollment/open/patients/${personId}`,
+        `${baseUrl}prep/initiation/latest/${personId}?enrollmentType=PEP`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -219,18 +221,42 @@ const PEPFollowupVisit = props => {
   };
 
   // ── Noted side effects handler ──
+  // "No side effects" / "No STI symptoms/signs" must be mutually exclusive
+  // with every other option in their respective lists.
+  const NO_SIDE_EFFECTS_CODE = "PREP_SIDE_EFFECTS_NO_SIDE_EFFECTS";
+  const NO_STI_CODE = "SYNDROMIC_STI_SCREENING_NO_STI_SYMPTOMSSIGNS";
+
+  const enforceExclusive = (prev, next, exclusiveCode) => {
+    const wasExclusive = prev?.includes(exclusiveCode);
+    const isExclusive = next?.includes(exclusiveCode);
+    if (isExclusive && !wasExclusive) return [exclusiveCode];
+    if (wasExclusive && next.length > 1) {
+      return next.filter(c => c !== exclusiveCode);
+    }
+    return next;
+  };
 
   const handleNotedSideEffectsChange = selected => {
-    setNotedSideEffects(selected);
+    const finalSelection = enforceExclusive(
+      notedSideEffects,
+      selected,
+      NO_SIDE_EFFECTS_CODE
+    );
+    setNotedSideEffects(finalSelection);
     if (formikRef.current) {
-      formikRef.current.setFieldValue("pepNotedSideEffects", selected);
+      formikRef.current.setFieldValue("pepNotedSideEffects", finalSelection);
     }
   };
 
   const handleSyndromicStiChange = selected => {
-    setSyndromicStiSelected(selected);
+    const finalSelection = enforceExclusive(
+      syndromicStiSelected,
+      selected,
+      NO_STI_CODE
+    );
+    setSyndromicStiSelected(finalSelection);
     if (formikRef.current) {
-      formikRef.current.setFieldValue("syndromicStiScreening", selected);
+      formikRef.current.setFieldValue("syndromicStiScreening", finalSelection);
     }
   };
 
@@ -334,6 +360,18 @@ const PEPFollowupVisit = props => {
     return date.toISOString().split("T")[0];
   };
 
+  // Months elapsed between enrollment date and the current visit date.
+  const calculateDurationOnPep = encounterDate => {
+    if (!encounterDate || !patientDto?.dateEnrolled) return "";
+    const start = new Date(patientDto.dateEnrolled);
+    const end = new Date(encounterDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+    const months =
+      (end.getFullYear() - start.getFullYear()) * 12 +
+      (end.getMonth() - start.getMonth());
+    return months >= 0 ? String(months) : "0";
+  };
+
   const handleDurationChange = (e, setFieldValue, encounterDate) => {
     const duration = e.target.value;
     setFieldValue("duration", duration);
@@ -344,7 +382,13 @@ const PEPFollowupVisit = props => {
   const handleEncounterDateChangeForAppt = (e, setFieldValue, duration) => {
     const encounterDate = e.target.value;
     setFieldValue("encounterDate", encounterDate);
-    if (duration) {
+    // Auto-populate Duration on PEP from latest initiation
+    const computedDuration = calculateDurationOnPep(encounterDate);
+    if (computedDuration !== "") {
+      setFieldValue("duration", computedDuration);
+      const nextAppt = calculateNextAppointment(encounterDate, computedDuration);
+      if (nextAppt) setFieldValue("nextAppointment", nextAppt);
+    } else if (duration) {
       const nextAppt = calculateNextAppointment(encounterDate, duration);
       if (nextAppt) setFieldValue("nextAppointment", nextAppt);
     }
@@ -469,7 +513,7 @@ const PEPFollowupVisit = props => {
               <Grid.Column>
                 <Segment>
                   <div className="row">
-                    {/* 1. Visit Date */}
+                    {/* 1. Visit Date — must be on/after the latest PEP initiation */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
@@ -483,7 +527,8 @@ const PEPFollowupVisit = props => {
                           onKeyDown={e => e.preventDefault()}
                           value={values.encounterDate}
                           style={inputStyle}
-                          onChange={handleChange}
+                          onChange={e => handleEncounterDateChangeForAppt(e, setFieldValue, values.duration)}
+                          min={patientDto?.dateEnrolled || ""}
                           max={moment(new Date()).format("YYYY-MM-DD")}
                           disabled={disabledField}
                         />
@@ -554,6 +599,19 @@ const PEPFollowupVisit = props => {
                             {getError("durationBeforePep")}
                           </span>
                         )}
+                        {values.durationBeforePep &&
+                          values.durationBeforePep.includes(">72") && (
+                            <div
+                              style={{
+                                marginTop: "0.4rem",
+                                color: "#dc3545",
+                                fontSize: "0.85rem",
+                                fontWeight: 600,
+                              }}
+                            >
+                              PEP not recommended after 72 hours.
+                            </div>
+                          )}
                       </FormGroup>
                     </div>
 
@@ -993,7 +1051,7 @@ const PEPFollowupVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* 12b. Duration on PrEP/PEP (Months) */}
+                    {/* 12b. Duration on PrEP/PEP (Months) — auto-computed from latest initiation */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>Duration on PrEP/PEP (Months)</FormLabelName>
@@ -1001,10 +1059,9 @@ const PEPFollowupVisit = props => {
                           type="number"
                           name="duration"
                           id="duration"
-                          onChange={e => handleDurationChange(e, setFieldValue, values.encounterDate)}
                           value={values.duration}
                           style={inputStyle}
-                          disabled={disabledField}
+                          disabled
                           min="0"
                         />
                       </FormGroup>
@@ -1180,10 +1237,9 @@ const PEPFollowupVisit = props => {
                           name="nextAppointment"
                           id="nextAppointment"
                           value={values.nextAppointment}
-                          onChange={handleChange}
                           style={inputStyle}
                           min={values.encounterDate}
-                          disabled={disabledField}
+                          disabled
                         />
                         {getError("nextAppointment") && (
                           <span className={classes.error}>

@@ -523,6 +523,18 @@ public class PrepService {
         return new PrepEnrollmentDto();
     }
 
+    /**
+     * Returns the most recent (by date_enrolled) initiation for the given person filtered
+     * by enrollment type (PrEP or PEP). Used by follow-up visit forms to compute duration
+     * on therapy and to validate that the visit date is after the enrollment date.
+     */
+    public PrepEnrollmentDto getLatestInitiation(Long personId, String enrollmentType) {
+        Person person = this.getPerson(personId);
+        Optional<PrepPepInitiation> latest = prepPepInitiationRepository
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), UN_ARCHIVED, enrollmentType);
+        return latest.map(this::enrollmentToEnrollmentDto).orElseGet(PrepEnrollmentDto::new);
+    }
+
     public PrepEligibilityScreening prepEligibilityRequestDtoToPrepEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto, String personUuid) {
         if (prepEligibilityRequestDto == null) {
             return null;
@@ -594,6 +606,7 @@ public class PrepService {
         prepEligibilityDto.setSetting(eligibility.getSetting());
         prepEligibilityDto.setServiceStatus(eligibility.getServiceStatus());
         prepEligibilityDto.setTypeOfSession(eligibility.getTypeOfSession());
+        prepEligibilityDto.setCategory(eligibility.getCategory());
         //PersonResponseDto personResponseDto = personService.getDtoFromPerson(eligibility.getPerson());
         //prepEligibilityDto.setPersonResponseDto(personResponseDto);
 

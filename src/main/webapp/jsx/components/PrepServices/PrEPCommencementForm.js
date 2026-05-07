@@ -213,15 +213,9 @@ const PrEPCommencementForm = props => {
         : "This field is required";
     if (isFemalePatient) {
       temp.pregnant = objValues.pregnant ? "" : "This field is required";
-      // Skip-logic: Breastfeeding only displayed (and thus required) when
-      // pregnancy status indicates breastfeeding.
-      if (objValues.pregnant === "PREGANACY_STATUS_BREASTFEEDING") {
-        temp.breastFeeding = objValues.breastFeeding
-          ? ""
-          : "This field is required";
-      } else {
-        temp.breastFeeding = "";
-      }
+      temp.breastFeeding = objValues.breastFeeding
+        ? ""
+        : "This field is required";
     }
     setErrors({ ...temp });
     return Object.values(temp).every(x => x === "");
@@ -576,7 +570,7 @@ const PrEPCommencementForm = props => {
               props.patientObj.sex?.toLowerCase()) === "female" && (
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <Label>Pregnancy Status <span style={{ color: "red" }}>*</span></Label>
+                  <Label>Pregnant <span style={{ color: "red" }}>*</span></Label>
                   <Input
                     type="select"
                     name="pregnant"
@@ -589,9 +583,9 @@ const PrEPCommencementForm = props => {
                       borderRadius: "0.25rem",
                     }}
                   >
-                    <option value=""></option>
-                    {codeset?.PREGNANCY_STATUS?.map(value => (
-                      <option key={value.id} value={value.code}>
+                    <option value="">Select</option>
+                    {(codeset?.YES_NO || []).map(value => (
+                      <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
                     ))}
@@ -602,10 +596,11 @@ const PrEPCommencementForm = props => {
                 </FormGroup>
               </div>
             )}
-            {objValues.pregnant === "PREGANACY_STATUS_BREASTFEEDING" && (
+            {(props.patientObj.gender?.toLowerCase() === "female" ||
+              props.patientObj.sex?.toLowerCase()) === "female" && (
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <Label>Breast Feeding <span style={{ color: "red" }}>*</span></Label>
+                  <Label>Breastfeeding <span style={{ color: "red" }}>*</span></Label>
                   <Input
                     type="select"
                     name="breastFeeding"
@@ -619,8 +614,11 @@ const PrEPCommencementForm = props => {
                     }}
                   >
                     <option value="">Select</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
+                    {(codeset?.YES_NO || []).map(value => (
+                      <option key={value.code} value={value.code}>
+                        {value.display}
+                      </option>
+                    ))}
                   </Input>
                   {errors.breastFeeding && (
                     <span className={classes.error}>{errors.breastFeeding}</span>
@@ -644,8 +642,9 @@ const PrEPCommencementForm = props => {
                   }}
                 >
                   <option value="">Select</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
+                  {(codeset?.YES_NO || []).map(item => (
+                    <option key={item.code} value={item.code}>{item.display}</option>
+                  ))}
                 </Input>
                 {errors.drugAllergies && (
                   <span className={classes.error}>{errors.drugAllergies}</span>
@@ -769,8 +768,9 @@ const PrEPCommencementForm = props => {
                   }}
                 >
                   <option value="">Select</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
+                  {(codeset?.YES_NO || []).map(item => (
+                    <option key={item.code} value={item.code}>{item.display}</option>
+                  ))}
                 </Input>
                 {errors.referred && (
                   <span className={classes.error}>{errors.referred}</span>
