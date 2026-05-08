@@ -25,4 +25,14 @@ public class PrepDtos {
     // screening or initiation record. Used by the Patient Card.
     private String pregnant;
     private String breastfeeding;
+
+    /**
+     * TRUE when the patient is currently active on PrEP — i.e. their latest
+     * {@code prophylaxis_initiation} has {@code enrollment_type='PrEP'} AND
+     * {@code is_interrupted=false}. Used by the Patient List "Enroll" modal
+     * (block re-enrollment) and by the SubMenu (cross-arm form lockout).
+     */
+    private Boolean isCurrentStatusInterruptedPrep = false;
+    /** Same semantics for PEP. */
+    private Boolean isCurrentStatusInterruptedPep = false;
 }

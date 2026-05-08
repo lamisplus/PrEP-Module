@@ -50,6 +50,14 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "prep_enrollment_uuid")
     private String prepEnrollmentUuid;
 
+    /**
+     * Canonical FK to the patient's matching {@code prophylaxis_initiation} record. Populated
+     * automatically by the service on save by looking up the latest active initiation that
+     * matches this visit's enrollment type. Coexists with the legacy {@code prep_enrollment_uuid}.
+     */
+    @Column(name = "prophylaxis_initiation_uuid")
+    private String prophylaxisInitiationUuid;
+
     @Column(name = "encounter_date")
     private LocalDate encounterDate;
 
@@ -267,7 +275,7 @@ public class PrepFollowupVisit extends Audit implements Serializable {
             uuid = UUID.randomUUID().toString();
         }
         if (archived == null) {
-            archived = 0;
+            archived = false;
         }
     }
 }

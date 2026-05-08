@@ -131,6 +131,14 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @Column(name = "months_of_refill")
     private Integer monthsOfRefill;
 
+    /**
+     * Whether this initiation has been discontinued / interrupted. Set to false on creation.
+     * Flipped to true when a discontinuation/interruption is saved against this initiation,
+     * or automatically 28 days after a PEP initiation date.
+     */
+    @Column(name = "is_interrupted")
+    private Boolean isInterrupted = false;
+
     @Column(name = "archived")
     private Boolean archived = false;
 
@@ -148,7 +156,7 @@ public class PrepPepInitiation extends Audit implements Serializable {
             uuid = UUID.randomUUID().toString();
         }
         if (archived == null) {
-            archived = 0;
+            archived = false;
         }
     }
 }

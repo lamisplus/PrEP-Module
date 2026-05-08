@@ -65,6 +65,9 @@ const PrEPInitialVisitForm = props => {
   const [patientDto, setPatientDto] = useState();
   const [disabledField, setSisabledField] = useState(false);
   const [codeset, setCodeset] = useState({});
+  // True once the patient is found to have a prior prophylaxis_initiation record.
+  // Locks the Unique ID field so all initiations for the same client share one ID.
+  const [hasExistingInitiation, setHasExistingInitiation] = useState(false);
   const [prepRegimen, setPrepRegimen] = useState([]);
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     bodyWeight: "",
@@ -130,8 +133,12 @@ const PrEPInitialVisitForm = props => {
           .then(initResponse => {
             if (initResponse.data && initResponse.data.length > 0) {
               const prevInitiation = initResponse.data[0]; // most recent
+              setHasExistingInitiation(true);
               setObjValues(prev => ({
                 ...prev,
+                // Lock Unique ID to the existing initiation's value so all
+                // prophylaxis_initiation rows for this client share one ID.
+                uniqueId: prevInitiation.uniqueId || prev.uniqueId,
                 populationType: prevInitiation.populationType || prev.populationType,
                 hivTestingPoint: prevInitiation.hivTestingPoint || prev.hivTestingPoint,
                 weight: prevInitiation.weight || prev.weight,
@@ -377,7 +384,7 @@ const PrEPInitialVisitForm = props => {
                 {screeningType === 'PEP' ? 'PEP' : screeningType === 'PrEP' ? 'PrEP' : 'PrEP/PEP'} Initial Visit
               </div>
 
-              {/* 1. Unique ID */}
+              {/* 1. Unique ID — locked when client already has a prior initiation */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label for="uniqueId">
@@ -390,7 +397,7 @@ const PrEPInitialVisitForm = props => {
                     id="uniqueId"
                     onChange={handleInputChange}
                     value={objValues.uniqueId}
-                    disabled={disabledField}
+                    disabled={disabledField || hasExistingInitiation}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",

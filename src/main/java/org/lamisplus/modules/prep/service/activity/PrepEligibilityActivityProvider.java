@@ -19,7 +19,7 @@ public class PrepEligibilityActivityProvider implements PatientActivityProvider 
 
 	@Override
 	public List<PatientActivity> getActivitiesFor(Person person) {
-		return eligibilityRepository.findAllByPersonAndArchived(person, 0)
+		return eligibilityRepository.findAllByPersonAndArchived(person, false)
 				.stream().map(this::buildPatientActivity).collect(Collectors.toList());
 	}
 	

@@ -20,7 +20,7 @@ public class PrepInterruptionActivityProvider implements PatientActivityProvider
 
 	@Override
 	public List<PatientActivity> getActivitiesFor(Person person) {
-		return interruptionRepository.findAllByPersonAndArchived(person, 0)
+		return interruptionRepository.findAllByPersonAndArchived(person, false)
 				.stream()
 				.filter(i -> i.getInterruptionDate() != null || i.getFollowUpVisitDate() != null)
 				.map(this::buildPatientActivity)

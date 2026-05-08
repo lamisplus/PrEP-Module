@@ -436,7 +436,8 @@
             consideration_for_injections JSONB,
             reason_for_declining_prep JSONB,
             reason_for_switch VARCHAR(255),
-            archived INTEGER NOT NULL DEFAULT 0,
+            extra JSONB,
+            archived BOOLEAN NOT NULL DEFAULT false,
             created_by VARCHAR(255) NOT NULL,
             date_created TIMESTAMP NOT NULL,
             modified_by VARCHAR(255),
@@ -475,6 +476,7 @@
             weight DOUBLE PRECISION,
             height DOUBLE PRECISION,
             pregnancy_status VARCHAR(255),
+            breast_feeding VARCHAR(255),
             history_of_drug_allergies VARCHAR(255),
             history_of_drug_to_drug_interaction VARCHAR(255),
             urinalysis_result VARCHAR(255),
@@ -487,7 +489,8 @@
             prep_type_at_start_others_specify VARCHAR(255),
             prep_regimen VARCHAR(255),
             months_of_refill INTEGER,
-            archived INTEGER NOT NULL DEFAULT 0,
+            is_interrupted BOOLEAN NOT NULL DEFAULT false,
+            archived BOOLEAN NOT NULL DEFAULT false,
             created_by VARCHAR(255) NOT NULL,
             date_created TIMESTAMP NOT NULL,
             modified_by VARCHAR(255),
@@ -512,6 +515,7 @@
             person_uuid VARCHAR(255) NOT NULL,
             facility_id BIGINT NOT NULL,
             prep_enrollment_uuid VARCHAR(255),
+            prophylaxis_initiation_uuid VARCHAR(255),
             encounter_date DATE,
             visit_type VARCHAR(255),
             is_commencement BOOLEAN,
@@ -572,14 +576,15 @@
             why BOOLEAN,
             referred BOOLEAN,
             date_referred DATE,
-            extra JSONB,
-            archived INTEGER NOT NULL DEFAULT 0,
+            archived BOOLEAN NOT NULL DEFAULT false,
             created_by VARCHAR(255) NOT NULL,
             date_created TIMESTAMP NOT NULL,
             modified_by VARCHAR(255),
             date_modified TIMESTAMP,
             CONSTRAINT fk_prep_followup_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
             CONSTRAINT fk_prep_followup_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES
+            prophylaxis_initiation(uuid),
+            CONSTRAINT fk_prep_followup_initiation FOREIGN KEY (prophylaxis_initiation_uuid) REFERENCES
             prophylaxis_initiation(uuid)
             );
         </sql>
@@ -599,6 +604,7 @@
             person_uuid VARCHAR(255) NOT NULL,
             facility_id BIGINT NOT NULL,
             prep_enrollment_uuid VARCHAR(255),
+            prophylaxis_initiation_uuid VARCHAR(255),
             encounter_date DATE,
             visit_type VARCHAR(255),
             is_commencement BOOLEAN,
@@ -618,7 +624,6 @@
             duration INTEGER,
             date_prep_start DATE,
             date_prep_given DATE,
-            prep_given VARCHAR(255),
             other_prep_given VARCHAR(255),
             other_prep_type VARCHAR(255),
             was_prep_administered VARCHAR(255),
@@ -668,14 +673,15 @@
             date_start_pep DATE,
             date_stop_pep DATE,
             followup_hiv_test_results JSONB,
-            extra JSONB,
-            archived INTEGER NOT NULL DEFAULT 0,
+            archived BOOLEAN NOT NULL DEFAULT false,
             created_by VARCHAR(255) NOT NULL,
             date_created TIMESTAMP NOT NULL,
             modified_by VARCHAR(255),
             date_modified TIMESTAMP,
             CONSTRAINT fk_pep_followup_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
             CONSTRAINT fk_pep_followup_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES
+            prophylaxis_initiation(uuid),
+            CONSTRAINT fk_pep_followup_initiation FOREIGN KEY (prophylaxis_initiation_uuid) REFERENCES
             prophylaxis_initiation(uuid)
             );
         </sql>
@@ -690,6 +696,7 @@
             person_uuid VARCHAR(255) NOT NULL,
             facility_id BIGINT NOT NULL,
             prep_enrollment_uuid VARCHAR(255),
+            prophylaxis_initiation_uuid VARCHAR(255),
             interruption_type VARCHAR(255),
             interruption_date DATE,
             interruption_reason VARCHAR(255),
@@ -712,23 +719,21 @@
             follow_up_visit_date DATE,
             hiv_result VARCHAR(255),
             early_detect_viral_load_result VARCHAR(255),
-            archived INTEGER DEFAULT 0,
+            archived BOOLEAN NOT NULL DEFAULT false,
             created_by VARCHAR(255) NOT NULL,
             date_created TIMESTAMP NOT NULL,
             modified_by VARCHAR(255),
             date_modified TIMESTAMP,
             CONSTRAINT fk_prophylaxis_int_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
-            CONSTRAINT fk_prophylaxis_int_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES prophylaxis_initiation(uuid)
+            CONSTRAINT fk_prophylaxis_int_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES prophylaxis_initiation(uuid),
+            CONSTRAINT fk_prophylaxis_int_initiation FOREIGN KEY (prophylaxis_initiation_uuid) REFERENCES prophylaxis_initiation(uuid)
             );
         </sql>
     </changeSet>
 
-    <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-pep-followup-visit">
-        <sql>
-            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS extra;
-        </sql>
-    </changeSet>
-
+    <!-- Legacy 'extra' column drops on the OLD prep_clinic / prep_interruption tables.
+         The new prep_followup_visit / pep_followup_visit / prophylaxis_* tables are
+         created fresh via the CREATE TABLE changesets above and never had the column. -->
     <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-prep-clinic">
         <sql>
             ALTER TABLE IF EXISTS prep_clinic DROP COLUMN IF EXISTS extra;
@@ -738,69 +743,6 @@
     <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-prep-interruption">
         <sql>
             ALTER TABLE IF EXISTS prep_interruption DROP COLUMN IF EXISTS extra;
-        </sql>
-    </changeSet>
-
-    <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-prep-followup-visit">
-        <sql>
-            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS extra;
-        </sql>
-    </changeSet>
-
-    <changeSet failOnError="false" author="Gamaliel" id="add-breast-feeding-to-prophylaxis-initiation">
-        <preConditions onFail="MARK_RAN">
-            <sqlCheck expectedResult="0">
-                SELECT COUNT(*) FROM information_schema.columns
-                WHERE table_name = 'prophylaxis_initiation' AND column_name = 'breast_feeding';
-            </sqlCheck>
-        </preConditions>
-        <sql>
-            ALTER TABLE IF EXISTS prophylaxis_initiation ADD COLUMN breast_feeding VARCHAR(255);
-        </sql>
-    </changeSet>
-
-    <changeSet failOnError="false" author="Gamaliel" id="archived-to-boolean-prophylaxis-screening">
-        <sql>
-            ALTER TABLE IF EXISTS prophylaxis_screening
-                ALTER COLUMN archived DROP DEFAULT,
-                ALTER COLUMN archived TYPE BOOLEAN USING (archived::int &lt;&gt; 0),
-                ALTER COLUMN archived SET DEFAULT false;
-        </sql>
-    </changeSet>
-
-    <changeSet failOnError="false" author="Gamaliel" id="archived-to-boolean-prophylaxis-initiation">
-        <sql>
-            ALTER TABLE IF EXISTS prophylaxis_initiation
-                ALTER COLUMN archived DROP DEFAULT,
-                ALTER COLUMN archived TYPE BOOLEAN USING (archived::int &lt;&gt; 0),
-                ALTER COLUMN archived SET DEFAULT false;
-        </sql>
-    </changeSet>
-
-    <changeSet failOnError="false" author="Gamaliel" id="archived-to-boolean-prophylaxis-interruptions">
-        <sql>
-            ALTER TABLE IF EXISTS prophylaxis_interruptions
-                ALTER COLUMN archived DROP DEFAULT,
-                ALTER COLUMN archived TYPE BOOLEAN USING (archived::int &lt;&gt; 0),
-                ALTER COLUMN archived SET DEFAULT false;
-        </sql>
-    </changeSet>
-
-    <changeSet failOnError="false" author="Gamaliel" id="archived-to-boolean-prep-followup-visit">
-        <sql>
-            ALTER TABLE IF EXISTS prep_followup_visit
-                ALTER COLUMN archived DROP DEFAULT,
-                ALTER COLUMN archived TYPE BOOLEAN USING (archived::int &lt;&gt; 0),
-                ALTER COLUMN archived SET DEFAULT false;
-        </sql>
-    </changeSet>
-
-    <changeSet failOnError="false" author="Gamaliel" id="archived-to-boolean-pep-followup-visit">
-        <sql>
-            ALTER TABLE IF EXISTS pep_followup_visit
-                ALTER COLUMN archived DROP DEFAULT,
-                ALTER COLUMN archived TYPE BOOLEAN USING (archived::int &lt;&gt; 0),
-                ALTER COLUMN archived SET DEFAULT false;
         </sql>
     </changeSet>
 
@@ -817,6 +759,9 @@
             ALTER TABLE base_application_user ADD CONSTRAINT uq_base_application_user_uuid UNIQUE (uuid);
         </sql>
     </changeSet>
+
+    <!-- is_interrupted, breast_feeding and prophylaxis_initiation_uuid columns are
+         declared inline on the CREATE TABLE changesets above; no ALTER required. -->
 
 
 </databaseChangeLog>

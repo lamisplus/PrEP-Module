@@ -158,7 +158,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
-            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
+            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
             "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
@@ -284,7 +284,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
-            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
+            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
             "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
@@ -411,7 +411,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
-            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
+            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
             "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
@@ -492,7 +492,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "GROUP BY person_uuid) el ON el.person_uuid = p.uuid  " +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid  " +
             "AND pet.archived=?1 LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid  " +
-            "AND he.archived=?1 LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount,  " +
+            "AND he.archived = CAST(?1 AS INTEGER) LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount,  " +
             "MAX(pc.encounter_date) as encounter_date, pc.duration,   " +
             " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'  " +
             " ELSE  'Defaulted' END) status FROM prep_followup_visit pc  " +
@@ -558,7 +558,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    GROUP BY person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1\n" +
-            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived=?1\n" +
+            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, \n" +
             "           pc.duration,   \n" +
@@ -689,7 +689,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
-            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
+            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
             "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
@@ -826,7 +826,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHERE el.archived = ?1\n" +
             "        GROUP BY el.person_uuid\n" +
             "    ) el ON el.person_uuid = pet.person_uuid\n" +
-            "    LEFT JOIN hiv_enrollment he ON he.person_uuid = pet.person_uuid AND he.archived = ?1\n" +
+            "    LEFT JOIN hiv_enrollment he ON he.person_uuid = pet.person_uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "    LEFT JOIN (\n" +
             "        SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
             "               MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
@@ -962,7 +962,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                GROUP BY el.person_uuid\n" +
             "            ) el ON el.person_uuid = p.uuid\n" +
             "            LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
-            "            LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
+            "            LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "            LEFT JOIN (\n" +
             "                SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
             "                       MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
@@ -1048,7 +1048,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             " INNER JOIN (SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid FROM prophylaxis_screening el " +
             "WHERE el.archived=?1 GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
             " LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1" +
-            " LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived=?1" +
+            " LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)" +
             " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration,   " +
             " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'" +
             " ELSE  'Defaulted' END) status FROM prep_followup_visit pc" +
@@ -1144,7 +1144,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
-            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
+            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
             "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
@@ -1288,7 +1288,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
-            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = ?1\n" +
+            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
             "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +

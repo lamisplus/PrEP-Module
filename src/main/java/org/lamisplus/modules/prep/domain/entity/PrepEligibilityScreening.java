@@ -161,7 +161,7 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
             uuid = UUID.randomUUID().toString();
         }
         if (archived == null) {
-            archived = 0;
+            archived = false;
         }
     }
 }

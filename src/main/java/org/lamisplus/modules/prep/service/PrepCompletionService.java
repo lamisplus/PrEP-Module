@@ -16,9 +16,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.lamisplus.modules.base.util.Constants.ArchiveStatus.ARCHIVED;
-import static org.lamisplus.modules.base.util.Constants.ArchiveStatus.UN_ARCHIVED;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -39,7 +36,7 @@ public class PrepCompletionService {
         entity.setUuid(UUID.randomUUID().toString());
 
         prophylaxisInterruptionRepository
-                .findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(requestDto.getInterruptionDate(), person.getUuid(), 0)
+                .findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(requestDto.getInterruptionDate(), person.getUuid(), false)
                 .ifPresent(existing -> {
                     throw new RecordExistException(ProphylaxisInterruption.class, "Interruption date",
                             String.valueOf(requestDto.getInterruptionDate()));
@@ -51,19 +48,19 @@ public class PrepCompletionService {
 
     public void delete(Long id) {
         ProphylaxisInterruption entity = prophylaxisInterruptionRepository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(ProphylaxisInterruption.class, "id", String.valueOf(id)));
-        entity.setArchived(ARCHIVED);
+        entity.setArchived(true);
         prophylaxisInterruptionRepository.save(entity);
     }
 
     public PrepCompletionDto update(Long id, PrepCompletionDto dto) {
         ProphylaxisInterruption entity = prophylaxisInterruptionRepository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(ProphylaxisInterruption.class, "id", String.valueOf(id)));
         String uuid = entity.getUuid();
         entity = dtoToEntity(dto, entity.getPersonUuid());
-        entity.setArchived(UN_ARCHIVED);
+        entity.setArchived(false);
         entity.setUuid(uuid);
         entity.setId(id);
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
@@ -72,7 +69,7 @@ public class PrepCompletionService {
 
     public PrepCompletionDto getById(Long id) {
         ProphylaxisInterruption entity = prophylaxisInterruptionRepository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(ProphylaxisInterruption.class, "id", String.valueOf(id)));
         return entityToDto(entity);
     }
@@ -80,7 +77,7 @@ public class PrepCompletionService {
     public List<PrepCompletionDto> getByPersonId(Long personId) {
         List<ProphylaxisInterruption> list = prophylaxisInterruptionRepository
                 .findAllByPersonUuidAndFacilityIdAndArchived(getPerson(personId).getUuid(),
-                        currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED);
+                        currentUserOrganizationService.getCurrentUserOrganization(), false);
         return list.stream().map(this::entityToDto).collect(Collectors.toList());
     }
 

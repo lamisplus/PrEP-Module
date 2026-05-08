@@ -34,6 +34,13 @@ public class ProphylaxisInterruption extends Audit implements Serializable {
     @Column(name = "prep_enrollment_uuid")
     private String prepEnrollmentUuid;
 
+    /**
+     * Canonical FK to the {@code prophylaxis_initiation} record this interruption belongs to.
+     * Populated by the service on save (latest active initiation for the person + enrollment type).
+     */
+    @Column(name = "prophylaxis_initiation_uuid")
+    private String prophylaxisInitiationUuid;
+
     @Column(name = "interruption_type")
     private String interruptionType;
 

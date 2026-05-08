@@ -148,6 +148,8 @@ public class PrepFollowupVisitService {
         entity.setUuid(uuid);
         entity.setIsCommencement(isCommencement);
         entity.setPrepEnrollmentUuid(enrollmentUuid);
+        // Mirror canonical FK to prophylaxis_initiation
+        entity.setProphylaxisInitiationUuid(enrollmentUuid);
         entity.setFamilyPlanning(dto.getFamilyPlanning());
         entity.setDateOfFamilyPlanning(dto.getDateOfFamilyPlanning());
         entity.setPregnant(dto.getPregnant());
@@ -212,6 +214,7 @@ public class PrepFollowupVisitService {
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
         entity.setDateReferred(dto.getDateReferred());
         entity.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
+        entity.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
         entity.setRegimenId(dto.getRegimenId());
         entity.setUrinalysisResult(dto.getUrinalysisResult());
         entity.setReferred(dto.getReferred());
@@ -282,6 +285,7 @@ public class PrepFollowupVisitService {
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
         entity.setDateReferred(dto.getDateReferred());
         entity.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
+        entity.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
         entity.setRegimenId(dto.getRegimenId());
         entity.setUrinalysisResult(dto.getUrinalysisResult());
         entity.setReferred(dto.getReferred());

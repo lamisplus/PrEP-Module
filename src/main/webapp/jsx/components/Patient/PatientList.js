@@ -167,8 +167,39 @@ const EntryPointCard = ({ entry, onSelect }) => (
 const EnrollPatientButton = ({ row }) => {
   const history = useHistory();
   const [open, setOpen] = useState(false);
+  const [activeStatus, setActiveStatus] = useState({
+    prep: false,
+    pep: false,
+    loaded: false,
+  });
+
+  const handleOpen = async () => {
+    setOpen(true);
+    if (activeStatus.loaded) return;
+    try {
+      const personId = row?.personId || row?.id;
+      const resp = await axios.get(`${baseUrl}prep/persons/${personId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const d = resp?.data || {};
+      setActiveStatus({
+        prep: !!d.isCurrentStatusInterruptedPrep,
+        pep: !!d.isCurrentStatusInterruptedPep,
+        loaded: true,
+      });
+    } catch (_e) {
+      setActiveStatus({ prep: false, pep: false, loaded: true });
+    }
+  };
+
+  const blockedArm = activeStatus.prep
+    ? "PrEP"
+    : activeStatus.pep
+    ? "PEP"
+    : null;
 
   const handleEnroll = (screeningType) => {
+    if (blockedArm) return; // hard-block; banner explains it
     setOpen(false);
     history.push({
       pathname: "/patient-dashboard",
@@ -179,7 +210,7 @@ const EnrollPatientButton = ({ row }) => {
   return (
     <>
       <MuiButton
-        onClick={() => setOpen(true)}
+        onClick={handleOpen}
         variant="contained"
         size="small"
         style={{
@@ -207,7 +238,7 @@ const EnrollPatientButton = ({ row }) => {
         <DialogTitle
           disableTypography
           style={{
-            background: "rgb(153, 46, 98)",
+            background: blockedArm ? "#b91c1c" : "rgb(153, 46, 98)",
             color: "#fff",
             padding: "0.75rem 1rem",
             display: "flex",
@@ -216,7 +247,7 @@ const EnrollPatientButton = ({ row }) => {
           }}
         >
           <span style={{ fontSize: "1rem", fontWeight: 600 }}>
-            Select Enrollment Type
+            {blockedArm ? "Active Enrollment" : "Select Enrollment Type"}
           </span>
           <IconButton
             size="small"
@@ -227,28 +258,46 @@ const EnrollPatientButton = ({ row }) => {
           </IconButton>
         </DialogTitle>
         <DialogContent style={{ padding: "1.25rem" }}>
-          <div
-            style={{
-              marginBottom: "1rem",
-              fontSize: "0.875rem",
-              color: "#444",
-            }}
-          >
-            Choose the service line to enroll{" "}
-            <strong>
-              {row?.firstName} {row?.surname}
-            </strong>{" "}
-            into.
-          </div>
-          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-            {ENTRY_POINTS.map((entry) => (
-              <EntryPointCard
-                key={entry.code}
-                entry={entry}
-                onSelect={handleEnroll}
-              />
-            ))}
-          </div>
+          {blockedArm ? (
+            <div
+              style={{
+                fontSize: "0.95rem",
+                color: "#444",
+                lineHeight: 1.5,
+              }}
+            >
+              <strong>
+                {row?.firstName} {row?.surname}
+              </strong>{" "}
+              is currently initiated for <strong>{blockedArm}</strong>. You must
+              discontinue this enrollment before starting another.
+            </div>
+          ) : (
+            <>
+              <div
+                style={{
+                  marginBottom: "1rem",
+                  fontSize: "0.875rem",
+                  color: "#444",
+                }}
+              >
+                Choose the service line to enroll{" "}
+                <strong>
+                  {row?.firstName} {row?.surname}
+                </strong>{" "}
+                into.
+              </div>
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                {ENTRY_POINTS.map((entry) => (
+                  <EntryPointCard
+                    key={entry.code}
+                    entry={entry}
+                    onSelect={handleEnroll}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </>

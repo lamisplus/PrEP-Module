@@ -57,7 +57,7 @@ public class PepFollowupVisitService {
         }
 
         pepFollowupVisitRepository.findByEncounterDateAndPersonUuidAndArchived(
-                requestDto.getEncounterDate(), person.getUuid(), 0)
+                requestDto.getEncounterDate(), person.getUuid(), false)
                 .ifPresent(existing -> {
                     throw new RecordExistException(PepFollowupVisit.class, "Encounter date",
                             String.valueOf(requestDto.getEncounterDate()));
@@ -103,6 +103,7 @@ public class PepFollowupVisitService {
         entity.setId(id);
         entity.setUuid(uuid);
         entity.setPrepEnrollmentUuid(enrollmentUuid);
+        entity.setProphylaxisInitiationUuid(enrollmentUuid);
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         return entityToDto(pepFollowupVisitRepository.save(entity));
     }
@@ -126,6 +127,7 @@ public class PepFollowupVisitService {
         PepFollowupVisit entity = new PepFollowupVisit();
         entity.setPersonUuid(personUuid);
         entity.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
+        entity.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
         entity.setEncounterDate(dto.getEncounterDate());
         entity.setNextAppointment(dto.getNextAppointment());
         entity.setWeight(dto.getWeight());
@@ -201,6 +203,7 @@ public class PepFollowupVisitService {
         PepFollowupVisit entity = new PepFollowupVisit();
         entity.setPersonUuid(personUuid);
         entity.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
+        entity.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
         entity.setEncounterDate(dto.getEncounterDate());
         entity.setNextAppointment(dto.getNextAppointment());
         entity.setWeight(dto.getWeight());

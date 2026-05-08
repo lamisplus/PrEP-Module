@@ -21,7 +21,7 @@ public class PrepClinicActivityProvider implements PatientActivityProvider {
 	
 	@Override
 	public List<PatientActivity> getActivitiesFor(Person person) {
-		return prepFollowupVisitRepository.findAllByPersonAndIsCommencementAndArchived(person, false, 0)
+		return prepFollowupVisitRepository.findAllByPersonAndIsCommencementAndArchived(person, false, false)
 				.stream().map(this::buildPatientActivity).collect(Collectors.toList());
 	}
 	

@@ -84,8 +84,34 @@ function SubMenu(props) {
   const isPrEP = effectiveType === "PrEP";
   const typeLabel = isPEP ? "PEP" : "PrEP";
 
+  // Cross-arm exclusivity. The two flags arrive on patientDetail; "true" means the
+  // patient is currently active on that arm. If the user is browsing the OTHER arm's
+  // tab, hide all PrEP/PEP service entry points so they can't accidentally start work
+  // on a wrong-arm form. (Discontinuation stays available so the user can interrupt.)
+  const isActivePrep = !!patientDetail?.isCurrentStatusInterruptedPrep;
+  const isActivePep = !!patientDetail?.isCurrentStatusInterruptedPep;
+  const blockedByOtherArm =
+    (isPrEP && isActivePep) || (isPEP && isActivePrep);
+
   const renderMenuItems = () => {
     const isNegative = patientObj?.hivresultAtVisit === "Negative" || patientObj?.hivresultAtVisit === null;
+
+    // If the patient is currently active on the OTHER arm, lock down this tab to
+    // a notice + History only. The user must visit the other arm's tab and
+    // discontinue first.
+    if (blockedByOtherArm) {
+      const activeArm = isActivePrep ? "PrEP" : "PEP";
+      return (
+        <>
+          <Menu.Item onClick={onClickHome}>Home</Menu.Item>
+          <Menu.Item disabled style={{ color: "#b91c1c", fontWeight: 600 }}>
+            Patient is currently on {activeArm}. Discontinue {activeArm} before
+            using {typeLabel} forms.
+          </Menu.Item>
+          <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
+        </>
+      );
+    }
 
     // Fresh workflow (came from Patient Tab): walk the user through Screening -> Initiation -> All forms
     if (freshWorkflow && sessionStage === "screening") {

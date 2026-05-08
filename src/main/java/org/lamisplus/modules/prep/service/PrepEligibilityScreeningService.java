@@ -44,7 +44,7 @@ public class PrepEligibilityScreeningService {
         entity.setUuid(UUID.randomUUID().toString());
 
         prepEligibilityScreeningRepository
-                .findByVisitDateAndPersonUuidAndArchived(requestDto.getVisitDate(), person.getUuid(), 0)
+                .findByVisitDateAndPersonUuidAndArchived(requestDto.getVisitDate(), person.getUuid(), false)
                 .ifPresent(existing -> {
                     throw new ResponseStatusException(HttpStatus.CONFLICT,
                             "A screening record already exists for this visit date: " + requestDto.getVisitDate());
