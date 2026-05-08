@@ -48,8 +48,8 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @Column(name = "facility_id")
     public Long facilityId;
 
-    @Column(name = "prep_eligibility_uuid")
-    public String prepEligibilityUuid;
+    @Column(name = "prophylaxis_screening_uuid")
+    public String prophylaxisScreeningUuid;
 
     @Column(name = "unique_id")
     private String uniqueId;
@@ -147,8 +147,8 @@ public class PrepPepInitiation extends Audit implements Serializable {
     private Person person;
 
     @OneToOne
-    @JoinColumn(name = "prep_eligibility_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
-    private PrepEligibilityScreening prepEligibilityScreening;
+    @JoinColumn(name = "prophylaxis_screening_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+    private PrepEligibilityScreening prophylaxisScreening;
 
     @PrePersist
     public void setFields() {

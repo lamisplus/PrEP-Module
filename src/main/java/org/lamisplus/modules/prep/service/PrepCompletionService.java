@@ -105,7 +105,7 @@ public class PrepCompletionService {
         e.setFollowUpVisitDate(dto.getFollowUpVisitDate());
         e.setHivResult(dto.getHivResult());
         e.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
-        e.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
+        e.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
         return e;
     }
 
@@ -134,7 +134,7 @@ public class PrepCompletionService {
         e.setFollowUpVisitDate(dto.getFollowUpVisitDate());
         e.setHivResult(dto.getHivResult());
         e.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
-        e.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
+        e.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
         return e;
     }
 
@@ -162,7 +162,7 @@ public class PrepCompletionService {
         dto.setFollowUpVisitDate(e.getFollowUpVisitDate());
         dto.setHivResult(e.getHivResult());
         dto.setEarlyDetectViralLoadResult(e.getEarlyDetectViralLoadResult());
-        dto.setPrepEnrollmentUuid(e.getPrepEnrollmentUuid());
+        dto.setPrepEnrollmentUuid(e.getProphylaxisInitiationUuid());
         return dto;
     }
 }

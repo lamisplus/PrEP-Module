@@ -35,4 +35,11 @@ public class PrepDtos {
     private Boolean isCurrentStatusInterruptedPrep = false;
     /** Same semantics for PEP. */
     private Boolean isCurrentStatusInterruptedPep = false;
+
+    /** Total interruptions/discontinuations on file for the patient. */
+    private Integer interruptionCount = 0;
+    /** Initiations on file with enrollment_type = PrEP. */
+    private Integer prepInitiationCount = 0;
+    /** Initiations on file with enrollment_type = PEP. */
+    private Integer pepInitiationCount = 0;
 }

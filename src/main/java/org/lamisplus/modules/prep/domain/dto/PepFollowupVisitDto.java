@@ -16,7 +16,7 @@ public class PepFollowupVisitDto implements Serializable {
     private Double weight;
     private Double height;
     private String pregnant;
-    private String prepEnrollmentUuid;
+    private String prophylaxisInitiationUuid;
     private Long regimenId;
     private String urinalysisResult;
     private Boolean referred;

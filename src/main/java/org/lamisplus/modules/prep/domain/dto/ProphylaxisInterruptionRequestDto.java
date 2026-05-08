@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProphylaxisInterruptionRequestDto implements Serializable {
     private Long personId;
-    private String prepEnrollmentUuid;
+    private String prophylaxisInitiationUuid;
     private String interruptionType;
     private LocalDate interruptionDate;
     private String interruptionReason;

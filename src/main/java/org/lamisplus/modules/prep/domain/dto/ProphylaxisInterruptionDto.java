@@ -15,7 +15,7 @@ public class ProphylaxisInterruptionDto implements Serializable {
     private String uuid;
     private String personUuid;
     private Long personId;
-    private String prepEnrollmentUuid;
+    private String prophylaxisInitiationUuid;
     private String interruptionType;
     private LocalDate interruptionDate;
     private String interruptionReason;

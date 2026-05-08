@@ -462,7 +462,7 @@
             uuid VARCHAR(255) NOT NULL UNIQUE,
             person_uuid VARCHAR(255) NOT NULL,
             facility_id BIGINT NOT NULL,
-            prep_eligibility_uuid VARCHAR(255),
+            prophylaxis_screening_uuid VARCHAR(255),
             unique_id VARCHAR(255),
             status VARCHAR(255),
             enrollment_type VARCHAR(255),
@@ -496,7 +496,7 @@
             modified_by VARCHAR(255),
             date_modified TIMESTAMP,
             CONSTRAINT fk_prophylaxis_init_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
-            CONSTRAINT fk_prophylaxis_init_elig FOREIGN KEY (prep_eligibility_uuid) REFERENCES prophylaxis_screening(uuid)
+            CONSTRAINT fk_prophylaxis_init_screening FOREIGN KEY (prophylaxis_screening_uuid) REFERENCES prophylaxis_screening(uuid)
             );
         </sql>
     </changeSet>
@@ -514,7 +514,6 @@
             uuid VARCHAR(255) NOT NULL UNIQUE,
             person_uuid VARCHAR(255) NOT NULL,
             facility_id BIGINT NOT NULL,
-            prep_enrollment_uuid VARCHAR(255),
             prophylaxis_initiation_uuid VARCHAR(255),
             encounter_date DATE,
             visit_type VARCHAR(255),
@@ -582,8 +581,6 @@
             modified_by VARCHAR(255),
             date_modified TIMESTAMP,
             CONSTRAINT fk_prep_followup_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
-            CONSTRAINT fk_prep_followup_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES
-            prophylaxis_initiation(uuid),
             CONSTRAINT fk_prep_followup_initiation FOREIGN KEY (prophylaxis_initiation_uuid) REFERENCES
             prophylaxis_initiation(uuid)
             );
@@ -603,7 +600,6 @@
             uuid VARCHAR(255) NOT NULL UNIQUE,
             person_uuid VARCHAR(255) NOT NULL,
             facility_id BIGINT NOT NULL,
-            prep_enrollment_uuid VARCHAR(255),
             prophylaxis_initiation_uuid VARCHAR(255),
             encounter_date DATE,
             visit_type VARCHAR(255),
@@ -679,8 +675,6 @@
             modified_by VARCHAR(255),
             date_modified TIMESTAMP,
             CONSTRAINT fk_pep_followup_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
-            CONSTRAINT fk_pep_followup_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES
-            prophylaxis_initiation(uuid),
             CONSTRAINT fk_pep_followup_initiation FOREIGN KEY (prophylaxis_initiation_uuid) REFERENCES
             prophylaxis_initiation(uuid)
             );
@@ -695,7 +689,6 @@
             uuid VARCHAR(255) NOT NULL UNIQUE,
             person_uuid VARCHAR(255) NOT NULL,
             facility_id BIGINT NOT NULL,
-            prep_enrollment_uuid VARCHAR(255),
             prophylaxis_initiation_uuid VARCHAR(255),
             interruption_type VARCHAR(255),
             interruption_date DATE,
@@ -725,7 +718,6 @@
             modified_by VARCHAR(255),
             date_modified TIMESTAMP,
             CONSTRAINT fk_prophylaxis_int_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
-            CONSTRAINT fk_prophylaxis_int_enrollment FOREIGN KEY (prep_enrollment_uuid) REFERENCES prophylaxis_initiation(uuid),
             CONSTRAINT fk_prophylaxis_int_initiation FOREIGN KEY (prophylaxis_initiation_uuid) REFERENCES prophylaxis_initiation(uuid)
             );
         </sql>

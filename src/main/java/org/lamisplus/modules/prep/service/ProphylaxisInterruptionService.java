@@ -80,7 +80,7 @@ public class ProphylaxisInterruptionService {
     private ProphylaxisInterruption requestDtoToEntity(ProphylaxisInterruptionRequestDto dto, String personUuid) {
         ProphylaxisInterruption e = new ProphylaxisInterruption();
         e.setPersonUuid(personUuid);
-        e.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
+        e.setProphylaxisInitiationUuid(dto.getProphylaxisInitiationUuid());
         e.setInterruptionType(dto.getInterruptionType());
         e.setInterruptionDate(dto.getInterruptionDate());
         e.setInterruptionReason(dto.getInterruptionReason());
@@ -109,7 +109,7 @@ public class ProphylaxisInterruptionService {
         ProphylaxisInterruption e = new ProphylaxisInterruption();
         e.setId(dto.getId());
         e.setPersonUuid(personUuid);
-        e.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
+        e.setProphylaxisInitiationUuid(dto.getProphylaxisInitiationUuid());
         e.setInterruptionType(dto.getInterruptionType());
         e.setInterruptionDate(dto.getInterruptionDate());
         e.setInterruptionReason(dto.getInterruptionReason());
@@ -140,7 +140,7 @@ public class ProphylaxisInterruptionService {
                 .id(e.getId())
                 .uuid(e.getUuid())
                 .personUuid(e.getPersonUuid())
-                .prepEnrollmentUuid(e.getPrepEnrollmentUuid())
+                .prophylaxisInitiationUuid(e.getProphylaxisInitiationUuid())
                 .interruptionType(e.getInterruptionType())
                 .interruptionDate(e.getInterruptionDate())
                 .interruptionReason(e.getInterruptionReason())

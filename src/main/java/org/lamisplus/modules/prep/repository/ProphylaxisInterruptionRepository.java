@@ -14,4 +14,6 @@ public interface ProphylaxisInterruptionRepository extends JpaRepository<Prophyl
     List<ProphylaxisInterruption> findAllByPersonAndArchived(Person person, Boolean archived);
     Optional<ProphylaxisInterruption> findByUuid(String uuid);
     Optional<ProphylaxisInterruption> findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(LocalDate interruptionDate, String personUuid, Boolean archived);
+    Integer countAllByPersonUuid(String personUuid);
+    Integer countAllByPersonUuidAndArchived(String personUuid, Boolean archived);
 }

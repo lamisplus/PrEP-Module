@@ -33,6 +33,13 @@ export const DateInputWrapper = ({ children }) => {
 
   return clonedChildren;
 };
+
+// Tolerant truthiness checks for the YES_NO codeset migration.
+// Older records and a few hand-crafted fields still use "true" / "false";
+// new records arrive with the codeset codes "YES_NO_YES" / "YES_NO_NO".
+// Treat both as equivalent so screening scoring keeps working.
+const isYes = v => v === true || v === "true" || v === "YES_NO_YES";
+const isNo = v => v === false || v === "false" || v === "YES_NO_NO";
 export const LiverFunctionTest = ({
   objValues,
   handleInputChange,
@@ -276,7 +283,7 @@ const BasicInfo = props => {
   };
 
   const actualRiskCountTrue = Object.values(riskAssessment);
-  const riskCount = actualRiskCountTrue.filter(x => x === "true");
+  const riskCount = actualRiskCountTrue.filter(isYes);
 
   const handleInputChangeRiskAssessmentPartner = e => {
     setErrors({ ...temp, [e.target.name]: "" });
@@ -287,7 +294,7 @@ const BasicInfo = props => {
   };
 
   const actualSexPartRiskCountTrue = Object.values(riskAssessmentPartner);
-  const sexPartRiskCount = actualSexPartRiskCountTrue.filter(x => x === "true");
+  const sexPartRiskCount = actualSexPartRiskCountTrue.filter(isYes);
 
   const handleInputChangeStiScreening = e => {
     setErrors({ ...errors, [e.target.name]: "" });
@@ -295,11 +302,11 @@ const BasicInfo = props => {
   };
 
   const actualStiTrue = Object.values(stiScreening);
-  const stiCount = actualStiTrue.filter(x => x === "true");
+  const stiCount = actualStiTrue.filter(isYes);
 
   const handleInputChangeDrugHistory = e => {
     setErrors({ ...temp, [e.target.name]: "" });
-    if (drugHistory.hivTestedBefore === "true") {
+    if (isYes(drugHistory.hivTestedBefore)) {
       setDrugHistory({ ...drugHistory, lastTest: "" });
     }
     setDrugHistory({ ...drugHistory, [e.target.name]: e.target.value });
@@ -427,6 +434,13 @@ const BasicInfo = props => {
       objValues.servicesReceivedByClient = screeningType !== 'PEP' ? servicesReceivedByClient : {};
       objValues.reasonForDecliningPrep = screeningType !== 'PEP' ? reasonForDecliningPrep : {};
       objValues.score = getPrepEligibilityScore();
+      // Persist the canonical codeset code for `category` (PREP_PEP_ENROLLMENT_TYPE).
+      objValues.category =
+        screeningType === 'PEP'
+          ? 'PREP_PEP_ENROLLMENT_TYPE_PEP'
+          : screeningType === 'PrEP'
+          ? 'PREP_PEP_ENROLLMENT_TYPE_PREP'
+          : objValues.category;
       if (props.activeContent && props.activeContent.actionType === "update") {
         axios
           .put(
@@ -524,9 +538,7 @@ const BasicInfo = props => {
       assessmentForPepIndication !== null &&
       assessmentForPepIndication !== undefined
     ) {
-      return Object.values(assessmentForPepIndication).filter(
-        each => each === "true"
-      ).length > 0
+      return Object.values(assessmentForPepIndication).filter(isYes).length > 0
         ? 0
         : 1;
     }
@@ -537,9 +549,7 @@ const BasicInfo = props => {
       assessmentForAcuteHivInfection !== null &&
       assessmentForAcuteHivInfection !== undefined
     ) {
-      return Object.values(assessmentForAcuteHivInfection).filter(
-        each => each === "true"
-      ).length > 0
+      return Object.values(assessmentForAcuteHivInfection).filter(isYes).length > 0
         ? 0
         : 1;
     }
@@ -549,16 +559,10 @@ const BasicInfo = props => {
     var score = 0;
     score += drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") ? 1 : 0;
     score += riskCount.length >= 1 ? 1 : 0;
-    score +=
-      assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection ===
-      "true"
-        ? 1
-        : 0;
-    score +=
-      assessmentForPrepEligibility?.noIndicationForPep === "true" ? 1 : 0;
+    score += isYes(assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection) ? 1 : 0;
+    score += isYes(assessmentForPrepEligibility?.noIndicationForPep) ? 1 : 0;
     if (is30AndAbove()) {
-      score +=
-        assessmentForPrepEligibility?.hasNoProteinuria === "true" ? 1 : 0;
+      score += isYes(assessmentForPrepEligibility?.hasNoProteinuria) ? 1 : 0;
     }
 
     if (is30AndAbove()) {
@@ -588,7 +592,7 @@ const BasicInfo = props => {
     getRecentActivities();
   }, []);
   useEffect(() => {
-    if (drugHistory.hivTestedBefore === "false") {
+    if (isNo(drugHistory.hivTestedBefore)) {
       setDrugHistory(prevHistory => ({
         ...prevHistory,
         lastTest: "",
@@ -1518,11 +1522,11 @@ const BasicInfo = props => {
                 </FormGroup>
               </div>
 
-              {(drugHistory.cocaine === "true" ||
-                drugHistory.heroine === "true" ||
-                drugHistory.marijuana === "true" ||
-                drugHistory.amphetamine === "true" ||
-                drugHistory.codeineSyrup === "true" ||
+              {(isYes(drugHistory.cocaine) ||
+                isYes(drugHistory.heroine) ||
+                isYes(drugHistory.marijuana) ||
+                isYes(drugHistory.amphetamine) ||
+                isYes(drugHistory.codeineSyrup) ||
                 drugHistory.othersSpecify) && (
                 <>
               <h5
@@ -1657,7 +1661,7 @@ const BasicInfo = props => {
               )}
 
               <Message warning style={{ width: "100%" }}>
-                <b>Score: {[drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].filter(v => v === "true").length}</b>
+                <b>Score: {[drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].filter(isYes).length}</b>
               </Message>
 
               <hr />
@@ -1764,9 +1768,9 @@ const BasicInfo = props => {
               </div>
 
               <Message warning style={{ width: "100%" }}>
-                <b>Score: {Object.values(assessmentForPepIndication).filter(v => v === "true").length}</b>
+                <b>Score: {Object.values(assessmentForPepIndication).filter(isYes).length}</b>
               </Message>
-              {Object.values(assessmentForPepIndication).some(v => v === "true") && (
+              {Object.values(assessmentForPepIndication).some(isYes) && (
                 <div style={{ backgroundColor: "rgba(220,53,69,0.1)", border: "1px solid #dc3545", borderRadius: "0.28571429rem", padding: "0.75rem 1rem", marginTop: "0.5rem", marginBottom: "0.5rem", color: "#dc3545", fontSize: "0.9rem", width: "100%" }}>
                   Refer for PEP
                 </div>
@@ -1872,7 +1876,7 @@ const BasicInfo = props => {
               </div>
 
               <Message warning style={{ width: "100%" }}>
-                <b>Score: {Object.values(assessmentForAcuteHivInfection).filter(v => v === "true").length}</b>
+                <b>Score: {Object.values(assessmentForAcuteHivInfection).filter(isYes).length}</b>
               </Message>
 
               <hr />
@@ -2394,27 +2398,25 @@ const BasicInfo = props => {
                 }`}</b>
                 <br />
                 <b>{`Ongoing HIV risk behaviors: ${
-                  drugHistory.reportHivRisk === "true"
+                  isYes(drugHistory.reportHivRisk)
                     ? "Yes"
-                    : drugHistory.reportHivRisk === "false"
+                    : isNo(drugHistory.reportHivRisk)
                       ? "No"
                       : "Not provided"
                 }`}</b>
                 <br />
                 <b>{`HIV exposure in last 3 months: ${
-                  drugHistory.hivExposure === "true"
+                  isYes(drugHistory.hivExposure)
                     ? "Yes"
-                    : drugHistory.hivExposure === "false"
+                    : isNo(drugHistory.hivExposure)
                       ? "No"
                       : "Not provided"
                 }`}</b>
               </Message>
 
               {drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") &&
-                (assessmentForAcuteHivInfection?.acuteHivSymptomsLasttwoWeeks ===
-                  "true" ||
-                  assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days ===
-                    "true") && (
+                (isYes(assessmentForAcuteHivInfection?.acuteHivSymptomsLasttwoWeeks) ||
+                  isYes(assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days)) && (
                   <div style={{ backgroundColor: "rgba(220,53,69,0.1)", border: "1px solid #dc3545", borderRadius: "0.28571429rem", padding: "0.75rem 1rem", marginTop: "0.5rem", marginBottom: "0.5rem", color: "#dc3545", fontSize: "0.9rem", width: "100%" }}>
                     <div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>HIV Re-Testing Recommended</div>
                     <span>Client tested HIV Negative but has signs/symptoms of acute HIV infection. HIV re-testing is recommended after 1 month.</span>
@@ -2441,8 +2443,8 @@ const BasicInfo = props => {
               {(() => {
                 const sexPartnerRiskBinary = sexPartRiskCount.length >= 1 ? 1 : 0;
                 const personalHivRiskBinary = riskCount.length >= 1 ? 1 : 0;
-                const drugUseBinary = [drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].some(v => v === "true") ? 1 : 0;
-                const acuteHivBinary = Object.values(assessmentForAcuteHivInfection).some(v => v === "true") ? 1 : 0;
+                const drugUseBinary = [drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].some(isYes) ? 1 : 0;
+                const acuteHivBinary = Object.values(assessmentForAcuteHivInfection).some(isYes) ? 1 : 0;
                 const hivNegativeBinary = drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") ? 1 : 0;
                 const binaryScore = sexPartnerRiskBinary + personalHivRiskBinary + drugUseBinary + acuteHivBinary + hivNegativeBinary;
                 return (
@@ -2571,9 +2573,9 @@ const BasicInfo = props => {
                     hypersensitivity !== "";
                   if (!allSelected) return null;
                   const allYes =
-                    liver === "true" &&
-                    drugInteraction === "true" &&
-                    hypersensitivity === "true";
+                    isYes(liver) &&
+                    isYes(drugInteraction) &&
+                    isYes(hypersensitivity);
                   return (
                     <div
                       style={{
@@ -2635,7 +2637,7 @@ const BasicInfo = props => {
                   </select>
                 </FormGroup>
               </div>
-              {servicesReceivedByClient?.prepOffered === "true" && (
+              {isYes(servicesReceivedByClient?.prepOffered) && (
                 <div className="form-group col-md-4 p-2">
                   <FormGroup className="p-2">
                     <Label>Willing to commence PrEP</Label>
@@ -2666,7 +2668,7 @@ const BasicInfo = props => {
                   </FormGroup>
                 </div>
               )}
-              {servicesReceivedByClient?.willingToCommencePrep === "true" && (
+              {isYes(servicesReceivedByClient?.willingToCommencePrep) && (
                 <div className="form-group col-md-4 p-2">
                   <FormGroup className="p-2">
                     <Label>PrEP Accepted</Label>
@@ -2714,7 +2716,7 @@ const BasicInfo = props => {
                   </select>
                 </FormGroup>
               </div>
-              {servicesReceivedByClient?.clientReferredToOtherServices === "true" && (
+              {isYes(servicesReceivedByClient?.clientReferredToOtherServices) && (
                 <div className="form-group col-md-4 p-2">
                   <FormGroup className="p-2">
                     <Label>Others (Specify)</Label>
@@ -2734,7 +2736,7 @@ const BasicInfo = props => {
                 </div>
               )}
 
-              {servicesReceivedByClient?.willingToCommencePrep === "false" && (
+              {isNo(servicesReceivedByClient?.willingToCommencePrep) && (
                 <>
                   <hr />
                   <br />

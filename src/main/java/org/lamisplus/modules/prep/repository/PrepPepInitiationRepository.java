@@ -17,7 +17,7 @@ import java.util.Optional;
 public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitiation, Long>, JpaSpecificationExecutor<PrepPepInitiation> {
     List<PrepPepInitiation> findAllByPersonOrderByIdDesc(Person person);
     Optional<PrepPepInitiation> findByIdAndArchivedAndFacilityId(Long id, Boolean archived, Long facilityId);
-    Optional<PrepPepInitiation> findByPrepEligibilityUuid(String prepEligibilityUuid);
+    Optional<PrepPepInitiation> findByProphylaxisScreeningUuid(String prophylaxisScreeningUuid);
     Optional<PrepPepInitiation> findByUuid(String uuid);
 
     @Query(value = "SELECT * FROM prophylaxis_initiation pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
@@ -36,6 +36,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     List<PrepPepInitiation> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, Boolean archived);
     Optional<PrepPepInitiation> findByDateEnrolledAndPersonUuid(LocalDate dateEnrolled, String personUuid);
     Integer countAllByPersonUuid(String personUuid);
+    Integer countAllByPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(String personUuid, String enrollmentType, Boolean archived);
     List<PrepPepInitiation> findAllByFacilityId(Long facilityId);
 
     @Query(value = "SELECT * FROM prophylaxis_initiation WHERE date_modified > ?1 AND facility_id=?2", nativeQuery = true)

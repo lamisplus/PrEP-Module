@@ -85,7 +85,7 @@ public class PrepService {
 
         Person person = this.getPerson(prepEnrollmentRequestDto.getPersonId());
 
-        if (this.prepPepInitiationRepository.findByPrepEligibilityUuid(eligibilityUuid).isPresent()) {
+        if (this.prepPepInitiationRepository.findByProphylaxisScreeningUuid(eligibilityUuid).isPresent()) {
             throw new RecordExistException(PrepPepInitiation.class, "Eligibility Already taken for prep", eligibilityUuid);
         }
 
@@ -197,9 +197,6 @@ public class PrepService {
         final ProphylaxisInterruption interruptionRef = interruption;
         latestInitiation.ifPresent(init -> {
             interruptionRef.setProphylaxisInitiationUuid(init.getUuid());
-            if (interruptionRef.getPrepEnrollmentUuid() == null) {
-                interruptionRef.setPrepEnrollmentUuid(init.getUuid());
-            }
             init.setIsInterrupted(true);
             prepPepInitiationRepository.save(init);
         });
@@ -228,7 +225,7 @@ public class PrepService {
                         Person person = prepEnrollment.getPerson();
                         uniqueId[0] = prepEnrollment.getUniqueId();
                         pId[0] = person.getId();
-                        personUuid[0] = prepEnrollment.getPrepEligibilityUuid();
+                        personUuid[0] = prepEnrollment.getProphylaxisScreeningUuid();
                         personResponseDto[0] = personService.getDtoFromPerson(person);
                     }
                     return this.prepEnrollmentToPrepDto(prepEnrollment);
@@ -490,6 +487,16 @@ public class PrepService {
         if (!clients.isEmpty()) {
             prepDtos.setEnrollmentType(clients.get(0).getEnrollmentType());
         }
+        // Per-arm counts so the UI can decide what to show on each tab without
+        // re-querying. Always non-null (zero when the patient has no records).
+        prepDtos.setInterruptionCount(
+                prophylaxisInterruptionRepository.countAllByPersonUuidAndArchived(person.getUuid(), false));
+        prepDtos.setPrepInitiationCount(
+                prepPepInitiationRepository.countAllByPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(
+                        person.getUuid(), "PrEP", false));
+        prepDtos.setPepInitiationCount(
+                prepPepInitiationRepository.countAllByPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(
+                        person.getUuid(), "PEP", false));
         // Pregnancy / breastfeeding from the patient's most recent initiation, so the
         // Patient Card reflects the latest captured value. Also derives the
         // isCurrentStatus* flags used by the Patient List "Enroll" modal and the
@@ -689,7 +696,7 @@ public class PrepService {
 
         prepEnrollment.setPersonUuid(personUuid);
         prepEnrollment.setUniqueId(prepEnrollmentRequestDto.getUniqueId());
-        prepEnrollment.setPrepEligibilityUuid(prepEnrollmentRequestDto.getPrepEligibilityUuid());
+        prepEnrollment.setProphylaxisScreeningUuid(prepEnrollmentRequestDto.getPrepEligibilityUuid());
         prepEnrollment.setDateEnrolled(prepEnrollmentRequestDto.getDateEnrolled());
         prepEnrollment.setDateReferred(prepEnrollmentRequestDto.getDateReferred());
         prepEnrollment.setSupporterName(prepEnrollmentRequestDto.getSupporterName());
@@ -734,7 +741,7 @@ public class PrepService {
         prepClinic.setFamilyPlanning(prepClinicRequestDto.getFamilyPlanning());
         prepClinic.setDateOfFamilyPlanning(prepClinicRequestDto.getDateOfFamilyPlanning());
         prepClinic.setDateReferred(prepClinicRequestDto.getDateReferred());
-        prepClinic.setPrepEnrollmentUuid(prepClinicRequestDto.getPrepEnrollmentUuid());
+        prepClinic.setProphylaxisInitiationUuid(prepClinicRequestDto.getPrepEnrollmentUuid());
         prepClinic.setRegimenId(prepClinicRequestDto.getRegimenId());
         prepClinic.setUrinalysisResult(prepClinicRequestDto.getUrinalysisResult());
         prepClinic.setCreatinineResult(prepClinicRequestDto.getCreatinineResult());
@@ -805,7 +812,7 @@ public class PrepService {
         prepClinicDto.setPrepDistributionSetting(clinic.getPrepDistributionSetting());
         prepClinicDto.setFamilyPlanning(clinic.getFamilyPlanning());
         prepClinicDto.setDateReferred(clinic.getDateReferred());
-        prepClinicDto.setPrepEnrollmentUuid(clinic.getPrepEnrollmentUuid());
+        prepClinicDto.setPrepEnrollmentUuid(clinic.getProphylaxisInitiationUuid());
         prepClinicDto.setRegimenId(clinic.getRegimenId());
         prepClinicDto.setUrinalysisResult(clinic.getUrinalysisResult());
         prepClinicDto.setCreatinineResult(clinic.getCreatinineResult());
@@ -881,7 +888,7 @@ public class PrepService {
         enrollmentDto.setSupporterName(enrollment.getSupporterName());
         enrollmentDto.setSupporterRelationshipType(enrollment.getSupporterRelationshipType());
         enrollmentDto.setSupporterPhone(enrollment.getSupporterPhone());
-        enrollmentDto.setPrepEligibilityUuid(enrollment.getPrepEligibilityUuid());
+        enrollmentDto.setPrepEligibilityUuid(enrollment.getProphylaxisScreeningUuid());
         enrollmentDto.setCommenced(true);
         enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
 
@@ -940,7 +947,7 @@ public class PrepService {
         e.setReasonStoppedOthers(dto.getReasonStoppedOthers());
         e.setReasonForPrepDiscontinuation(dto.getReasonForPrepDiscontinuation());
         e.setEnrollmentType(dto.getEnrollmentType());
-        e.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
+        e.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
         e.setWhy(dto.getWhy());
         e.setPepCompletion(dto.getPepCompletion());
         e.setFollowUpVisitDate(dto.getFollowUpVisitDate());
@@ -968,7 +975,7 @@ public class PrepService {
         dto.setReasonStoppedOthers(e.getReasonStoppedOthers());
         dto.setReasonForPrepDiscontinuation(e.getReasonForPrepDiscontinuation());
         dto.setEnrollmentType(e.getEnrollmentType());
-        dto.setPrepEnrollmentUuid(e.getPrepEnrollmentUuid());
+        dto.setPrepEnrollmentUuid(e.getProphylaxisInitiationUuid());
         dto.setWhy(e.getWhy());
         dto.setPepCompletion(e.getPepCompletion());
         dto.setFollowUpVisitDate(e.getFollowUpVisitDate());

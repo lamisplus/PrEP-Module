@@ -25,6 +25,22 @@ import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 import { fetchInitialVisitCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { fetchPrepRegimens, getPepRegimenOptions } from "../Consultation/codesets";
 
+// Map between the canonical PREP_PEP_ENROLLMENT_TYPE codeset codes and the short
+// labels ("PrEP" / "PEP") that the rest of the form's UI logic compares against.
+const ENROLLMENT_TYPE_PREP_CODE = "PREP_PEP_ENROLLMENT_TYPE_PREP";
+const ENROLLMENT_TYPE_PEP_CODE = "PREP_PEP_ENROLLMENT_TYPE_PEP";
+const toEnrollmentTypeCode = (value) => {
+  if (!value) return value;
+  if (value === "PrEP" || value === ENROLLMENT_TYPE_PREP_CODE) return ENROLLMENT_TYPE_PREP_CODE;
+  if (value === "PEP" || value === ENROLLMENT_TYPE_PEP_CODE) return ENROLLMENT_TYPE_PEP_CODE;
+  return value;
+};
+const fromEnrollmentTypeCode = (value) => {
+  if (value === ENROLLMENT_TYPE_PREP_CODE) return "PrEP";
+  if (value === ENROLLMENT_TYPE_PEP_CODE) return "PEP";
+  return value;
+};
+
 const PrEPInitialVisitForm = props => {
   const [entryPoint, setEntryPoint] = useState([]);
   const classes = useStyles();
@@ -117,7 +133,10 @@ const PrEPInitialVisitForm = props => {
           const hivResult = response.data.drugUseHistory?.hivTestResultAtvisit;
           setObjValues(prev => ({
             ...prev,
-            enrollmentType: response.data.category || prev.enrollmentType,
+            // category arrives as a PREP_PEP_ENROLLMENT_TYPE code; normalize to short label
+            // so the rest of the UI's PrEP/PEP comparisons keep working.
+            enrollmentType:
+              fromEnrollmentTypeCode(response.data.category) || prev.enrollmentType,
             uniqueId: response.data.uniqueClientId || prev.uniqueId,
             resultOfHivTest: hivResult || prev.resultOfHivTest,
             populationType: response.data.populationType || prev.populationType,
@@ -285,7 +304,12 @@ const PrEPInitialVisitForm = props => {
     }
     if (validate()) {
       objValues.personId = props.patientObj.personId || props.patientObj.id;
+      // The new column is `prophylaxis_screening_uuid`; the legacy field on the
+      // PrepEnrollmentRequestDto is still `prepEligibilityUuid`, so we set both.
+      objValues.prophylaxisScreeningUuid = patientDto.uuid;
       objValues.prepEligibilityUuid = patientDto.uuid;
+      // Persist the canonical PREP_PEP_ENROLLMENT_TYPE code instead of the short label.
+      objValues.enrollmentType = toEnrollmentTypeCode(objValues.enrollmentType);
       setSaving(true);
       if (props.activeContent && props.activeContent.actionType) {
         axios

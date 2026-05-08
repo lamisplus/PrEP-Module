@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class PrepPepInitiationRequestDto implements Serializable {
     private Long personId;
     private String uniqueId;
-    private String prepEligibilityUuid;
+    private String prophylaxisScreeningUuid;
     private LocalDate dateEnrolled;
     private LocalDate dateReferred;
     private String supporterName;

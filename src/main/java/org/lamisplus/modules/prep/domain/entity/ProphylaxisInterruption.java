@@ -31,12 +31,9 @@ public class ProphylaxisInterruption extends Audit implements Serializable {
     @Column(name = "facility_id")
     private Long facilityId;
 
-    @Column(name = "prep_enrollment_uuid")
-    private String prepEnrollmentUuid;
-
     /**
-     * Canonical FK to the {@code prophylaxis_initiation} record this interruption belongs to.
-     * Populated by the service on save (latest active initiation for the person + enrollment type).
+     * FK to the {@code prophylaxis_initiation} record this interruption belongs to.
+     * Populated by the service on save.
      */
     @Column(name = "prophylaxis_initiation_uuid")
     private String prophylaxisInitiationUuid;
@@ -118,7 +115,7 @@ public class ProphylaxisInterruption extends Audit implements Serializable {
     private Person person;
 
     @ManyToOne
-    @JoinColumn(name = "prep_enrollment_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+    @JoinColumn(name = "prophylaxis_initiation_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private PrepPepInitiation prepPepInitiation;
 
     @PrePersist

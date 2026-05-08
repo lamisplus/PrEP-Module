@@ -47,13 +47,9 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "facility_id")
     private Long facilityId;
 
-    @Column(name = "prep_enrollment_uuid")
-    private String prepEnrollmentUuid;
-
     /**
-     * Canonical FK to the patient's matching {@code prophylaxis_initiation} record. Populated
-     * automatically by the service on save by looking up the latest active initiation that
-     * matches this visit's enrollment type. Coexists with the legacy {@code prep_enrollment_uuid}.
+     * FK to the patient's matching {@code prophylaxis_initiation} record. Populated by
+     * the service on save (latest active initiation for the person + arm).
      */
     @Column(name = "prophylaxis_initiation_uuid")
     private String prophylaxisInitiationUuid;
@@ -258,7 +254,7 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     private Boolean archived = false;
 
     @ManyToOne
-    @JoinColumn(name = "prep_enrollment_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+    @JoinColumn(name = "prophylaxis_initiation_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private PrepPepInitiation prepPepInitiation;
 
     @OneToOne

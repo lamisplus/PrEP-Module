@@ -82,10 +82,10 @@ public class PrepPepInitiationService {
         PrepPepInitiation entity = prepPepInitiationRepository
                 .findByIdAndArchivedAndFacilityId(id, false, currentUserOrganizationService.getCurrentUserOrganization())
                 .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "id", "" + id));
-        String prepEligibilityUuid = entity.getPrepEligibilityUuid();
+        String prophylaxisScreeningUuid = entity.getProphylaxisScreeningUuid();
         entity = dtoToEntity(dto, entity.getPersonUuid());
         entity.setArchived(false);
-        entity.setPrepEligibilityUuid(prepEligibilityUuid);
+        entity.setProphylaxisScreeningUuid(prophylaxisScreeningUuid);
         entity.setId(id);
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         return entityToDto(prepPepInitiationRepository.save(entity));
@@ -126,7 +126,7 @@ public class PrepPepInitiationService {
 
         entity.setPersonUuid(personUuid);
         entity.setUniqueId(dto.getUniqueId());
-        entity.setPrepEligibilityUuid(dto.getPrepEligibilityUuid());
+        entity.setProphylaxisScreeningUuid(dto.getProphylaxisScreeningUuid());
 
         entity.setDateEnrolled(dto.getDateEnrolled());
         entity.setDateReferred(dto.getDateReferred());
@@ -168,7 +168,7 @@ public class PrepPepInitiationService {
 
         entity.setPersonUuid(personUuid);
         entity.setUniqueId(dto.getUniqueId());
-        entity.setPrepEligibilityUuid(dto.getPrepEligibilityUuid());
+        entity.setProphylaxisScreeningUuid(dto.getProphylaxisScreeningUuid());
 
         entity.setDateEnrolled(dto.getDateEnrolled());
         entity.setDateReferred(dto.getDateReferred());
@@ -217,7 +217,7 @@ public class PrepPepInitiationService {
         dto.setSupporterName(entity.getSupporterName());
         dto.setSupporterRelationshipType(entity.getSupporterRelationshipType());
         dto.setSupporterPhone(entity.getSupporterPhone());
-        dto.setPrepEligibilityUuid(entity.getPrepEligibilityUuid());
+        dto.setProphylaxisScreeningUuid(entity.getProphylaxisScreeningUuid());
         dto.setCommenced(true);
 
         dto.setHivTestingPoint(entity.getHivTestingPoint());

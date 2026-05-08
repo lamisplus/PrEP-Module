@@ -45,27 +45,27 @@ public class PrepFollowupVisitService {
     public PrepFollowupVisitDto saveCommencement(PrepFollowupVisitRequestDto requestDto) {
         Person person = this.getPerson(requestDto.getPersonId());
 
-        String enrollmentUuid = requestDto.getPrepEnrollmentUuid();
-        if (enrollmentUuid == null || enrollmentUuid.trim().isEmpty()) {
-            PrepPepInitiation enrollment = prepPepInitiationRepository
-                    .findTopByPersonUuidAndArchived(person.getUuid(), false)
-                    .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "PersonUuid", person.getUuid()));
-            enrollmentUuid = enrollment.getUuid();
-            requestDto.setPrepEnrollmentUuid(enrollmentUuid);
-        }
-        final String finalEnrollmentUuid = enrollmentUuid;
+        // Always anchor to the patient's latest PrEP initiation, ignoring whatever the
+        // frontend sent. This guarantees prophylaxis_initiation_uuid is correct for every
+        // PrEP follow-up visit even if the request payload omits it.
+        PrepPepInitiation initiation = prepPepInitiationRepository
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, "PrEP")
+                .orElseGet(() -> prepPepInitiationRepository
+                        .findTopByPersonUuidAndArchived(person.getUuid(), false)
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                PrepPepInitiation.class, "PersonUuid", person.getUuid())));
+        String enrollmentUuid = initiation.getUuid();
+        requestDto.setProphylaxisInitiationUuid(enrollmentUuid);
 
-        PrepPepInitiation prepPepInitiation = this.prepPepInitiationRepository.findByUuid(finalEnrollmentUuid)
-                .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "Enrollment", finalEnrollmentUuid));
-
-        if (!prepPepInitiation.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepFollowupVisit.class, "Person not same enrolled", finalEnrollmentUuid);
+        if (!initiation.getPersonUuid().equals(person.getUuid())) {
+            throw new IllegalTypeException(PrepFollowupVisit.class, "Person not same enrolled", enrollmentUuid);
         }
 
         PrepFollowupVisit entity = this.requestDtoToEntity(requestDto, person.getUuid());
 
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setIsCommencement(true);
+        entity.setProphylaxisInitiationUuid(enrollmentUuid);
         entity = prepFollowupVisitRepository.save(entity);
         entity.setPerson(person);
         PrepFollowupVisitDto dto = this.entityToDto(entity, null);
@@ -75,27 +75,25 @@ public class PrepFollowupVisitService {
     public PrepFollowupVisitDto saveClinic(PrepFollowupVisitRequestDto requestDto) {
         Person person = this.getPerson(requestDto.getPersonId());
 
-        String enrollmentUuid = requestDto.getPrepEnrollmentUuid();
-        if (enrollmentUuid == null || enrollmentUuid.trim().isEmpty()) {
-            PrepPepInitiation enrollment = prepPepInitiationRepository
-                    .findTopByPersonUuidAndArchived(person.getUuid(), false)
-                    .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "PersonUuid", person.getUuid()));
-            enrollmentUuid = enrollment.getUuid();
-            requestDto.setPrepEnrollmentUuid(enrollmentUuid);
-        }
-        final String finalEnrollmentUuid = enrollmentUuid;
+        // Same anchoring rule as saveCommencement.
+        PrepPepInitiation initiation = prepPepInitiationRepository
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, "PrEP")
+                .orElseGet(() -> prepPepInitiationRepository
+                        .findTopByPersonUuidAndArchived(person.getUuid(), false)
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                PrepPepInitiation.class, "PersonUuid", person.getUuid())));
+        String enrollmentUuid = initiation.getUuid();
+        requestDto.setProphylaxisInitiationUuid(enrollmentUuid);
 
-        PrepPepInitiation prepPepInitiation = this.prepPepInitiationRepository.findByUuid(finalEnrollmentUuid)
-                .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "Enrollment", finalEnrollmentUuid));
-
-        if (!prepPepInitiation.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepFollowupVisit.class, "Person not same enrolled", finalEnrollmentUuid);
+        if (!initiation.getPersonUuid().equals(person.getUuid())) {
+            throw new IllegalTypeException(PrepFollowupVisit.class, "Person not same enrolled", enrollmentUuid);
         }
 
         PrepFollowupVisit entity = this.requestDtoToEntity(requestDto, person.getUuid());
 
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setIsCommencement(false);
+        entity.setProphylaxisInitiationUuid(enrollmentUuid);
         entity = prepFollowupVisitRepository.save(entity);
         entity.setPerson(person);
         PrepFollowupVisitDto dto = this.entityToDto(entity, null);
@@ -140,15 +138,13 @@ public class PrepFollowupVisitService {
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(PrepFollowupVisit.class, "id", String.valueOf(id)));
         String uuid = entity.getUuid();
-        String enrollmentUuid = entity.getPrepEnrollmentUuid();
+        String enrollmentUuid = entity.getProphylaxisInitiationUuid();
         Boolean isCommencement = entity.getIsCommencement();
         entity = dtoToEntity(dto, entity.getPersonUuid());
         entity.setArchived(false);
         entity.setId(id);
         entity.setUuid(uuid);
         entity.setIsCommencement(isCommencement);
-        entity.setPrepEnrollmentUuid(enrollmentUuid);
-        // Mirror canonical FK to prophylaxis_initiation
         entity.setProphylaxisInitiationUuid(enrollmentUuid);
         entity.setFamilyPlanning(dto.getFamilyPlanning());
         entity.setDateOfFamilyPlanning(dto.getDateOfFamilyPlanning());
@@ -213,8 +209,7 @@ public class PrepFollowupVisitService {
         entity.setPregnant(dto.getPregnant());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
         entity.setDateReferred(dto.getDateReferred());
-        entity.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
-        entity.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
+        entity.setProphylaxisInitiationUuid(dto.getProphylaxisInitiationUuid());
         entity.setRegimenId(dto.getRegimenId());
         entity.setUrinalysisResult(dto.getUrinalysisResult());
         entity.setReferred(dto.getReferred());
@@ -284,8 +279,7 @@ public class PrepFollowupVisitService {
         entity.setPregnant(dto.getPregnant());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
         entity.setDateReferred(dto.getDateReferred());
-        entity.setPrepEnrollmentUuid(dto.getPrepEnrollmentUuid());
-        entity.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
+        entity.setProphylaxisInitiationUuid(dto.getProphylaxisInitiationUuid());
         entity.setRegimenId(dto.getRegimenId());
         entity.setUrinalysisResult(dto.getUrinalysisResult());
         entity.setReferred(dto.getReferred());
@@ -362,7 +356,7 @@ public class PrepFollowupVisitService {
         dto.setFamilyPlanning(entity.getFamilyPlanning());
         dto.setVisitType(entity.getVisitType());
         dto.setDateReferred(entity.getDateReferred());
-        dto.setPrepEnrollmentUuid(entity.getPrepEnrollmentUuid());
+        dto.setProphylaxisInitiationUuid(entity.getProphylaxisInitiationUuid());
         dto.setRegimenId(entity.getRegimenId());
         if (entity.getRegimenId() != null && entity.getRegimenId() != 0L && entity.getRegimen() != null) {
             dto.setRegimen(entity.getRegimen().getRegimen());

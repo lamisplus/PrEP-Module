@@ -172,10 +172,17 @@ const EnrollPatientButton = ({ row }) => {
     pep: false,
     loaded: false,
   });
+  const [opening, setOpening] = useState(false);
 
+  // Resolve the patient's active-enrollment flags BEFORE opening the dialog,
+  // so the user never sees the entry-point picker for someone who is already
+  // enrolled (the previous flicker between the two modal states is gone).
   const handleOpen = async () => {
-    setOpen(true);
-    if (activeStatus.loaded) return;
+    if (activeStatus.loaded) {
+      setOpen(true);
+      return;
+    }
+    setOpening(true);
     try {
       const personId = row?.personId || row?.id;
       const resp = await axios.get(`${baseUrl}prep/persons/${personId}`, {
@@ -189,6 +196,9 @@ const EnrollPatientButton = ({ row }) => {
       });
     } catch (_e) {
       setActiveStatus({ prep: false, pep: false, loaded: true });
+    } finally {
+      setOpening(false);
+      setOpen(true);
     }
   };
 
@@ -209,23 +219,56 @@ const EnrollPatientButton = ({ row }) => {
 
   return (
     <>
+      {/*
+        Split-segment styling matching the Patient Dashboard button: a small icon
+        on the left, a vertical divider, then the label on the right. Both
+        segments share the same background; the divider is a translucent white
+        rule so the seam is subtle.
+      */}
       <MuiButton
         onClick={handleOpen}
+        disabled={opening}
         variant="contained"
         size="small"
+        disableRipple
         style={{
-          ...enrollSplitBtnStyle,
+          backgroundColor: "rgb(153, 46, 98)",
+          color: "#fff",
+          textTransform: "uppercase",
+          fontFamily: "inherit",
+          fontWeight: "bold",
+          letterSpacing: "0.05em",
           fontSize: "0.8rem",
-          paddingLeft: "0.875rem",
-          paddingRight: "0.875rem",
+          padding: 0,
+          height: "2.2rem",
+          minWidth: 0,
+          border: "none",
           boxShadow: "0 0.125rem 0.25rem rgba(0,0,0,0.2)",
+          display: "inline-flex",
+          alignItems: "stretch",
+          overflow: "hidden",
         }}
       >
-        <Icon
-          name="user plus"
-          style={{ marginRight: "0.375rem", fontSize: "0.9rem" }}
-        />
-        Enroll Patient
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0 0.625rem",
+            borderRight: "0.0625rem solid rgba(255,255,255,0.4)",
+          }}
+        >
+          <Icon name="user plus" style={{ margin: 0, fontSize: "0.95rem" }} />
+        </span>
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "0 1rem",
+          }}
+        >
+          Enroll Patient
+        </span>
       </MuiButton>
 
       <Dialog

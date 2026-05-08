@@ -15,7 +15,7 @@ public class PrepPepInitiationDto implements Serializable {
     private String uuid;
     private Long personId;
     private String uniqueId;
-    private String prepEligibilityUuid;
+    private String prophylaxisScreeningUuid;
     private LocalDate dateOfRegistration;
     private LocalDate dateEnrolled;
     private LocalDate dateReferred;

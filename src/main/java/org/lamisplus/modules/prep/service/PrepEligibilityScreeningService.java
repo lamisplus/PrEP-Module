@@ -61,7 +61,7 @@ public class PrepEligibilityScreeningService {
         PrepEligibilityScreening entity = prepEligibilityScreeningRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(PrepEligibilityScreening.class, "id", String.valueOf(id)));
-        if (prepPepInitiationRepository.findByPrepEligibilityUuid(entity.getUuid()).isPresent()) {
+        if (prepPepInitiationRepository.findByProphylaxisScreeningUuid(entity.getUuid()).isPresent()) {
             throw new RecordExistException(PrepPepInitiation.class, "PrepPepInitiation", "exist for eligibility");
         }
         entity.setArchived(true);
