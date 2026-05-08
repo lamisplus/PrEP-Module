@@ -149,7 +149,7 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
     private String reasonForSwitch;
 
     @Column(name = "archived")
-    private Integer archived;
+    private Boolean archived = false;
 
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)

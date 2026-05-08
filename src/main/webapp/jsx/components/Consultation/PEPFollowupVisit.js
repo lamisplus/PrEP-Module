@@ -1051,10 +1051,10 @@ const PEPFollowupVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* 12b. Duration on PrEP/PEP (Months) — auto-computed from latest initiation */}
+                    {/* 12b. Duration on PEP (Months) — auto-computed from latest initiation */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Duration on PrEP/PEP (Months)</FormLabelName>
+                        <FormLabelName>Duration on PEP (Months)</FormLabelName>
                         <Input
                           type="number"
                           name="duration"

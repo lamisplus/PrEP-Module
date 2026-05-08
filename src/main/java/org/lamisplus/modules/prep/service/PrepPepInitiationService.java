@@ -42,7 +42,7 @@ public class PrepPepInitiationService {
 
     private PrepPepInitiation getByInitiationById(Long id) {
         return prepPepInitiationRepository
-                .findByIdAndArchivedAndFacilityId(id, UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization())
+                .findByIdAndArchivedAndFacilityId(id, false, currentUserOrganizationService.getCurrentUserOrganization())
                 .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "id", "" + id));
     }
 
@@ -74,17 +74,17 @@ public class PrepPepInitiationService {
             throw new RecordExistException(PrepFollowupVisit.class, "Prep Followup Visit", "exist for enrollment");
         }
 
-        entity.setArchived(ARCHIVED);
+        entity.setArchived(true);
         prepPepInitiationRepository.save(entity);
     }
 
     public PrepPepInitiationDto update(Long id, PrepPepInitiationDto dto) {
         PrepPepInitiation entity = prepPepInitiationRepository
-                .findByIdAndArchivedAndFacilityId(id, UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization())
+                .findByIdAndArchivedAndFacilityId(id, false, currentUserOrganizationService.getCurrentUserOrganization())
                 .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "id", "" + id));
         String prepEligibilityUuid = entity.getPrepEligibilityUuid();
         entity = dtoToEntity(dto, entity.getPersonUuid());
-        entity.setArchived(UN_ARCHIVED);
+        entity.setArchived(false);
         entity.setPrepEligibilityUuid(prepEligibilityUuid);
         entity.setId(id);
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
@@ -93,7 +93,7 @@ public class PrepPepInitiationService {
 
     public PrepPepInitiationDto getById(Long id) {
         PrepPepInitiation entity = prepPepInitiationRepository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "id", String.valueOf(id)));
         return entityToDto(entity);
     }
@@ -101,7 +101,7 @@ public class PrepPepInitiationService {
     public List<PrepPepInitiationDto> getByPersonId(Long personId) {
         List<PrepPepInitiation> list = prepPepInitiationRepository
                 .findAllByPersonUuidAndFacilityIdAndArchived(getPerson(personId).getUuid(),
-                        currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED);
+                        currentUserOrganizationService.getCurrentUserOrganization(), false);
         return list.stream()
                 .map(entity -> entityToDto(entity))
                 .collect(Collectors.toList());
@@ -112,7 +112,7 @@ public class PrepPepInitiationService {
 
         String status = "STOPPED, DEATH";
         Optional<PrepPepInitiation> entityOptional = prepPepInitiationRepository
-                .findByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(), status);
+                .findByPersonUuidAndArchived(person.getUuid(), false, currentUserOrganizationService.getCurrentUserOrganization(), status);
         if (entityOptional.isPresent()) return entityToDto(entityOptional.get());
         return new PrepPepInitiationDto();
     }
@@ -142,6 +142,7 @@ public class PrepPepInitiationService {
         entity.setWeight(dto.getWeight());
         entity.setHeight(dto.getHeight());
         entity.setPregnancyStatus(dto.getPregnancyStatus());
+        entity.setBreastFeeding(dto.getBreastFeeding());
         entity.setHistoryOfDrugAllergies(dto.getHistoryOfDrugAllergies());
         entity.setHistoryOfDrugToDrugInteraction(dto.getHistoryOfDrugToDrugInteraction());
         entity.setUrinalysisResult(dto.getUrinalysisResult());
@@ -183,6 +184,7 @@ public class PrepPepInitiationService {
         entity.setWeight(dto.getWeight());
         entity.setHeight(dto.getHeight());
         entity.setPregnancyStatus(dto.getPregnancyStatus());
+        entity.setBreastFeeding(dto.getBreastFeeding());
         entity.setHistoryOfDrugAllergies(dto.getHistoryOfDrugAllergies());
         entity.setHistoryOfDrugToDrugInteraction(dto.getHistoryOfDrugToDrugInteraction());
         entity.setUrinalysisResult(dto.getUrinalysisResult());
@@ -225,6 +227,7 @@ public class PrepPepInitiationService {
         dto.setWeight(entity.getWeight());
         dto.setHeight(entity.getHeight());
         dto.setPregnancyStatus(entity.getPregnancyStatus());
+        dto.setBreastFeeding(entity.getBreastFeeding());
         dto.setHistoryOfDrugAllergies(entity.getHistoryOfDrugAllergies());
         dto.setHistoryOfDrugToDrugInteraction(entity.getHistoryOfDrugToDrugInteraction());
         dto.setUrinalysisResult(entity.getUrinalysisResult());

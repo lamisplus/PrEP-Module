@@ -16,24 +16,24 @@ import java.util.Optional;
 
 public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitiation, Long>, JpaSpecificationExecutor<PrepPepInitiation> {
     List<PrepPepInitiation> findAllByPersonOrderByIdDesc(Person person);
-    Optional<PrepPepInitiation> findByIdAndArchivedAndFacilityId(Long id, int archived, Long facilityId);
+    Optional<PrepPepInitiation> findByIdAndArchivedAndFacilityId(Long id, Boolean archived, Long facilityId);
     Optional<PrepPepInitiation> findByPrepEligibilityUuid(String prepEligibilityUuid);
     Optional<PrepPepInitiation> findByUuid(String uuid);
 
     @Query(value = "SELECT * FROM prophylaxis_initiation pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
             "pe.status NOT IN (?4) AND pe.facility_id=?3 ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
-    Optional<PrepPepInitiation> findByPersonUuidAndArchived(String personUuid, int archived, Long facilityId, String status);
+    Optional<PrepPepInitiation> findByPersonUuidAndArchived(String personUuid, Boolean archived, Long facilityId, String status);
 
-    Optional<PrepPepInitiation> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
+    Optional<PrepPepInitiation> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, Boolean archived);
 
     @Query(value = "SELECT * FROM prophylaxis_initiation pe WHERE pe.person_uuid=?1 AND pe.archived=?2 ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
-    Optional<PrepPepInitiation> findTopByPersonUuidAndArchived(String personUuid, int archived);
+    Optional<PrepPepInitiation> findTopByPersonUuidAndArchived(String personUuid, Boolean archived);
 
     @Query(value = "SELECT * FROM prophylaxis_initiation pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
             "LOWER(pe.enrollment_type)=LOWER(?3) ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
-    Optional<PrepPepInitiation> findLatestByPersonUuidAndEnrollmentType(String personUuid, int archived, String enrollmentType);
+    Optional<PrepPepInitiation> findLatestByPersonUuidAndEnrollmentType(String personUuid, Boolean archived, String enrollmentType);
 
-    List<PrepPepInitiation> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
+    List<PrepPepInitiation> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, Boolean archived);
     Optional<PrepPepInitiation> findByDateEnrolledAndPersonUuid(LocalDate dateEnrolled, String personUuid);
     Integer countAllByPersonUuid(String personUuid);
     List<PrepPepInitiation> findAllByFacilityId(Long facilityId);
@@ -44,7 +44,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     List<PrepPepInitiation> findFirstByPersonOrderByIdDesc(Person person);
     List<PrepPepInitiation> findAllByUniqueIdOrderByIdDesc(String code);
     List<PrepPepInitiation> findAllByPerson(Person person);
-    List<PrepPepInitiation> findAllByPersonAndArchived(Person person, int archived);
+    List<PrepPepInitiation> findAllByPersonAndArchived(Person person, Boolean archived);
 
     @Query(value = "SELECT uuid FROM hiv_enrollment where person_uuid=?1", nativeQuery = true)
     Optional<String> findInHivEnrollmentByUuid(String uuid);
@@ -52,54 +52,46 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     @Query(value = "SELECT pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,   " +
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
-            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
-            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
             "FROM patient_person p " +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
-            "WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled ", nativeQuery = true)
-    Page<PrepClient> findAllPersonPrepBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
+    Page<PrepClient> findAllPersonPrepBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
 
 
     @Query(value = "SELECT pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,   " +
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
-            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
-            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
             "FROM patient_person p " +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
-            "WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled ", nativeQuery = true)
-    List<PrepClient> findAllPersonPrepBySearchParam(Integer archived, Long facilityId, String search);
+    List<PrepClient> findAllPersonPrepBySearchParam(Boolean archived, Long facilityId, String search);
 
 
     @Query(value = "SELECT pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,   " +
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
-            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
-            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
             "FROM patient_person p  LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
-            "WHERE p.archived=?1 AND p.facility_id=?2  " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2  " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled", nativeQuery = true)
-    Page<PrepClient> findAllPersonPrep(Integer archived, Long facilityId, Pageable pageable);
+    Page<PrepClient> findAllPersonPrep(Boolean archived, Long facilityId, Pageable pageable);
 
     @Query(value = "SELECT pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,   " +
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
-            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount, " +
-            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
             "FROM patient_person p  LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
-            "WHERE p.archived=?1 AND p.facility_id=?2  " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2  " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled", nativeQuery = true)
-    List<PrepClient> findAllPersonPrep(Integer archived, Long facilityId);
+    List<PrepClient> findAllPersonPrep(Boolean archived, Long facilityId);
 
     @Query(value = "SELECT DISTINCT ON (p.hospital_number)\n" +
             "    p.hospital_number AS hospitalNumber,\n" +
@@ -157,9 +149,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
-            "    END AS prepStatus,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    END AS prepStatus,\n " +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -207,7 +197,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    FROM hts_client hts\n" +
             "    JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             ") el_max ON el_max.person_uuid = p.uuid\n" +
-            "WHERE p.archived = ?1\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -227,7 +217,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
-    Page<PrepClient> findAllPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
+    Page<PrepClient> findAllPersonPrepAndStatusBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
 
     @Query(value = "SELECT * FROM (SELECT DISTINCT ON (p.hospital_number)\n" +
             "    p.hospital_number AS hospitalNumber,\n" +
@@ -285,9 +275,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
-            "    END AS prepStatus,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    END AS prepStatus,\n " +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -335,7 +323,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    FROM hts_client hts\n" +
             "    JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             ") el_max ON el_max.person_uuid = p.uuid\n" +
-            "WHERE p.archived = ?1\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -356,7 +344,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST) res where res.prepStatus = 'Not Enrolled' ", nativeQuery = true)
-    Page<PrepClient> findAllNotEnrolledPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
+    Page<PrepClient> findAllNotEnrolledPersonPrepAndStatusBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
 
     @Query(value = "SELECT * FROM (SELECT DISTINCT ON (p.hospital_number)\n" +
             "    p.hospital_number AS hospitalNumber,\n" +
@@ -414,9 +402,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
-            "    END AS prepStatus,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    END AS prepStatus,\n " +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -464,7 +450,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    FROM hts_client hts\n" +
             "    JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             ") el_max ON el_max.person_uuid = p.uuid\n" +
-            "WHERE p.archived = ?1\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -486,7 +472,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST) res WHERE prepStatus IN ('Stopped', 'Discontinued', 'Death')\n" +
             "   OR prepi.interruption_type IS NOT NULL", nativeQuery = true)
-    Page<PrepClient> findAllInterruptedPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
+    Page<PrepClient> findAllInterruptedPersonPrepAndStatusBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
 
     @Query(value = "SELECT DISTINCT ON (p.hospital_number) p.hospital_number as hospitalNumber,  " +
             "el_max.HIVResultAtVisit, p.date_of_registration AS dateOfRegistration, prepc.commencementCount,  " +
@@ -500,9 +486,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "THEN 'HIV Positive' WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display  " +
             "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' WHEN pet.person_uuid IS NULL  " +
             "THEN 'Not Enrolled' WHEN prepc.person_uuid IS NULL  " +
-            "THEN 'Not Commenced' ELSE prepc.status END) prepStatus, " +
-            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep, " +
-            "CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep  " +
+            "THEN 'Not Commenced' ELSE prepc.status END) prepStatus " +
             "FROM patient_person p   LEFT JOIN (SELECT COUNT(el.person_uuid) as eligibility_count,  " +
             "el.person_uuid FROM prophylaxis_screening el WHERE el.archived=?1  " +
             "GROUP BY person_uuid) el ON el.person_uuid = p.uuid  " +
@@ -528,9 +512,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             " ON bac.code=prepi.interruption_type LEFT JOIN (SELECT pel.max_date, el.person_uuid,  " +
             " el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit   " +
             " FROM prophylaxis_screening el INNER JOIN (SELECT DISTINCT MAX(el.visit_date) as max_date,  " +
-            " el.person_uuid FROM prophylaxis_screening el WHERE el.archived=0 GROUP BY person_uuid)pel  " +
+            " el.person_uuid FROM prophylaxis_screening el WHERE el.archived=false GROUP BY person_uuid)pel  " +
             " ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max  " +
-            " ON el_max.person_uuid = p.uuid  WHERE p.archived=?1 AND p.facility_id=?2  " +
+            " ON el_max.person_uuid = p.uuid  WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2  " +
             " AND he.person_uuid IS NULL AND (el_max.HIVResultAtVisit NOT ILIKE '%Positive%'  " +
             " OR el_max.HIVResultAtVisit is NULL)  " +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display,  " +
@@ -539,7 +523,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             " p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, pet.date_created,  " +
             " p.other_name, p.hospital_number, p.date_of_birth, prepc.status, he.person_uuid,  " +
             " he.date_confirmed_hiv, pet.id, pet.date_enrolled ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
-    Page<PrepClient> findOnlyPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
+    Page<PrepClient> findOnlyPersonPrepAndStatusBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
 
     @Query(value = "SELECT DISTINCT ON (el_max.HIVResultAtVisit) \n" +
             "    pet.date_created, \n" +
@@ -565,9 +549,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' \n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' \n" +
             "        ELSE prepc.status \n" +
-            "     END) prepStatus,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "     END) prepStatus,\n " +
             "FROM patient_person p  \n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid \n" +
@@ -612,18 +594,18 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(el.visit_date) as max_date, el.person_uuid \n" +
             "        FROM prophylaxis_screening el \n" +
-            "        WHERE el.archived=0 \n" +
+            "        WHERE el.archived=false \n" +
             "        GROUP BY el.person_uuid\n" +
             "    ) pel ON pel.max_date = el.visit_date \n" +
             "         AND el.person_uuid = pel.person_uuid\n" +
             ") el_max ON el_max.person_uuid = p.uuid \n" +
-            "WHERE p.archived=?1 AND p.facility_id=?2 AND p.uuid=?3\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND p.uuid=?3\n" +
             "GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, he.person_uuid, he.date_confirmed_hiv, \n" +
             "         el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, \n" +
             "         p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, \n" +
             "         p.other_name, p.hospital_number, p.date_of_birth, prepc.status, pet.id, pet.date_enrolled \n" +
             "ORDER BY el_max.HIVResultAtVisit, pet.date_created DESC NULLS LAST", nativeQuery = true)
-    Optional<PrepClient> findPersonPrepAndStatusByPatientUuid(Integer archived, Long facilityId, String personUuid);
+    Optional<PrepClient> findPersonPrepAndStatusByPatientUuid(Boolean archived, Long facilityId, String personUuid);
 
     @Query(value = "SELECT DISTINCT ON (p.hospital_number)\n" +
             "    p.hospital_number AS hospitalNumber,\n" +
@@ -698,9 +680,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 0\n" +
             "            END\n" +
             "        ELSE 0\n" +
-            "    END AS sendCabLaAlert,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    END AS sendCabLaAlert,\n " +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -748,7 +728,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    FROM hts_client hts\n" +
             "    JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             ") el_max ON el_max.person_uuid = p.uuid\n" +
-            "WHERE p.archived = ?1\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -762,9 +742,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
-    Page<PrepClient> findAllPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
+    Page<PrepClient> findAllPersonPrepAndStatus(Boolean archived, Long facilityId, Pageable pageable);
 
-    @Query(value = "SELECT *\n" +
+    @Query(value = "SELECT *\n " +
             "FROM (\n" +
             "    SELECT DISTINCT ON (p.hospital_number)\n" +
             "        p.hospital_number AS hospitalNumber,\n" +
@@ -838,8 +818,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                END\n" +
             "            ELSE 0\n" +
             "        END AS sendCabLaAlert,\n" +
-            "        CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "        CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "    FROM prophylaxis_initiation pet\n" +
             "    JOIN patient_person p ON pet.person_uuid = p.uuid\n" +
             "    LEFT JOIN (\n" +
@@ -900,7 +878,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ") res\n" +
             "WHERE res.prepStatus IN ('Stopped', 'Discontinued', 'Death')\n" +
             "   OR res.interruption_type IS NOT NULL\n", nativeQuery = true)
-    Page<PrepClient> findAllInterruptedPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
+    Page<PrepClient> findAllInterruptedPersonPrepAndStatus(Boolean archived, Long facilityId, Pageable pageable);
 
     @Query(value = "SELECT * FROM (SELECT DISTINCT ON (p.hospital_number)\n" +
             "                p.hospital_number AS hospitalNumber,\n" +
@@ -976,8 +954,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                        END\n" +
             "                    ELSE 0\n" +
             "                END AS sendCabLaAlert,\n" +
-            "                CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "                CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
             "            FROM patient_person p\n" +
             "            LEFT JOIN (\n" +
             "                SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -1025,7 +1001,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                FROM hts_client hts\n" +
             "                JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             "            ) el_max ON el_max.person_uuid = p.uuid\n" +
-            "            WHERE p.archived = ?1\n" +
+            "            WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "            AND p.facility_id = ?2\n" +
             "            AND he.person_uuid IS NULL\n" +
             "            AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -1039,7 +1015,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "                pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
             "            ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST) res where res.prepStatus = 'Not Enrolled' ", nativeQuery = true)
-    Page<PrepClient> findAllNotEnrolledPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
+    Page<PrepClient> findAllNotEnrolledPersonPrepAndStatus(Boolean archived, Long facilityId, Pageable pageable);
 
     @Query(value = "SELECT el_max.HIVResultAtVisit, p.date_of_registration AS dateOfRegistration, prepc.commencementCount, el.eligibility_count as eligibilityCount, " +
             "pet.created_by as createdBy, pet.unique_id as uniqueId, p.id as personId, p.first_name as firstName, p.surname as surname, p.other_name as otherName,    " +
@@ -1067,9 +1043,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            ELSE 0\n" +
             "        END\n" +
             "    ELSE 0\n" +
-            "            END AS sendCabLaAlert," +
-            " CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep," +
-            " CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep" +
+            "            END AS sendCabLaAlert" +
             " FROM patient_person p  " +
             " INNER JOIN (SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid FROM prophylaxis_screening el " +
             "WHERE el.archived=?1 GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
@@ -1095,15 +1069,15 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
             "FROM prophylaxis_screening el " +
             "INNER JOIN (SELECT DISTINCT MAX(el.visit_date) as max_date, el.person_uuid " +
-            "FROM prophylaxis_screening el WHERE el.archived=0 " +
+            "FROM prophylaxis_screening el WHERE el.archived=false " +
             "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
-            " WHERE p.archived=?1 AND p.facilityId=?2 " +
+            " WHERE p.archived = CAST(?1 AS INTEGER) AND p.facilityId=?2 " +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
             "el_max.HIVResultAtVisit, p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, " +
             "pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +
             "pet.date_created, p.other_name, p.hospital_number, p.date_of_birth, " +
             "prepc.status, he.person_uuid, he.date_confirmed_hiv, pet.id, pet.date_enrolled ORDER BY pet.date_created DESC NULLS LAST", nativeQuery = true)
-    Page<PrepClient> findOnlyPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
+    Page<PrepClient> findOnlyPersonPrepAndStatus(Boolean archived, Long facilityId, Pageable pageable);
 
     @Query(value = "SELECT DISTINCT ON (p.hospital_number)\n" +
             "    p.hospital_number AS hospitalNumber,\n" +
@@ -1161,9 +1135,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
-            "    END AS prepStatus,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    END AS prepStatus,\n " +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -1211,7 +1183,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    FROM hts_client hts\n" +
             "    JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             ") el_max ON el_max.person_uuid = p.uuid\n" +
-            "WHERE p.archived = ?1\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -1232,7 +1204,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
-    Page<PrepClient> findAllPepEnrolledPersonPrepAndStatusBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
+    Page<PrepClient> findAllPepEnrolledPersonPrepAndStatusBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
 
     @Query(value = "SELECT DISTINCT ON (p.hospital_number)\n" +
             "    p.hospital_number AS hospitalNumber,\n" +
@@ -1307,9 +1279,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 0\n" +
             "            END\n" +
             "        ELSE 0\n" +
-            "    END AS sendCabLaAlert,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPrep,\n" +
-            "    CASE WHEN pet.person_uuid IS NULL THEN true WHEN (CURRENT_DATE - CAST(COALESCE(prepc.encounter_date, pet.date_enrolled, CURRENT_DATE) AS DATE)) >= 28 THEN true ELSE false END AS canScreenForPep\n" +
+            "    END AS sendCabLaAlert,\n " +
             "FROM patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -1357,7 +1327,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    FROM hts_client hts\n" +
             "    JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             ") el_max ON el_max.person_uuid = p.uuid\n" +
-            "WHERE p.archived = ?1\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -1372,6 +1342,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
-    Page<PrepClient> findAllPepEnrolledPersonPrepAndStatus(Integer archived, Long facilityId, Pageable pageable);
+    Page<PrepClient> findAllPepEnrolledPersonPrepAndStatus(Boolean archived, Long facilityId, Pageable pageable);
 
 }

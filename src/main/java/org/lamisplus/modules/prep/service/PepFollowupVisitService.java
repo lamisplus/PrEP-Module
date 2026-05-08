@@ -42,7 +42,7 @@ public class PepFollowupVisitService {
         String enrollmentUuid = requestDto.getPrepEnrollmentUuid();
         if (enrollmentUuid == null || enrollmentUuid.trim().isEmpty()) {
             PrepPepInitiation enrollment = prepPepInitiationRepository
-                    .findTopByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED)
+                    .findTopByPersonUuidAndArchived(person.getUuid(), false)
                     .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "PersonUuid", person.getUuid()));
             enrollmentUuid = enrollment.getUuid();
             requestDto.setPrepEnrollmentUuid(enrollmentUuid);
@@ -84,7 +84,7 @@ public class PepFollowupVisitService {
                 .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
                         person.getUuid(),
                         currentUserOrganizationService.getCurrentUserOrganization(),
-                        UN_ARCHIVED);
+                        false);
         return list.stream()
                 .map(this::entityToDto)
                 .collect(Collectors.toList());
@@ -93,13 +93,13 @@ public class PepFollowupVisitService {
     public PepFollowupVisitDto update(Long id, PepFollowupVisitDto dto) {
         PepFollowupVisit entity = pepFollowupVisitRepository
                 .findByIdAndFacilityIdAndArchived(id,
-                        currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                        currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(PepFollowupVisit.class, "id", String.valueOf(id)));
 
         String uuid = entity.getUuid();
         String enrollmentUuid = entity.getPrepEnrollmentUuid();
         entity = dtoToEntity(dto, entity.getPersonUuid());
-        entity.setArchived(UN_ARCHIVED);
+        entity.setArchived(false);
         entity.setId(id);
         entity.setUuid(uuid);
         entity.setPrepEnrollmentUuid(enrollmentUuid);
@@ -110,7 +110,7 @@ public class PepFollowupVisitService {
     public void delete(Long id) {
         PepFollowupVisit entity = pepFollowupVisitRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(PepFollowupVisit.class, "id", String.valueOf(id)));
-        entity.setArchived(ARCHIVED);
+        entity.setArchived(true);
         pepFollowupVisitRepository.save(entity);
     }
 
@@ -174,7 +174,6 @@ public class PepFollowupVisitService {
         entity.setDateReferred(dto.getDateReferred());
         entity.setDatePrepStart(dto.getDatePrepStart());
         entity.setDatePrepGiven(dto.getDatePrepGiven());
-        entity.setPrepGiven(dto.getPrepGiven());
         entity.setOtherPrepGiven(dto.getOtherPrepGiven());
         entity.setOtherPrepType(dto.getOtherPrepType());
         entity.setWasPrepAdministered(dto.getWasPrepAdministered());
@@ -250,7 +249,6 @@ public class PepFollowupVisitService {
         entity.setDateReferred(dto.getDateReferred());
         entity.setDatePrepStart(dto.getDatePrepStart());
         entity.setDatePrepGiven(dto.getDatePrepGiven());
-        entity.setPrepGiven(dto.getPrepGiven());
         entity.setOtherPrepGiven(dto.getOtherPrepGiven());
         entity.setOtherPrepType(dto.getOtherPrepType());
         entity.setWasPrepAdministered(dto.getWasPrepAdministered());
@@ -327,7 +325,6 @@ public class PepFollowupVisitService {
         dto.setDateReferred(entity.getDateReferred());
         dto.setDatePrepStart(entity.getDatePrepStart());
         dto.setDatePrepGiven(entity.getDatePrepGiven());
-        dto.setPrepGiven(entity.getPrepGiven());
         dto.setOtherPrepGiven(entity.getOtherPrepGiven());
         dto.setOtherPrepType(entity.getOtherPrepType());
         dto.setWasPrepAdministered(entity.getWasPrepAdministered());

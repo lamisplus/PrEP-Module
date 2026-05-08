@@ -16,14 +16,14 @@ import java.util.Optional;
 
 public interface PrepFollowupVisitRepository extends JpaRepository<PrepFollowupVisit, Long>, JpaSpecificationExecutor<PrepFollowupVisit> {
     List<PrepFollowupVisit> findAllByPersonAndIsCommencement(Person person, boolean isCommenced);
-    List<PrepFollowupVisit> findAllByPersonAndIsCommencementAndArchived(Person person, Boolean isCommencement, int archived);
+    List<PrepFollowupVisit> findAllByPersonAndIsCommencementAndArchived(Person person, Boolean isCommencement, Boolean archived);
     Integer countAllByPersonUuid(String personUuid);
-    Optional<PrepFollowupVisit> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
-    List<PrepFollowupVisit> findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(String personUuid, Long facilityId, int archived, Boolean isCommenced);
+    Optional<PrepFollowupVisit> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, Boolean archived);
+    List<PrepFollowupVisit> findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(String personUuid, Long facilityId, Boolean archived, Boolean isCommenced);
     List<PrepFollowupVisit> findAllByPrepEnrollmentUuid(String uuid);
-    List<PrepFollowupVisit> findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(String personUuid, Long facilityId, int archived, Boolean isCommenced);
+    List<PrepFollowupVisit> findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(String personUuid, Long facilityId, Boolean archived, Boolean isCommenced);
     Optional<PrepFollowupVisit> findByEncounterDateAndPersonUuid(LocalDate encounterDate, String uuid);
-    Optional<PrepFollowupVisit> findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(LocalDate encounterDate, String uuid, Boolean isCommencement, Integer archived);
+    Optional<PrepFollowupVisit> findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(LocalDate encounterDate, String uuid, Boolean isCommencement, Boolean archived);
     Optional<PrepFollowupVisit> findByUuid(String uuid);
 
     @Query(value = "SELECT enableCab FROM (" +
@@ -35,7 +35,7 @@ public interface PrepFollowupVisitRepository extends JpaRepository<PrepFollowupV
             "ROW_NUMBER() OVER (PARTITION BY person_uuid ORDER BY next_appointment DESC) AS rowNums " +
             "FROM prep_followup_visit pc " +
             "JOIN patient_person p ON p.uuid = pc.person_uuid " +
-            "WHERE pc.archived = 0 AND p.archived = 0 " +
+            "WHERE pc.archived=false AND p.archived=false " +
             "AND is_commencement = false " +
             "AND regimen_id = 2 " +
             ") sub " +

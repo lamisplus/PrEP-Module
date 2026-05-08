@@ -741,4 +741,82 @@
         </sql>
     </changeSet>
 
+    <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-prep-followup-visit">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS extra;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="add-breast-feeding-to-prophylaxis-initiation">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prophylaxis_initiation' AND column_name = 'breast_feeding';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_initiation ADD COLUMN breast_feeding VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="archived-to-boolean-prophylaxis-screening">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ALTER COLUMN archived DROP DEFAULT,
+                ALTER COLUMN archived TYPE BOOLEAN USING (archived::int &lt;&gt; 0),
+                ALTER COLUMN archived SET DEFAULT false;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="archived-to-boolean-prophylaxis-initiation">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_initiation
+                ALTER COLUMN archived DROP DEFAULT,
+                ALTER COLUMN archived TYPE BOOLEAN USING (archived::int &lt;&gt; 0),
+                ALTER COLUMN archived SET DEFAULT false;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="archived-to-boolean-prophylaxis-interruptions">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_interruptions
+                ALTER COLUMN archived DROP DEFAULT,
+                ALTER COLUMN archived TYPE BOOLEAN USING (archived::int &lt;&gt; 0),
+                ALTER COLUMN archived SET DEFAULT false;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="archived-to-boolean-prep-followup-visit">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit
+                ALTER COLUMN archived DROP DEFAULT,
+                ALTER COLUMN archived TYPE BOOLEAN USING (archived::int &lt;&gt; 0),
+                ALTER COLUMN archived SET DEFAULT false;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="archived-to-boolean-pep-followup-visit">
+        <sql>
+            ALTER TABLE IF EXISTS pep_followup_visit
+                ALTER COLUMN archived DROP DEFAULT,
+                ALTER COLUMN archived TYPE BOOLEAN USING (archived::int &lt;&gt; 0),
+                ALTER COLUMN archived SET DEFAULT false;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="add-uuid-to-base-application-user">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'base_application_user' AND column_name = 'uuid';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE base_application_user ADD COLUMN uuid VARCHAR(64);
+            UPDATE base_application_user SET uuid = gen_random_uuid()::text WHERE uuid IS NULL;
+            ALTER TABLE base_application_user ADD CONSTRAINT uq_base_application_user_uuid UNIQUE (uuid);
+        </sql>
+    </changeSet>
+
+
 </databaseChangeLog>

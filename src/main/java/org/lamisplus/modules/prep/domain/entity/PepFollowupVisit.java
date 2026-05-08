@@ -107,9 +107,6 @@ public class PepFollowupVisit extends Audit implements Serializable {
     @Column(name = "date_prep_given")
     private LocalDate datePrepGiven;
 
-    @Column(name = "prep_given")
-    private String prepGiven;
-
     @Column(name = "other_prep_given")
     private String otherPrepGiven;
 
@@ -279,7 +276,7 @@ public class PepFollowupVisit extends Audit implements Serializable {
     private Object followupHivTestResults;
 
     @Column(name = "archived")
-    private Integer archived;
+    private Boolean archived = false;
 
     @ManyToOne
     @JoinColumn(name = "prep_enrollment_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)

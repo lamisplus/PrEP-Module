@@ -49,7 +49,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount  " +
             "FROM patient_person p " +
             "LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
-            "WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth ", nativeQuery = true)
@@ -62,7 +62,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount  " +
             "FROM patient_person p " +
             "LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
-            "WHERE p.archived=?1 AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth ", nativeQuery = true)
@@ -74,7 +74,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount  " +
             "FROM patient_person p  LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
-            "WHERE p.archived=?1 AND p.facility_id=?2  " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2  " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth", nativeQuery = true)
     Page<PrepClient> findAllPersonPrep(Integer archived, Long facilityId, Pageable pageable);
 
@@ -83,7 +83,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount  " +
             "FROM patient_person p  LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
-            "WHERE p.archived=?1 AND p.facility_id=?2  " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2  " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth", nativeQuery = true)
     List<PrepClient> findAllPersonPrep(Integer archived, Long facilityId);
 
@@ -191,7 +191,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "    FROM hts_client hts\n" +
             "    JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             ") el_max ON el_max.person_uuid = p.uuid\n" +
-            "WHERE p.archived = ?1\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -317,7 +317,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "    FROM hts_client hts\n" +
             "    JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             ") el_max ON el_max.person_uuid = p.uuid\n" +
-            "WHERE p.archived = ?1\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -444,7 +444,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "    FROM hts_client hts\n" +
             "    JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             ") el_max ON el_max.person_uuid = p.uuid\n" +
-            "WHERE p.archived = ?1\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -508,7 +508,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             " FROM prep_eligibility el INNER JOIN (SELECT DISTINCT MAX(el.visit_date) as max_date,  " +
             " el.person_uuid FROM prep_eligibility el WHERE el.archived=0 GROUP BY person_uuid)pel  " +
             " ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max  " +
-            " ON el_max.person_uuid = p.uuid  WHERE p.archived=?1 AND p.facility_id=?2  " +
+            " ON el_max.person_uuid = p.uuid  WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2  " +
             " AND he.person_uuid IS NULL AND (el_max.HIVResultAtVisit NOT ILIKE '%Positive%'  " +
             " OR el_max.HIVResultAtVisit is NULL)  " +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display,  " +
@@ -593,7 +593,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "    ) pel ON pel.max_date = el.visit_date \n" +
             "         AND el.person_uuid = pel.person_uuid\n" +
             ") el_max ON el_max.person_uuid = p.uuid \n" +
-            "WHERE p.archived=?1 AND p.facility_id=?2 AND p.uuid=?3\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND p.uuid=?3\n" +
             "GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, he.person_uuid, he.date_confirmed_hiv, \n" +
             "         el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, \n" +
             "         p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, \n" +
@@ -722,7 +722,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "    FROM hts_client hts\n" +
             "    JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             ") el_max ON el_max.person_uuid = p.uuid\n" +
-            "WHERE p.archived = ?1\n" +
+            "WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -995,7 +995,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "                FROM hts_client hts\n" +
             "                JOIN latest_hts ON hts.person_uuid = latest_hts.person_uuid AND hts.date_visit = latest_hts.max_date_visit\n" +
             "            ) el_max ON el_max.person_uuid = p.uuid\n" +
-            "            WHERE p.archived = ?1\n" +
+            "            WHERE p.archived = CAST(?1 AS INTEGER)\n" +
             "            AND p.facility_id = ?2\n" +
             "            AND he.person_uuid IS NULL\n" +
             "            AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
@@ -1065,7 +1065,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "INNER JOIN (SELECT DISTINCT MAX(el.visit_date) as max_date, el.person_uuid " +
             "FROM prep_eligibility el WHERE el.archived=0 " +
             "GROUP BY person_uuid)pel ON pel.max_date=el.visit_date AND el.person_uuid=pel.person_uuid) el_max ON el_max.person_uuid = p.uuid " +
-            " WHERE p.archived=?1 AND p.facilityId=?2 " +
+            " WHERE p.archived = CAST(?1 AS INTEGER) AND p.facilityId=?2 " +
             " GROUP BY prepi.interruption_date, prepc.encounter_date, bac.display, " +
             "el_max.HIVResultAtVisit, p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, " +
             "pet.unique_id, p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, " +

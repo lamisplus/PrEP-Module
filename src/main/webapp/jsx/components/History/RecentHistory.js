@@ -51,22 +51,45 @@ const RecentHistory = props => {
     const personId = props.patientObj.personId || props.patientObj.id;
     const headers = { Authorization: `Bearer ${token}` };
 
+    // Pull the latest PrEP/PEP follow-up visit AND the latest PrEP/PEP initiation.
+    // Summary is built from the latest of all four — falling back to the initiation
+    // when no follow-up exists, and merging fields so a missing weight/regimen on
+    // the latest follow-up is still served from the initiation.
     Promise.all([
       axios.get(`${baseUrl}prep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
       axios.get(`${baseUrl}pep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
-    ]).then(([prepRes, pepRes]) => {
-      const prepVisit = prepRes.data[0];
-      const pepVisit = pepRes.data[0];
+      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=PrEP`, { headers }).catch(() => ({ data: {} })),
+      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=PEP`, { headers }).catch(() => ({ data: {} })),
+    ]).then(([prepFollowupRes, pepFollowupRes, prepInitRes, pepInitRes]) => {
+      const prepVisit = prepFollowupRes.data[0];
+      const pepVisit = pepFollowupRes.data[0];
+      const prepInit = prepInitRes.data && prepInitRes.data.uuid ? prepInitRes.data : null;
+      const pepInit = pepInitRes.data && pepInitRes.data.uuid ? pepInitRes.data : null;
 
-      if (prepVisit && pepVisit) {
-        const pepIsNewer = new Date(pepVisit.encounterDate) > new Date(prepVisit.encounterDate);
-        setSummary(pepIsNewer ? pepVisit : prepVisit);
+      // Fall back to initiation values for any field the follow-up didn't capture.
+      const prepBlend = prepVisit
+        ? { ...(prepInit || {}), ...prepVisit, encounterDate: prepVisit.encounterDate }
+        : prepInit
+        ? { ...prepInit, encounterDate: prepInit.dateEnrolled }
+        : null;
+      const pepBlend = pepVisit
+        ? { ...(pepInit || {}), ...pepVisit, encounterDate: pepVisit.encounterDate }
+        : pepInit
+        ? { ...pepInit, encounterDate: pepInit.dateEnrolled }
+        : null;
+
+      const prepDate = prepBlend?.encounterDate ? new Date(prepBlend.encounterDate) : null;
+      const pepDate = pepBlend?.encounterDate ? new Date(pepBlend.encounterDate) : null;
+
+      if (prepBlend && pepBlend) {
+        const pepIsNewer = pepDate > prepDate;
+        setSummary(pepIsNewer ? pepBlend : prepBlend);
         setSummarySource(pepIsNewer ? "pep" : "prep");
-      } else if (pepVisit) {
-        setSummary(pepVisit);
+      } else if (pepBlend) {
+        setSummary(pepBlend);
         setSummarySource("pep");
-      } else if (prepVisit) {
-        setSummary(prepVisit);
+      } else if (prepBlend) {
+        setSummary(prepBlend);
         setSummarySource("prep");
       } else {
         setSummary(null);
@@ -556,7 +579,10 @@ const RecentHistory = props => {
                             </h4>
                             <h4 className="text-info ">
                               {summary
-                                ? summary?.regimen || summary?.pepRegimen || "NIL"
+                                ? summary?.regimen ||
+                                  summary?.pepRegimen ||
+                                  summary?.prepRegimen ||
+                                  "NIL"
                                 : "NIL"}
                             </h4>
                           </div>

@@ -246,13 +246,8 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "date_referred")
     private LocalDate dateReferred;
 
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "extra", columnDefinition = "jsonb")
-    private Object extra;
-
     @Column(name = "archived")
-    private Integer archived;
+    private Boolean archived = false;
 
     @ManyToOne
     @JoinColumn(name = "prep_enrollment_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)

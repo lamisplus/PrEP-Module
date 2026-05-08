@@ -21,4 +21,8 @@ public class PrepDtos {
     private Boolean hivPositive;
     private String enrollmentType;
     private String previousProphylaxis;
+    // Latest pregnancy / breastfeeding status pulled from the most recent
+    // screening or initiation record. Used by the Patient Card.
+    private String pregnant;
+    private String breastfeeding;
 }

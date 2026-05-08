@@ -59,28 +59,28 @@ public class PrepEligibilityScreeningService {
 
     public void delete(Long id) {
         PrepEligibilityScreening entity = prepEligibilityScreeningRepository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(PrepEligibilityScreening.class, "id", String.valueOf(id)));
         if (prepPepInitiationRepository.findByPrepEligibilityUuid(entity.getUuid()).isPresent()) {
             throw new RecordExistException(PrepPepInitiation.class, "PrepPepInitiation", "exist for eligibility");
         }
-        entity.setArchived(ARCHIVED);
+        entity.setArchived(true);
         prepEligibilityScreeningRepository.save(entity);
     }
 
     public PrepEligibilityScreeningDto getById(Long id) {
         PrepEligibilityScreening entity = prepEligibilityScreeningRepository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(PrepEligibilityScreening.class, "id", String.valueOf(id)));
         return entityToDto(entity);
     }
 
     public PrepEligibilityScreeningDto update(Long id, PrepEligibilityScreeningDto dto) {
         PrepEligibilityScreening entity = prepEligibilityScreeningRepository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(PrepEligibilityScreening.class, "id", String.valueOf(id)));
         entity = dtoToEntity(dto, entity.getPersonUuid());
-        entity.setArchived(UN_ARCHIVED);
+        entity.setArchived(false);
         entity.setId(id);
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity = prepEligibilityScreeningRepository.save(entity);
@@ -90,14 +90,14 @@ public class PrepEligibilityScreeningService {
     public List<PrepEligibilityScreeningDto> getByPersonId(Long personId) {
         List<PrepEligibilityScreening> list = prepEligibilityScreeningRepository
                 .findAllByPersonUuidAndFacilityIdAndArchived(getPerson(personId).getUuid(),
-                        currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED);
+                        currentUserOrganizationService.getCurrentUserOrganization(), false);
         return list.stream().map(this::entityToDto).collect(Collectors.toList());
     }
 
     public PrepEligibilityScreeningDto getOpenEligibility(Long personId) {
         Person person = this.getPerson(personId);
         return entityToDto(prepEligibilityScreeningRepository
-                .findByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED));
+                .findByPersonUuidAndArchived(person.getUuid(), false));
     }
 
     private PrepEligibilityScreening requestDtoToEntity(PrepEligibilityScreeningRequestDto dto, String personUuid) {

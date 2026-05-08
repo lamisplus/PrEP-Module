@@ -104,7 +104,7 @@ public class ProphylaxisInterruption extends Audit implements Serializable {
     private String earlyDetectViralLoadResult;
 
     @Column(name = "archived")
-    private Integer archived = 0;
+    private Boolean archived = false;
 
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
@@ -120,7 +120,7 @@ public class ProphylaxisInterruption extends Audit implements Serializable {
             uuid = UUID.randomUUID().toString();
         }
         if (archived == null) {
-            archived = 0;
+            archived = false;
         }
     }
 }

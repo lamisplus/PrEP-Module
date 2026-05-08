@@ -43,28 +43,28 @@ public class ProphylaxisInterruptionService {
 
     public ProphylaxisInterruptionDto update(Long id, ProphylaxisInterruptionDto dto) {
         ProphylaxisInterruption entity = repository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(ProphylaxisInterruption.class, "id", String.valueOf(id)));
         ProphylaxisInterruption updated = dtoToEntity(dto, entity.getPersonUuid());
         updated.setId(id);
         updated.setUuid(entity.getUuid());
         updated.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
-        updated.setArchived(UN_ARCHIVED);
+        updated.setArchived(false);
         updated = repository.save(updated);
         return entityToDto(updated);
     }
 
     public void delete(Long id) {
         ProphylaxisInterruption entity = repository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(ProphylaxisInterruption.class, "id", String.valueOf(id)));
-        entity.setArchived(ARCHIVED);
+        entity.setArchived(true);
         repository.save(entity);
     }
 
     public ProphylaxisInterruptionDto getById(Long id) {
         ProphylaxisInterruption entity = repository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(ProphylaxisInterruption.class, "id", String.valueOf(id)));
         return entityToDto(entity);
     }
@@ -73,7 +73,7 @@ public class ProphylaxisInterruptionService {
         Person person = getPerson(personId);
         return repository
                 .findAllByPersonUuidAndFacilityIdAndArchived(person.getUuid(),
-                        currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                        currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .stream().map(this::entityToDto).collect(Collectors.toList());
     }
 

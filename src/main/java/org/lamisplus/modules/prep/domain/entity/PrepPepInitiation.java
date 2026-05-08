@@ -90,6 +90,9 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @Column(name = "pregnancy_status")
     private String pregnancyStatus;
 
+    @Column(name = "breast_feeding")
+    private String breastFeeding;
+
     @Column(name = "history_of_drug_allergies")
     private String historyOfDrugAllergies;
 
@@ -129,7 +132,7 @@ public class PrepPepInitiation extends Audit implements Serializable {
     private Integer monthsOfRefill;
 
     @Column(name = "archived")
-    private Integer archived;
+    private Boolean archived = false;
 
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)

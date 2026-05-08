@@ -45,9 +45,5 @@ public interface PrepClient {
 
     String getHIVResultAtVisit();
 
-    Boolean getCanScreenForPrep();
-
-    Boolean getCanScreenForPep();
-
     String getPreviousProphylaxis();
 }

@@ -25,7 +25,6 @@ public class PrepFollowupVisitDto implements Serializable {
     private Long personId;
     private LocalDate nextAppointment;
     private LocalDate encounterDate;
-    private Object extra;
     private Boolean isCommencement;
     private LocalDate datePrepStart;
     private Double pulse;

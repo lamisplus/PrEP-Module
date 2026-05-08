@@ -372,24 +372,27 @@ const PrEPDiscontinuationsInterruptions = props => {
                     </FormGroup>
                   </div>
 
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <Label>
-                        Date of Restart (If Placed Back on Medication)
-                      </Label>
-                      <Input
-                        type="date"
-                        name="dateRestartPlacedBackMedication"
-                        id="dateRestartPlacedBackMedication"
-                        onKeyDown={e => e.preventDefault()}
-                        min={minDate}
-                        max={today}
-                        onChange={handleInputChange}
-                        value={objValues.dateRestartPlacedBackMedication}
+                  {/* Date of Restart: PEP-only and never required when PrEP is Stopped */}
+                  {isPEP && (
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>
+                          Date of Restart (If Placed Back on Medication)
+                        </Label>
+                        <Input
+                          type="date"
+                          name="dateRestartPlacedBackMedication"
+                          id="dateRestartPlacedBackMedication"
+                          onKeyDown={e => e.preventDefault()}
+                          min={minDate}
+                          max={today}
+                          onChange={handleInputChange}
+                          value={objValues.dateRestartPlacedBackMedication}
                           disabled={disabledField}
-                      />
-                    </FormGroup>
-                  </div>
+                        />
+                      </FormGroup>
+                    </div>
+                  )}
                 </>
               )}
 

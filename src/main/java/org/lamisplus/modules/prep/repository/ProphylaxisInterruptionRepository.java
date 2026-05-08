@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProphylaxisInterruptionRepository extends JpaRepository<ProphylaxisInterruption, Long> {
-    Optional<ProphylaxisInterruption> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
-    List<ProphylaxisInterruption> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
-    List<ProphylaxisInterruption> findAllByPersonAndArchived(Person person, int archived);
+    Optional<ProphylaxisInterruption> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, Boolean archived);
+    List<ProphylaxisInterruption> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, Boolean archived);
+    List<ProphylaxisInterruption> findAllByPersonAndArchived(Person person, Boolean archived);
     Optional<ProphylaxisInterruption> findByUuid(String uuid);
-    Optional<ProphylaxisInterruption> findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(LocalDate interruptionDate, String personUuid, int archived);
+    Optional<ProphylaxisInterruption> findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(LocalDate interruptionDate, String personUuid, Boolean archived);
 }

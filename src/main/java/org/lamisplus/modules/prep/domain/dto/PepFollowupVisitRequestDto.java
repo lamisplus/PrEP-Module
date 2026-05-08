@@ -46,7 +46,6 @@ public class PepFollowupVisitRequestDto implements Serializable {
     private Object prepNotedSideEffects;
     private String healthCareWorkerSignature;
     private Integer duration;
-    private String prepGiven;
     private String otherPrepGiven;
     private String otherPrepType;
     private String otherRegimenId;

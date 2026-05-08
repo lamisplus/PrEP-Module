@@ -48,7 +48,7 @@ public class PrepFollowupVisitService {
         String enrollmentUuid = requestDto.getPrepEnrollmentUuid();
         if (enrollmentUuid == null || enrollmentUuid.trim().isEmpty()) {
             PrepPepInitiation enrollment = prepPepInitiationRepository
-                    .findTopByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED)
+                    .findTopByPersonUuidAndArchived(person.getUuid(), false)
                     .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "PersonUuid", person.getUuid()));
             enrollmentUuid = enrollment.getUuid();
             requestDto.setPrepEnrollmentUuid(enrollmentUuid);
@@ -78,7 +78,7 @@ public class PrepFollowupVisitService {
         String enrollmentUuid = requestDto.getPrepEnrollmentUuid();
         if (enrollmentUuid == null || enrollmentUuid.trim().isEmpty()) {
             PrepPepInitiation enrollment = prepPepInitiationRepository
-                    .findTopByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED)
+                    .findTopByPersonUuidAndArchived(person.getUuid(), false)
                     .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "PersonUuid", person.getUuid()));
             enrollmentUuid = enrollment.getUuid();
             requestDto.setPrepEnrollmentUuid(enrollmentUuid);
@@ -106,7 +106,7 @@ public class PrepFollowupVisitService {
         PrepFollowupVisit entity = prepFollowupVisitRepository
                 .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(PrepFollowupVisit.class, "id", String.valueOf(id)));
-        entity.setArchived(ARCHIVED);
+        entity.setArchived(true);
         prepFollowupVisitRepository.save(entity);
     }
 
@@ -123,12 +123,12 @@ public class PrepFollowupVisitService {
             list = prepFollowupVisitRepository
                     .findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(getPerson(personId).getUuid(),
                             currentUserOrganizationService.getCurrentUserOrganization(),
-                            UN_ARCHIVED, isCommenced);
+                            false, isCommenced);
         } else {
             list = prepFollowupVisitRepository
                     .findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(getPerson(personId).getUuid(),
                             currentUserOrganizationService.getCurrentUserOrganization(),
-                            UN_ARCHIVED, isCommenced);
+                            false, isCommenced);
         }
         return list.stream()
                 .map(entity -> entityToDto(entity, last))
@@ -137,13 +137,13 @@ public class PrepFollowupVisitService {
 
     public PrepFollowupVisitDto update(Long id, PrepFollowupVisitDto dto) {
         PrepFollowupVisit entity = prepFollowupVisitRepository
-                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
+                .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(PrepFollowupVisit.class, "id", String.valueOf(id)));
         String uuid = entity.getUuid();
         String enrollmentUuid = entity.getPrepEnrollmentUuid();
         Boolean isCommencement = entity.getIsCommencement();
         entity = dtoToEntity(dto, entity.getPersonUuid());
-        entity.setArchived(UN_ARCHIVED);
+        entity.setArchived(false);
         entity.setId(id);
         entity.setUuid(uuid);
         entity.setIsCommencement(isCommencement);
@@ -203,7 +203,6 @@ public class PrepFollowupVisitService {
         PrepFollowupVisit entity = new PrepFollowupVisit();
         entity.setId(dto.getId());
         entity.setPersonUuid(personUuid);
-        entity.setExtra(sanitizeJsonb(dto.getExtra()));
         entity.setDateInitialAdherenceCounseling(dto.getDateInitialAdherenceCounseling());
         entity.setWeight(dto.getWeight());
         entity.setHeight(dto.getHeight());
@@ -276,7 +275,6 @@ public class PrepFollowupVisitService {
         }
         PrepFollowupVisit entity = new PrepFollowupVisit();
         entity.setPersonUuid(personUuid);
-        entity.setExtra(sanitizeJsonb(dto.getExtra()));
         entity.setDateInitialAdherenceCounseling(dto.getDateInitialAdherenceCounseling());
         entity.setWeight(dto.getWeight());
         entity.setHeight(dto.getHeight());
@@ -348,7 +346,6 @@ public class PrepFollowupVisitService {
         }
         PrepFollowupVisitDto dto = new PrepFollowupVisitDto();
         dto.setId(entity.getId());
-        dto.setExtra(entity.getExtra());
         dto.setDateInitialAdherenceCounseling(entity.getDateInitialAdherenceCounseling());
         dto.setWeight(entity.getWeight());
         dto.setHeight(entity.getHeight());
@@ -424,7 +421,7 @@ public class PrepFollowupVisitService {
     public PrepFollowupVisitDto getCommencementById(Long id) {
         PrepFollowupVisit entity = prepFollowupVisitRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService
-                        .getCurrentUserOrganization(), UN_ARCHIVED)
+                        .getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(PrepFollowupVisit.class, "id", String.valueOf(id)));
 
         return this.entityToDto(entity, null);

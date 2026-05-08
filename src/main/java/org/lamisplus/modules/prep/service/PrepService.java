@@ -60,9 +60,9 @@ public class PrepService {
 
         //Check if client eligibility on same date exist and throw an error
         prepEligibilityScreeningRepository
-                .findByVisitDateAndPersonUuidAndArchived(prepEligibilityRequestDto.getVisitDate(), person.getUuid(), 0)
+                .findByVisitDateAndPersonUuidAndArchived(prepEligibilityRequestDto.getVisitDate(), person.getUuid(), false)
                 .ifPresent(prepEligibilityRec -> {
-                    if (prepEligibilityRec.getArchived() == 0) {
+                    if (Boolean.FALSE.equals(prepEligibilityRec.getArchived())) {
                         throw new RecordExistException(PrepEligibilityScreening.class, "Visit date", String.valueOf(prepEligibilityRequestDto.getVisitDate()));
                     }
                 });
@@ -151,7 +151,7 @@ public class PrepService {
         }
 
         PrepFollowupVisit prepClinic = this.clinicRequestDtoToClinic(clinicRequestDto, person.getUuid());
-        prepFollowupVisitRepository.findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(clinicRequestDto.getEncounterDate(), person.getUuid(), false, 0)
+        prepFollowupVisitRepository.findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(clinicRequestDto.getEncounterDate(), person.getUuid(), false, false)
                 .ifPresent(prepClinicRec -> {
                     if (prepClinicRec.getArchived() == 0) {
                         throw new RecordExistException(PrepFollowupVisit.class, "Encounter date", String.valueOf(clinicRequestDto.getEncounterDate()));
@@ -180,9 +180,9 @@ public class PrepService {
         interruption.setPreviousPrepStatus(interruptionRequestDto.getPreviousPrepStatus());
 
         prophylaxisInterruptionRepository
-                .findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(interruptionRequestDto.getInterruptionDate(), person.getUuid(), 0)
+                .findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(interruptionRequestDto.getInterruptionDate(), person.getUuid(), false)
                 .ifPresent(existing -> {
-                    if (existing.getArchived() == 0) {
+                    if (Boolean.FALSE.equals(existing.getArchived())) {
                         throw new RecordExistException(ProphylaxisInterruption.class, "Encounter date", String.valueOf(interruptionRequestDto.getInterruptionDate()));
                     }
                 });
@@ -473,6 +473,14 @@ public class PrepService {
         if (!clients.isEmpty()) {
             prepDtos.setEnrollmentType(clients.get(0).getEnrollmentType());
         }
+        // Pregnancy / breastfeeding from the patient's most recent initiation, so the
+        // Patient Card reflects the latest captured value.
+        prepPepInitiationRepository
+                .findTopByPersonUuidAndArchived(person.getUuid(), false)
+                .ifPresent(latest -> {
+                    prepDtos.setPregnant(latest.getPregnancyStatus());
+                    prepDtos.setBreastfeeding(latest.getBreastFeeding());
+                });
         PrepClient prepClient = prepPepInitiationRepository
                 .findPersonPrepAndStatusByPatientUuid(UN_ARCHIVED,
                         currentUserOrganizationService.getCurrentUserOrganization(), person.getUuid())
@@ -488,11 +496,11 @@ public class PrepService {
         // Compute previousProphylaxis by comparing latest PrEP and PEP followup visit dates
         LocalDate latestPrepVisit = prepFollowupVisitRepository
                 .findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(
-                        person.getUuid(), currentUserOrganizationService.getCurrentUserOrganization(), 0, false)
+                        person.getUuid(), currentUserOrganizationService.getCurrentUserOrganization(), false, false)
                 .stream().findFirst().map(PrepFollowupVisit::getEncounterDate).orElse(null);
         LocalDate latestPepVisit = pepFollowupVisitRepository
                 .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
-                        person.getUuid(), currentUserOrganizationService.getCurrentUserOrganization(), 0)
+                        person.getUuid(), currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .stream().findFirst().map(PepFollowupVisit::getEncounterDate).orElse(null);
         if (latestPrepVisit != null && latestPepVisit != null) {
             prepDtos.setPreviousProphylaxis(latestPrepVisit.isAfter(latestPepVisit) ? "PrEP" : "PEP");
@@ -509,7 +517,7 @@ public class PrepService {
     public PrepEligibilityDto getOpenEligibility(Long personId) {
         Person person = this.getPerson(personId);
         return prepEligibilityToPrepEligibilityDto(prepEligibilityScreeningRepository
-                .findByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED));
+                .findByPersonUuidAndArchived(person.getUuid(), false));
     }
 
     public PrepEnrollmentDto getOpenEnrollment(Long personId) {
@@ -517,7 +525,7 @@ public class PrepService {
 
         String status = "STOPPED, DEATH";
         Optional<PrepPepInitiation> prepEnrollmentOptional = prepPepInitiationRepository
-                .findByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED, currentUserOrganizationService.getCurrentUserOrganization(), status);
+                .findByPersonUuidAndArchived(person.getUuid(), false, currentUserOrganizationService.getCurrentUserOrganization(), status);
         if (prepEnrollmentOptional.isPresent())
             return enrollmentToEnrollmentDto(prepEnrollmentOptional.get());//PrepEnrollmentDto.builder().build();
         return new PrepEnrollmentDto();

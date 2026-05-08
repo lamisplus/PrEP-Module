@@ -15,16 +15,16 @@ public interface PrepEligibilityScreeningRepository extends JpaRepository<PrepEl
     Optional<PrepEligibilityScreening> findByUuid(String uuid);
     List<PrepEligibilityScreening> findAllByPersonUuid(String uuid);
     Integer countAllByPersonUuid(String personUuid);
-    List<PrepEligibilityScreening> findAllByPersonAndArchived(Person person, int archived);
+    List<PrepEligibilityScreening> findAllByPersonAndArchived(Person person, Boolean archived);
 
     @Query(value = "SELECT * FROM prophylaxis_screening pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
             "pe.uuid NOT IN (SELECT prep_eligibility_uuid FROM prophylaxis_initiation peu WHERE peu.person_uuid=?1 " +
             "AND peu.archived=?2 ) ORDER BY pe.visit_date ASC LIMIT 1", nativeQuery = true)
-    PrepEligibilityScreening findByPersonUuidAndArchived(String personUuid, int archived);
+    PrepEligibilityScreening findByPersonUuidAndArchived(String personUuid, Boolean archived);
 
-    Optional<PrepEligibilityScreening> findByVisitDateAndPersonUuidAndArchived(LocalDate visitDate, String personUuid, int archived);
-    Optional<PrepEligibilityScreening> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
-    List<PrepEligibilityScreening> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, int archived);
+    Optional<PrepEligibilityScreening> findByVisitDateAndPersonUuidAndArchived(LocalDate visitDate, String personUuid, Boolean archived);
+    Optional<PrepEligibilityScreening> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, Boolean archived);
+    List<PrepEligibilityScreening> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, Boolean archived);
     List<PrepEligibilityScreening> findAllByFacilityId(Long facilityId);
 
     @Query(value = "SELECT * FROM prophylaxis_screening WHERE date_modified > ?1 AND facility_id=?2", nativeQuery = true)

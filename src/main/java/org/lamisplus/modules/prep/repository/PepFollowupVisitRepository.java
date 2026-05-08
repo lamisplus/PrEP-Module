@@ -13,16 +13,16 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PepFollowupVisitRepository extends JpaRepository<PepFollowupVisit, Long>, JpaSpecificationExecutor<PepFollowupVisit> {
-    Optional<PepFollowupVisit> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);
+    Optional<PepFollowupVisit> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, Boolean archived);
     List<PepFollowupVisit> findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
-            String personUuid, Long facilityId, int archived);
+            String personUuid, Long facilityId, Boolean archived);
     List<PepFollowupVisit> findAllByPrepEnrollmentUuid(String uuid);
     Optional<PepFollowupVisit> findByEncounterDateAndPersonUuidAndArchived(
-            LocalDate encounterDate, String personUuid, Integer archived);
+            LocalDate encounterDate, String personUuid, Boolean archived);
     Optional<PepFollowupVisit> findByUuid(String uuid);
     Integer countAllByPersonUuid(String personUuid);
     List<PepFollowupVisit> findAllByFacilityId(Long facilityId);
-    List<PepFollowupVisit> findAllByPersonAndArchived(Person person, int archived);
+    List<PepFollowupVisit> findAllByPersonAndArchived(Person person, Boolean archived);
 
     @Query(value = "SELECT * FROM pep_followup_visit WHERE date_modified > ?1 AND facility_id=?2", nativeQuery = true)
     List<PepFollowupVisit> getAllDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);

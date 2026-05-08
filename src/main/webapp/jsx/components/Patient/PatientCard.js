@@ -204,6 +204,26 @@ function PatientCard(props) {
                         </div>
                       </Col>
                     )}
+                    {patientDetail?.pregnant && (
+                      <Col md={6} className={classes.root2}>
+                        <span>
+                          Pregnant :{" "}
+                          <b style={{ color: "#0B72AA" }}>
+                            {patientDetail.pregnant}
+                          </b>
+                        </span>
+                      </Col>
+                    )}
+                    {patientDetail?.breastfeeding && (
+                      <Col md={6} className={classes.root2}>
+                        <span>
+                          Breastfeeding :{" "}
+                          <b style={{ color: "#0B72AA" }}>
+                            {patientDetail.breastfeeding}
+                          </b>
+                        </span>
+                      </Col>
+                    )}
                   </Row>
                 </>
               ) : (

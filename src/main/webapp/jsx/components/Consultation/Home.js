@@ -122,7 +122,6 @@ const INITIAL_VALUES = {
   dateReferre: "",
   diastolic: "",
   encounterDate: "",
-  extra: {},
   height: "",
   hepatitis: {},
   nextAppointment: "",

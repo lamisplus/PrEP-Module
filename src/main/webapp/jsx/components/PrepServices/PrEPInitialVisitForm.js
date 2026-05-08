@@ -265,7 +265,13 @@ const PrEPInitialVisitForm = props => {
     e.preventDefault();
     // Block save if HIV result is Positive — show as toast, not inline
     if (objValues.resultOfHivTest === "Positive") {
-      toast.error("Client with Positive HIV result cannot be initiated on PrEP/PEP", {
+      const typeLabel =
+        objValues.enrollmentType === 'PEP'
+          ? 'PEP'
+          : objValues.enrollmentType === 'PrEP'
+          ? 'PrEP'
+          : (screeningType === 'PEP' ? 'PEP' : 'PrEP');
+      toast.error(`Client with Positive HIV result cannot be initiated on ${typeLabel}`, {
         position: toast.POSITION.BOTTOM_CENTER,
       });
       return;
