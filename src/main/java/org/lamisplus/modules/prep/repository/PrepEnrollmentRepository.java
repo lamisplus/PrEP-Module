@@ -1037,8 +1037,8 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "            ELSE 0\n" +
             "        END\n" +
             "    ELSE 0\n" +
-            "            END AS sendCabLaAlert," +
-            " FROM patient_person p  " +
+            "            END AS sendCabLaAlert" +
+            " FROM  patient_person p  " +
             " INNER JOIN (SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid FROM prep_eligibility el " +
             "WHERE el.archived=?1 GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
             " LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND pet.archived=?1" +

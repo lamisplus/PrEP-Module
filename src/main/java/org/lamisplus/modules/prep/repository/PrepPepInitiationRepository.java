@@ -149,8 +149,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
-            "    END AS prepStatus,\n " +
-            "FROM patient_person p\n" +
+            "    END AS prepStatus\n " +
+            "FROM  patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
@@ -275,8 +275,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
-            "    END AS prepStatus,\n " +
-            "FROM patient_person p\n" +
+            "    END AS prepStatus\n " +
+            "FROM  patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
@@ -402,8 +402,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
-            "    END AS prepStatus,\n " +
-            "FROM patient_person p\n" +
+            "    END AS prepStatus\n " +
+            "FROM  patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
@@ -549,8 +549,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' \n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' \n" +
             "        ELSE prepc.status \n" +
-            "     END) prepStatus,\n " +
-            "FROM patient_person p  \n" +
+            "     END) prepStatus\n " +
+            "FROM  patient_person p  \n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid \n" +
             "    FROM prophylaxis_screening el \n" +
@@ -680,8 +680,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 0\n" +
             "            END\n" +
             "        ELSE 0\n" +
-            "    END AS sendCabLaAlert,\n " +
-            "FROM patient_person p\n" +
+            "    END AS sendCabLaAlert\n " +
+            "FROM  patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
@@ -817,8 +817,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                    ELSE 0\n" +
             "                END\n" +
             "            ELSE 0\n" +
-            "        END AS sendCabLaAlert,\n" +
-            "    FROM prophylaxis_initiation pet\n" +
+            "        END AS sendCabLaAlert\n" +
+            "    FROM  prophylaxis_initiation pet\n" +
             "    JOIN patient_person p ON pet.person_uuid = p.uuid\n" +
             "    LEFT JOIN (\n" +
             "        SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -953,8 +953,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                            ELSE 0\n" +
             "                        END\n" +
             "                    ELSE 0\n" +
-            "                END AS sendCabLaAlert,\n" +
-            "            FROM patient_person p\n" +
+            "                END AS sendCabLaAlert\n" +
+            "            FROM  patient_person p\n" +
             "            LEFT JOIN (\n" +
             "                SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "                FROM prophylaxis_screening el\n" +
@@ -1135,8 +1135,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
-            "    END AS prepStatus,\n " +
-            "FROM patient_person p\n" +
+            "    END AS prepStatus\n " +
+            "FROM  patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
@@ -1279,8 +1279,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 0\n" +
             "            END\n" +
             "        ELSE 0\n" +
-            "    END AS sendCabLaAlert,\n " +
-            "FROM patient_person p\n" +
+            "    END AS sendCabLaAlert\n " +
+            "FROM  patient_person p\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
