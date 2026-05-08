@@ -70,7 +70,7 @@ public class PrepPepInitiationService {
     public void delete(Long id) {
         PrepPepInitiation entity = this.getByInitiationById(id);
 
-        if (!prepFollowupVisitRepository.findAllByPrepEnrollmentUuid(entity.getUuid()).isEmpty()) {
+        if (!prepFollowupVisitRepository.findAllByProphylaxisInitiationUuid(entity.getUuid()).isEmpty()) {
             throw new RecordExistException(PrepFollowupVisit.class, "Prep Followup Visit", "exist for enrollment");
         }
 

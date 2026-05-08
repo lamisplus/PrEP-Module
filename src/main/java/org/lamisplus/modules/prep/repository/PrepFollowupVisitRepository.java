@@ -20,7 +20,7 @@ public interface PrepFollowupVisitRepository extends JpaRepository<PrepFollowupV
     Integer countAllByPersonUuid(String personUuid);
     Optional<PrepFollowupVisit> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, Boolean archived);
     List<PrepFollowupVisit> findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(String personUuid, Long facilityId, Boolean archived, Boolean isCommenced);
-    List<PrepFollowupVisit> findAllByPrepEnrollmentUuid(String uuid);
+    List<PrepFollowupVisit> findAllByProphylaxisInitiationUuid(String uuid);
     List<PrepFollowupVisit> findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(String personUuid, Long facilityId, Boolean archived, Boolean isCommenced);
     Optional<PrepFollowupVisit> findByEncounterDateAndPersonUuid(LocalDate encounterDate, String uuid);
     Optional<PrepFollowupVisit> findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(LocalDate encounterDate, String uuid, Boolean isCommencement, Boolean archived);

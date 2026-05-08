@@ -16,7 +16,7 @@ public interface PepFollowupVisitRepository extends JpaRepository<PepFollowupVis
     Optional<PepFollowupVisit> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, Boolean archived);
     List<PepFollowupVisit> findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
             String personUuid, Long facilityId, Boolean archived);
-    List<PepFollowupVisit> findAllByPrepEnrollmentUuid(String uuid);
+    List<PepFollowupVisit> findAllByProphylaxisInitiationUuid(String uuid);
     Optional<PepFollowupVisit> findByEncounterDateAndPersonUuidAndArchived(
             LocalDate encounterDate, String personUuid, Boolean archived);
     Optional<PepFollowupVisit> findByUuid(String uuid);
