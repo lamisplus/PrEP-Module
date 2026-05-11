@@ -8,6 +8,7 @@ import {
   Input,
 } from "reactstrap";
 import { url as baseUrl, token } from "../../../api";
+import { ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
 import AddIcon from "@mui/icons-material/Add";
@@ -363,7 +364,7 @@ const ClinicVisit = props => {
       .get(
         `${baseUrl}prep/initiation/latest/${
           props.patientObj.personId || props.patientObj.id
-        }?enrollmentType=PrEP`,
+        }?enrollmentType=${ENROLLMENT_TYPE_PREP}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -1019,7 +1020,7 @@ const ClinicVisit = props => {
     payload.hepatitis = hepatitisTest;
     payload.urinalysis = urinalysisTest;
     payload.otherTestsDone = otherTest;
-    payload.enrollmentType = "PrEP";
+    payload.enrollmentType = ENROLLMENT_TYPE_PREP;
 
     let resolvedEnrollmentUuid = patientDto?.uuid;
     if (!resolvedEnrollmentUuid) {
@@ -1027,7 +1028,7 @@ const ClinicVisit = props => {
         const latest = await axios.get(
           `${baseUrl}prep/initiation/latest/${
             props.patientObj.personId || props.patientObj.id
-          }?enrollmentType=PrEP`,
+          }?enrollmentType=${ENROLLMENT_TYPE_PREP}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         resolvedEnrollmentUuid = latest?.data?.uuid;

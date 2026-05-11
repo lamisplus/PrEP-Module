@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { token as token, url as baseUrl } from "./../../../api";
+import {
+  ENROLLMENT_LABEL_PREP,
+  ENROLLMENT_LABEL_PEP,
+} from "../../constants/enrollmentType";
 import { forwardRef } from "react";
 import "semantic-ui-css/semantic.min.css";
 import { useHistory } from "react-router-dom";
@@ -87,16 +91,16 @@ const enrollSplitBtnStyle = {
 
 const ENTRY_POINTS = [
   {
-    code: "PrEP",
-    label: "PrEP",
+    code: ENROLLMENT_LABEL_PREP,
+    label: ENROLLMENT_LABEL_PREP,
     title: "Pre-Exposure Prophylaxis",
     description:
       "Enroll a client at risk of HIV exposure into the PrEP service line.",
     accent: "#014D88",
   },
   {
-    code: "PEP",
-    label: "PEP",
+    code: ENROLLMENT_LABEL_PEP,
+    label: ENROLLMENT_LABEL_PEP,
     title: "Post-Exposure Prophylaxis",
     description:
       "Enroll a client following a recent potential HIV exposure into the PEP service line.",
@@ -231,7 +235,7 @@ const EnrollPatientButton = ({ row }) => {
 
   const handleEnroll = (screeningType) => {
     if (blockedArm) return; // hard-block; banner explains it
-    if (screeningType === "PrEP" && prepBlockedByAge) return;
+    if (screeningType === ENROLLMENT_LABEL_PREP && prepBlockedByAge) return;
     setOpen(false);
     history.push({
       pathname: "/patient-dashboard",

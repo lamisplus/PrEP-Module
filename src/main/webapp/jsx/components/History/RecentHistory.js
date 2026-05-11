@@ -7,6 +7,7 @@ import PerfectScrollbar from "react-perfect-scrollbar";
 //import { Link } from "react-router-dom";
 import axios from "axios";
 import { url as baseUrl, token } from "../../../api";
+import { ENROLLMENT_TYPE_PREP, ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
 //import { Alert } from "react-bootstrap";
 import { Card, Accordion } from "react-bootstrap";
 import { Modal } from "react-bootstrap";
@@ -58,8 +59,8 @@ const RecentHistory = props => {
     Promise.all([
       axios.get(`${baseUrl}prep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
       axios.get(`${baseUrl}pep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
-      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=PrEP`, { headers }).catch(() => ({ data: {} })),
-      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=PEP`, { headers }).catch(() => ({ data: {} })),
+      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PREP}`, { headers }).catch(() => ({ data: {} })),
+      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PEP}`, { headers }).catch(() => ({ data: {} })),
     ]).then(([prepFollowupRes, pepFollowupRes, prepInitRes, pepInitRes]) => {
       const prepVisit = prepFollowupRes.data[0];
       const pepVisit = pepFollowupRes.data[0];

@@ -28,7 +28,8 @@ public class PrepDtos {
 
     /**
      * TRUE when the patient is currently active on PrEP — i.e. their latest
-     * {@code prophylaxis_initiation} has {@code enrollment_type='PrEP'} AND
+     * {@code prophylaxis_initiation} has
+     * {@code enrollment_type=PREP_PEP_ENROLLMENT_TYPE_PREP} AND
      * {@code is_interrupted=false}. Used by the Patient List "Enroll" modal
      * (block re-enrollment) and by the SubMenu (cross-arm form lockout).
      */

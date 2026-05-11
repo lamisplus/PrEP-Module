@@ -8,6 +8,7 @@ import {
   Input,
 } from "reactstrap";
 import { url as baseUrl, token } from "../../../api";
+import { ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
 import AddIcon from "@mui/icons-material/Add";
@@ -138,7 +139,7 @@ const PEPFollowupVisit = props => {
     // anchors to the patient's latest PEP initiation (not their PrEP record).
     axios
       .get(
-        `${baseUrl}prep/initiation/latest/${personId}?enrollmentType=PEP`,
+        `${baseUrl}prep/initiation/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PEP}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -436,7 +437,7 @@ const PEPFollowupVisit = props => {
     payload.pepNotedSideEffects = notedSideEffects;
     payload.syndromicStiScreening = syndromicStiSelected;
     payload.followupHivTestResults = hivTestEntries;
-    payload.enrollmentType = "PEP";
+    payload.enrollmentType = ENROLLMENT_TYPE_PEP;
 
     let resolvedEnrollmentUuid = patientDto?.uuid;
     if (!resolvedEnrollmentUuid) {
@@ -444,7 +445,7 @@ const PEPFollowupVisit = props => {
         const latest = await axios.get(
           `${baseUrl}prep/initiation/latest/${
             props.patientObj.personId || props.patientObj.id
-          }?enrollmentType=PEP`,
+          }?enrollmentType=${ENROLLMENT_TYPE_PEP}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         resolvedEnrollmentUuid = latest?.data?.uuid;

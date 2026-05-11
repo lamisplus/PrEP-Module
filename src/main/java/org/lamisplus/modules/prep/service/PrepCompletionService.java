@@ -13,6 +13,7 @@ import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.prep.domain.entity.ProphylaxisInterruption;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
 import org.lamisplus.modules.prep.repository.ProphylaxisInterruptionRepository;
+import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -50,7 +51,7 @@ public class PrepCompletionService {
         // Resolve the matching prophylaxis_initiation (by enrollment type, latest first) and
         // 1) link this completion to it via prophylaxis_initiation_uuid; 2) flip is_interrupted
         // on the initiation so the patient's current status is now "interrupted on that arm".
-        String enrollmentType = requestDto.getEnrollmentType();
+        String enrollmentType = EnrollmentType.toCanonical(requestDto.getEnrollmentType());
         Optional<PrepPepInitiation> latestInitiation = (enrollmentType != null && !enrollmentType.isEmpty())
                 ? prepPepInitiationRepository.findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, enrollmentType)
                 : prepPepInitiationRepository.findTopByPersonUuidAndArchived(person.getUuid(), false);
