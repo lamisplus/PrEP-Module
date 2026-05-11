@@ -249,7 +249,7 @@ const PrEPDiscontinuationsInterruptions = props => {
         )
         .then(response => {
           setSaving(false);
-          toast.success("Record saved successfully!");
+          toast.success(`${enrollmentType === 'PEP' ? 'PEP completion' : 'PrEP discontinuation/interruption'} updated successfully!`);
           props.PatientObject();
           props.setActiveContent({
             ...props.activeContent,
@@ -267,7 +267,7 @@ const PrEPDiscontinuationsInterruptions = props => {
         })
         .then(response => {
           setSaving(false);
-          toast.success("Record saved successfully!");
+          toast.success(`${enrollmentType === 'PEP' ? 'PEP completion' : 'PrEP discontinuation/interruption'} saved successfully!`);
           props.PatientObject();
           props.setActiveContent({
             ...props.activeContent,

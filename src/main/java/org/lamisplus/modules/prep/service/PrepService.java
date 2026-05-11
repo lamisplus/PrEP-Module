@@ -87,7 +87,7 @@ public class PrepService {
 
         Person person = this.getPerson(prepEnrollmentRequestDto.getPersonId());
 
-        if (this.prepPepInitiationRepository.findByProphylaxisScreeningUuid(eligibilityUuid).isPresent()) {
+        if (this.prepPepInitiationRepository.findByProphylaxisScreeningUuidAndArchived(eligibilityUuid, false).isPresent()) {
             throw new RecordExistException(PrepPepInitiation.class, "Eligibility Already taken for prep", eligibilityUuid);
         }
 
@@ -115,8 +115,8 @@ public class PrepService {
 
         //Check if client Enrollment on same date exist and throw an error
         prepPepInitiationRepository
-                .findByDateEnrolledAndPersonUuid(prepEnrollmentRequestDto.getDateEnrolled(),
-                        person.getUuid()).ifPresent(prepEnroll -> {
+                .findByDateEnrolledAndPersonUuidAndArchived(prepEnrollmentRequestDto.getDateEnrolled(),
+                        person.getUuid(), false).ifPresent(prepEnroll -> {
                     throw new RecordExistException(PrepPepInitiation.class, "Encounter date",
                             String.valueOf(prepEnroll.getDateEnrolled()));
                 });

@@ -82,7 +82,7 @@ public class PrepEligibilityService {
         PrepEligibility prepEligibility = prepEligibilityRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
                 .orElseThrow(() -> new EntityNotFoundException(PrepEligibility.class, "id", String.valueOf(id)));
-        if (prepEnrollmentRepository.findByPrepEligibilityUuid(prepEligibility.getUuid()).isPresent()) {
+        if (prepEnrollmentRepository.findByPrepEligibilityUuidAndArchived(prepEligibility.getUuid(), UN_ARCHIVED).isPresent()) {
             throw new RecordExistException(PrepEnrollment.class, "PrepEnrollment", "exist for eligibility");
         }
         prepEligibility.setArchived(ARCHIVED);

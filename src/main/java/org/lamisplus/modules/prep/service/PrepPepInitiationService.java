@@ -55,7 +55,7 @@ public class PrepPepInitiationService {
 
         if (requestDto.getDateEnrolled() != null) {
             prepPepInitiationRepository
-                    .findByDateEnrolledAndPersonUuid(requestDto.getDateEnrolled(), person.getUuid())
+                    .findByDateEnrolledAndPersonUuidAndArchived(requestDto.getDateEnrolled(), person.getUuid(), false)
                     .ifPresent(existing -> {
                         throw new ResponseStatusException(HttpStatus.CONFLICT,
                                 "An initiation record already exists for this enrollment date: " + requestDto.getDateEnrolled());
@@ -70,7 +70,7 @@ public class PrepPepInitiationService {
     public void delete(Long id) {
         PrepPepInitiation entity = this.getByInitiationById(id);
 
-        if (!prepFollowupVisitRepository.findAllByProphylaxisInitiationUuid(entity.getUuid()).isEmpty()) {
+        if (!prepFollowupVisitRepository.findAllByProphylaxisInitiationUuidAndArchived(entity.getUuid(), false).isEmpty()) {
             throw new RecordExistException(PrepFollowupVisit.class, "Prep Followup Visit", "exist for enrollment");
         }
 

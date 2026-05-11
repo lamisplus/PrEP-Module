@@ -322,7 +322,7 @@ const PrEPInitialVisitForm = props => {
             setSaving(false);
             props.patientObj.prepCount = "1";
             props.PatientObject();
-            toast.success("PrEP enrolment saved successfully!✔", {
+            toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} initiation saved successfully!✔`, {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -346,7 +346,7 @@ const PrEPInitialVisitForm = props => {
             if (props.PatientObject) {
               await props.PatientObject();
             }
-            toast.success("PrEP enrolment saved successfully!✔", {
+            toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} initiation saved successfully!✔`, {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({

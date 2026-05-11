@@ -1081,7 +1081,7 @@ const ClinicVisit = props => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setSaving(false);
-        toast.success("Clinic visit updated successfully!", {
+        toast.success("PrEP Follow-up visit updated successfully!", {
           position: toast.POSITION.BOTTOM_CENTER,
         });
         props.setActiveContent({
@@ -1099,7 +1099,7 @@ const ClinicVisit = props => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSaving(false);
-        toast.success("Clinic Visit saved successfully!", {
+        toast.success("PrEP Follow-up visit saved successfully!", {
           position: toast.POSITION.BOTTOM_CENTER,
         });
         props.setActiveContent({

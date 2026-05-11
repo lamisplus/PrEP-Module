@@ -65,7 +65,7 @@ public class PrepEnrollmentService {
     public void delete(Long id) {
         PrepEnrollment prepEnrollment = this.getByEnrollmentById(id);
 
-        if(!prepClinicRepository.findAllByPrepEnrollmentUuid(prepEnrollment.getUuid()).isEmpty()){
+        if(!prepClinicRepository.findAllByPrepEnrollmentUuidAndArchived(prepEnrollment.getUuid(), UN_ARCHIVED).isEmpty()){
             throw new RecordExistException(PrepClinic.class, "Prep Clinic", "exist for enrollment");
         }
 

@@ -95,6 +95,10 @@ function PatientCard(props) {
   // freshWorkflow = true ONLY when user clicked Enroll on Patient Tab (freshEnroll flag set)
   const freshWorkflow = freshEnrollFromRoute;
   const [sessionStage, setSessionStage] = useState(freshWorkflow ? "screening" : "all");
+  // Tracks whether the patient has a saved screening that hasn't been initiated yet —
+  // so that even after the user leaves and returns (losing freshEnroll), the SubMenu
+  // can still expose the Initiation step from that pending screening.
+  const [hasOpenScreening, setHasOpenScreening] = useState(false);
 
   const { userPermissions } = useAuth();
 
@@ -110,11 +114,14 @@ function PatientCard(props) {
     }
   }, [patientDetail]);
 
-  // After tab-switch + return: resume the workflow only if the *open* (not-yet-completed)
+  // After tab-switch + return: resume the workflow if the *open* (not-yet-completed)
   // record matches the enrollment type the user just selected on the Patient List.
   // Switching from PrEP → PEP must restart at screening (not jump to a stale PrEP initiation).
+  //
+  // This effect runs for both fresh enrolments and returning users so that a user who
+  // left mid-flow (screening saved, initiation not yet entered) can pick up where they
+  // stopped when they navigate back to the patient.
   useEffect(() => {
-    if (!freshWorkflow) return;
     const personId = patientObjLocation?.personId || patientObjLocation?.id;
     if (!personId) return;
     let cancelled = false;
@@ -136,7 +143,8 @@ function PatientCard(props) {
         const openInitiationType = enrollmentResp?.data?.enrollmentType;
         if (cancelled) return;
         if (matches(openInitiationType, screeningType)) {
-          setSessionStage("all");
+          setHasOpenScreening(false);
+          if (freshWorkflow) setSessionStage("all");
           return;
         }
 
@@ -150,13 +158,18 @@ function PatientCard(props) {
         const openScreeningCategory = eligibilityResp?.data?.category;
         if (cancelled) return;
         if (matches(openScreeningCategory, screeningType)) {
-          setSessionStage("initiation");
+          setHasOpenScreening(true);
+          if (freshWorkflow) setSessionStage("initiation");
           return;
         }
 
-        setSessionStage("screening");
+        setHasOpenScreening(false);
+        if (freshWorkflow) setSessionStage("screening");
       } catch (_e) {
-        if (!cancelled) setSessionStage("screening");
+        if (!cancelled) {
+          setHasOpenScreening(false);
+          if (freshWorkflow) setSessionStage("screening");
+        }
       }
     })();
 
@@ -168,12 +181,16 @@ function PatientCard(props) {
   // Callbacks to advance the workflow stage after each form is saved
   const onScreeningSaved = () => {
     PatientObject();
+    // A newly saved screening is, by definition, an open screening with no
+    // initiation yet — expose the Initiation entry on return visits too.
+    setHasOpenScreening(true);
     if (freshWorkflow && sessionStage === "screening") {
       setSessionStage("initiation");
     }
   };
   const onInitiationSaved = () => {
     PatientObject();
+    setHasOpenScreening(false);
     if (freshWorkflow && sessionStage === "initiation") {
       setSessionStage("all");
     }
@@ -225,6 +242,7 @@ function PatientCard(props) {
             screeningType={screeningType}
             freshWorkflow={freshWorkflow}
             sessionStage={sessionStage}
+            hasOpenScreening={hasOpenScreening}
           />
           <br />
 

@@ -456,7 +456,7 @@ const BasicInfo = props => {
               drugHistory.hivTestResultAtvisit;
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
-            toast.success("Prep eligibility saved successfully! ✔", {
+            toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} eligibility screening updated successfully! ✔`, {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
@@ -479,7 +479,7 @@ const BasicInfo = props => {
             props.patientObj.eligibilityCount = 1;
             props.patientObj.hivresultAtVisit =
               drugHistory.hivTestResultAtvisit;
-            toast.success("Prep eligibility saved successfully! ✔", {
+            toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} eligibility screening saved successfully! ✔`, {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({

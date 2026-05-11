@@ -6,7 +6,7 @@ import { useAuth } from "../../../context/AuthProvider/AuthProvider";
 
 function SubMenu(props) {
   const { userPermissions } = useAuth();
-  let { patientObj, patientDetail, screeningType, freshWorkflow, sessionStage } = props;
+  let { patientObj, patientDetail, screeningType, freshWorkflow, sessionStage, hasOpenScreening } = props;
 
   useEffect(() => {
     //Observation();
@@ -162,7 +162,7 @@ function SubMenu(props) {
           )}
         />
 
-        {isNegative && freshWorkflow && (
+        {isNegative && (freshWorkflow || hasOpenScreening) && (
           <ProtectedComponent
             isAuthorized={userPermissions.enrollment}
             privateComponent={() => (

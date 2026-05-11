@@ -30,6 +30,8 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
 
     Optional<PrepEnrollment> findByPrepEligibilityUuid(String prepEligibilityUuid);
 
+    Optional<PrepEnrollment> findByPrepEligibilityUuidAndArchived(String prepEligibilityUuid, int archived);
+
     Optional<PrepEnrollment> findByUuid(String enrollmentUuid);
 
     List<PrepEnrollment> findAllByPersonAndArchived(Person person, int archived);

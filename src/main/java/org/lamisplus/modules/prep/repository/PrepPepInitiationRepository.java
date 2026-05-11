@@ -19,6 +19,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     List<PrepPepInitiation> findAllByPersonOrderByIdDesc(Person person);
     Optional<PrepPepInitiation> findByIdAndArchivedAndFacilityId(Long id, Boolean archived, Long facilityId);
     Optional<PrepPepInitiation> findByProphylaxisScreeningUuid(String prophylaxisScreeningUuid);
+    Optional<PrepPepInitiation> findByProphylaxisScreeningUuidAndArchived(String prophylaxisScreeningUuid, Boolean archived);
     Optional<PrepPepInitiation> findByUuid(String uuid);
 
     @Query(value = "SELECT * FROM prophylaxis_initiation pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
@@ -36,6 +37,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
 
     List<PrepPepInitiation> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, Boolean archived);
     Optional<PrepPepInitiation> findByDateEnrolledAndPersonUuid(LocalDate dateEnrolled, String personUuid);
+    Optional<PrepPepInitiation> findByDateEnrolledAndPersonUuidAndArchived(LocalDate dateEnrolled, String personUuid, Boolean archived);
     Integer countAllByPersonUuid(String personUuid);
     Integer countAllByPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(String personUuid, String enrollmentType, Boolean archived);
     List<PrepPepInitiation> findAllByFacilityId(Long facilityId);
