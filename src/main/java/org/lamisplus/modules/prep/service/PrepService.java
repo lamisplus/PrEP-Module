@@ -428,6 +428,14 @@ public class PrepService {
         List<PrepClient> filteredList = resultPage.getContent().stream()
                 .filter(prepClient -> !"Not Enrolled".equals(prepClient.getPrepStatus()))
                 .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
+                // Keep only PrEP-arm clients: the latest initiation must be PrEP. The shared
+                // query above does not filter by enrollment_type (the Patients tab needs all
+                // patients), so we apply the arm filter here for the PrEP-Enrolled tab only.
+                .filter(prepClient -> prepClient.getPersonUuid() != null
+                        && prepPepInitiationRepository
+                                .findTopByPersonUuidAndArchived(prepClient.getPersonUuid(), false)
+                                .map(latest -> EnrollmentType.isPrep(latest.getEnrollmentType()))
+                                .orElse(false))
                 .collect(Collectors.toList());
 
         return new PageImpl<>(filteredList, pageable, resultPage.getTotalElements());
