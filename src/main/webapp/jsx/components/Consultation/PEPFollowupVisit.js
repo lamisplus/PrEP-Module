@@ -932,7 +932,7 @@ const PEPFollowupVisit = props => {
                             disabled={disabledField}
                           >
                             <option value="">Select</option>
-                            {codeset?.WHY_POOR_FAIR_ADHERENCE?.map(value => (
+                            {codeset?.PrEP_LEVEL_OF_ADHERENCE_REASONS?.map(value => (
                               <option key={value.id} value={value.code}>
                                 {value.display}
                               </option>

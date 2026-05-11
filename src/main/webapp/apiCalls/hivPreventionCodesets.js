@@ -172,8 +172,9 @@ export async function fetchFollowupVisitCodesets() {
       "SYNDROMIC_STI_SCREENING",
       "PREP_PEP_RISK_REDUCTION_PLAN",
       "PREP_PEP_LEVEL_OF_ADHERENCE",
-      "WHY_POOR_FAIR_ADHERENCE",
+      "PrEP_LEVEL_OF_ADHERENCE_REASONS",
       "PrEP_TYPE",
+      "PREP_REGIMEN",
       "PREP_URINALYSIS_RESULT",
       "HEPATITIS_SCREENING_RESULT",
       "SYPHILIS_RESULT",
@@ -182,7 +183,7 @@ export async function fetchFollowupVisitCodesets() {
       "REASON_METHOD_SWITCH",
       "FAMILY_PLANNING_METHOD",
       "PREGNANCY_STATUS",
-      "HIV_TEST_RESULT",
+      "HTS_RESULT",
       "YES_NO",
     ]);
     // Forms reference PrEP_RISK_REDUCTION_PLAN / PrEP_LEVEL_OF_ADHERENCE; alias from the
@@ -240,7 +241,7 @@ export async function fetchPEPFollowupCodesets() {
       "SYNDROMIC_STI_SCREENING",
       "PREP_PEP_RISK_REDUCTION_PLAN",
       "PREP_PEP_LEVEL_OF_ADHERENCE",
-      "WHY_POOR_FAIR_ADHERENCE",
+      "PrEP_LEVEL_OF_ADHERENCE_REASONS",
       "PEP_REGIMEN",
       "PEP_FOLLOW_UP_HIV_TEST_RESULT",
       "PREGNANCY_STATUS",

@@ -38,9 +38,9 @@ export function getPregnancyStatusOptions() {
 
 export function getHTSResultOptions() {
   return [
-    { value: "HIV positive", label: "HIV positive" },
-    { value: "HIV Negative", label: "HIV Negative" },
-    { value: "NOT DONE", label: "Not Done" },
+    { value: "HTS_RESULT_HIV_POSITIVE", label: "HIV Positive" },
+    { value: "HTS_RESULT_HIV_NEGATIVE", label: "HIV Negative" },
+    { value: "HTS_RESULT_NOT_DONE", label: "Not Done" },
   ];
 }
 
@@ -93,18 +93,20 @@ export function getAdherenceOptions() {
   ];
 }
 
+// Canonical codeset: PrEP_LEVEL_OF_ADHERENCE_REASONS (replaces the deprecated
+// WHY_POOR_FAIR_ADHERENCE codeset). Codes match the application-codeset feed.
 export function getReasonPoorFairAdherenceOptions() {
   return [
-    { value: "WHY_POOR_FAIR_ADHERENCE_FORGOT", label: "Forgot" },
-    { value: "WHY_POOR_FAIR_ADHERENCE_FELL_ASLEEP", label: "Fell asleep/slept through dose" },
-    { value: "WHY_POOR_FAIR_ADHERENCE_CHANGE_IN_ROUTINE", label: "Change in routine/away from home" },
-    { value: "WHY_POOR_FAIR_ADHERENCE_BUSY", label: "Busy/working/at school" },
-    { value: "WHY_POOR_FAIR_ADHERENCE_PATIENT_MOVED", label: "Patient moved" },
-    { value: "WHY_POOR_FAIR_ADHERENCE_RAN_OUT", label: "Ran out of medications" },
-    { value: "WHY_POOR_FAIR_ADHERENCE_DRUG_STOCK_OUT", label: "Drug stock-out" },
-    { value: "WHY_POOR_FAIR_ADHERENCE_NOT_ABLE_TO_PAY", label: "Not able to pay" },
-    { value: "WHY_POOR_FAIR_ADHERENCE_PARTNER_INFLUENCE", label: "Partner Influence" },
-    { value: "WHY_POOR_FAIR_ADHERENCE_OTHER", label: "Others" },
+    { value: "PREP_LEVEL_OF_ADHERENCE_REASONS_FORGOT", label: "Forgot" },
+    { value: "PREP_LEVEL_OF_ADHERENCE_REASONS_FELL_ASLEEPSLEPT_THROUGH_DOSE", label: "Fell asleep/slept through dose" },
+    { value: "PREP_LEVEL_OF_ADHERENCE_REASONS_CHANGE_IN_ROUTINEAWAY_FROM_HOME", label: "Change in routine/away from home" },
+    { value: "PREP_LEVEL_OF_ADHERENCE_REASONS_BUSYWORKINGAT_SCHOOL", label: "Busy/working/at school" },
+    { value: "PREP_LEVEL_OF_ADHERENCE_REASONS_PATIENT_MOVED", label: "Patient moved" },
+    { value: "PREP_LEVEL_OF_ADHERENCE_REASONS_RAN_OUT_OF_MEDICATIONS", label: "Ran out of medications" },
+    { value: "PREP_LEVEL_OF_ADHERENCE_REASONS_DRUG_STOCK-OUT", label: "Drug stock-out" },
+    { value: "PREP_LEVEL_OF_ADHERENCE_REASONS_NOT_ABLE_TO_PAY", label: "Not able to pay" },
+    { value: "PREP_LEVEL_OF_ADHERENCE_REASONS_PARTNER_INFLUENCE", label: "Partner Influence" },
+    { value: "PREP_LEVEL_OF_ADHERENCE_REASONS_OTHERS", label: "Others" },
   ];
 }
 
@@ -117,10 +119,17 @@ export function getPrepTypeOptions() {
   ];
 }
 
+// Canonical codeset: PREP_REGIMEN. Codes match the application-codeset feed.
+// Filtering rule from the data dictionary:
+//   PREP_TYPE_ORAL        -> TDF/FTC, TDF/3TC
+//   PREP_TYPE_INJECTIBLES -> Cabotegravir, Lenacapavir
+//   PREP_TYPE_RING        -> (no regimens defined in the codeset yet)
 export function getPrepRegimenOptions() {
   return [
-    { value: "1", label: "TDF(300mg)+3TC(300mg)" },
-    { value: "2", label: "IM CAB-LA(600mg/3mL)" },
+    { value: "PREP_REGIMEN_TDF_FTC", label: "TDF/FTC" },
+    { value: "PREP_REGIMEN_TDF_3TC", label: "TDF/3TC" },
+    { value: "PREP_REGIMEN_CABOTEGRAVIR", label: "Cabotegravir" },
+    { value: "PREP_REGIMEN_LENACAPAVIR", label: "Lenacapavir" },
   ];
 }
 
@@ -260,7 +269,7 @@ export function fetchAllCodesets() {
     SYNDROMIC_STI_SCREENING: toApiShape(getSyndromicSTIOptions()),
     PrEP_RISK_REDUCTION_PLAN: toApiShape(getRiskReductionOptions()),
     PrEP_LEVEL_OF_ADHERENCE: toApiShape(getAdherenceOptions()),
-    WHY_POOR_FAIR_ADHERENCE: toApiShape(getReasonPoorFairAdherenceOptions()),
+    PrEP_LEVEL_OF_ADHERENCE_REASONS: toApiShape(getReasonPoorFairAdherenceOptions()),
     PrEP_TYPE: toApiShape(getPrepTypeOptions()),
     PREP_URINALYSIS_RESULT: toApiShape(getUrinalysisResultOptions()),
     HEPATITIS_SCREENING_RESULT: toApiShape(getHepatitisResultOptions()),
@@ -340,13 +349,16 @@ export function fetchAllCodesets() {
 }
 
 /**
- * Master regimen list.  Keep in sync with the API table.
- * id values must match the ones the backend assigns — the rest of the app
- * uses id === 1 for the default oral regimen and id === 2 for CAB-LA.
+ * Master regimen list backed by the PREP_REGIMEN codeset.
+ * The `id` values feed the regimenId form field; `code` is the canonical
+ * codeset code that gets persisted. `types` drives the per-PrEP-Type filter
+ * (see fetchPrepRegimenByType).
  */
 const ALL_REGIMENS = [
-  { id: 1, regimen: "TDF(300mg)+3TC(300mg)", code: "TDF(300mg)+3TC(300mg)", types: ["PREP_TYPE_ORAL"] },
-  { id: 2, regimen: "IM CAB-LA(600mg/3mL)",  code: "CAB-LA(600mg/3mL)",     types: ["PREP_TYPE_INJECTIBLES"] },
+  { id: 1, regimen: "TDF/FTC",      code: "PREP_REGIMEN_TDF_FTC",      types: ["PREP_TYPE_ORAL"] },
+  { id: 2, regimen: "TDF/3TC",      code: "PREP_REGIMEN_TDF_3TC",      types: ["PREP_TYPE_ORAL"] },
+  { id: 3, regimen: "Cabotegravir", code: "PREP_REGIMEN_CABOTEGRAVIR", types: ["PREP_TYPE_INJECTIBLES"] },
+  { id: 4, regimen: "Lenacapavir",  code: "PREP_REGIMEN_LENACAPAVIR",  types: ["PREP_TYPE_INJECTIBLES"] },
 ];
 
 /** Strip the internal `types` key before returning to callers. */

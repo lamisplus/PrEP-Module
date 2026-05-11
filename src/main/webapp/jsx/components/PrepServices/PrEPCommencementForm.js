@@ -29,7 +29,12 @@ const durationMap = {
   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": "60",
   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90": "90",
 };
-const regimenMapping = { orals: "1", cabLa: "2" };
+// Long-acting injectable regimens. Compare on canonical PREP_REGIMEN codes
+// (numeric `regimenId` shifts when the codeset changes; codes are stable).
+const LONG_ACTING_INJECTABLE_CODES = [
+  "PREP_REGIMEN_CABOTEGRAVIR",
+  "PREP_REGIMEN_LENACAPAVIR",
+];
 
 function getDuration(key) {
   if (durationMap[key]) {
@@ -312,27 +317,18 @@ const PrEPCommencementForm = props => {
   };
 
   const handlePrepTypeChange = e => {
-    setObjValues({ ...objValues, regimenId: "", prepType: e.target.value });
-    if (
-      e.target.value === "PREP_TYPE_OTHERS" ||
-      e.target.value === "PREP_TYPE_ED_PREP"
-    ) {
+    const value = e.target.value;
+    setObjValues({ ...objValues, regimenId: "", prepType: value });
+    if (value === "PREP_TYPE_OTHERS" || value === "PREP_TYPE_ED_PREP") {
+      // Catch-all types — show every regimen.
       setPrepRegimen([...availableRegimens]);
-    } else if (e.target.value === "PREP_TYPE_INJECTIBLES") {
-      const regimens = [...availableRegimens]?.filter(({ id }) => id == 2);
-      setPrepRegimen(regimens);
-    } else if (e.target.value === "PREP_TYPE_ORAL") {
-      const regimens = [...availableRegimens]?.filter(({ id }) => id == 1);
-      setPrepRegimen(regimens);
     } else {
+      // Per data dictionary: ORAL -> TDF/FTC, TDF/3TC; INJECTIBLES -> Cabotegravir, Lenacapavir.
+      // The mapping lives in ALL_REGIMENS via the `types` field; let it filter for us.
       // TODO: Replace fetchPrepRegimenByType() with API call when endpoint is ready.
-      fetchPrepRegimenByType(e.target.value)
-        .then(data => {
-          setPrepRegimen(data);
-        })
-        .catch(error => {
-          console.error("Error fetching regimen by prep type:", error);
-        });
+      fetchPrepRegimenByType(value)
+        .then(data => setPrepRegimen(data))
+        .catch(error => console.error("Error fetching regimen by prep type:", error));
     }
     setErrors({ ...errors, [e.target.name]: "" });
   };
@@ -381,8 +377,12 @@ const PrEPCommencementForm = props => {
   }, [latestFromEligibility]);
 
   const isSelectedRegimenCabLa = useCallback(() => {
-    return objValues?.regimenId.toString() === regimenMapping["cabLa"];
-  }, [objValues]);
+    if (!objValues?.regimenId) return false;
+    const selected = (prepRegimen || availableRegimens || []).find(
+      r => r.id?.toString() === objValues.regimenId.toString()
+    );
+    return LONG_ACTING_INJECTABLE_CODES.includes(selected?.code);
+  }, [objValues, prepRegimen, availableRegimens]);
 
   useEffect(() => {
     if (!["update", "view"].includes(props.activeContent.actionType))

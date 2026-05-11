@@ -59,7 +59,14 @@ function getDurationByValue(value) {
   }
 }
 
-const regimenMapping = { orals: "1", cabLa: "2" };
+// Long-acting injectable regimens. Used by DurationWrapper to switch the
+// refill cadence (injectables refill every 60 days; orals are monthly).
+// Compare on canonical codes — `regimenId` (numeric) shifts when the
+// PREP_REGIMEN codeset changes, but codes are stable.
+const LONG_ACTING_INJECTABLE_CODES = [
+  "PREP_REGIMEN_CABOTEGRAVIR",
+  "PREP_REGIMEN_LENACAPAVIR",
+];
 
 const inputStyle = {
   border: "1px solid #014D88",
@@ -264,7 +271,13 @@ const ClinicVisit = props => {
       );
       const isEligibleForCABLA = response?.data;
       setIsCabLaEligible(isEligibleForCABLA);
-      const reg = regimenList?.filter(each => each.code !== "CAB-LA(600mg/3mL)");
+      // When the patient isn't eligible for an injectable today, hide the Injectable
+      // PrEP type and every injectable regimen (Cabotegravir, Lenacapavir).
+      const INJECTABLE_REGIMEN_CODES = [
+        "PREP_REGIMEN_CABOTEGRAVIR",
+        "PREP_REGIMEN_LENACAPAVIR",
+      ];
+      const reg = regimenList?.filter(each => !INJECTABLE_REGIMEN_CODES.includes(each.code));
       const pTypes = [...prepType]?.filter(each => each.code !== "PREP_TYPE_INJECTIBLES");
       const vals = currentValues || formikRef.current?.values;
       if (
@@ -521,9 +534,13 @@ const ClinicVisit = props => {
 
   const isSelectedRegimenCabLa = useCallback(
     (regimenIdVal) => {
-      return (regimenIdVal || "").toString() === regimenMapping["cabLa"];
+      if (regimenIdVal === undefined || regimenIdVal === null || regimenIdVal === "") return false;
+      const selected = (prepRegimen || []).find(
+        r => r.id?.toString() === regimenIdVal.toString()
+      );
+      return LONG_ACTING_INJECTABLE_CODES.includes(selected?.code);
     },
-    []
+    [prepRegimen]
   );
 
   // ── Vital sign warning helpers ──
@@ -1463,7 +1480,7 @@ const ClinicVisit = props => {
                           onChange={e => setHivTestValue(e.target.value)}
                         >
                           <option value="">Select</option>
-                          {(codeset?.HIV_TEST_RESULT || []).map(item => (
+                          {(codeset?.HTS_RESULT || []).map(item => (
                             <option key={item.code} value={item.code}>{item.display}</option>
                           ))}
                         </Input>
@@ -1631,7 +1648,7 @@ const ClinicVisit = props => {
                             disabled={disabledField}
                           >
                             <option value="">Select</option>
-                            {codeset?.WHY_POOR_FAIR_ADHERENCE?.map(value => (
+                            {codeset?.PrEP_LEVEL_OF_ADHERENCE_REASONS?.map(value => (
                               <option key={value.id} value={value.code}>
                                 {value.display}
                               </option>

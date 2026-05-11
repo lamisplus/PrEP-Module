@@ -129,7 +129,7 @@ export const getVisitType = async () => {
 
 export const getWhyPoorFairAdherence = async () => {
   return await axios.get(
-    `${baseUrl}application-codesets/v2/WHY_POOR_FAIR_ADHERENCE`,
+    `${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE_REASONS`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
