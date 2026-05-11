@@ -56,7 +56,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
             "FROM patient_person p " +
-            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false " +
             "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
@@ -69,7 +69,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
             "FROM patient_person p " +
-            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1 " +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false " +
             "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
             "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
             "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
@@ -81,7 +81,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
-            "FROM patient_person p  LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
+            "FROM patient_person p  LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false  " +
             "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2  " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled", nativeQuery = true)
     Page<PrepClient> findAllPersonPrep(Boolean archived, Long facilityId, Pageable pageable);
@@ -90,7 +90,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "p.hospital_number as hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(),  date_of_birth)) AS INTEGER) as age,   " +
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth, " +
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
-            "FROM patient_person p  LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1  " +
+            "FROM patient_person p  LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false  " +
             "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2  " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled", nativeQuery = true)
     List<PrepClient> findAllPersonPrep(Boolean archived, Long facilityId);
@@ -156,10 +156,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
-            "    WHERE el.archived = ?1\n" +
+            "    WHERE el.archived = false\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -170,10 +170,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
             "        FROM prep_followup_visit pc\n" +
-            "        WHERE pc.archived = ?1\n" +
+            "        WHERE pc.archived = false\n" +
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
-            "    WHERE pc.archived = ?1\n" +
+            "    WHERE pc.archived = false\n" +
             "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
@@ -182,10 +182,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
             "        FROM prophylaxis_interruptions pi\n" +
-            "        WHERE pi.archived = ?1\n" +
+            "        WHERE pi.archived = false\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
-            "    WHERE pi.archived = ?1\n" +
+            "    WHERE pi.archived = false\n" +
             "    GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             ") prepi ON prepi.person_uuid = p.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
@@ -282,10 +282,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
-            "    WHERE el.archived = ?1\n" +
+            "    WHERE el.archived = false\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -296,10 +296,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
             "        FROM prep_followup_visit pc\n" +
-            "        WHERE pc.archived = ?1\n" +
+            "        WHERE pc.archived = false\n" +
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
-            "    WHERE pc.archived = ?1\n" +
+            "    WHERE pc.archived = false\n" +
             "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
@@ -308,10 +308,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
             "        FROM prophylaxis_interruptions pi\n" +
-            "        WHERE pi.archived = ?1\n" +
+            "        WHERE pi.archived = false\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
-            "    WHERE pi.archived = ?1\n" +
+            "    WHERE pi.archived = false\n" +
             "    GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             ") prepi ON prepi.person_uuid = p.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
@@ -409,10 +409,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
-            "    WHERE el.archived = ?1\n" +
+            "    WHERE el.archived = false\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -423,10 +423,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
             "        FROM prep_followup_visit pc\n" +
-            "        WHERE pc.archived = ?1\n" +
+            "        WHERE pc.archived = false\n" +
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
-            "    WHERE pc.archived = ?1\n" +
+            "    WHERE pc.archived = false\n" +
             "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
@@ -435,10 +435,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
             "        FROM prophylaxis_interruptions pi\n" +
-            "        WHERE pi.archived = ?1\n" +
+            "        WHERE pi.archived = false\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
-            "    WHERE pi.archived = ?1\n" +
+            "    WHERE pi.archived = false\n" +
             "    GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             ") prepi ON prepi.person_uuid = p.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
@@ -490,10 +490,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "THEN 'Not Enrolled' WHEN prepc.person_uuid IS NULL  " +
             "THEN 'Not Commenced' ELSE prepc.status END) prepStatus " +
             "FROM patient_person p   LEFT JOIN (SELECT COUNT(el.person_uuid) as eligibility_count,  " +
-            "el.person_uuid FROM prophylaxis_screening el WHERE el.archived=?1  " +
+            "el.person_uuid FROM prophylaxis_screening el WHERE el.archived = false  " +
             "GROUP BY person_uuid) el ON el.person_uuid = p.uuid  " +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid  " +
-            "AND pet.archived=?1 LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid  " +
+            "AND pet.archived = false LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid  " +
             "AND he.archived = CAST(?1 AS INTEGER) LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount,  " +
             "MAX(pc.encounter_date) as encounter_date, pc.duration,   " +
             " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'  " +
@@ -501,14 +501,14 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             " INNER JOIN (SELECT DISTINCT MAX(pc.encounter_date) encounter_date,  " +
             " pc.person_uuid FROM prep_followup_visit pc GROUP BY pc.person_uuid) max_p  " +
             " ON max_p.encounter_date=pc.encounter_date  AND max_p.person_uuid=pc.person_uuid  " +
-            " WHERE pc.archived=?1  GROUP BY pc.person_uuid, pc.duration, status ) prepc  " +
+            " WHERE pc.archived = false  GROUP BY pc.person_uuid, pc.duration, status ) prepc  " +
             " ON prepc.person_uuid=p.uuid  LEFT JOIN (SELECT pi.id, pi.person_uuid,  " +
             " pi.interruption_date , pi.interruption_type  " +
             " FROM prophylaxis_interruptions pi  " +
             " INNER JOIN (SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date)interruption_date  " +
-            " FROM prophylaxis_interruptions pi WHERE pi.archived=?1  " +
+            " FROM prophylaxis_interruptions pi WHERE pi.archived = false  " +
             " GROUP BY pi.person_uuid)pit ON pit.interruption_date=pi.interruption_date  " +
-            " AND pit.person_uuid=pi.person_uuid WHERE pi.archived=?1  " +
+            " AND pit.person_uuid=pi.person_uuid WHERE pi.archived = false  " +
             " GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi  " +
             " ON prepi.person_uuid = p.uuid LEFT JOIN base_application_codeset bac  " +
             " ON bac.code=prepi.interruption_type LEFT JOIN (SELECT pel.max_date, el.person_uuid,  " +
@@ -556,10 +556,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid \n" +
             "    FROM prophylaxis_screening el \n" +
-            "    WHERE el.archived=?1 \n" +
+            "    WHERE el.archived = false \n" +
             "    GROUP BY person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, \n" +
@@ -573,7 +573,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date \n" +
             "            AND max_p.person_uuid=pc.person_uuid \n" +
-            "    WHERE pc.archived=?1 \n" +
+            "    WHERE pc.archived = false \n" +
             "    GROUP BY pc.person_uuid, pc.duration, status \n" +
             ") prepc ON prepc.person_uuid=p.uuid  \n" +
             "LEFT JOIN (\n" +
@@ -582,11 +582,11 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) interruption_date \n" +
             "        FROM prophylaxis_interruptions pi \n" +
-            "        WHERE pi.archived=?1 \n" +
+            "        WHERE pi.archived = false \n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date \n" +
             "          AND pit.person_uuid = pi.person_uuid \n" +
-            "    WHERE pi.archived=?1 \n" +
+            "    WHERE pi.archived = false \n" +
             "    GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type \n" +
             ") prepi ON prepi.person_uuid = p.uuid \n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type \n" +
@@ -687,10 +687,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
-            "    WHERE el.archived = ?1\n" +
+            "    WHERE el.archived = false\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -701,10 +701,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
             "        FROM prep_followup_visit pc\n" +
-            "        WHERE pc.archived = ?1\n" +
+            "        WHERE pc.archived = false\n" +
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
-            "    WHERE pc.archived = ?1\n" +
+            "    WHERE pc.archived = false\n" +
             "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
@@ -713,10 +713,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
             "        FROM prophylaxis_interruptions pi\n" +
-            "        WHERE pi.archived = ?1\n" +
+            "        WHERE pi.archived = false\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
-            "    WHERE pi.archived = ?1\n" +
+            "    WHERE pi.archived = false\n" +
             "    GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             ") prepi ON prepi.person_uuid = p.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
@@ -825,7 +825,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    LEFT JOIN (\n" +
             "        SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "        FROM prophylaxis_screening el\n" +
-            "        WHERE el.archived = ?1\n" +
+            "        WHERE el.archived = false\n" +
             "        GROUP BY el.person_uuid\n" +
             "    ) el ON el.person_uuid = pet.person_uuid\n" +
             "    LEFT JOIN hiv_enrollment he ON he.person_uuid = pet.person_uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
@@ -838,10 +838,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        INNER JOIN (\n" +
             "            SELECT MAX(encounter_date) AS encounter_date, person_uuid\n" +
             "            FROM prep_followup_visit\n" +
-            "            WHERE archived = ?1\n" +
+            "            WHERE archived = false\n" +
             "            GROUP BY person_uuid\n" +
             "        ) max_pc ON max_pc.encounter_date = pc.encounter_date AND max_pc.person_uuid = pc.person_uuid\n" +
-            "        WHERE pc.archived = ?1\n" +
+            "        WHERE pc.archived = false\n" +
             "        GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             "    ) prepc ON prepc.person_uuid = pet.person_uuid\n" +
             "    LEFT JOIN (\n" +
@@ -850,10 +850,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        INNER JOIN (\n" +
             "            SELECT MAX(interruption_date) AS interruption_date, person_uuid\n" +
             "            FROM prophylaxis_interruptions\n" +
-            "            WHERE archived = ?1\n" +
+            "            WHERE archived = false\n" +
             "            GROUP BY person_uuid\n" +
             "        ) max_pi ON max_pi.interruption_date = pi.interruption_date AND max_pi.person_uuid = pi.person_uuid\n" +
-            "        WHERE pi.archived = ?1\n" +
+            "        WHERE pi.archived = false\n" +
             "    ) prepi ON prepi.person_uuid = pet.person_uuid\n" +
             "    LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
             "    LEFT JOIN (\n" +
@@ -865,7 +865,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            GROUP BY person_uuid\n" +
             "        ) latest_hts ON latest_hts.person_uuid = hts.person_uuid AND latest_hts.max_date = hts.date_visit\n" +
             "    ) el_max ON el_max.person_uuid = pet.person_uuid\n" +
-            "    WHERE pet.archived = ?1\n" +
+            "    WHERE pet.archived = false\n" +
             "      AND p.facility_id = ?2\n" +
             "    GROUP BY\n" +
             "        p.hospital_number, el_max.hivTestResult, p.date_of_registration,\n" +
@@ -960,10 +960,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            LEFT JOIN (\n" +
             "                SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "                FROM prophylaxis_screening el\n" +
-            "                WHERE el.archived = ?1\n" +
+            "                WHERE el.archived = false\n" +
             "                GROUP BY el.person_uuid\n" +
             "            ) el ON el.person_uuid = p.uuid\n" +
-            "            LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "            LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false\n" +
             "            LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "            LEFT JOIN (\n" +
             "                SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -974,10 +974,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                INNER JOIN (\n" +
             "                    SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
             "                    FROM prep_followup_visit pc\n" +
-            "                    WHERE pc.archived = ?1\n" +
+            "                    WHERE pc.archived = false\n" +
             "                    GROUP BY pc.person_uuid\n" +
             "                ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
-            "                WHERE pc.archived = ?1\n" +
+            "                WHERE pc.archived = false\n" +
             "                GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             "            ) prepc ON prepc.person_uuid = p.uuid\n" +
             "            LEFT JOIN (\n" +
@@ -986,10 +986,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                INNER JOIN (\n" +
             "                    SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
             "                    FROM prophylaxis_interruptions pi\n" +
-            "                    WHERE pi.archived = ?1\n" +
+            "                    WHERE pi.archived = false\n" +
             "                    GROUP BY pi.person_uuid\n" +
             "                ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
-            "                WHERE pi.archived = ?1\n" +
+            "                WHERE pi.archived = false\n" +
             "                GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             "            ) prepi ON prepi.person_uuid = p.uuid\n" +
             "            LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
@@ -1048,24 +1048,24 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            END AS sendCabLaAlert" +
             " FROM patient_person p  " +
             " INNER JOIN (SELECT COUNT(el.person_uuid) as eligibility_count, el.person_uuid FROM prophylaxis_screening el " +
-            "WHERE el.archived=?1 GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
-            " LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived=?1" +
+            "WHERE el.archived = false GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
+            " LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false" +
             " LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)" +
             " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration,   " +
             " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'" +
             " ELSE  'Defaulted' END) status FROM prep_followup_visit pc" +
             " INNER JOIN (SELECT DISTINCT MAX(pc.encounter_date) encounter_date, pc.person_uuid" +
             " FROM prep_followup_visit pc GROUP BY pc.person_uuid) max_p ON max_p.encounter_date=pc.encounter_date " +
-            " AND max_p.person_uuid=pc.person_uuid WHERE pc.archived=?1 " +
+            " AND max_p.person_uuid=pc.person_uuid WHERE pc.archived = false " +
             " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
             "LEFT JOIN (" +
             "SELECT pi.id, pi.person_uuid, pi.interruption_date , pi.interruption_type " +
             "FROM prophylaxis_interruptions pi " +
             "INNER JOIN (SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date)interruption_date " +
-            "FROM prophylaxis_interruptions pi WHERE pi.archived=?1 " +
+            "FROM prophylaxis_interruptions pi WHERE pi.archived = false " +
             "GROUP BY pi.person_uuid)pit ON pit.interruption_date=pi.interruption_date " +
             "AND pit.person_uuid=pi.person_uuid " +
-            "WHERE pi.archived=?1 " +
+            "WHERE pi.archived = false " +
             "GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type )prepi ON prepi.person_uuid = p.uuid " +
             "LEFT JOIN base_application_codeset bac ON bac.code=prepi.interruption_type " +
             "LEFT JOIN (SELECT pel.max_date, el.person_uuid, el.drug_use_history->>'hivTestResultAtvisit' AS HIVResultAtVisit  " +
@@ -1142,10 +1142,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
-            "    WHERE el.archived = ?1\n" +
+            "    WHERE el.archived = false\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -1156,10 +1156,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
             "        FROM prep_followup_visit pc\n" +
-            "        WHERE pc.archived = ?1\n" +
+            "        WHERE pc.archived = false\n" +
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
-            "    WHERE pc.archived = ?1\n" +
+            "    WHERE pc.archived = false\n" +
             "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
@@ -1168,10 +1168,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
             "        FROM prophylaxis_interruptions pi\n" +
-            "        WHERE pi.archived = ?1\n" +
+            "        WHERE pi.archived = false\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
-            "    WHERE pi.archived = ?1\n" +
+            "    WHERE pi.archived = false\n" +
             "    GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             ") prepi ON prepi.person_uuid = p.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
@@ -1286,10 +1286,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
-            "    WHERE el.archived = ?1\n" +
+            "    WHERE el.archived = false\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
-            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = ?1\n" +
+            "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND pet.archived = false\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
@@ -1300,10 +1300,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
             "        FROM prep_followup_visit pc\n" +
-            "        WHERE pc.archived = ?1\n" +
+            "        WHERE pc.archived = false\n" +
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
-            "    WHERE pc.archived = ?1\n" +
+            "    WHERE pc.archived = false\n" +
             "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
@@ -1312,10 +1312,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT pi.person_uuid, MAX(pi.interruption_date) AS interruption_date\n" +
             "        FROM prophylaxis_interruptions pi\n" +
-            "        WHERE pi.archived = ?1\n" +
+            "        WHERE pi.archived = false\n" +
             "        GROUP BY pi.person_uuid\n" +
             "    ) pit ON pit.interruption_date = pi.interruption_date AND pit.person_uuid = pi.person_uuid\n" +
-            "    WHERE pi.archived = ?1\n" +
+            "    WHERE pi.archived = false\n" +
             "    GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             ") prepi ON prepi.person_uuid = p.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
