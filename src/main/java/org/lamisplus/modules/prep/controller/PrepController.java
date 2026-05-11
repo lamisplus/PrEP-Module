@@ -7,6 +7,7 @@ import org.lamisplus.modules.prep.domain.dto.*;
 import org.lamisplus.modules.prep.domain.entity.PrepClient;
 import org.lamisplus.modules.prep.service.PatientActivityService;
 import org.lamisplus.modules.prep.service.PrepService;
+import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -188,7 +189,7 @@ public class PrepController {
     @ApiOperation("Get latest PrEP/PEP initiation by patient Id and enrollment type")
     public ResponseEntity<PrepEnrollmentDto> getLatestInitiation(
             @PathVariable Long patientId,
-            @RequestParam(value = "enrollmentType", defaultValue = "PrEP") String enrollmentType) {
+            @RequestParam(value = "enrollmentType", defaultValue = EnrollmentType.PREP) String enrollmentType) {
         return ResponseEntity.ok(prepService.getLatestInitiation(patientId, enrollmentType));
     }
 
@@ -196,7 +197,7 @@ public class PrepController {
     @ApiOperation("Get latest prophylaxis_initiation uuid by patient uuid and enrollment type")
     public ResponseEntity<Map<String, String>> getLatestInitiationUuid(
             @RequestParam("personUuid") String personUuid,
-            @RequestParam(value = "enrollmentType", defaultValue = "PrEP") String enrollmentType) {
+            @RequestParam(value = "enrollmentType", defaultValue = EnrollmentType.PREP) String enrollmentType) {
         String uuid = prepService.getLatestInitiationUuid(personUuid, enrollmentType);
         Map<String, String> body = new HashMap<>();
         body.put("prepEnrollmentUuid", uuid);

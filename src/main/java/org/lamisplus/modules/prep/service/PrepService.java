@@ -18,6 +18,7 @@ import org.lamisplus.modules.prep.repository.PepFollowupVisitRepository;
 import org.lamisplus.modules.prep.repository.PrepEligibilityScreeningRepository;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
 import org.lamisplus.modules.prep.repository.ProphylaxisInterruptionRepository;
+import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -97,8 +98,8 @@ public class PrepService {
         // Clinical guard: PrEP is only available to clients aged 15 and above. Below that age,
         // only PEP may be initiated. The frontend already disables the PrEP card for under-15s,
         // but enforce here to prevent direct API misuse and bad data via syncs.
-        String enrollmentType = prepEnrollmentRequestDto.getEnrollmentType();
-        if ("PrEP".equalsIgnoreCase(enrollmentType) && person.getDateOfBirth() != null) {
+        String enrollmentType = EnrollmentType.toCanonical(prepEnrollmentRequestDto.getEnrollmentType());
+        if (EnrollmentType.isPrep(enrollmentType) && person.getDateOfBirth() != null) {
             int age = Period.between(person.getDateOfBirth(), LocalDate.now()).getYears();
             if (age < 15) {
                 throw new IllegalTypeException(PrepPepInitiation.class,
@@ -206,7 +207,7 @@ public class PrepService {
         // Resolve the matching prophylaxis_initiation (by enrollment type, latest first) and
         // 1) link this interruption to it via prophylaxis_initiation_uuid; 2) flip is_interrupted
         // on the initiation so the patient's current status is now "interrupted on that arm".
-        String enrollmentType = interruptionRequestDto.getEnrollmentType();
+        String enrollmentType = EnrollmentType.toCanonical(interruptionRequestDto.getEnrollmentType());
         Optional<PrepPepInitiation> latestInitiation = (enrollmentType != null && !enrollmentType.isEmpty())
                 ? prepPepInitiationRepository.findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, enrollmentType)
                 : prepPepInitiationRepository.findTopByPersonUuidAndArchived(person.getUuid(), false);
@@ -517,10 +518,10 @@ public class PrepService {
                 prophylaxisInterruptionRepository.countAllByPersonUuidAndArchived(person.getUuid(), false));
         prepDtos.setPrepInitiationCount(
                 prepPepInitiationRepository.countAllByPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(
-                        person.getUuid(), "PrEP", false));
+                        person.getUuid(), EnrollmentType.PREP, false));
         prepDtos.setPepInitiationCount(
                 prepPepInitiationRepository.countAllByPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(
-                        person.getUuid(), "PEP", false));
+                        person.getUuid(), EnrollmentType.PEP, false));
         // Pregnancy / breastfeeding from the patient's most recent initiation, so the
         // Patient Card reflects the latest captured value. Also derives the
         // isCurrentStatus* flags used by the Patient List "Enroll" modal and the
@@ -534,8 +535,8 @@ public class PrepService {
                     Boolean interrupted = applyPepAutoExpiry(latest);
                     boolean active = !Boolean.TRUE.equals(interrupted);
                     String type = latest.getEnrollmentType();
-                    prepDtos.setIsCurrentStatusInterruptedPrep(active && "PrEP".equalsIgnoreCase(type));
-                    prepDtos.setIsCurrentStatusInterruptedPep(active && "PEP".equalsIgnoreCase(type));
+                    prepDtos.setIsCurrentStatusInterruptedPrep(active && EnrollmentType.isPrep(type));
+                    prepDtos.setIsCurrentStatusInterruptedPep(active && EnrollmentType.isPep(type));
                 });
         PrepClient prepClient = prepPepInitiationRepository
                 .findPersonPrepAndStatusByPatientUuid(false,
@@ -580,7 +581,7 @@ public class PrepService {
     private Boolean applyPepAutoExpiry(PrepPepInitiation initiation) {
         if (initiation == null) return null;
         Boolean interrupted = initiation.getIsInterrupted();
-        boolean isPep = "PEP".equalsIgnoreCase(initiation.getEnrollmentType());
+        boolean isPep = EnrollmentType.isPep(initiation.getEnrollmentType());
         if (isPep && !Boolean.TRUE.equals(interrupted) && initiation.getDateEnrolled() != null) {
             long daysSince = java.time.temporal.ChronoUnit.DAYS.between(
                     initiation.getDateEnrolled(), java.time.LocalDate.now());
@@ -622,18 +623,20 @@ public class PrepService {
      */
     public PrepEnrollmentDto getLatestInitiation(Long personId, String enrollmentType) {
         Person person = this.getPerson(personId);
+        String canonicalType = EnrollmentType.toCanonical(enrollmentType);
         Optional<PrepPepInitiation> latest = prepPepInitiationRepository
-                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, enrollmentType);
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, canonicalType);
         return latest.map(this::enrollmentToEnrollmentDto).orElseGet(PrepEnrollmentDto::new);
     }
 
     public String getLatestInitiationUuid(String personUuid, String enrollmentType) {
-        Optional<PrepPepInitiation> latest = (enrollmentType != null && !enrollmentType.isEmpty())
-                ? prepPepInitiationRepository.findLatestByPersonUuidAndEnrollmentType(personUuid, false, enrollmentType)
+        String canonicalType = EnrollmentType.toCanonical(enrollmentType);
+        Optional<PrepPepInitiation> latest = (canonicalType != null && !canonicalType.isEmpty())
+                ? prepPepInitiationRepository.findLatestByPersonUuidAndEnrollmentType(personUuid, false, canonicalType)
                 : prepPepInitiationRepository.findTopByPersonUuidAndArchived(personUuid, false);
         return latest.map(PrepPepInitiation::getUuid)
                 .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class,
-                        "personUuid/enrollmentType", personUuid + "/" + enrollmentType));
+                        "personUuid/enrollmentType", personUuid + "/" + canonicalType));
     }
 
     private String resolveEnrollmentUuid(PrepClinicRequestDto requestDto, String personUuid) {
@@ -641,9 +644,9 @@ public class PrepService {
         if (enrollmentUuid != null && !enrollmentUuid.isEmpty()) {
             return enrollmentUuid;
         }
-        String enrollmentType = requestDto.getEnrollmentType();
+        String enrollmentType = EnrollmentType.toCanonical(requestDto.getEnrollmentType());
         if (enrollmentType == null || enrollmentType.isEmpty()) {
-            enrollmentType = "PrEP";
+            enrollmentType = EnrollmentType.PREP;
         }
         return getLatestInitiationUuid(personUuid, enrollmentType);
     }

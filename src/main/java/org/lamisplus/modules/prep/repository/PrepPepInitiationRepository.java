@@ -3,6 +3,7 @@ package org.lamisplus.modules.prep.repository;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.prep.domain.entity.PrepClient;
 import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
+import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -202,6 +203,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
+            "AND pet.enrollment_type = '" + EnrollmentType.PREP + "'\n" +
             "AND (p.first_name ILIKE ?3\n" +
             "     OR p.full_name ILIKE ?3\n" +
             "     OR p.surname ILIKE ?3\n" +
@@ -733,6 +735,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
+            "AND pet.enrollment_type = '" + EnrollmentType.PREP + "'\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +
@@ -1188,7 +1191,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
-            "AND pet.enrollment_type = 'PEP'\n" +
+            "AND pet.enrollment_type = '" + EnrollmentType.PEP + "'\n" +
             "AND (p.first_name ILIKE ?3\n" +
             "     OR p.full_name ILIKE ?3\n" +
             "     OR p.surname ILIKE ?3\n" +
@@ -1332,7 +1335,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
-            "AND pet.enrollment_type = 'PEP'\n" +
+            "AND pet.enrollment_type = '" + EnrollmentType.PEP + "'\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +

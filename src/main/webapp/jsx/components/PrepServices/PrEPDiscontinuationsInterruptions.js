@@ -7,6 +7,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
 import { fetchDiscontinuationCodesets } from "../../../apiCalls/hivPreventionCodesets";
+import { toEnrollmentTypeCode, ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import { Spinner } from "reactstrap";
@@ -209,8 +210,10 @@ const PrEPDiscontinuationsInterruptions = props => {
     e.preventDefault();
     if (!validate()) return;
 
+    const canonicalEnrollmentType =
+      toEnrollmentTypeCode(enrollmentType) || ENROLLMENT_TYPE_PREP;
     objValues.previousPrepStatus = props.patientObj?.prepStatus;
-    objValues.enrollmentType = enrollmentType;
+    objValues.enrollmentType = canonicalEnrollmentType;
     setSaving(true);
 
     let resolvedEnrollmentUuid = null;
@@ -218,7 +221,7 @@ const PrEPDiscontinuationsInterruptions = props => {
       const latest = await axios.get(
         `${baseUrl}prep/initiation/latest/${
           props.patientObj.personId || props.patientObj.id
-        }?enrollmentType=${encodeURIComponent(enrollmentType || "PrEP")}`,
+        }?enrollmentType=${encodeURIComponent(canonicalEnrollmentType)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       resolvedEnrollmentUuid = latest?.data?.uuid;
