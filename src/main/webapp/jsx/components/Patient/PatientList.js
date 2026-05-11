@@ -28,6 +28,8 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import IconButton from "@material-ui/core/IconButton";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Tooltip from "@material-ui/core/Tooltip";
 import CloseIcon from "@material-ui/icons/Close";
 import { Icon } from "semantic-ui-react";
 import "@reach/menu-button/styles.css";
@@ -102,67 +104,83 @@ const ENTRY_POINTS = [
   },
 ];
 
-const EntryPointCard = ({ entry, onSelect }) => (
-  <div
-    role="button"
-    tabIndex={0}
-    onClick={() => onSelect(entry.code)}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" || e.key === " ") onSelect(entry.code);
-    }}
-    style={{
-      flex: "1 1 0",
-      cursor: "pointer",
-      borderRadius: "0.5rem",
-      border: `0.125rem solid ${entry.accent}`,
-      background: "#fff",
-      padding: "1.25rem 1rem",
-      textAlign: "center",
-      transition: "transform 0.12s ease, box-shadow 0.12s ease",
-      outline: "none",
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = "translateY(-0.125rem)";
-      e.currentTarget.style.boxShadow = "0 0.5rem 1rem rgba(0,0,0,0.12)";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = "none";
-      e.currentTarget.style.boxShadow = "none";
-    }}
-  >
+const EntryPointCard = ({ entry, onSelect, disabled, disabledReason }) => {
+  const accent = disabled ? "#9ca3af" : entry.accent;
+  const card = (
     <div
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-disabled={disabled || undefined}
+      onClick={() => !disabled && onSelect(entry.code)}
+      onKeyDown={(e) => {
+        if (disabled) return;
+        if (e.key === "Enter" || e.key === " ") onSelect(entry.code);
+      }}
       style={{
-        width: "3rem",
-        height: "3rem",
-        borderRadius: "50%",
-        background: entry.accent,
-        color: "#fff",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        marginBottom: "0.75rem",
+        flex: "1 1 0",
+        cursor: disabled ? "not-allowed" : "pointer",
+        borderRadius: "0.5rem",
+        border: `0.125rem solid ${accent}`,
+        background: disabled ? "#f3f4f6" : "#fff",
+        padding: "1.25rem 1rem",
+        textAlign: "center",
+        transition: "transform 0.12s ease, box-shadow 0.12s ease",
+        outline: "none",
+        opacity: disabled ? 0.7 : 1,
+      }}
+      onMouseEnter={(e) => {
+        if (disabled) return;
+        e.currentTarget.style.transform = "translateY(-0.125rem)";
+        e.currentTarget.style.boxShadow = "0 0.5rem 1rem rgba(0,0,0,0.12)";
+      }}
+      onMouseLeave={(e) => {
+        if (disabled) return;
+        e.currentTarget.style.transform = "none";
+        e.currentTarget.style.boxShadow = "none";
       }}
     >
-      <Icon name="user plus" style={{ fontSize: "1.25rem", margin: 0 }} />
+      <div
+        style={{
+          width: "3rem",
+          height: "3rem",
+          borderRadius: "50%",
+          background: accent,
+          color: "#fff",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: "0.75rem",
+        }}
+      >
+        <Icon name="user plus" style={{ fontSize: "1.25rem", margin: 0 }} />
+      </div>
+      <div
+        style={{
+          fontSize: "1.1rem",
+          fontWeight: 700,
+          color: accent,
+          marginBottom: "0.25rem",
+        }}
+      >
+        {entry.label}
+      </div>
+      <div style={{ fontSize: "0.85rem", color: "#333", marginBottom: "0.5rem" }}>
+        {entry.title}
+      </div>
+      <div style={{ fontSize: "0.75rem", color: "#666", lineHeight: 1.4 }}>
+        {disabled && disabledReason ? disabledReason : entry.description}
+      </div>
     </div>
-    <div
-      style={{
-        fontSize: "1.1rem",
-        fontWeight: 700,
-        color: entry.accent,
-        marginBottom: "0.25rem",
-      }}
-    >
-      {entry.label}
-    </div>
-    <div style={{ fontSize: "0.85rem", color: "#333", marginBottom: "0.5rem" }}>
-      {entry.title}
-    </div>
-    <div style={{ fontSize: "0.75rem", color: "#666", lineHeight: 1.4 }}>
-      {entry.description}
-    </div>
-  </div>
-);
+  );
+  if (disabled && disabledReason) {
+    return (
+      <Tooltip title={disabledReason} arrow>
+        <div style={{ flex: "1 1 0", display: "flex" }}>{card}</div>
+      </Tooltip>
+    );
+  }
+  return card;
+};
 
 const EnrollPatientButton = ({ row }) => {
   const history = useHistory();
@@ -172,34 +190,33 @@ const EnrollPatientButton = ({ row }) => {
     pep: false,
     loaded: false,
   });
-  const [opening, setOpening] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Resolve the patient's active-enrollment flags BEFORE opening the dialog,
-  // so the user never sees the entry-point picker for someone who is already
-  // enrolled (the previous flicker between the two modal states is gone).
-  const handleOpen = async () => {
-    if (activeStatus.loaded) {
-      setOpen(true);
-      return;
-    }
-    setOpening(true);
-    try {
-      const personId = row?.personId || row?.id;
-      const resp = await axios.get(`${baseUrl}prep/persons/${personId}`, {
+  // Open the modal immediately and resolve active-enrollment flags inside it.
+  // While the request is in flight, the dialog renders a small spinner (acts as
+  // a Suspense-style fallback). When loaded, the body swaps to either the
+  // entry-point picker or the "active enrollment" block, with no extra wait.
+  const handleOpen = () => {
+    setOpen(true);
+    if (activeStatus.loaded || loading) return;
+    setLoading(true);
+    const personId = row?.personId || row?.id;
+    axios
+      .get(`${baseUrl}prep/persons/${personId}`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      const d = resp?.data || {};
-      setActiveStatus({
-        prep: !!d.isCurrentStatusInterruptedPrep,
-        pep: !!d.isCurrentStatusInterruptedPep,
-        loaded: true,
-      });
-    } catch (_e) {
-      setActiveStatus({ prep: false, pep: false, loaded: true });
-    } finally {
-      setOpening(false);
-      setOpen(true);
-    }
+      })
+      .then((resp) => {
+        const d = resp?.data || {};
+        setActiveStatus({
+          prep: !!d.isCurrentStatusInterruptedPrep,
+          pep: !!d.isCurrentStatusInterruptedPep,
+          loaded: true,
+        });
+      })
+      .catch(() => {
+        setActiveStatus({ prep: false, pep: false, loaded: true });
+      })
+      .finally(() => setLoading(false));
   };
 
   const blockedArm = activeStatus.prep
@@ -208,8 +225,13 @@ const EnrollPatientButton = ({ row }) => {
     ? "PEP"
     : null;
 
+  // PrEP minimum age is 15 — under-15 clients may only be enrolled into PEP.
+  const ageNum = Number(row?.age);
+  const prepBlockedByAge = Number.isFinite(ageNum) && ageNum < 15;
+
   const handleEnroll = (screeningType) => {
     if (blockedArm) return; // hard-block; banner explains it
+    if (screeningType === "PrEP" && prepBlockedByAge) return;
     setOpen(false);
     history.push({
       pathname: "/patient-dashboard",
@@ -227,7 +249,6 @@ const EnrollPatientButton = ({ row }) => {
       */}
       <MuiButton
         onClick={handleOpen}
-        disabled={opening}
         variant="contained"
         size="small"
         disableRipple
@@ -281,7 +302,12 @@ const EnrollPatientButton = ({ row }) => {
         <DialogTitle
           disableTypography
           style={{
-            background: blockedArm ? "#b91c1c" : "rgb(153, 46, 98)",
+            background:
+              !activeStatus.loaded
+                ? "rgb(153, 46, 98)"
+                : blockedArm
+                ? "#b91c1c"
+                : "rgb(153, 46, 98)",
             color: "#fff",
             padding: "0.75rem 1rem",
             display: "flex",
@@ -290,7 +316,11 @@ const EnrollPatientButton = ({ row }) => {
           }}
         >
           <span style={{ fontSize: "1rem", fontWeight: 600 }}>
-            {blockedArm ? "Active Enrollment" : "Select Enrollment Type"}
+            {!activeStatus.loaded
+              ? "Loading…"
+              : blockedArm
+              ? "Active Enrollment"
+              : "Select Enrollment Type"}
           </span>
           <IconButton
             size="small"
@@ -301,7 +331,22 @@ const EnrollPatientButton = ({ row }) => {
           </IconButton>
         </DialogTitle>
         <DialogContent style={{ padding: "1.25rem" }}>
-          {blockedArm ? (
+          {loading || !activeStatus.loaded ? (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.75rem",
+                padding: "1.5rem 0",
+                color: "#555",
+                fontSize: "0.9rem",
+              }}
+            >
+              <CircularProgress size={20} />
+              Checking enrollment status…
+            </div>
+          ) : blockedArm ? (
             <div
               style={{
                 fontSize: "0.95rem",
@@ -331,13 +376,23 @@ const EnrollPatientButton = ({ row }) => {
                 into.
               </div>
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                {ENTRY_POINTS.map((entry) => (
-                  <EntryPointCard
-                    key={entry.code}
-                    entry={entry}
-                    onSelect={handleEnroll}
-                  />
-                ))}
+                {ENTRY_POINTS.map((entry) => {
+                  const isPrepDisabled =
+                    entry.code === "PrEP" && prepBlockedByAge;
+                  return (
+                    <EntryPointCard
+                      key={entry.code}
+                      entry={entry}
+                      onSelect={handleEnroll}
+                      disabled={isPrepDisabled}
+                      disabledReason={
+                        isPrepDisabled
+                          ? "Not available for clients under 15. Please use PEP."
+                          : null
+                      }
+                    />
+                  );
+                })}
               </div>
             </>
           )}

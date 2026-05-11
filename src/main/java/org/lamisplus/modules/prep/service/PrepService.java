@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -91,6 +92,19 @@ public class PrepService {
 
         if (!prepEligibility.getPersonUuid().equals(person.getUuid())) {
             throw new IllegalTypeException(PrepPepInitiation.class, "Person not same for prepEligibilityUuid", eligibilityUuid);
+        }
+
+        // Clinical guard: PrEP is only available to clients aged 15 and above. Below that age,
+        // only PEP may be initiated. The frontend already disables the PrEP card for under-15s,
+        // but enforce here to prevent direct API misuse and bad data via syncs.
+        String enrollmentType = prepEnrollmentRequestDto.getEnrollmentType();
+        if ("PrEP".equalsIgnoreCase(enrollmentType) && person.getDateOfBirth() != null) {
+            int age = Period.between(person.getDateOfBirth(), LocalDate.now()).getYears();
+            if (age < 15) {
+                throw new IllegalTypeException(PrepPepInitiation.class,
+                        "PrEP is not available for clients under 15 (only PEP is allowed). Patient age",
+                        String.valueOf(age));
+            }
         }
 
         prepEnrollment = this.enrollmentRequestDtoToEnrollment(prepEnrollmentRequestDto, prepEligibility.getPersonUuid());
