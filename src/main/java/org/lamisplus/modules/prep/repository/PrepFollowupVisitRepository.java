@@ -36,7 +36,7 @@ public interface PrepFollowupVisitRepository extends JpaRepository<PrepFollowupV
             "ROW_NUMBER() OVER (PARTITION BY person_uuid ORDER BY next_appointment DESC) AS rowNums " +
             "FROM prep_followup_visit pc " +
             "JOIN patient_person p ON p.uuid = pc.person_uuid " +
-            "WHERE pc.archived=false AND p.archived=0 " +
+            "WHERE CAST(pc.archived AS BOOLEAN)=false AND p.archived=0 " +
             "AND is_commencement = false " +
             "AND regimen_id = 2 " +
             ") sub " +
