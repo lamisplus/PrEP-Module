@@ -3,16 +3,20 @@ package org.lamisplus.modules.prep.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
+import org.lamisplus.modules.base.controller.apierror.IllegalTypeException;
 import org.lamisplus.modules.base.controller.apierror.RecordExistException;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.prep.domain.dto.PrepCompletionDto;
 import org.lamisplus.modules.prep.domain.dto.PrepCompletionRequestDto;
+import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.prep.domain.entity.ProphylaxisInterruption;
+import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
 import org.lamisplus.modules.prep.repository.ProphylaxisInterruptionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,6 +27,7 @@ public class PrepCompletionService {
     private final PersonRepository personRepository;
     private final CurrentUserOrganizationService currentUserOrganizationService;
     private final ProphylaxisInterruptionRepository prophylaxisInterruptionRepository;
+    private final PrepPepInitiationRepository prepPepInitiationRepository;
 
     public Person getPerson(Long personId) {
         return personRepository.findById(personId)
@@ -42,6 +47,28 @@ public class PrepCompletionService {
                             String.valueOf(requestDto.getInterruptionDate()));
                 });
 
+        // Resolve the matching prophylaxis_initiation (by enrollment type, latest first) and
+        // 1) link this completion to it via prophylaxis_initiation_uuid; 2) flip is_interrupted
+        // on the initiation so the patient's current status is now "interrupted on that arm".
+        String enrollmentType = requestDto.getEnrollmentType();
+        Optional<PrepPepInitiation> latestInitiation = (enrollmentType != null && !enrollmentType.isEmpty())
+                ? prepPepInitiationRepository.findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, enrollmentType)
+                : prepPepInitiationRepository.findTopByPersonUuidAndArchived(person.getUuid(), false);
+        if (!latestInitiation.isPresent()
+                && requestDto.getPrepEnrollmentUuid() != null
+                && !requestDto.getPrepEnrollmentUuid().isEmpty()) {
+            latestInitiation = prepPepInitiationRepository.findByUuid(requestDto.getPrepEnrollmentUuid());
+        }
+        PrepPepInitiation init = latestInitiation.orElseThrow(() -> new EntityNotFoundException(
+                PrepPepInitiation.class, "PersonUuid/EnrollmentType",
+                person.getUuid() + "/" + enrollmentType));
+        if (!init.getPersonUuid().equals(person.getUuid())) {
+            throw new IllegalTypeException(ProphylaxisInterruption.class, "Person not same enrolled", init.getUuid());
+        }
+        entity.setProphylaxisInitiationUuid(init.getUuid());
+        init.setIsInterrupted(true);
+        prepPepInitiationRepository.save(init);
+
         entity = prophylaxisInterruptionRepository.save(entity);
         return entityToDto(entity);
     }
@@ -55,15 +82,27 @@ public class PrepCompletionService {
     }
 
     public PrepCompletionDto update(Long id, PrepCompletionDto dto) {
-        ProphylaxisInterruption entity = prophylaxisInterruptionRepository
+        ProphylaxisInterruption existing = prophylaxisInterruptionRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(ProphylaxisInterruption.class, "id", String.valueOf(id)));
-        String uuid = entity.getUuid();
-        entity = dtoToEntity(dto, entity.getPersonUuid());
+
+        String existingUuid = existing.getUuid();
+        String existingProphylaxisInitiationUuid = existing.getProphylaxisInitiationUuid();
+        String existingEnrollmentType = existing.getEnrollmentType();
+
+        ProphylaxisInterruption entity = dtoToEntity(dto, existing.getPersonUuid());
         entity.setArchived(false);
-        entity.setUuid(uuid);
+        entity.setUuid(existingUuid);
         entity.setId(id);
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
+
+        if (entity.getProphylaxisInitiationUuid() == null || entity.getProphylaxisInitiationUuid().isEmpty()) {
+            entity.setProphylaxisInitiationUuid(existingProphylaxisInitiationUuid);
+        }
+        if (entity.getEnrollmentType() == null || entity.getEnrollmentType().isEmpty()) {
+            entity.setEnrollmentType(existingEnrollmentType);
+        }
+
         return entityToDto(prophylaxisInterruptionRepository.save(entity));
     }
 
@@ -106,6 +145,7 @@ public class PrepCompletionService {
         e.setHivResult(dto.getHivResult());
         e.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
         e.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
+        e.setEnrollmentType(dto.getEnrollmentType());
         return e;
     }
 
@@ -135,6 +175,7 @@ public class PrepCompletionService {
         e.setHivResult(dto.getHivResult());
         e.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
         e.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
+        e.setEnrollmentType(dto.getEnrollmentType());
         return e;
     }
 
@@ -163,6 +204,7 @@ public class PrepCompletionService {
         dto.setHivResult(e.getHivResult());
         dto.setEarlyDetectViralLoadResult(e.getEarlyDetectViralLoadResult());
         dto.setPrepEnrollmentUuid(e.getProphylaxisInitiationUuid());
+        dto.setEnrollmentType(e.getEnrollmentType());
         return dto;
     }
 }

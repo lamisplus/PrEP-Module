@@ -26,6 +26,8 @@ public class PrepClinicRequestDto implements Serializable {
     //@NotBlank(message = "prepEnrollmentUuid is mandatory")
     private String prepEnrollmentUuid;
 
+    private String enrollmentType;
+
     //@NotNull(message = "regimenId is mandatory")
     private long regimenId;
 

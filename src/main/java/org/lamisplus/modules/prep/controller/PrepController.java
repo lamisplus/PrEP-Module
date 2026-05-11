@@ -13,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class PrepController {
@@ -188,5 +190,16 @@ public class PrepController {
             @PathVariable Long patientId,
             @RequestParam(value = "enrollmentType", defaultValue = "PrEP") String enrollmentType) {
         return ResponseEntity.ok(prepService.getLatestInitiation(patientId, enrollmentType));
+    }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/initiation/latest-uuid")
+    @ApiOperation("Get latest prophylaxis_initiation uuid by patient uuid and enrollment type")
+    public ResponseEntity<Map<String, String>> getLatestInitiationUuid(
+            @RequestParam("personUuid") String personUuid,
+            @RequestParam(value = "enrollmentType", defaultValue = "PrEP") String enrollmentType) {
+        String uuid = prepService.getLatestInitiationUuid(personUuid, enrollmentType);
+        Map<String, String> body = new HashMap<>();
+        body.put("prepEnrollmentUuid", uuid);
+        return ResponseEntity.ok(body);
     }
 }

@@ -205,54 +205,76 @@ const PrEPDiscontinuationsInterruptions = props => {
     return Object.values(temp).every(x => x === "");
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    if (validate()) {
-      objValues.previousPrepStatus = props.patientObj?.prepStatus;
-      objValues.enrollmentType = enrollmentType;
-      objValues.prepEnrollmentUuid = patientDto?.uuid;
-      setSaving(true);
-      if (props.activeContent && props.activeContent.actionType === "update") {
-        axios
-          .put(
-            `${baseUrl}prep-completion/${props.activeContent.id}`,
-            objValues,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          )
-          .then(response => {
-            setSaving(false);
-            toast.success("Record saved successfully!");
-            props.PatientObject();
-            props.setActiveContent({
-              ...props.activeContent,
-              route: "recent-history",
-            });
-          })
-          .catch(error => {
-            setSaving(false);
-            handleError(error);
-          });
-      } else {
-        axios
-          .post(`${baseUrl}prep/interruption`, objValues, {
+    if (!validate()) return;
+
+    objValues.previousPrepStatus = props.patientObj?.prepStatus;
+    objValues.enrollmentType = enrollmentType;
+    setSaving(true);
+
+    let resolvedEnrollmentUuid = null;
+    try {
+      const latest = await axios.get(
+        `${baseUrl}prep/initiation/latest/${
+          props.patientObj.personId || props.patientObj.id
+        }?enrollmentType=${encodeURIComponent(enrollmentType || "PrEP")}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      resolvedEnrollmentUuid = latest?.data?.uuid;
+    } catch (err) {}
+    if (!resolvedEnrollmentUuid) {
+      resolvedEnrollmentUuid = patientDto?.uuid;
+    }
+    if (!resolvedEnrollmentUuid) {
+      setSaving(false);
+      toast.error(
+        `No ${enrollmentType || "PrEP"} initiation found for this patient. Cannot record discontinuation/interruption.`
+      );
+      return;
+    }
+    objValues.prepEnrollmentUuid = resolvedEnrollmentUuid;
+
+    if (props.activeContent && props.activeContent.actionType === "update") {
+      axios
+        .put(
+          `${baseUrl}prep-completion/${props.activeContent.id}`,
+          objValues,
+          {
             headers: { Authorization: `Bearer ${token}` },
-          })
-          .then(response => {
-            setSaving(false);
-            toast.success("Record saved successfully!");
-            props.PatientObject();
-            props.setActiveContent({
-              ...props.activeContent,
-              route: "recent-history",
-            });
-          })
-          .catch(error => {
-            setSaving(false);
-            handleError(error);
+          }
+        )
+        .then(response => {
+          setSaving(false);
+          toast.success("Record saved successfully!");
+          props.PatientObject();
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "recent-history",
           });
-      }
+        })
+        .catch(error => {
+          setSaving(false);
+          handleError(error);
+        });
+    } else {
+      axios
+        .post(`${baseUrl}prep/interruption`, objValues, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(response => {
+          setSaving(false);
+          toast.success("Record saved successfully!");
+          props.PatientObject();
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "recent-history",
+          });
+        })
+        .catch(error => {
+          setSaving(false);
+          handleError(error);
+        });
     }
   };
 

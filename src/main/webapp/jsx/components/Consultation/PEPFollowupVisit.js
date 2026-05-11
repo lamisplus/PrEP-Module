@@ -436,7 +436,29 @@ const PEPFollowupVisit = props => {
     payload.pepNotedSideEffects = notedSideEffects;
     payload.syndromicStiScreening = syndromicStiSelected;
     payload.followupHivTestResults = hivTestEntries;
-    payload.prepEnrollmentUuid = patientDto?.uuid;
+    payload.enrollmentType = "PEP";
+
+    let resolvedEnrollmentUuid = patientDto?.uuid;
+    if (!resolvedEnrollmentUuid) {
+      try {
+        const latest = await axios.get(
+          `${baseUrl}prep/initiation/latest/${
+            props.patientObj.personId || props.patientObj.id
+          }?enrollmentType=PEP`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        resolvedEnrollmentUuid = latest?.data?.uuid;
+      } catch (e) {}
+    }
+    if (!resolvedEnrollmentUuid) {
+      setSaving(false);
+      toast.error(
+        "No PEP enrollment found for this patient. Enroll the patient before recording a follow-up visit.",
+        { position: toast.POSITION.BOTTOM_CENTER }
+      );
+      return;
+    }
+    payload.prepEnrollmentUuid = resolvedEnrollmentUuid;
     payload.previousPrepStatus = props.patientObj?.prepStatus;
 
     if (props.activeContent && props.activeContent.actionType === "update") {

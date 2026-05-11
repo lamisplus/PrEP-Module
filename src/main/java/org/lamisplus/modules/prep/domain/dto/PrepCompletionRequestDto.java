@@ -33,4 +33,5 @@ public class PrepCompletionRequestDto implements Serializable {
     private String hivResult;
     private String earlyDetectViralLoadResult;
     private String prepEnrollmentUuid;
+    private String enrollmentType;
 }

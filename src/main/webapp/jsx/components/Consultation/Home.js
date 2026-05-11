@@ -1019,7 +1019,29 @@ const ClinicVisit = props => {
     payload.hepatitis = hepatitisTest;
     payload.urinalysis = urinalysisTest;
     payload.otherTestsDone = otherTest;
-    payload.prepEnrollmentUuid = patientDto?.uuid;
+    payload.enrollmentType = "PrEP";
+
+    let resolvedEnrollmentUuid = patientDto?.uuid;
+    if (!resolvedEnrollmentUuid) {
+      try {
+        const latest = await axios.get(
+          `${baseUrl}prep/initiation/latest/${
+            props.patientObj.personId || props.patientObj.id
+          }?enrollmentType=PrEP`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        resolvedEnrollmentUuid = latest?.data?.uuid;
+      } catch (e) {}
+    }
+    if (!resolvedEnrollmentUuid) {
+      setSaving(false);
+      toast.error(
+        "No PrEP enrollment found for this patient. Enroll the patient before recording a clinic visit.",
+        { position: toast.POSITION.BOTTOM_CENTER }
+      );
+      return;
+    }
+    payload.prepEnrollmentUuid = resolvedEnrollmentUuid;
     payload.prepNotedSideEffects = notedSideEffects;
     payload.syndromicStiScreening = syndromicStiSelected;
     payload.notedSideEffects = "";

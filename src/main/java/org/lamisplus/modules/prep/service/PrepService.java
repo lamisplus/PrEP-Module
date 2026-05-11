@@ -114,12 +114,13 @@ public class PrepService {
     }
 
     public PrepClinicDto saveCommencement(PrepClinicRequestDto commencementRequestDto) {
-        String enrollmentUuid = commencementRequestDto.getPrepEnrollmentUuid();
-
         Person person = this.getPerson(commencementRequestDto.getPersonId());
         if (commencementRequestDto.getDatePrepStart() != null && commencementRequestDto.getEncounterDate() == null) {
             commencementRequestDto.setEncounterDate(commencementRequestDto.getDatePrepStart());
         }
+
+        String enrollmentUuid = resolveEnrollmentUuid(commencementRequestDto, person.getUuid());
+        commencementRequestDto.setPrepEnrollmentUuid(enrollmentUuid);
 
         PrepPepInitiation prepEnrollment = this.prepPepInitiationRepository.findByUuid(enrollmentUuid)
                 .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "Enrollment", enrollmentUuid));
@@ -139,9 +140,10 @@ public class PrepService {
     }
 
     public PrepClinicDto saveClinic(PrepClinicRequestDto clinicRequestDto) {
-        String enrollmentUuid = clinicRequestDto.getPrepEnrollmentUuid();
-
         Person person = this.getPerson(clinicRequestDto.getPersonId());
+
+        String enrollmentUuid = resolveEnrollmentUuid(clinicRequestDto, person.getUuid());
+        clinicRequestDto.setPrepEnrollmentUuid(enrollmentUuid);
 
         PrepPepInitiation prepEnrollment = this.prepPepInitiationRepository.findByUuid(enrollmentUuid)
                 .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "Enrollment", enrollmentUuid));
@@ -194,12 +196,20 @@ public class PrepService {
         Optional<PrepPepInitiation> latestInitiation = (enrollmentType != null && !enrollmentType.isEmpty())
                 ? prepPepInitiationRepository.findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, enrollmentType)
                 : prepPepInitiationRepository.findTopByPersonUuidAndArchived(person.getUuid(), false);
-        final ProphylaxisInterruption interruptionRef = interruption;
-        latestInitiation.ifPresent(init -> {
-            interruptionRef.setProphylaxisInitiationUuid(init.getUuid());
-            init.setIsInterrupted(true);
-            prepPepInitiationRepository.save(init);
-        });
+        if (!latestInitiation.isPresent()
+                && interruptionRequestDto.getPrepEnrollmentUuid() != null
+                && !interruptionRequestDto.getPrepEnrollmentUuid().isEmpty()) {
+            latestInitiation = prepPepInitiationRepository.findByUuid(interruptionRequestDto.getPrepEnrollmentUuid());
+        }
+        PrepPepInitiation init = latestInitiation.orElseThrow(() -> new EntityNotFoundException(
+                PrepPepInitiation.class, "PersonUuid/EnrollmentType",
+                person.getUuid() + "/" + enrollmentType));
+        if (!init.getPersonUuid().equals(person.getUuid())) {
+            throw new IllegalTypeException(ProphylaxisInterruption.class, "Person not same enrolled", init.getUuid());
+        }
+        interruption.setProphylaxisInitiationUuid(init.getUuid());
+        init.setIsInterrupted(true);
+        prepPepInitiationRepository.save(init);
 
         try {
             interruption = prophylaxisInterruptionRepository.save(interruption);
@@ -601,6 +611,27 @@ public class PrepService {
         Optional<PrepPepInitiation> latest = prepPepInitiationRepository
                 .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, enrollmentType);
         return latest.map(this::enrollmentToEnrollmentDto).orElseGet(PrepEnrollmentDto::new);
+    }
+
+    public String getLatestInitiationUuid(String personUuid, String enrollmentType) {
+        Optional<PrepPepInitiation> latest = (enrollmentType != null && !enrollmentType.isEmpty())
+                ? prepPepInitiationRepository.findLatestByPersonUuidAndEnrollmentType(personUuid, false, enrollmentType)
+                : prepPepInitiationRepository.findTopByPersonUuidAndArchived(personUuid, false);
+        return latest.map(PrepPepInitiation::getUuid)
+                .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class,
+                        "personUuid/enrollmentType", personUuid + "/" + enrollmentType));
+    }
+
+    private String resolveEnrollmentUuid(PrepClinicRequestDto requestDto, String personUuid) {
+        String enrollmentUuid = requestDto.getPrepEnrollmentUuid();
+        if (enrollmentUuid != null && !enrollmentUuid.isEmpty()) {
+            return enrollmentUuid;
+        }
+        String enrollmentType = requestDto.getEnrollmentType();
+        if (enrollmentType == null || enrollmentType.isEmpty()) {
+            enrollmentType = "PrEP";
+        }
+        return getLatestInitiationUuid(personUuid, enrollmentType);
     }
 
     public PrepEligibilityScreening prepEligibilityRequestDtoToPrepEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto, String personUuid) {
