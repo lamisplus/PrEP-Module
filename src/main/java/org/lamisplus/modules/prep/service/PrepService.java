@@ -1,5 +1,7 @@
 package org.lamisplus.modules.prep.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
@@ -47,6 +49,7 @@ public class PrepService {
     private final PepFollowupVisitRepository pepFollowupVisitRepository;
     private final PatientActivityService patientActivityService;
     private final ProphylaxisInterruptionRepository prophylaxisInterruptionRepository;
+    private final ObjectMapper objectMapper;
 
     public Person getPerson(Long personId) {
         return personRepository.findById(personId)
@@ -459,6 +462,86 @@ public class PrepService {
                 .collect(Collectors.toList());
 
         return new PageImpl<>(filteredList, pageable, resultPage.getTotalElements());
+    }
+
+    public Page<PrepHtsPatientDto> findAllHtsEncounterPatientPage(String searchValue, int pageNo, int pageSize) {
+        Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<PrepHtsPatient> resultPage;
+
+        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
+            String queryParam = "%" + searchValue.replaceAll("\\s", "") + "%";
+            resultPage = prepPepInitiationRepository
+                    .findAllHtsEncounterPatientAndStatusBySearchParam(false, facilityId, queryParam, pageable);
+        } else {
+            resultPage = prepPepInitiationRepository
+                    .findAllHtsEncounterPatientAndStatus(false, facilityId, pageable);
+        }
+
+        List<PrepHtsPatientDto> dtos = resultPage.getContent().stream()
+                .filter(row -> !"Seroconverted".equals(row.getPrepStatus()))
+                .map(this::toPrepHtsPatientDto)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, pageable, resultPage.getTotalElements());
+    }
+
+    private PrepHtsPatientDto toPrepHtsPatientDto(PrepHtsPatient row) {
+        return PrepHtsPatientDto.builder()
+                .personId(row.getPersonId())
+                .personUuid(row.getPersonUuid())
+                .firstName(row.getFirstName())
+                .surname(row.getSurname())
+                .otherName(row.getOtherName())
+                .hospitalNumber(row.getHospitalNumber())
+                .age(row.getAge())
+                .gender(row.getGender())
+                .dateOfBirth(row.getDateOfBirth())
+                .prepCount(row.getPrepCount())
+                .prepStatus(row.getPrepStatus())
+                .uniqueId(row.getUniqueId())
+                .dateConfirmedHiv(row.getDateConfirmedHiv())
+                .createdBy(row.getCreatedBy())
+                .eligibilityCount(row.getEligibilityCount())
+                .commencementCount(row.getCommencementCount())
+                .dateOfRegistration(row.getDateOfRegistration())
+                .phoneNumber(row.getPhoneNumber())
+                .address(row.getAddress())
+                .HIVResultAtVisit(row.getHIVResultAtVisit())
+                .previousProphylaxis(row.getPreviousProphylaxis())
+                .sendCabLaAlert(row.getSendCabLaAlert())
+                .htsClientCode(row.getHtsClientCode())
+                .latestHtsResult(toLatestHtsResultDto(row))
+                .build();
+    }
+
+    private LatestHtsResultDto toLatestHtsResultDto(PrepHtsPatient row) {
+        if (row.getLatestHtsId() == null) {
+            return null;
+        }
+        return LatestHtsResultDto.builder()
+                .id(row.getLatestHtsId())
+                .uuid(row.getLatestHtsUuid())
+                .patientId(row.getLatestHtsPatientId())
+                .patientUuid(row.getLatestHtsPatientUuid())
+                .clientCode(row.getHtsClientCode())
+                .dateOfVisit(row.getLatestHtsDateOfVisit())
+                .setting(row.getLatestHtsSetting())
+                .observation(parseObservation(row.getLatestHtsObservation()))
+                .facilityId(row.getLatestHtsFacilityId())
+                .build();
+    }
+
+    private JsonNode parseObservation(String observationJson) {
+        if (observationJson == null || observationJson.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.readTree(observationJson);
+        } catch (Exception e) {
+            log.warn("Failed to parse hts_encounter observation JSON: {}", e.getMessage());
+            return null;
+        }
     }
 
     public Page<PrepClient> findOnlyPrepPersonPage(String searchValue, int pageNo, int pageSize) {
