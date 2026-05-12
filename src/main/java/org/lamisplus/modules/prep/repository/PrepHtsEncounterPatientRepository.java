@@ -20,12 +20,9 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
     String BASE_SELECT =
             "SELECT DISTINCT ON (p.id)\n" +
             "    p.hospital_number AS hospitalNumber,\n" +
-            "    el_max.hivTestResult AS HIVResultAtVisit,\n" +
             "    p.date_of_registration AS dateOfRegistration,\n" +
-            "    prepc.commencementCount,\n" +
-            "    el.eligibility_count AS eligibilityCount,\n" +
-            "    pet.created_by AS createdBy,\n" +
-            "    pet.unique_id AS uniqueId,\n" +
+            "    COALESCE(init_count.enrollment_count, 0) AS enrollmentCount,\n" +
+            "    COALESCE(el.eligibility_count, 0) AS eligibilityCount,\n" +
             "    p.id AS personId,\n" +
             "    CAST(p.uuid AS text) AS personUuid,\n" +
             "    p.first_name AS firstName,\n" +
@@ -35,7 +32,6 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    CAST(EXTRACT(YEAR FROM AGE(NOW(), p.date_of_birth)) AS INTEGER) AS age,\n" +
             "    INITCAP(p.sex) AS gender,\n" +
             "    p.date_of_birth AS dateOfBirth,\n" +
-            "    he.date_confirmed_hiv AS dateConfirmedHiv,\n" +
             "    CAST(COUNT(pet.person_uuid) AS INTEGER) AS prepCount,\n" +
             "    hts.client_code AS htsClientCode,\n" +
             "    hts.id AS latestHtsId,\n" +
@@ -46,8 +42,8 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    hts.setting AS latestHtsSetting,\n" +
             "    CAST(hts.observation AS text) AS latestHtsObservation,\n" +
             "    hts.facility_id AS latestHtsFacilityId,\n" +
+            "    preg_codeset.display AS pregnancyStatusDisplay,\n" +
             "    CASE\n" +
-            "        WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
             "        WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
             "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
@@ -101,10 +97,16 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    WHERE CAST(el.archived AS BOOLEAN) = false\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
+            "LEFT JOIN (\n" +
+            "    SELECT COUNT(*) AS enrollment_count, person_uuid\n" +
+            "    FROM prophylaxis_initiation\n" +
+            "    WHERE CAST(archived AS BOOLEAN) = false\n" +
+            "    GROUP BY person_uuid\n" +
+            ") init_count ON init_count.person_uuid = p.uuid\n" +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND CAST(pet.archived AS BOOLEAN) = false\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
-            "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
+            "    SELECT pc.person_uuid,\n" +
             "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
             "           pc.visit_type AS visit_type, pc.prep_type AS prep_type, pc.previous_prep_status AS previous_prep_status,\n" +
             "           CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END AS status\n" +
@@ -131,17 +133,8 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             ") prepi ON prepi.person_uuid = p.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
-            "LEFT JOIN (\n" +
-            "    WITH latest_hts_client AS (\n" +
-            "        SELECT person_uuid, MAX(date_visit) AS max_date_visit\n" +
-            "        FROM hts_client\n" +
-            "        GROUP BY person_uuid\n" +
-            "    )\n" +
-            "    SELECT hc.person_uuid, hc.date_visit AS visitDate, hc.hiv_test_result AS hivTestResult\n" +
-            "    FROM hts_client hc\n" +
-            "    JOIN latest_hts_client ON hc.person_uuid = latest_hts_client.person_uuid\n" +
-            "                          AND hc.date_visit = latest_hts_client.max_date_visit\n" +
-            ") el_max ON el_max.person_uuid = p.uuid\n";
+            "LEFT JOIN base_application_codeset preg_codeset\n" +
+            "    ON preg_codeset.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n";
 
     // initialHivTest must be NEGATIVE; confirmatoryHivTest must NOT be POSITIVE
     // (empty / null / NEGATIVE all pass); early-detect must indicate acute infection.
@@ -162,15 +155,16 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
     String GROUP_BY =
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
-            "    el_max.hivTestResult, p.date_of_registration,\n" +
-            "    prepc.commencementCount, el.eligibility_count, pet.created_by,\n" +
-            "    pet.unique_id, p.id, p.uuid, p.first_name, p.surname,\n" +
+            "    p.date_of_registration,\n" +
+            "    init_count.enrollment_count, el.eligibility_count,\n" +
+            "    p.id, p.uuid, p.first_name, p.surname,\n" +
             "    pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
-            "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
+            "    prepc.status, he.person_uuid,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled,\n" +
             "    hts.client_code, hts.id, hts.uuid, hts.patient_id, hts.patient_uuid,\n" +
-            "    hts.date_of_visit, hts.setting, hts.observation, hts.facility_id\n";
+            "    hts.date_of_visit, hts.setting, hts.observation, hts.facility_id,\n" +
+            "    preg_codeset.display\n";
 
     @Query(value =
             BASE_SELECT +
@@ -194,7 +188,6 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "     OR p.surname ILIKE ?3\n" +
             "     OR p.other_name ILIKE ?3\n" +
             "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3\n" +
             "     OR hts.client_code ILIKE ?3)\n" +
             GROUP_BY +
             "ORDER BY p.id, hts.date_of_visit DESC NULLS LAST",
@@ -207,7 +200,6 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
                     "     OR p.surname ILIKE ?3\n" +
                     "     OR p.other_name ILIKE ?3\n" +
                     "     OR p.hospital_number ILIKE ?3\n" +
-                    "     OR pet.unique_id ILIKE ?3\n" +
                     "     OR hts.client_code ILIKE ?3)",
             nativeQuery = true)
     Page<PrepHtsPatient> searchPatients(Boolean archived, Long facilityId, String search, Pageable pageable);

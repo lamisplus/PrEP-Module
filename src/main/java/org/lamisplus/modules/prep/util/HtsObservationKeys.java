@@ -14,6 +14,7 @@ public final class HtsObservationKeys {
     public static final String KEY_INITIAL_HIV_TEST = "initialHivTest";
     public static final String KEY_CONFIRMATORY_HIV_TEST = "confirmatoryHivTest";
     public static final String KEY_HIV_EARLY_DETECT_RESULT = "hivEarlyDetectResult";
+    public static final String KEY_PREGNANCY_STATUS = "pregnancyStatus";
 
     /** STI_HIV_RESULT codeset values — shared by both initialHivTest and confirmatoryHivTest. */
     public static final String HIV_RESULT_NEGATIVE = "STI_HIV_RESULT_NEGATIVE";

@@ -21,4 +21,8 @@ public interface PrepHtsPatient extends PrepClient {
     String getLatestHtsObservation();
 
     Long getLatestHtsFacilityId();
+
+    Integer getEnrollmentCount();
+
+    String getPregnancyStatusDisplay();
 }

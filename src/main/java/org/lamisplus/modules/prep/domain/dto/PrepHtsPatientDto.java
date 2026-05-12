@@ -19,17 +19,14 @@ public class PrepHtsPatientDto {
     private LocalDate dateOfBirth;
     private String prepCount;
     private String prepStatus;
-    private String uniqueId;
-    private LocalDate dateConfirmedHiv;
-    private String createdBy;
     private Integer eligibilityCount;
-    private Integer commencementCount;
+    private Integer enrollmentCount;
     private LocalDate dateOfRegistration;
     private String phoneNumber;
     private String address;
-    private String HIVResultAtVisit;
     private String previousProphylaxis;
     private String sendCabLaAlert;
+    private String pregnancyStatusDisplay;
 
     private String htsClientCode;
     private LatestHtsResultDto latestHtsResult;
