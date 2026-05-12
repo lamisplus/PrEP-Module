@@ -16,6 +16,21 @@ import { toast } from "react-toastify";
 
 import { Button } from "semantic-ui-react";
 
+// Regimen codeset codes map to human-readable labels for the summary card.
+// Mirrors the PREP_REGIMEN / PEP_REGIMEN codesets so a saved code like
+// PREP_REGIMEN_CABOTEGRAVIR renders as "Cabotegravir" instead of the raw code.
+const REGIMEN_CODE_DISPLAY = {
+  PREP_REGIMEN_TDF_FTC: "TDF/FTC",
+  PREP_REGIMEN_TDF_3TC: "TDF/3TC",
+  PREP_REGIMEN_CABOTEGRAVIR: "Cabotegravir",
+  PREP_REGIMEN_LENACAPAVIR: "Lenacapavir",
+  PEP_REGIMEN_TDF_3TC_DTG: "TDF/3TC/DTG",
+  PEP_REGIMEN_OTHERS: "Others",
+};
+
+const displayRegimen = value =>
+  value ? REGIMEN_CODE_DISPLAY[value] || value : value;
+
 const RecentHistory = props => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -581,8 +596,8 @@ const RecentHistory = props => {
                             <h4 className="text-info ">
                               {summary
                                 ? summary?.regimen ||
-                                  summary?.pepRegimen ||
-                                  summary?.prepRegimen ||
+                                  displayRegimen(summary?.pepRegimen) ||
+                                  displayRegimen(summary?.prepRegimen) ||
                                   "NIL"
                                 : "NIL"}
                             </h4>

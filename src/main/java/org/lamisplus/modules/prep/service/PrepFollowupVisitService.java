@@ -14,6 +14,7 @@ import org.lamisplus.modules.prep.domain.entity.PrepFollowupVisit;
 import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.prep.repository.PrepFollowupVisitRepository;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
+import org.lamisplus.modules.prep.util.PrepRegimens;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -358,8 +359,8 @@ public class PrepFollowupVisitService {
         dto.setDateReferred(entity.getDateReferred());
         dto.setProphylaxisInitiationUuid(entity.getProphylaxisInitiationUuid());
         dto.setRegimenId(entity.getRegimenId());
-        if (entity.getRegimenId() != null && entity.getRegimenId() != 0L && entity.getRegimen() != null) {
-            dto.setRegimen(entity.getRegimen().getRegimen());
+        if (entity.getRegimenId() != null && entity.getRegimenId() != 0L) {
+            dto.setRegimen(PrepRegimens.displayById(entity.getRegimenId()));
         }
         dto.setUrinalysisResult(entity.getUrinalysisResult());
         dto.setReferred(entity.getReferred());

@@ -261,10 +261,6 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private Person person;
 
-    @ManyToOne
-    @JoinColumn(name = "regimen_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private PrepRegimen regimen;
-
     @PrePersist
     public void setFields() {
         if (StringUtils.isEmpty(uuid)) {
