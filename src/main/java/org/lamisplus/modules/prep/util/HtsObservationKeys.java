@@ -11,11 +11,13 @@ package org.lamisplus.modules.prep.util;
 public final class HtsObservationKeys {
 
     /** JSON keys inside {@code hts_encounter.observation}. */
+    public static final String KEY_INITIAL_HIV_TEST = "initialHivTest";
     public static final String KEY_CONFIRMATORY_HIV_TEST = "confirmatoryHivTest";
     public static final String KEY_HIV_EARLY_DETECT_RESULT = "hivEarlyDetectResult";
 
-    /** Codeset value used by HTS for a negative confirmatory HIV test. */
-    public static final String CONFIRMATORY_HIV_NEGATIVE = "STI_HIV_RESULT_NEGATIVE";
+    /** STI_HIV_RESULT codeset values — shared by both initialHivTest and confirmatoryHivTest. */
+    public static final String HIV_RESULT_NEGATIVE = "STI_HIV_RESULT_NEGATIVE";
+    public static final String HIV_RESULT_POSITIVE = "STI_HIV_RESULT_POSITIVE";
 
     /** Early-detect results indicating acute infection (drive PrEP-side eligibility). */
     public static final String EARLY_DETECT_ANTIGEN_REACTIVE = "Antigen Reactive";

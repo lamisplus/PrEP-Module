@@ -18,6 +18,7 @@ import org.lamisplus.modules.prep.domain.entity.*;
 import org.lamisplus.modules.prep.repository.PrepFollowupVisitRepository;
 import org.lamisplus.modules.prep.repository.PepFollowupVisitRepository;
 import org.lamisplus.modules.prep.repository.PrepEligibilityScreeningRepository;
+import org.lamisplus.modules.prep.repository.PrepHtsEncounterPatientRepository;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
 import org.lamisplus.modules.prep.repository.ProphylaxisInterruptionRepository;
 import org.lamisplus.modules.prep.util.EnrollmentType;
@@ -49,6 +50,7 @@ public class PrepService {
     private final PepFollowupVisitRepository pepFollowupVisitRepository;
     private final PatientActivityService patientActivityService;
     private final ProphylaxisInterruptionRepository prophylaxisInterruptionRepository;
+    private final PrepHtsEncounterPatientRepository prepHtsEncounterPatientRepository;
     private final ObjectMapper objectMapper;
 
     public Person getPerson(Long personId) {
@@ -471,11 +473,11 @@ public class PrepService {
 
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
             String queryParam = "%" + searchValue.replaceAll("\\s", "") + "%";
-            resultPage = prepPepInitiationRepository
-                    .findAllHtsEncounterPatientAndStatusBySearchParam(false, facilityId, queryParam, pageable);
+            resultPage = prepHtsEncounterPatientRepository
+                    .searchPatients(false, facilityId, queryParam, pageable);
         } else {
-            resultPage = prepPepInitiationRepository
-                    .findAllHtsEncounterPatientAndStatus(false, facilityId, pageable);
+            resultPage = prepHtsEncounterPatientRepository
+                    .findAllPatients(false, facilityId, pageable);
         }
 
         List<PrepHtsPatientDto> dtos = resultPage.getContent().stream()
