@@ -96,14 +96,16 @@ const inputGroupMiddleStyle = {
   borderRadius: "0rem",
 };
 
-const buildValidationSchema = (isFemalePatient) =>
+const buildValidationSchema = (isFemalePatient, isFromHts) =>
   Yup.object().shape({
     encounterDate: Yup.string().required("This field is required"),
     visitType: Yup.string().required("This field is required"),
     weight: Yup.string().required("This field is required"),
     systolic: Yup.string().required("This field is required"),
     diastolic: Yup.string().required("This field is required"),
-    pregnant: isFemalePatient
+    // Pregnancy status is sourced from the latest hts_encounter on the HTS
+    // path; skip the required check there since the field is read-only.
+    pregnant: isFemalePatient && !isFromHts
       ? Yup.string().required("This field is required")
       : Yup.string(),
     riskReductionServices: Yup.string().required("This field is required"),
@@ -139,6 +141,7 @@ const INITIAL_VALUES = {
   otherTestsDone: [],
   personId: "",
   pregnant: "",
+  htsUuid: "",
   prepEnrollmentUuid: "",
   pulse: "",
   referred: "",
@@ -196,6 +199,13 @@ const ClinicVisit = props => {
   const [latestFromEligibility, setLatestFromEligibility] = useState(null);
   const [hivTestValue, setHivTestValue] = useState("");
   const [hivTestResultDate, setHivTestResultDate] = useState("");
+
+  // The Patient tab now ships the latest HTS encounter with each row. When
+  // present, Pregnancy Status / HTS Result are sourced from it (not collected
+  // on this form), and `htsUuid` is what we persist server-side.
+  const latestHts = props.patientObj?.latestHtsResult;
+  const htsObs = latestHts?.observation || {};
+  const isFromHts = !!latestHts;
   const [recentActivities, setRecentActivities] = useState([]);
   const [fullPrepTypeList, setFullPrepTypeList] = useState([]);
   const [isCabLaEligible, setIsCabLaEligible] = useState(false);
@@ -348,26 +358,13 @@ const ClinicVisit = props => {
     } catch (error) {}
   };
 
+  // HIV test result is now sourced from the latest hts_encounter shipped with
+  // the patient row (see `props.patientObj.latestHtsResult`) — the legacy
+  // hts_client lookup endpoint and its "HTS record found" toast are gone.
   const getHivResult = () => {
-    axios
-      .get(
-        `${baseUrl}prep-followup-visit/hts-record/${
-          props.patientObj.personId || props.patientObj.id
-        }`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(response => {
-        if (response.data?.length === 0) {
-          toast.error(
-            "No HTS record found. At least 1 test result is required to proceed"
-          );
-        } else if (response.data?.length > 0) {
-          toast.success("HTS record found. You may proceed");
-        }
-        setHivTestValue(response?.data?.[0]?.hivTestResult);
-        setHivTestResultDate(response?.data?.[0]?.visitDate);
-      })
-      .catch(error => {});
+    if (!latestHts) return;
+    setHivTestValue(htsObs.confirmatoryHivTest || htsObs.initialHivTest || "");
+    setHivTestResultDate(latestHts.dateOfVisit || "");
   };
 
   const getPatientDtoObj = () => {
@@ -782,6 +779,20 @@ const ClinicVisit = props => {
     }
   }, [props.activeContent]);
 
+  // Auto-populate fields sourced from the latest hts_encounter on create.
+  // Pregnant value lives on the formik form, so push it once the formik ref
+  // is mounted; HIV result/date are local state and set via getHivResult().
+  useEffect(() => {
+    if (!isFromHts) return;
+    if (props.activeContent?.id) return;
+    if (formikRef.current) {
+      formikRef.current.setFieldValue("htsUuid", latestHts.uuid || "");
+      if (htsObs.pregnancyStatus) {
+        formikRef.current.setFieldValue("pregnant", htsObs.pregnancyStatus);
+      }
+    }
+  }, [latestHts?.uuid, props.activeContent?.id]);
+
   useEffect(() => {
     getPrepEligibilityObj();
     getPatientVisit();
@@ -844,10 +855,14 @@ const ClinicVisit = props => {
         "reasonForSwitch",
         latestFromEligibility?.reasonForSwitch || ""
       );
-      formikRef.current.setFieldValue(
-        "pregnant",
-        latestFromEligibility?.pregnancyStatus || ""
-      );
+      // Pregnant comes from the latest hts_encounter on the HTS path; only
+      // fall back to eligibility's value on legacy / no-HTS paths.
+      if (!isFromHts) {
+        formikRef.current.setFieldValue(
+          "pregnant",
+          latestFromEligibility?.pregnancyStatus || ""
+        );
+      }
     }
   }, [latestFromEligibility, eligibilityVisitDateSync]);
 
@@ -988,7 +1003,9 @@ const ClinicVisit = props => {
   const handleFormSubmit = async (values) => {
     // Manual validation for non-Formik fields
     const manualErrors = [];
-    if (!hivTestValue) {
+    // HTS Result is sourced from the latest hts_encounter on the HTS path; the
+    // hivTestValue local state mirrors it and stays in sync via getHivResult().
+    if (!isFromHts && !hivTestValue) {
       manualErrors.push("HIV Test Result is required");
     }
     if (!notedSideEffects || notedSideEffects.length === 0) {
@@ -1031,8 +1048,15 @@ const ClinicVisit = props => {
     const payload = { ...values };
     payload.duration = getDuration(payload.monthsOfRefill);
     payload.monthsOfRefill = getDuration(payload.monthsOfRefill);
-    payload.hivTestResultDate = hivTestResultDate;
-    payload.hivTestResult = hivTestValue;
+    // On the HTS path we persist only `htsUuid`; the backend no longer stores
+    // hiv_test_result / hiv_test_result_date / pregnant on prep_followup_visit
+    // (everything is dereferenced via hts_encounter at read time).
+    if (isFromHts) {
+      payload.htsUuid = latestHts.uuid;
+    } else {
+      payload.hivTestResultDate = hivTestResultDate;
+      payload.hivTestResult = hivTestValue;
+    }
     payload.syphilis = syphilisTest;
     payload.hepatitis = hepatitisTest;
     payload.urinalysis = urinalysisTest;
@@ -1114,7 +1138,7 @@ const ClinicVisit = props => {
     }
   };
 
-  const validationSchema = buildValidationSchema(isFemale());
+  const validationSchema = buildValidationSchema(isFemale(), isFromHts);
 
   return (
     <div className={`${classes.root} container-fluid`}>
@@ -1266,8 +1290,12 @@ const ClinicVisit = props => {
                             id="pregnant"
                             onChange={handleChange}
                             value={values.pregnant}
-                            disabled={disabledField}
-                            style={inputStyle}
+                            disabled={disabledField || isFromHts}
+                            title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
+                            style={{
+                              ...inputStyle,
+                              backgroundColor: isFromHts ? "#f1f3f5" : inputStyle?.backgroundColor,
+                            }}
                           >
                             <option value="">Select Pregnancy Status</option>
                             {(codeset?.PREGNANCY_STATUS || []).map(item => (
@@ -1475,8 +1503,12 @@ const ClinicVisit = props => {
                           name="hivTestResult"
                           id="hivTestResult"
                           value={hivTestValue}
-                          style={inputStyle}
-                          disabled={disabledField}
+                          style={{
+                            ...inputStyle,
+                            backgroundColor: isFromHts ? "#f1f3f5" : inputStyle?.backgroundColor,
+                          }}
+                          disabled={disabledField || isFromHts}
+                          title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                           onChange={e => setHivTestValue(e.target.value)}
                         >
                           <option value="">Select</option>
@@ -1484,7 +1516,7 @@ const ClinicVisit = props => {
                             <option key={item.code} value={item.code}>{item.display}</option>
                           ))}
                         </Input>
-                        {!hivTestValue && (
+                        {!isFromHts && !hivTestValue && (
                           <span className={classes.error}>
                             At least 1 HIV test result is required
                           </span>

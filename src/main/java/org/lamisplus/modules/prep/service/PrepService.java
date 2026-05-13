@@ -612,16 +612,19 @@ public class PrepService {
         prepDtos.setPepInitiationCount(
                 prepPepInitiationRepository.countAllByPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(
                         person.getUuid(), EnrollmentType.PEP, false));
-        // Pregnancy / breastfeeding from the patient's most recent initiation, so the
-        // Patient Card reflects the latest captured value. Also derives the
-        // isCurrentStatus* flags used by the Patient List "Enroll" modal and the
-        // PrEP/PEP enrollment-tab SubMenu cross-arm lockouts.
+        // Pregnancy display comes from the patient's latest hts_encounter
+        // (initiation no longer stores pregnancyStatus / breastFeeding — both are
+        // derived from the same hts pregnancyStatus codeset where Breastfeeding
+        // is one of the possible values). Patient Card reads this directly.
+        prepDtos.setPregnant(
+                prepHtsEncounterPatientRepository.findLatestPregnancyStatusDisplay(person.getUuid()));
+
+        // isCurrentStatus* flags still come off the latest initiation — they
+        // drive the Patient List "Enroll" modal and the PrEP/PEP enrollment-tab
+        // SubMenu cross-arm lockouts.
         prepPepInitiationRepository
                 .findTopByPersonUuidAndArchived(person.getUuid(), false)
                 .ifPresent(latest -> {
-                    prepDtos.setPregnant(latest.getPregnancyStatus());
-                    prepDtos.setBreastfeeding(latest.getBreastFeeding());
-
                     Boolean interrupted = applyPepAutoExpiry(latest);
                     boolean active = !Boolean.TRUE.equals(interrupted);
                     String type = latest.getEnrollmentType();
@@ -764,13 +767,12 @@ public class PrepService {
         prepEligibility.setServicesReceivedByClient(prepEligibilityRequestDto.getServicesReceivedByClient());
         prepEligibility.setPopulationType(prepEligibilityRequestDto.getPopulationType());
         prepEligibility.setVisitType(prepEligibilityRequestDto.getVisitType());
-        prepEligibility.setPregnancyStatus(prepEligibilityRequestDto.getPregnancyStatus());
         prepEligibility.setVisitDate(prepEligibilityRequestDto.getVisitDate());
         prepEligibility.setReasonForSwitch(prepEligibilityRequestDto.getReasonForSwitch());
         prepEligibility.setConsiderationForInjections(prepEligibilityRequestDto.getConsiderationForInjections());
         prepEligibility.setReasonForDecliningPrep(prepEligibilityRequestDto.getReasonForDecliningPrep());
         prepEligibility.setUniqueClientId(prepEligibilityRequestDto.getUniqueClientId());
-        prepEligibility.setClientHtsCode(prepEligibilityRequestDto.getClientHtsCode());
+        prepEligibility.setHtsUuid(prepEligibilityRequestDto.getHtsUuid());
         prepEligibility.setReferredFrom(prepEligibilityRequestDto.getReferredFrom());
         prepEligibility.setSetting(prepEligibilityRequestDto.getSetting());
         prepEligibility.setServiceStatus(prepEligibilityRequestDto.getServiceStatus());
@@ -802,12 +804,11 @@ public class PrepService {
         prepEligibilityDto.setServicesReceivedByClient(eligibility.getServicesReceivedByClient());
         prepEligibilityDto.setPopulationType(eligibility.getPopulationType());
         prepEligibilityDto.setVisitType(eligibility.getVisitType());
-        prepEligibilityDto.setPregnancyStatus(eligibility.getPregnancyStatus());
         prepEligibilityDto.setReasonForSwitch(eligibility.getReasonForSwitch());
         prepEligibilityDto.setConsiderationForInjections(eligibility.getConsiderationForInjections());
         prepEligibilityDto.setReasonForDecliningPrep(eligibility.getReasonForDecliningPrep());
         prepEligibilityDto.setUniqueClientId(eligibility.getUniqueClientId());
-        prepEligibilityDto.setClientHtsCode(eligibility.getClientHtsCode());
+        prepEligibilityDto.setHtsUuid(eligibility.getHtsUuid());
         prepEligibilityDto.setReferredFrom(eligibility.getReferredFrom());
         prepEligibilityDto.setSetting(eligibility.getSetting());
         prepEligibilityDto.setServiceStatus(eligibility.getServiceStatus());
@@ -841,19 +842,16 @@ public class PrepService {
         prepEnrollment.setSupporterRelationshipType(prepEnrollmentRequestDto.getSupporterRelationshipType());
         prepEnrollment.setSupporterPhone(prepEnrollmentRequestDto.getSupporterPhone());
         prepEnrollment.setStatus("ENROLLED");
-        prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
+        prepEnrollment.setHtsUuid(prepEnrollmentRequestDto.getHtsUuid());
 
         prepEnrollment.setEnrollmentType(prepEnrollmentRequestDto.getEnrollmentType());
         prepEnrollment.setPopulationType(prepEnrollmentRequestDto.getPopulationType());
         prepEnrollment.setWeight(prepEnrollmentRequestDto.getWeight());
         prepEnrollment.setHeight(prepEnrollmentRequestDto.getHeight());
-        prepEnrollment.setPregnancyStatus(prepEnrollmentRequestDto.getPregnancyStatus());
         prepEnrollment.setHistoryOfDrugAllergies(prepEnrollmentRequestDto.getHistoryOfDrugAllergies());
         prepEnrollment.setHistoryOfDrugToDrugInteraction(prepEnrollmentRequestDto.getHistoryOfDrugToDrugInteraction());
         prepEnrollment.setUrinalysisResult(prepEnrollmentRequestDto.getUrinalysisResult());
         prepEnrollment.setLiverFunctionTestResults(prepEnrollmentRequestDto.getLiverFunctionTestResults());
-        prepEnrollment.setDateOfHivTest(prepEnrollmentRequestDto.getDateOfHivTest());
-        prepEnrollment.setResultOfHivTest(prepEnrollmentRequestDto.getResultOfHivTest());
         prepEnrollment.setDateOfInitialAdherenceCounseling(prepEnrollmentRequestDto.getDateOfInitialAdherenceCounseling());
         prepEnrollment.setDatePrepStarted(prepEnrollmentRequestDto.getDatePrepStarted());
         prepEnrollment.setPrepTypeAtStart(prepEnrollmentRequestDto.getPrepTypeAtStart());
@@ -1028,19 +1026,16 @@ public class PrepService {
         enrollmentDto.setSupporterPhone(enrollment.getSupporterPhone());
         enrollmentDto.setPrepEligibilityUuid(enrollment.getProphylaxisScreeningUuid());
         enrollmentDto.setCommenced(true);
-        enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
+        enrollmentDto.setHtsUuid(enrollment.getHtsUuid());
 
         enrollmentDto.setEnrollmentType(enrollment.getEnrollmentType());
         enrollmentDto.setPopulationType(enrollment.getPopulationType());
         enrollmentDto.setWeight(enrollment.getWeight());
         enrollmentDto.setHeight(enrollment.getHeight());
-        enrollmentDto.setPregnancyStatus(enrollment.getPregnancyStatus());
         enrollmentDto.setHistoryOfDrugAllergies(enrollment.getHistoryOfDrugAllergies());
         enrollmentDto.setHistoryOfDrugToDrugInteraction(enrollment.getHistoryOfDrugToDrugInteraction());
         enrollmentDto.setUrinalysisResult(enrollment.getUrinalysisResult());
         enrollmentDto.setLiverFunctionTestResults(enrollment.getLiverFunctionTestResults());
-        enrollmentDto.setDateOfHivTest(enrollment.getDateOfHivTest());
-        enrollmentDto.setResultOfHivTest(enrollment.getResultOfHivTest());
         enrollmentDto.setDateOfInitialAdherenceCounseling(enrollment.getDateOfInitialAdherenceCounseling());
         enrollmentDto.setDatePrepStarted(enrollment.getDatePrepStarted());
         enrollmentDto.setPrepTypeAtStart(enrollment.getPrepTypeAtStart());

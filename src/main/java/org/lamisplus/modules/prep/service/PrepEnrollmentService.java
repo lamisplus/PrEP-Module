@@ -118,19 +118,14 @@ public class PrepEnrollmentService {
         prepEnrollment.setSupporterPhone( enrollmentDto.getSupporterPhone() );
         prepEnrollment.setStatus("Enrolled");
 
-        prepEnrollment.setHivTestingPoint(enrollmentDto.getHivTestingPoint());
-
         prepEnrollment.setEnrollmentType(enrollmentDto.getEnrollmentType());
         prepEnrollment.setPopulationType(enrollmentDto.getPopulationType());
         prepEnrollment.setWeight(enrollmentDto.getWeight());
         prepEnrollment.setHeight(enrollmentDto.getHeight());
-        prepEnrollment.setPregnancyStatus(enrollmentDto.getPregnancyStatus());
         prepEnrollment.setHistoryOfDrugAllergies(enrollmentDto.getHistoryOfDrugAllergies());
         prepEnrollment.setHistoryOfDrugToDrugInteraction(enrollmentDto.getHistoryOfDrugToDrugInteraction());
         prepEnrollment.setUrinalysisResult(enrollmentDto.getUrinalysisResult());
         prepEnrollment.setLiverFunctionTestResults(enrollmentDto.getLiverFunctionTestResults());
-        prepEnrollment.setDateOfHivTest(enrollmentDto.getDateOfHivTest());
-        prepEnrollment.setResultOfHivTest(enrollmentDto.getResultOfHivTest());
         prepEnrollment.setDateOfInitialAdherenceCounseling(enrollmentDto.getDateOfInitialAdherenceCounseling());
         prepEnrollment.setDatePrepStarted(enrollmentDto.getDatePrepStarted());
         prepEnrollment.setPrepTypeAtStart(enrollmentDto.getPrepTypeAtStart());
@@ -159,19 +154,14 @@ public class PrepEnrollmentService {
         prepEnrollment.setSupporterPhone( prepEnrollmentRequestDto.getSupporterPhone() );
         prepEnrollment.setStatus("ENROLLED");
 
-        prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
-
         prepEnrollment.setEnrollmentType(prepEnrollmentRequestDto.getEnrollmentType());
         prepEnrollment.setPopulationType(prepEnrollmentRequestDto.getPopulationType());
         prepEnrollment.setWeight(prepEnrollmentRequestDto.getWeight());
         prepEnrollment.setHeight(prepEnrollmentRequestDto.getHeight());
-        prepEnrollment.setPregnancyStatus(prepEnrollmentRequestDto.getPregnancyStatus());
         prepEnrollment.setHistoryOfDrugAllergies(prepEnrollmentRequestDto.getHistoryOfDrugAllergies());
         prepEnrollment.setHistoryOfDrugToDrugInteraction(prepEnrollmentRequestDto.getHistoryOfDrugToDrugInteraction());
         prepEnrollment.setUrinalysisResult(prepEnrollmentRequestDto.getUrinalysisResult());
         prepEnrollment.setLiverFunctionTestResults(prepEnrollmentRequestDto.getLiverFunctionTestResults());
-        prepEnrollment.setDateOfHivTest(prepEnrollmentRequestDto.getDateOfHivTest());
-        prepEnrollment.setResultOfHivTest(prepEnrollmentRequestDto.getResultOfHivTest());
         prepEnrollment.setDateOfInitialAdherenceCounseling(prepEnrollmentRequestDto.getDateOfInitialAdherenceCounseling());
         prepEnrollment.setDatePrepStarted(prepEnrollmentRequestDto.getDatePrepStarted());
         prepEnrollment.setPrepTypeAtStart(prepEnrollmentRequestDto.getPrepTypeAtStart());
@@ -206,19 +196,14 @@ public class PrepEnrollmentService {
         enrollmentDto.setPrepEligibilityUuid(enrollment.getPrepEligibilityUuid());
         enrollmentDto.setCommenced(true);
 
-        enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
-
         enrollmentDto.setEnrollmentType(enrollment.getEnrollmentType());
         enrollmentDto.setPopulationType(enrollment.getPopulationType());
         enrollmentDto.setWeight(enrollment.getWeight());
         enrollmentDto.setHeight(enrollment.getHeight());
-        enrollmentDto.setPregnancyStatus(enrollment.getPregnancyStatus());
         enrollmentDto.setHistoryOfDrugAllergies(enrollment.getHistoryOfDrugAllergies());
         enrollmentDto.setHistoryOfDrugToDrugInteraction(enrollment.getHistoryOfDrugToDrugInteraction());
         enrollmentDto.setUrinalysisResult(enrollment.getUrinalysisResult());
         enrollmentDto.setLiverFunctionTestResults(enrollment.getLiverFunctionTestResults());
-        enrollmentDto.setDateOfHivTest(enrollment.getDateOfHivTest());
-        enrollmentDto.setResultOfHivTest(enrollment.getResultOfHivTest());
         enrollmentDto.setDateOfInitialAdherenceCounseling(enrollment.getDateOfInitialAdherenceCounseling());
         enrollmentDto.setDatePrepStarted(enrollment.getDatePrepStarted());
         enrollmentDto.setPrepTypeAtStart(enrollment.getPrepTypeAtStart());

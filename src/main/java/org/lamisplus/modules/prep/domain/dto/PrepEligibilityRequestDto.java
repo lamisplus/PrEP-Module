@@ -40,9 +40,8 @@ public class PrepEligibilityRequestDto implements Serializable {
     private Object reasonForDecliningPrep;
     private String populationType;
     private String visitType;
-    private String pregnancyStatus;
     private String uniqueClientId;
-    private String clientHtsCode;
+    private String htsUuid;
     private String referredFrom;
     private String setting;
     private String serviceStatus;

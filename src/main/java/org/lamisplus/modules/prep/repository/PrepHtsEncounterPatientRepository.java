@@ -203,4 +203,23 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
                     "     OR hts.client_code ILIKE ?3)",
             nativeQuery = true)
     Page<PrepHtsPatient> searchPatients(Boolean archived, Long facilityId, String search, Pageable pageable);
+
+    /**
+     * Returns the codeset display for the {@code pregnancyStatus} value on the
+     * patient's most recent non-archived hts_encounter. Used to keep the Patient
+     * Card on the dashboard populated now that {@code prophylaxis_initiation}
+     * no longer stores pregnancy status directly.
+     */
+    @Query(value =
+            "SELECT preg.display\n" +
+            "FROM hts_encounter hts\n" +
+            "INNER JOIN patient_person p ON p.id = hts.patient_id\n" +
+            "LEFT JOIN base_application_codeset preg\n" +
+            "    ON preg.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n" +
+            "WHERE hts.archived = false\n" +
+            "  AND CAST(p.uuid AS text) = ?1\n" +
+            "ORDER BY hts.date_of_visit DESC NULLS LAST, hts.id DESC\n" +
+            "LIMIT 1",
+            nativeQuery = true)
+    String findLatestPregnancyStatusDisplay(String personUuid);
 }

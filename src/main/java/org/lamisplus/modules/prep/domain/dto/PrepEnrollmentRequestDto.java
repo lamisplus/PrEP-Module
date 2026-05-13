@@ -34,7 +34,7 @@ public class PrepEnrollmentRequestDto implements Serializable {
 
     private String supporterPhone;
 
-    private String hivTestingPoint;
+    private String htsUuid;
 
     private String enrollmentType;
 
@@ -44,8 +44,6 @@ public class PrepEnrollmentRequestDto implements Serializable {
 
     private Double height;
 
-    private String pregnancyStatus;
-
     private String historyOfDrugAllergies;
 
     private String historyOfDrugToDrugInteraction;
@@ -53,10 +51,6 @@ public class PrepEnrollmentRequestDto implements Serializable {
     private String urinalysisResult;
 
     private Object liverFunctionTestResults;
-
-    private LocalDate dateOfHivTest;
-
-    private String resultOfHivTest;
 
     private LocalDate dateOfInitialAdherenceCounseling;
 

@@ -14,7 +14,7 @@ public class PrepFollowupVisitRequestDto implements Serializable {
     private LocalDate dateInitialAdherenceCounseling;
     private Double weight;
     private Double height;
-    private String pregnant;
+    private String htsUuid;
     private String prophylaxisInitiationUuid;
     private Long regimenId;
     private String urinalysisResult;
@@ -54,7 +54,6 @@ public class PrepFollowupVisitRequestDto implements Serializable {
     private String familyPlanning;
     private LocalDate dateOfFamilyPlanning;
     private String otherDrugs;
-    private String hivTestResult;
     private String prepType;
     private String populationType;
     private String visitType;
@@ -64,7 +63,6 @@ public class PrepFollowupVisitRequestDto implements Serializable {
     private String wasPrepAdministered;
     private String historyOfDrugToDrugInteraction;
     private String historyOfDrugAllergies;
-    private LocalDate hivTestResultDate;
     private Integer monthsOfRefill;
     private String comment;
     private String previousPrepStatus;

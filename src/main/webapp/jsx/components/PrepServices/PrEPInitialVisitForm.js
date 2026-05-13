@@ -56,6 +56,7 @@ const PrEPInitialVisitForm = props => {
     supporterRelationshipType: "",
     uniqueId: "",
     hivTestingPoint: "",
+    htsUuid: "",
     enrollmentType: screeningType || "",
     populationType: "",
     weight: "",
@@ -74,6 +75,14 @@ const PrEPInitialVisitForm = props => {
     prepRegimen: "",
     monthsOfRefill: "",
   });
+
+  // The Patient tab now ships the latest HTS encounter with each row. When
+  // present, HIV Testing Point / Date of HIV Test / Result of HIV Test /
+  // Pregnant are sourced from it (not collected on this form), and `htsUuid`
+  // is what we persist server-side.
+  const latestHts = props.patientObj?.latestHtsResult;
+  const htsObs = latestHts?.observation || {};
+  const isFromHts = !!latestHts;
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [prepRisk, setPrepRisk] = useState([]);
@@ -119,6 +128,22 @@ const PrEPInitialVisitForm = props => {
     }
   }, []);
 
+  // Auto-populate fields sourced from the latest hts_encounter — only on create
+  // (the enrollment loader replaces objValues on edit / view).
+  useEffect(() => {
+    if (!isFromHts) return;
+    if (props.activeContent?.id) return;
+    setObjValues(prev => ({
+      ...prev,
+      htsUuid: latestHts.uuid || "",
+      hivTestingPoint: latestHts.setting || prev.hivTestingPoint,
+      dateOfHivTest: latestHts.dateOfVisit || prev.dateOfHivTest,
+      resultOfHivTest:
+        htsObs.confirmatoryHivTest || htsObs.initialHivTest || prev.resultOfHivTest,
+      pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
+    }));
+  }, [latestHts?.uuid, props.activeContent?.id]);
+
   const GetPatientDTOObj = () => {
     const personId = props.patientObj.personId || props.patientObj.id;
     axios
@@ -128,7 +153,10 @@ const PrEPInitialVisitForm = props => {
       )
       .then(response => {
         setPatientDto(response.data);
-        // Auto-populate fields from latest screening data — all fields common to both forms
+        // Auto-populate fields from latest screening data — but only the ones
+        // NOT sourced from the latest hts_encounter. When isFromHts, the HTS
+        // useEffect is the canonical source for resultOfHivTest /
+        // pregnancyStatus / dateOfHivTest / hivTestingPoint.
         if (response.data) {
           const hivResult = response.data.drugUseHistory?.hivTestResultAtvisit;
           setObjValues(prev => ({
@@ -138,10 +166,12 @@ const PrEPInitialVisitForm = props => {
             enrollmentType:
               fromEnrollmentTypeCode(response.data.category) || prev.enrollmentType,
             uniqueId: response.data.uniqueClientId || prev.uniqueId,
-            resultOfHivTest: hivResult || prev.resultOfHivTest,
             populationType: response.data.populationType || prev.populationType,
-            pregnancyStatus: response.data.pregnancyStatus || prev.pregnancyStatus,
-            dateOfHivTest: response.data.visitDate || prev.dateOfHivTest,
+            ...(isFromHts ? {} : {
+              resultOfHivTest: hivResult || prev.resultOfHivTest,
+              pregnancyStatus: response.data.pregnancyStatus || prev.pregnancyStatus,
+              dateOfHivTest: response.data.visitDate || prev.dateOfHivTest,
+            }),
           }));
         }
         // Fetch previous initiation records for returning clients
@@ -159,9 +189,11 @@ const PrEPInitialVisitForm = props => {
                 // prophylaxis_initiation rows for this client share one ID.
                 uniqueId: prevInitiation.uniqueId || prev.uniqueId,
                 populationType: prevInitiation.populationType || prev.populationType,
-                hivTestingPoint: prevInitiation.hivTestingPoint || prev.hivTestingPoint,
                 weight: prevInitiation.weight || prev.weight,
                 height: prevInitiation.height || prev.height,
+                // hivTestingPoint is no longer stored on prophylaxis_initiation;
+                // it's derived from the latest hts_encounter (handled by the
+                // HTS auto-pop useEffect). Skip it here.
               }));
             }
           })
@@ -246,13 +278,15 @@ const PrEPInitialVisitForm = props => {
     temp.populationType = objValues.populationType
       ? ""
       : "This field is required";
-    temp.hivTestingPoint = objValues.hivTestingPoint
+    // hivTestingPoint / dateOfHivTest / resultOfHivTest are sourced from the
+    // latest hts_encounter when present; auto-satisfied on the HTS path.
+    temp.hivTestingPoint = isFromHts || objValues.hivTestingPoint
       ? ""
       : "This field is required";
-    temp.dateOfHivTest = objValues.dateOfHivTest
+    temp.dateOfHivTest = isFromHts || objValues.dateOfHivTest
       ? ""
       : "This field is required";
-    temp.resultOfHivTest = objValues.resultOfHivTest
+    temp.resultOfHivTest = isFromHts || objValues.resultOfHivTest
       ? ""
       : "This field is required";
     // Conditional: supporter fields required if supporter name is provided (only for PrEP)
@@ -536,10 +570,12 @@ const PrEPInitialVisitForm = props => {
                     id="hivTestingPoint"
                     onChange={handleInputChange}
                     value={objValues.hivTestingPoint}
-                    disabled={disabledField}
+                    disabled={disabledField || isFromHts}
+                    title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
+                      backgroundColor: isFromHts ? "#f1f3f5" : undefined,
                     }}
                   >
                     <option value="">Select</option>
@@ -570,9 +606,11 @@ const PrEPInitialVisitForm = props => {
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
+                      backgroundColor: isFromHts ? "#f1f3f5" : undefined,
                     }}
                     max={objValues.dateEnrolled || moment(new Date()).format("YYYY-MM-DD")}
-                    disabled={disabledField}
+                    disabled={disabledField || isFromHts}
+                    title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                   />
                   {errors.dateOfHivTest !== "" ? (
                     <span className={classes.error}>{errors.dateOfHivTest}</span>
@@ -592,10 +630,12 @@ const PrEPInitialVisitForm = props => {
                     id="resultOfHivTest"
                     onChange={handleInputChange}
                     value={objValues.resultOfHivTest}
-                    disabled={disabledField}
+                    disabled={disabledField || isFromHts}
+                    title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
+                      backgroundColor: isFromHts ? "#f1f3f5" : undefined,
                     }}
                   >
                     <option value="">Select</option>
@@ -911,11 +951,13 @@ const PrEPInitialVisitForm = props => {
                       id="pregnancyStatus"
                       onChange={handleInputChange}
                       value={objValues.pregnancyStatus}
-                      disabled={disabledField}
+                      disabled={disabledField || isFromHts}
+                      title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                       style={{
                         border: "1px solid #014D88",
                         borderRadius: "0.2rem",
                         padding: "0.5rem",
+                        backgroundColor: isFromHts ? "#f1f3f5" : undefined,
                       }}
                     >
                       <option value="">Select</option>

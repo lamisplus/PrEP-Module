@@ -135,20 +135,17 @@ public class PrepPepInitiationService {
         entity.setSupporterPhone(dto.getSupporterPhone());
         entity.setStatus("ENROLLED");
 
-        entity.setHivTestingPoint(dto.getHivTestingPoint());
+        entity.setHtsUuid(dto.getHtsUuid());
 
         entity.setEnrollmentType(dto.getEnrollmentType());
         entity.setPopulationType(dto.getPopulationType());
         entity.setWeight(dto.getWeight());
         entity.setHeight(dto.getHeight());
-        entity.setPregnancyStatus(dto.getPregnancyStatus());
         entity.setBreastFeeding(dto.getBreastFeeding());
         entity.setHistoryOfDrugAllergies(dto.getHistoryOfDrugAllergies());
         entity.setHistoryOfDrugToDrugInteraction(dto.getHistoryOfDrugToDrugInteraction());
         entity.setUrinalysisResult(dto.getUrinalysisResult());
         entity.setLiverFunctionTestResults(dto.getLiverFunctionTestResults());
-        entity.setDateOfHivTest(dto.getDateOfHivTest());
-        entity.setResultOfHivTest(dto.getResultOfHivTest());
         entity.setDateOfInitialAdherenceCounseling(dto.getDateOfInitialAdherenceCounseling());
         entity.setDatePrepStarted(dto.getDatePrepStarted());
         entity.setPrepTypeAtStart(dto.getPrepTypeAtStart());
@@ -177,20 +174,17 @@ public class PrepPepInitiationService {
         entity.setSupporterPhone(dto.getSupporterPhone());
         entity.setStatus("Enrolled");
 
-        entity.setHivTestingPoint(dto.getHivTestingPoint());
+        entity.setHtsUuid(dto.getHtsUuid());
 
         entity.setEnrollmentType(dto.getEnrollmentType());
         entity.setPopulationType(dto.getPopulationType());
         entity.setWeight(dto.getWeight());
         entity.setHeight(dto.getHeight());
-        entity.setPregnancyStatus(dto.getPregnancyStatus());
         entity.setBreastFeeding(dto.getBreastFeeding());
         entity.setHistoryOfDrugAllergies(dto.getHistoryOfDrugAllergies());
         entity.setHistoryOfDrugToDrugInteraction(dto.getHistoryOfDrugToDrugInteraction());
         entity.setUrinalysisResult(dto.getUrinalysisResult());
         entity.setLiverFunctionTestResults(dto.getLiverFunctionTestResults());
-        entity.setDateOfHivTest(dto.getDateOfHivTest());
-        entity.setResultOfHivTest(dto.getResultOfHivTest());
         entity.setDateOfInitialAdherenceCounseling(dto.getDateOfInitialAdherenceCounseling());
         entity.setDatePrepStarted(dto.getDatePrepStarted());
         entity.setPrepTypeAtStart(dto.getPrepTypeAtStart());
@@ -220,20 +214,17 @@ public class PrepPepInitiationService {
         dto.setProphylaxisScreeningUuid(entity.getProphylaxisScreeningUuid());
         dto.setCommenced(true);
 
-        dto.setHivTestingPoint(entity.getHivTestingPoint());
+        dto.setHtsUuid(entity.getHtsUuid());
 
         dto.setEnrollmentType(entity.getEnrollmentType());
         dto.setPopulationType(entity.getPopulationType());
         dto.setWeight(entity.getWeight());
         dto.setHeight(entity.getHeight());
-        dto.setPregnancyStatus(entity.getPregnancyStatus());
         dto.setBreastFeeding(entity.getBreastFeeding());
         dto.setHistoryOfDrugAllergies(entity.getHistoryOfDrugAllergies());
         dto.setHistoryOfDrugToDrugInteraction(entity.getHistoryOfDrugToDrugInteraction());
         dto.setUrinalysisResult(entity.getUrinalysisResult());
         dto.setLiverFunctionTestResults(entity.getLiverFunctionTestResults());
-        dto.setDateOfHivTest(entity.getDateOfHivTest());
-        dto.setResultOfHivTest(entity.getResultOfHivTest());
         dto.setDateOfInitialAdherenceCounseling(entity.getDateOfInitialAdherenceCounseling());
         dto.setDatePrepStarted(entity.getDatePrepStarted());
         dto.setPrepTypeAtStart(entity.getPrepTypeAtStart());

@@ -121,11 +121,10 @@ public class PrepEligibilityScreeningService {
         e.setReasonForDecliningPrep(dto.getReasonForDecliningPrep());
         e.setPopulationType(dto.getPopulationType());
         e.setVisitType(dto.getVisitType());
-        e.setPregnancyStatus(dto.getPregnancyStatus());
         e.setReasonForSwitch(dto.getReasonForSwitch());
         e.setVisitDate(dto.getVisitDate());
         e.setUniqueClientId(dto.getUniqueClientId());
-        e.setClientHtsCode(dto.getClientHtsCode());
+        e.setHtsUuid(dto.getHtsUuid());
         e.setReferredFrom(dto.getReferredFrom());
         e.setSetting(dto.getSetting());
         e.setServiceStatus(dto.getServiceStatus());
@@ -156,11 +155,10 @@ public class PrepEligibilityScreeningService {
         e.setReasonForDecliningPrep(dto.getReasonForDecliningPrep());
         e.setPopulationType(dto.getPopulationType());
         e.setVisitType(dto.getVisitType());
-        e.setPregnancyStatus(dto.getPregnancyStatus());
         e.setReasonForSwitch(dto.getReasonForSwitch());
         e.setVisitDate(dto.getVisitDate());
         e.setUniqueClientId(dto.getUniqueClientId());
-        e.setClientHtsCode(dto.getClientHtsCode());
+        e.setHtsUuid(dto.getHtsUuid());
         e.setReferredFrom(dto.getReferredFrom());
         e.setSetting(dto.getSetting());
         e.setServiceStatus(dto.getServiceStatus());
@@ -192,11 +190,10 @@ public class PrepEligibilityScreeningService {
         dto.setReasonForDecliningPrep(e.getReasonForDecliningPrep());
         dto.setPopulationType(e.getPopulationType());
         dto.setVisitType(e.getVisitType());
-        dto.setPregnancyStatus(e.getPregnancyStatus());
         dto.setReasonForSwitch(e.getReasonForSwitch());
         dto.setVisitDate(e.getVisitDate());
         dto.setUniqueClientId(e.getUniqueClientId());
-        dto.setClientHtsCode(e.getClientHtsCode());
+        dto.setHtsUuid(e.getHtsUuid());
         dto.setReferredFrom(e.getReferredFrom());
         dto.setSetting(e.getSetting());
         dto.setServiceStatus(e.getServiceStatus());

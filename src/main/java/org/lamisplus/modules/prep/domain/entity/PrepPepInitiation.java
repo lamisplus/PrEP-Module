@@ -78,17 +78,14 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @Column(name = "supporter_phone")
     private String supporterPhone;
 
-    @Column(name = "hiv_testing_point")
-    private String hivTestingPoint;
+    @Column(name = "hts_uuid")
+    private String htsUuid;
 
     @Column(name = "weight")
     private Double weight;
 
     @Column(name = "height")
     private Double height;
-
-    @Column(name = "pregnancy_status")
-    private String pregnancyStatus;
 
     @Column(name = "breast_feeding")
     private String breastFeeding;
@@ -106,12 +103,6 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "liver_function_test_results", columnDefinition = "jsonb")
     private Object liverFunctionTestResults;
-
-    @Column(name = "date_of_hiv_test")
-    private LocalDate dateOfHivTest;
-
-    @Column(name = "result_of_hiv_test")
-    private String resultOfHivTest;
 
     @Column(name = "date_of_initial_adherence_counseling")
     private LocalDate dateOfInitialAdherenceCounseling;

@@ -189,13 +189,11 @@ public class PrepEligibilityService {
         prepEligibility.setServicesReceivedByClient(eligibilityDto.getServicesReceivedByClient());
         prepEligibility.setPopulationType(eligibilityDto.getPopulationType());
         prepEligibility.setVisitType(eligibilityDto.getVisitType());
-        prepEligibility.setPregnancyStatus(eligibilityDto.getPregnancyStatus());
         prepEligibility.setReasonForSwitch(eligibilityDto.getReasonForSwitch());
         prepEligibility.setVisitDate(eligibilityDto.getVisitDate());
         prepEligibility.setConsiderationForInjections(eligibilityDto.getConsiderationForInjections());
         prepEligibility.setReasonForDecliningPrep(eligibilityDto.getReasonForDecliningPrep());
         prepEligibility.setUniqueClientId(eligibilityDto.getUniqueClientId());
-        prepEligibility.setClientHtsCode(eligibilityDto.getClientHtsCode());
         prepEligibility.setReferredFrom(eligibilityDto.getReferredFrom());
         prepEligibility.setSetting(eligibilityDto.getSetting());
         prepEligibility.setServiceStatus(eligibilityDto.getServiceStatus());
@@ -226,13 +224,11 @@ public class PrepEligibilityService {
         prepEligibility.setServicesReceivedByClient(prepEligibilityRequestDto.getServicesReceivedByClient());
         prepEligibility.setPopulationType(prepEligibilityRequestDto.getPopulationType());
         prepEligibility.setVisitType(prepEligibilityRequestDto.getVisitType());
-        prepEligibility.setPregnancyStatus(prepEligibilityRequestDto.getPregnancyStatus());
         prepEligibility.setReasonForSwitch(prepEligibilityRequestDto.getReasonForSwitch());
         prepEligibility.setVisitDate(prepEligibilityRequestDto.getVisitDate());
         prepEligibility.setConsiderationForInjections(prepEligibilityRequestDto.getConsiderationForInjections());
         prepEligibility.setReasonForDecliningPrep(prepEligibilityRequestDto.getReasonForDecliningPrep());
         prepEligibility.setUniqueClientId(prepEligibilityRequestDto.getUniqueClientId());
-        prepEligibility.setClientHtsCode(prepEligibilityRequestDto.getClientHtsCode());
         prepEligibility.setReferredFrom(prepEligibilityRequestDto.getReferredFrom());
         prepEligibility.setSetting(prepEligibilityRequestDto.getSetting());
         prepEligibility.setServiceStatus(prepEligibilityRequestDto.getServiceStatus());
@@ -264,7 +260,6 @@ public class PrepEligibilityService {
         prepEligibilityDto.setServicesReceivedByClient(eligibility.getServicesReceivedByClient());
         prepEligibilityDto.setPopulationType(eligibility.getPopulationType());
         prepEligibilityDto.setVisitType(eligibility.getVisitType());
-        prepEligibilityDto.setPregnancyStatus(eligibility.getPregnancyStatus());
         //PersonResponseDto personResponseDto = personService.getDtoFromPerson(eligibility.getPerson());
         //prepEligibilityDto.setPersonResponseDto(personResponseDto);
         prepEligibilityDto.setReasonForSwitch(eligibility.getReasonForSwitch());
@@ -272,7 +267,6 @@ public class PrepEligibilityService {
         prepEligibilityDto.setConsiderationForInjections(eligibility.getConsiderationForInjections());
         prepEligibilityDto.setReasonForDecliningPrep(eligibility.getReasonForDecliningPrep());
         prepEligibilityDto.setUniqueClientId(eligibility.getUniqueClientId());
-        prepEligibilityDto.setClientHtsCode(eligibility.getClientHtsCode());
         prepEligibilityDto.setReferredFrom(eligibility.getReferredFrom());
         prepEligibilityDto.setSetting(eligibility.getSetting());
         prepEligibilityDto.setServiceStatus(eligibility.getServiceStatus());

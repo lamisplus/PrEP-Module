@@ -97,6 +97,7 @@ const BasicInfo = props => {
   const [objValues, setObjValues] = useState({
     uniqueClientId: "",
     clientHtsCode: "",
+    htsUuid: "",
     counselingType: "",
     category: screeningType,
     drugUseHistory: {},
@@ -119,6 +120,14 @@ const BasicInfo = props => {
     typeOfSession: "",
     score: 0,
   });
+
+  // The Patient tab now ships the latest HTS encounter with each row. When
+  // present, Client's HTS Code / Pregnancy Status / HIV Test Result at Visit
+  // are sourced from it (not collected on this form), and `htsUuid` is what
+  // we persist server-side. Locked fields below read this flag.
+  const latestHts = patientObj?.latestHtsResult;
+  const htsObs = latestHts?.observation || {};
+  const isFromHts = !!latestHts;
   const [riskAssessment, setRiskAssessment] = useState({
     unprotectedVaginalSexCasual: "",
     unprotectedVaginalSexRegular: "",
@@ -235,6 +244,24 @@ const BasicInfo = props => {
       setSisabledField(props.activeContent.actionType === "view");
     }
   }, [props.activeContent]);
+
+  // Auto-populate fields sourced from the latest hts_encounter — only on
+  // create (the loader above replaces objValues on edit / view).
+  useEffect(() => {
+    if (!isFromHts) return;
+    if (props.activeContent?.id) return;
+    setObjValues(prev => ({
+      ...prev,
+      clientHtsCode: patientObj.htsClientCode || latestHts.clientCode || "",
+      htsUuid: latestHts.uuid || "",
+      pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
+    }));
+    setDrugHistory(prev => ({
+      ...prev,
+      hivTestResultAtvisit:
+        htsObs.confirmatoryHivTest || htsObs.initialHivTest || prev.hivTestResultAtvisit,
+    }));
+  }, [latestHts?.uuid, props.activeContent?.id]);
 
   const getPatientPrepEligibility = id => {
     axios
@@ -378,10 +405,19 @@ const BasicInfo = props => {
 
   const validate = () => {
     temp.visitDate = objValues.visitDate ? "" : "This field is required";
+    // Date of Visit cannot precede the latest HTS encounter date — the screening
+    // is for a visit that happened on/after the HTS test.
+    if (objValues.visitDate && latestHts?.dateOfVisit
+        && objValues.visitDate < latestHts.dateOfVisit) {
+      temp.visitDate =
+        `Date of Visit cannot be earlier than the HTS test date (${latestHts.dateOfVisit})`;
+    }
     temp.uniqueClientId = objValues.uniqueClientId
       ? ""
       : "This field is required";
-    temp.clientHtsCode = objValues.clientHtsCode
+    // clientHtsCode is auto-populated from latestHtsResult.clientCode when an HTS
+    // encounter is present; only require it on legacy paths without one.
+    temp.clientHtsCode = isFromHts || objValues.clientHtsCode
       ? ""
       : "This field is required";
     temp.referredFrom = objValues.referredFrom ? "" : "This field is required";
@@ -403,11 +439,13 @@ const BasicInfo = props => {
       : "This field is required";
     temp.sexPartner = objValues.sexPartner ? "" : "This field is required";
     if (isFemale()) {
-      temp.pregnancyStatus = objValues.pregnancyStatus
+      // Pregnancy status comes from HTS observation when available.
+      temp.pregnancyStatus = isFromHts || objValues.pregnancyStatus
         ? ""
         : "This field is required";
     }
-    temp.hivTestResultAtvisit = drugHistory.hivTestResultAtvisit
+    // HIV Test Result at Visit comes from HTS observation when available.
+    temp.hivTestResultAtvisit = isFromHts || drugHistory.hivTestResultAtvisit
       ? ""
       : "This field is required";
     setErrors({ ...temp });
@@ -420,7 +458,12 @@ const BasicInfo = props => {
 
     if (validate()) {
       setSaving(true);
-      objValues.drugUseHistory = drugHistory;
+      // When the HIV test result is sourced from the latest hts_encounter, do
+      // NOT echo it back into drug_use_history JSONB — the canonical source is
+      // the linked hts_uuid. Keeps the table free of redundant fields.
+      const drugUseHistoryToSave = { ...drugHistory };
+      if (isFromHts) delete drugUseHistoryToSave.hivTestResultAtvisit;
+      objValues.drugUseHistory = drugUseHistoryToSave;
       objValues.personalHivRiskAssessment = riskAssessment;
       objValues.sexPartnerRisk = riskAssessmentPartner;
       objValues.stiScreening = stiScreening;
@@ -644,8 +687,10 @@ const BasicInfo = props => {
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
+                      backgroundColor: isFromHts ? "#f1f3f5" : undefined,
                     }}
-                    disabled={disabledField}
+                    disabled={disabledField || isFromHts}
+                    title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                   />
                   {errors.clientHtsCode !== "" ? (
                     <span className={classes.error}>{errors.clientHtsCode}</span>
@@ -668,7 +713,7 @@ const BasicInfo = props => {
                     id="visitDate"
                     value={objValues.visitDate}
                     onChange={handleInputChange}
-                    min={props.patientObj?.dateOfBirth || ""}
+                    min={latestHts?.dateOfVisit || props.patientObj?.dateOfBirth || ""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     style={{
                       border: "1px solid #014D88",
@@ -965,8 +1010,10 @@ const BasicInfo = props => {
                       style={{
                         border: "1px solid #014D88",
                         borderRadius: "0.2rem",
+                        backgroundColor: isFromHts ? "#f1f3f5" : undefined,
                       }}
-                      disabled={disabledField}
+                      disabled={disabledField || isFromHts}
+                      title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                     >
                       <option value={""}>Select</option>
                       {(codeset?.PREGNANCY_STATUS || []).map(item => (
@@ -2323,8 +2370,10 @@ const BasicInfo = props => {
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
+                      backgroundColor: isFromHts ? "#f1f3f5" : undefined,
                     }}
-                    disabled={disabledField}
+                    disabled={disabledField || isFromHts}
+                    title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                   >
                     <option value={""}>Select</option>
                     {(codeset?.HIV_TEST_RESULT || []).map(item => (

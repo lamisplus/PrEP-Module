@@ -149,7 +149,7 @@ public class PrepFollowupVisitService {
         entity.setProphylaxisInitiationUuid(enrollmentUuid);
         entity.setFamilyPlanning(dto.getFamilyPlanning());
         entity.setDateOfFamilyPlanning(dto.getDateOfFamilyPlanning());
-        entity.setPregnant(dto.getPregnant());
+        entity.setHtsUuid(dto.getHtsUuid());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
         entity.setPreviousPrepStatus(dto.getPreviousPrepStatus());
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
@@ -207,7 +207,7 @@ public class PrepFollowupVisitService {
         entity.setHeight(dto.getHeight());
         entity.setFamilyPlanning(dto.getFamilyPlanning());
         entity.setDateOfFamilyPlanning(dto.getDateOfFamilyPlanning());
-        entity.setPregnant(dto.getPregnant());
+        entity.setHtsUuid(dto.getHtsUuid());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
         entity.setDateReferred(dto.getDateReferred());
         entity.setProphylaxisInitiationUuid(dto.getProphylaxisInitiationUuid());
@@ -241,7 +241,6 @@ public class PrepFollowupVisitService {
         entity.setDuration(dto.getDuration());
         entity.setPrepGiven(dto.getPrepGiven());
         entity.setOtherDrugs(dto.getOtherDrugs());
-        entity.setHivTestResult(dto.getHivTestResult());
         entity.setDateLiverFunctionTestResults(dto.getDateLiverFunctionTestResults());
         entity.setPrepType(dto.getPrepType());
         entity.setPopulationType(dto.getPopulationType());
@@ -249,7 +248,6 @@ public class PrepFollowupVisitService {
         entity.setPrepNotedSideEffects(sanitizeJsonb(dto.getPrepNotedSideEffects()));
         entity.setHistoryOfDrugToDrugInteraction(dto.getHistoryOfDrugToDrugInteraction());
         entity.setMonthsOfRefill(dto.getMonthsOfRefill());
-        entity.setHivTestResultDate(dto.getHivTestResultDate());
         entity.setHistoryOfDrugAllergies(dto.getHistoryOfDrugAllergies());
         entity.setDateLiverFunctionTestResults(dto.getDateLiverFunctionTestResults());
         entity.setLiverFunctionTestResults(dto.getLiverFunctionTestResults());
@@ -277,7 +275,7 @@ public class PrepFollowupVisitService {
         entity.setDateInitialAdherenceCounseling(dto.getDateInitialAdherenceCounseling());
         entity.setWeight(dto.getWeight());
         entity.setHeight(dto.getHeight());
-        entity.setPregnant(dto.getPregnant());
+        entity.setHtsUuid(dto.getHtsUuid());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
         entity.setDateReferred(dto.getDateReferred());
         entity.setProphylaxisInitiationUuid(dto.getProphylaxisInitiationUuid());
@@ -313,14 +311,12 @@ public class PrepFollowupVisitService {
         entity.setDuration(dto.getDuration());
         entity.setPrepGiven(dto.getPrepGiven());
         entity.setOtherDrugs(dto.getOtherDrugs());
-        entity.setHivTestResult(dto.getHivTestResult());
         entity.setDateLiverFunctionTestResults(dto.getDateLiverFunctionTestResults());
         entity.setPrepType(dto.getPrepType());
         entity.setPopulationType(dto.getPopulationType());
         entity.setLiverFunctionTestResults(sanitizeJsonb(dto.getLiverFunctionTestResults()));
         entity.setPrepNotedSideEffects(sanitizeJsonb(dto.getPrepNotedSideEffects()));
         entity.setHistoryOfDrugToDrugInteraction(dto.getHistoryOfDrugToDrugInteraction());
-        entity.setHivTestResultDate(dto.getHivTestResultDate());
         entity.setMonthsOfRefill(dto.getMonthsOfRefill());
         entity.setDateLiverFunctionTestResults(dto.getDateLiverFunctionTestResults());
         entity.setLiverFunctionTestResults(dto.getLiverFunctionTestResults());
@@ -348,7 +344,7 @@ public class PrepFollowupVisitService {
         dto.setDateInitialAdherenceCounseling(entity.getDateInitialAdherenceCounseling());
         dto.setWeight(entity.getWeight());
         dto.setHeight(entity.getHeight());
-        dto.setPregnant(entity.getPregnant());
+        dto.setHtsUuid(entity.getHtsUuid());
         dto.setPrepDistributionSetting(entity.getPrepDistributionSetting());
         if (last != null && last) {
             dto.setVisitCount(prepFollowupVisitRepository.countAllByPersonUuid(entity.getPersonUuid()));
@@ -391,14 +387,12 @@ public class PrepFollowupVisitService {
         dto.setDuration(entity.getDuration());
         dto.setPrepGiven(entity.getPrepGiven());
         dto.setOtherDrugs(entity.getOtherDrugs());
-        dto.setHivTestResult(entity.getHivTestResult());
         dto.setDateLiverFunctionTestResults(entity.getDateLiverFunctionTestResults());
         dto.setPrepType(entity.getPrepType());
         dto.setPopulationType(entity.getPopulationType());
         dto.setLiverFunctionTestResults(entity.getLiverFunctionTestResults());
         dto.setPrepNotedSideEffects(entity.getPrepNotedSideEffects());
         dto.setHistoryOfDrugToDrugInteraction(entity.getHistoryOfDrugToDrugInteraction());
-        dto.setHivTestResultDate(entity.getHivTestResultDate());
         dto.setMonthsOfRefill(entity.getMonthsOfRefill());
         dto.setHistoryOfDrugAllergies(entity.getHistoryOfDrugAllergies());
         dto.setDateLiverFunctionTestResults(entity.getDateLiverFunctionTestResults());

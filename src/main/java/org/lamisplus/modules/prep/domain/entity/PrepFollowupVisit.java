@@ -87,8 +87,8 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "diastolic")
     private Double diastolic;
 
-    @Column(name = "pregnant")
-    private String pregnant;
+    @Column(name = "hts_uuid")
+    private String htsUuid;
 
     @Column(name = "population_type")
     private String populationType;
@@ -143,12 +143,6 @@ public class PrepFollowupVisit extends Audit implements Serializable {
 
     @Column(name = "date_initial_adherence_counseling")
     private LocalDate dateInitialAdherenceCounseling;
-
-    @Column(name = "hiv_test_result")
-    private String hivTestResult;
-
-    @Column(name = "hiv_test_result_date")
-    private LocalDate hivTestResultDate;
 
     @Column(name = "sti_screening")
     private Boolean stiScreening;
