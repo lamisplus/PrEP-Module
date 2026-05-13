@@ -204,7 +204,12 @@ const ClinicVisit = props => {
   // The Patient tab now ships the latest HTS encounter with each row. When
   // present, Pregnancy Status / HTS Result are sourced from it (not collected
   // on this form), and `htsUuid` is what we persist server-side.
-  const latestHts = props.patientObj?.latestHtsResult;
+  //
+  // On edit/view the saved record carries a `htsUuid` — fetched via
+  // GET /prep/hts-encounter/{uuid} into `loadedHts` so the same auto-pop /
+  // disable logic applies on every render path.
+  const [loadedHts, setLoadedHts] = useState(null);
+  const latestHts = props.patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
   const isFromHts = !!latestHts;
   const [recentActivities, setRecentActivities] = useState([]);
@@ -784,19 +789,42 @@ const ClinicVisit = props => {
     }
   }, [props.activeContent]);
 
-  // Auto-populate fields sourced from the latest hts_encounter on create.
-  // Pregnant value lives on the formik form, so push it once the formik ref
-  // is mounted; HIV result/date are local state and set via getHivResult().
+  // On edit/view: once the followup record loads and its `htsUuid` is in the
+  // form, fetch the underlying hts_encounter so the read-only HTS fields show
+  // the values captured at save time.
+  useEffect(() => {
+    const savedUuid = formikRef.current?.values?.htsUuid;
+    if (!savedUuid) return;
+    if (props.patientObj?.latestHtsResult?.uuid === savedUuid) return;
+    if (loadedHts?.uuid === savedUuid) return;
+    axios
+      .get(`${baseUrl}prep/hts-encounter/${savedUuid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(resp => setLoadedHts(resp?.data || null))
+      .catch(() => setLoadedHts(null));
+  }, [formikRef.current?.values?.htsUuid, props.patientObj?.latestHtsResult?.uuid]);
+
+  // Auto-populate fields sourced from the latest hts_encounter. Runs on both
+  // create (latestHtsResult from the row) and edit/view (loadedHts from the
+  // GET /hts-encounter/{uuid} call) so the disabled fields always reflect the
+  // canonical HTS values. Pregnant lives on formik; HIV result/date are local
+  // state and set via getHivResult().
   useEffect(() => {
     if (!isFromHts) return;
-    if (props.activeContent?.id) return;
     if (formikRef.current) {
       formikRef.current.setFieldValue("htsUuid", latestHts.uuid || "");
       if (htsObs.pregnancyStatus) {
         formikRef.current.setFieldValue("pregnant", htsObs.pregnancyStatus);
       }
     }
-  }, [latestHts?.uuid, props.activeContent?.id]);
+    // Push the HIV test result through the codeset mapper so the dropdown's
+    // selected option resolves correctly on edit/view too.
+    setHivTestValue(
+      toHtsResultCode(htsObs.confirmatoryHivTest || htsObs.initialHivTest) || ""
+    );
+    setHivTestResultDate(latestHts.dateOfVisit || "");
+  }, [latestHts?.uuid]);
 
   useEffect(() => {
     getPrepEligibilityObj();

@@ -126,7 +126,12 @@ const BasicInfo = props => {
   // present, Client's HTS Code / Pregnancy Status / HIV Test Result at Visit
   // are sourced from it (not collected on this form), and `htsUuid` is what
   // we persist server-side. Locked fields below read this flag.
-  const latestHts = patientObj?.latestHtsResult;
+  //
+  // On edit/view the saved record carries a `htsUuid` instead — fetched via
+  // GET /prep/hts-encounter/{uuid} and stashed in `loadedHts` so the same
+  // auto-populate / disable logic applies on every render path.
+  const [loadedHts, setLoadedHts] = useState(null);
+  const latestHts = patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
   const isFromHts = !!latestHts;
   const [riskAssessment, setRiskAssessment] = useState({
@@ -246,15 +251,35 @@ const BasicInfo = props => {
     }
   }, [props.activeContent]);
 
-  // Auto-populate fields sourced from the latest hts_encounter — only on
-  // create (the loader above replaces objValues on edit / view).
+  // On edit/view: once the saved record loads and exposes its `htsUuid`,
+  // fetch the underlying hts_encounter so the read-only HTS fields can show
+  // the same values that were captured at save time.
+  useEffect(() => {
+    const savedUuid = objValues?.htsUuid;
+    if (!savedUuid) return;
+    // Skip the fetch if the Patient tab already shipped a latestHtsResult that
+    // matches (avoids a wasted round-trip on the create path).
+    if (patientObj?.latestHtsResult?.uuid === savedUuid) return;
+    if (loadedHts?.uuid === savedUuid) return;
+    axios
+      .get(`${baseUrl}prep/hts-encounter/${savedUuid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(resp => setLoadedHts(resp?.data || null))
+      .catch(() => setLoadedHts(null));
+  }, [objValues?.htsUuid, patientObj?.latestHtsResult?.uuid]);
+
+  // Auto-populate fields sourced from the latest hts_encounter. Runs on both
+  // create (latestHtsResult from the row) and edit/view (loadedHts from the
+  // GET /hts-encounter/{uuid} call) so the disabled fields always reflect the
+  // canonical HTS values.
   useEffect(() => {
     if (!isFromHts) return;
-    if (props.activeContent?.id) return;
     setObjValues(prev => ({
       ...prev,
-      clientHtsCode: patientObj.htsClientCode || latestHts.clientCode || "",
-      htsUuid: latestHts.uuid || "",
+      clientHtsCode:
+        patientObj?.htsClientCode || latestHts.clientCode || prev.clientHtsCode,
+      htsUuid: prev.htsUuid || latestHts.uuid || "",
       pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
     }));
     setDrugHistory(prev => ({
@@ -265,7 +290,7 @@ const BasicInfo = props => {
         toHivTestResultCode(htsObs.confirmatoryHivTest || htsObs.initialHivTest)
           || prev.hivTestResultAtvisit,
     }));
-  }, [latestHts?.uuid, props.activeContent?.id]);
+  }, [latestHts?.uuid]);
 
   const getPatientPrepEligibility = id => {
     axios

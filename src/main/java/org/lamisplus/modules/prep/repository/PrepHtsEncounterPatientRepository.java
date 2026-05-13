@@ -1,12 +1,15 @@
 package org.lamisplus.modules.prep.repository;
 
 import org.lamisplus.modules.patient.domain.entity.Person;
+import org.lamisplus.modules.prep.domain.entity.HtsEncounterRow;
 import org.lamisplus.modules.prep.domain.entity.PrepHtsPatient;
 import org.lamisplus.modules.prep.util.HtsObservationKeys;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+
+import java.util.Optional;
 
 /**
  * Queries that drive the HIV Prevention "Patients" tab off of {@code hts_encounter}
@@ -208,6 +211,29 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
                     "     OR hts.client_code ILIKE ?3)",
             nativeQuery = true)
     Page<PrepHtsPatient> searchPatients(Boolean archived, Long facilityId, String search, Pageable pageable);
+
+    /**
+     * Fetches a single {@code hts_encounter} row by its uuid — used when a
+     * PrEP form (screening / initiation / followup / clinic) is loaded for
+     * view/edit and needs to rehydrate the HTS values it linked via
+     * {@code hts_uuid}. JSON columns are cast to text and parsed in the
+     * service layer.
+     */
+    @Query(value =
+            "SELECT hts.id              AS id,\n" +
+            "       CAST(hts.uuid AS text)         AS uuid,\n" +
+            "       hts.patient_id      AS patientId,\n" +
+            "       CAST(hts.patient_uuid AS text) AS patientUuid,\n" +
+            "       hts.client_code     AS clientCode,\n" +
+            "       hts.date_of_visit   AS dateOfVisit,\n" +
+            "       hts.setting         AS setting,\n" +
+            "       CAST(hts.observation AS text)  AS observation,\n" +
+            "       hts.facility_id     AS facilityId\n" +
+            "FROM hts_encounter hts\n" +
+            "WHERE CAST(hts.uuid AS text) = ?1\n" +
+            "  AND hts.archived = false",
+            nativeQuery = true)
+    Optional<HtsEncounterRow> findHtsEncounterByUuid(String uuid);
 
     /**
      * Returns the codeset display for the {@code pregnancyStatus} value on the

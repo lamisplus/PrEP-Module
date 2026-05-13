@@ -81,7 +81,12 @@ const PrEPInitialVisitForm = props => {
   // present, HIV Testing Point / Date of HIV Test / Result of HIV Test /
   // Pregnant are sourced from it (not collected on this form), and `htsUuid`
   // is what we persist server-side.
-  const latestHts = props.patientObj?.latestHtsResult;
+  //
+  // On edit/view the saved record carries a `htsUuid` — fetched via
+  // GET /prep/hts-encounter/{uuid} into `loadedHts` so the same auto-pop /
+  // disable logic applies on every render path.
+  const [loadedHts, setLoadedHts] = useState(null);
+  const latestHts = props.patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
   const isFromHts = !!latestHts;
   const [saving, setSaving] = useState(false);
@@ -129,14 +134,31 @@ const PrEPInitialVisitForm = props => {
     }
   }, []);
 
-  // Auto-populate fields sourced from the latest hts_encounter — only on create
-  // (the enrollment loader replaces objValues on edit / view).
+  // On edit/view: once the saved record loads and exposes its `htsUuid`,
+  // fetch the underlying hts_encounter so the read-only HTS fields can show
+  // the values that were captured at save time.
+  useEffect(() => {
+    const savedUuid = objValues?.htsUuid;
+    if (!savedUuid) return;
+    if (props.patientObj?.latestHtsResult?.uuid === savedUuid) return;
+    if (loadedHts?.uuid === savedUuid) return;
+    axios
+      .get(`${baseUrl}prep/hts-encounter/${savedUuid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(resp => setLoadedHts(resp?.data || null))
+      .catch(() => setLoadedHts(null));
+  }, [objValues?.htsUuid, props.patientObj?.latestHtsResult?.uuid]);
+
+  // Auto-populate fields sourced from the latest hts_encounter. Runs on both
+  // create (latestHtsResult from the row) and edit/view (loadedHts from the
+  // GET /hts-encounter/{uuid} call) so the disabled fields always reflect the
+  // canonical HTS values.
   useEffect(() => {
     if (!isFromHts) return;
-    if (props.activeContent?.id) return;
     setObjValues(prev => ({
       ...prev,
-      htsUuid: latestHts.uuid || "",
+      htsUuid: prev.htsUuid || latestHts.uuid || "",
       hivTestingPoint: latestHts.setting || prev.hivTestingPoint,
       dateOfHivTest: latestHts.dateOfVisit || prev.dateOfHivTest,
       // HTS observation stores STI_HIV_RESULT_* codes; the initiation form's
@@ -146,7 +168,7 @@ const PrEPInitialVisitForm = props => {
           || prev.resultOfHivTest,
       pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
     }));
-  }, [latestHts?.uuid, props.activeContent?.id]);
+  }, [latestHts?.uuid]);
 
   const GetPatientDTOObj = () => {
     const personId = props.patientObj.personId || props.patientObj.id;

@@ -84,6 +84,14 @@ public class PrepController {
         return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
     }
 
+    @GetMapping(PREP_URL_VERSION_ONE + "/hts-encounter/{uuid}")
+    @ApiOperation("Get a single hts_encounter by uuid — used by prep forms on edit/view to rehydrate read-only HTS fields")
+    public ResponseEntity<LatestHtsResultDto> getHtsEncounterByUuid(@PathVariable String uuid) {
+        LatestHtsResultDto dto = prepService.findHtsEncounterByUuid(uuid);
+        if (dto == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(dto);
+    }
+
     @GetMapping(PREP_URL_VERSION_ONE + "/only/persons")
     @ApiOperation("Get Only Prep Persons with optimized api")
     public ResponseEntity<PageDTO> getOnlyPrepPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,
