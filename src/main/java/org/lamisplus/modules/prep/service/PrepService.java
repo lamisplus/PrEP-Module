@@ -188,7 +188,7 @@ public class PrepService {
         prepClinic.setComment(clinicRequestDto.getComment());
         prepClinic.setPreviousPrepStatus(clinicRequestDto.getPreviousPrepStatus());
         prepClinic = prepFollowupVisitRepository.save(prepClinic);
-        prepClinic.setHtsUuid(clinicRequestDto.getHtsUuid());
+        prepClinic.setHtsEncounterUuid(clinicRequestDto.getHtsEncounterUuid());
         prepClinic.setPerson(person);
         PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic);
         return prepClinicDto;
@@ -815,7 +815,7 @@ public class PrepService {
         prepEligibility.setConsiderationForInjections(prepEligibilityRequestDto.getConsiderationForInjections());
         prepEligibility.setReasonForDecliningPrep(prepEligibilityRequestDto.getReasonForDecliningPrep());
         prepEligibility.setUniqueClientId(prepEligibilityRequestDto.getUniqueClientId());
-        prepEligibility.setHtsUuid(prepEligibilityRequestDto.getHtsUuid());
+        prepEligibility.setHtsEncounterUuid(prepEligibilityRequestDto.getHtsEncounterUuid());
         prepEligibility.setReferredFrom(prepEligibilityRequestDto.getReferredFrom());
         prepEligibility.setSetting(prepEligibilityRequestDto.getSetting());
         prepEligibility.setServiceStatus(prepEligibilityRequestDto.getServiceStatus());
@@ -851,7 +851,7 @@ public class PrepService {
         prepEligibilityDto.setConsiderationForInjections(eligibility.getConsiderationForInjections());
         prepEligibilityDto.setReasonForDecliningPrep(eligibility.getReasonForDecliningPrep());
         prepEligibilityDto.setUniqueClientId(eligibility.getUniqueClientId());
-        prepEligibilityDto.setHtsUuid(eligibility.getHtsUuid());
+        prepEligibilityDto.setHtsEncounterUuid(eligibility.getHtsEncounterUuid());
         prepEligibilityDto.setReferredFrom(eligibility.getReferredFrom());
         prepEligibilityDto.setSetting(eligibility.getSetting());
         prepEligibilityDto.setServiceStatus(eligibility.getServiceStatus());
@@ -885,7 +885,7 @@ public class PrepService {
         prepEnrollment.setSupporterRelationshipType(prepEnrollmentRequestDto.getSupporterRelationshipType());
         prepEnrollment.setSupporterPhone(prepEnrollmentRequestDto.getSupporterPhone());
         prepEnrollment.setStatus("ENROLLED");
-        prepEnrollment.setHtsUuid(prepEnrollmentRequestDto.getHtsUuid());
+        prepEnrollment.setHtsEncounterUuid(prepEnrollmentRequestDto.getHtsEncounterUuid());
 
         prepEnrollment.setEnrollmentType(prepEnrollmentRequestDto.getEnrollmentType());
         prepEnrollment.setPopulationType(prepEnrollmentRequestDto.getPopulationType());
@@ -915,7 +915,7 @@ public class PrepService {
         prepClinic.setDateInitialAdherenceCounseling(prepClinicRequestDto.getDateInitialAdherenceCounseling());
         prepClinic.setWeight(prepClinicRequestDto.getWeight());
         prepClinic.setHeight(prepClinicRequestDto.getHeight());
-        prepClinic.setHtsUuid(prepClinicRequestDto.getHtsUuid());
+        prepClinic.setHtsEncounterUuid(prepClinicRequestDto.getHtsEncounterUuid());
         prepClinic.setPrepDistributionSetting(prepClinicRequestDto.getPrepDistributionSetting());
         prepClinic.setFamilyPlanning(prepClinicRequestDto.getFamilyPlanning());
         prepClinic.setDateOfFamilyPlanning(prepClinicRequestDto.getDateOfFamilyPlanning());
@@ -985,7 +985,7 @@ public class PrepService {
         prepClinicDto.setDateInitialAdherenceCounseling(clinic.getDateInitialAdherenceCounseling());
         prepClinicDto.setWeight(clinic.getWeight());
         prepClinicDto.setHeight(clinic.getHeight());
-        prepClinicDto.setHtsUuid(clinic.getHtsUuid());
+        prepClinicDto.setHtsEncounterUuid(clinic.getHtsEncounterUuid());
         prepClinicDto.setPrepDistributionSetting(clinic.getPrepDistributionSetting());
         prepClinicDto.setFamilyPlanning(clinic.getFamilyPlanning());
         prepClinicDto.setDateReferred(clinic.getDateReferred());
@@ -1064,7 +1064,7 @@ public class PrepService {
         enrollmentDto.setSupporterPhone(enrollment.getSupporterPhone());
         enrollmentDto.setPrepEligibilityUuid(enrollment.getProphylaxisScreeningUuid());
         enrollmentDto.setCommenced(true);
-        enrollmentDto.setHtsUuid(enrollment.getHtsUuid());
+        enrollmentDto.setHtsEncounterUuid(enrollment.getHtsEncounterUuid());
 
         enrollmentDto.setEnrollmentType(enrollment.getEnrollmentType());
         enrollmentDto.setPopulationType(enrollment.getPopulationType());

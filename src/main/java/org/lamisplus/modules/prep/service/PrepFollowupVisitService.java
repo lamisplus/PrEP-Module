@@ -149,7 +149,7 @@ public class PrepFollowupVisitService {
         entity.setProphylaxisInitiationUuid(enrollmentUuid);
         entity.setFamilyPlanning(dto.getFamilyPlanning());
         entity.setDateOfFamilyPlanning(dto.getDateOfFamilyPlanning());
-        entity.setHtsUuid(dto.getHtsUuid());
+        entity.setHtsEncounterUuid(dto.getHtsEncounterUuid());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
         entity.setPreviousPrepStatus(dto.getPreviousPrepStatus());
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
@@ -207,7 +207,7 @@ public class PrepFollowupVisitService {
         entity.setHeight(dto.getHeight());
         entity.setFamilyPlanning(dto.getFamilyPlanning());
         entity.setDateOfFamilyPlanning(dto.getDateOfFamilyPlanning());
-        entity.setHtsUuid(dto.getHtsUuid());
+        entity.setHtsEncounterUuid(dto.getHtsEncounterUuid());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
         entity.setDateReferred(dto.getDateReferred());
         entity.setProphylaxisInitiationUuid(dto.getProphylaxisInitiationUuid());
@@ -275,7 +275,7 @@ public class PrepFollowupVisitService {
         entity.setDateInitialAdherenceCounseling(dto.getDateInitialAdherenceCounseling());
         entity.setWeight(dto.getWeight());
         entity.setHeight(dto.getHeight());
-        entity.setHtsUuid(dto.getHtsUuid());
+        entity.setHtsEncounterUuid(dto.getHtsEncounterUuid());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
         entity.setDateReferred(dto.getDateReferred());
         entity.setProphylaxisInitiationUuid(dto.getProphylaxisInitiationUuid());
@@ -344,7 +344,7 @@ public class PrepFollowupVisitService {
         dto.setDateInitialAdherenceCounseling(entity.getDateInitialAdherenceCounseling());
         dto.setWeight(entity.getWeight());
         dto.setHeight(entity.getHeight());
-        dto.setHtsUuid(entity.getHtsUuid());
+        dto.setHtsEncounterUuid(entity.getHtsEncounterUuid());
         dto.setPrepDistributionSetting(entity.getPrepDistributionSetting());
         if (last != null && last) {
             dto.setVisitCount(prepFollowupVisitRepository.countAllByPersonUuid(entity.getPersonUuid()));

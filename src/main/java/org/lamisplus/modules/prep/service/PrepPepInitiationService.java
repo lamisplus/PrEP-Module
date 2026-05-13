@@ -135,7 +135,7 @@ public class PrepPepInitiationService {
         entity.setSupporterPhone(dto.getSupporterPhone());
         entity.setStatus("ENROLLED");
 
-        entity.setHtsUuid(dto.getHtsUuid());
+        entity.setHtsEncounterUuid(dto.getHtsEncounterUuid());
 
         entity.setEnrollmentType(dto.getEnrollmentType());
         entity.setPopulationType(dto.getPopulationType());
@@ -174,7 +174,7 @@ public class PrepPepInitiationService {
         entity.setSupporterPhone(dto.getSupporterPhone());
         entity.setStatus("Enrolled");
 
-        entity.setHtsUuid(dto.getHtsUuid());
+        entity.setHtsEncounterUuid(dto.getHtsEncounterUuid());
 
         entity.setEnrollmentType(dto.getEnrollmentType());
         entity.setPopulationType(dto.getPopulationType());
@@ -214,7 +214,7 @@ public class PrepPepInitiationService {
         dto.setProphylaxisScreeningUuid(entity.getProphylaxisScreeningUuid());
         dto.setCommenced(true);
 
-        dto.setHtsUuid(entity.getHtsUuid());
+        dto.setHtsEncounterUuid(entity.getHtsEncounterUuid());
 
         dto.setEnrollmentType(entity.getEnrollmentType());
         dto.setPopulationType(entity.getPopulationType());
