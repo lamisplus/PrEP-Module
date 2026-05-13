@@ -770,6 +770,49 @@
         </sql>
     </changeSet>
 
+    <!-- Legacy compatibility view: many existing native queries (PrEP/PEP
+         enrollment tabs, etc.) still SELECT from `hts_client` with columns
+         person_uuid / date_visit / hiv_test_result. The new HTS module stores
+         everything in `hts_encounter` keyed by patient_id, so this view
+         projects the old shape on top of the new table. If a real `hts_client`
+         table already exists in the environment, the CREATE OR REPLACE VIEW
+         will fail (you can't replace a table with a view) and failOnError="false"
+         lets the legacy table keep serving — best of both worlds.
+
+         The hiv_test_result column is derived from the observation JSONB:
+           - "Positive" when confirmatoryHivTest = STI_HIV_RESULT_POSITIVE,
+             OR when initialHivTest = STI_HIV_RESULT_POSITIVE and there is no
+             confirmatory result.
+           - "Negative" when either field is STI_HIV_RESULT_NEGATIVE.
+           - Empty string otherwise.
+         The downstream ILIKE '%Positive%' / NOT ILIKE '%Positive%' filters work
+         against these display strings. -->
+    <changeSet failOnError="false" author="Gamaliel" id="hts-client-compat-view">
+        <sql>
+            CREATE OR REPLACE VIEW hts_client AS
+            SELECT
+                hts.id,
+                CAST(pp.uuid AS text)               AS person_uuid,
+                hts.date_of_visit                   AS date_visit,
+                CASE
+                    WHEN hts.observation->>'confirmatoryHivTest' = 'STI_HIV_RESULT_POSITIVE'
+                        THEN 'Positive'
+                    WHEN hts.observation->>'initialHivTest' = 'STI_HIV_RESULT_POSITIVE'
+                         AND COALESCE(hts.observation->>'confirmatoryHivTest', '') = ''
+                        THEN 'Positive'
+                    WHEN hts.observation->>'confirmatoryHivTest' = 'STI_HIV_RESULT_NEGATIVE'
+                         OR hts.observation->>'initialHivTest'   = 'STI_HIV_RESULT_NEGATIVE'
+                        THEN 'Negative'
+                    ELSE ''
+                END                                 AS hiv_test_result,
+                hts.facility_id                     AS facility_id,
+                hts.archived                        AS archived
+            FROM hts_encounter hts
+            JOIN patient_person pp ON pp.id = hts.patient_id
+            WHERE hts.archived = false;
+        </sql>
+    </changeSet>
+
     <!-- Indexes covering the Patient-tab + Enrollment-tab joins. Each is an
          additive CREATE INDEX IF NOT EXISTS, so safe on every boot. -->
     <changeSet failOnError="false" author="Gamaliel" id="patient-grid-perf-indexes">
