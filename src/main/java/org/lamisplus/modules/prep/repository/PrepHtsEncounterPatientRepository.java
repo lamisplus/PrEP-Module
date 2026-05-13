@@ -216,7 +216,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
      * Fetches a single {@code hts_encounter} row by its uuid — used when a
      * PrEP form (screening / initiation / followup / clinic) is loaded for
      * view/edit and needs to rehydrate the HTS values it linked via
-     * {@code hts_uuid}. JSON columns are cast to text and parsed in the
+     * {@code hts_encounter_uuid}. JSON columns are cast to text and parsed in the
      * service layer.
      */
     @Query(value =

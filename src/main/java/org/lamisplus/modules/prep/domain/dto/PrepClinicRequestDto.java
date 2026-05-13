@@ -21,7 +21,7 @@ public class PrepClinicRequestDto implements Serializable {
     //@NotNull(message = "height is mandatory")
     private Double height;
 
-    private String htsUuid;
+    private String htsEncounterUuid;
 
     //@NotBlank(message = "prepEnrollmentUuid is mandatory")
     private String prepEnrollmentUuid;

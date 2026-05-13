@@ -535,14 +535,14 @@ public class PrepService {
      * Rehydrate a single hts_encounter by uuid into {@link LatestHtsResultDto}
      * — used by edit/view paths on prep forms (screening, initiation, followup,
      * clinic) to fill the read-only HTS fields when the saved record links to
-     * an hts_encounter via {@code hts_uuid}.
+     * an hts_encounter via {@code hts_encounter_uuid}.
      */
-    public LatestHtsResultDto findHtsEncounterByUuid(String htsUuid) {
-        if (htsUuid == null || htsUuid.isEmpty()) {
+    public LatestHtsResultDto findHtsEncounterByUuid(String htsEncounterUuid) {
+        if (htsEncounterUuid == null || htsEncounterUuid.isEmpty()) {
             return null;
         }
         return prepHtsEncounterPatientRepository
-                .findHtsEncounterByUuid(htsUuid)
+                .findHtsEncounterByUuid(htsEncounterUuid)
                 .map(row -> LatestHtsResultDto.builder()
                         .id(row.getId())
                         .uuid(row.getUuid())

@@ -98,7 +98,7 @@ const BasicInfo = props => {
   const [objValues, setObjValues] = useState({
     uniqueClientId: "",
     clientHtsCode: "",
-    htsUuid: "",
+    htsEncounterUuid: "",
     counselingType: "",
     category: screeningType,
     drugUseHistory: {},
@@ -124,10 +124,10 @@ const BasicInfo = props => {
 
   // The Patient tab now ships the latest HTS encounter with each row. When
   // present, Client's HTS Code / Pregnancy Status / HIV Test Result at Visit
-  // are sourced from it (not collected on this form), and `htsUuid` is what
+  // are sourced from it (not collected on this form), and `htsEncounterUuid` is what
   // we persist server-side. Locked fields below read this flag.
   //
-  // On edit/view the saved record carries a `htsUuid` instead — fetched via
+  // On edit/view the saved record carries a `htsEncounterUuid` instead — fetched via
   // GET /prep/hts-encounter/{uuid} and stashed in `loadedHts` so the same
   // auto-populate / disable logic applies on every render path.
   const [loadedHts, setLoadedHts] = useState(null);
@@ -251,11 +251,11 @@ const BasicInfo = props => {
     }
   }, [props.activeContent]);
 
-  // On edit/view: once the saved record loads and exposes its `htsUuid`,
+  // On edit/view: once the saved record loads and exposes its `htsEncounterUuid`,
   // fetch the underlying hts_encounter so the read-only HTS fields can show
   // the same values that were captured at save time.
   useEffect(() => {
-    const savedUuid = objValues?.htsUuid;
+    const savedUuid = objValues?.htsEncounterUuid;
     if (!savedUuid) return;
     // Skip the fetch if the Patient tab already shipped a latestHtsResult that
     // matches (avoids a wasted round-trip on the create path).
@@ -267,7 +267,7 @@ const BasicInfo = props => {
       })
       .then(resp => setLoadedHts(resp?.data || null))
       .catch(() => setLoadedHts(null));
-  }, [objValues?.htsUuid, patientObj?.latestHtsResult?.uuid]);
+  }, [objValues?.htsEncounterUuid, patientObj?.latestHtsResult?.uuid]);
 
   // Auto-populate fields sourced from the latest hts_encounter. Runs on both
   // create (latestHtsResult from the row) and edit/view (loadedHts from the
@@ -279,7 +279,7 @@ const BasicInfo = props => {
       ...prev,
       clientHtsCode:
         patientObj?.htsClientCode || latestHts.clientCode || prev.clientHtsCode,
-      htsUuid: prev.htsUuid || latestHts.uuid || "",
+      htsEncounterUuid: prev.htsEncounterUuid || latestHts.uuid || "",
       pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
     }));
     setDrugHistory(prev => ({
@@ -489,7 +489,7 @@ const BasicInfo = props => {
       setSaving(true);
       // When the HIV test result is sourced from the latest hts_encounter, do
       // NOT echo it back into drug_use_history JSONB — the canonical source is
-      // the linked hts_uuid. Keeps the table free of redundant fields.
+      // the linked hts_encounter_uuid. Keeps the table free of redundant fields.
       const drugUseHistoryToSave = { ...drugHistory };
       if (isFromHts) delete drugUseHistoryToSave.hivTestResultAtvisit;
       objValues.drugUseHistory = drugUseHistoryToSave;

@@ -19,7 +19,7 @@ public class PrepPepInitiationRequestDto implements Serializable {
     private String supporterName;
     private String supporterRelationshipType;
     private String supporterPhone;
-    private String htsUuid;
+    private String htsEncounterUuid;
     private String enrollmentType;
     private String populationType;
     private Double weight;

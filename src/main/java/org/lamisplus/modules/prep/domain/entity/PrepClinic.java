@@ -51,8 +51,8 @@ public class PrepClinic extends Audit implements Serializable {
     @Column(name = "height")
     private Double height;
 
-    @Column(name = "hts_uuid")
-    private String htsUuid;
+    @Column(name = "hts_encounter_uuid")
+    private String htsEncounterUuid;
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     private String uuid;

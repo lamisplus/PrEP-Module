@@ -43,7 +43,7 @@ public class PrepEligibilityDto implements Serializable {
     private Object considerationForInjections;
     private Object reasonForDecliningPrep;
     private String uniqueClientId;
-    private String htsUuid;
+    private String htsEncounterUuid;
     private String referredFrom;
     private String setting;
     private String serviceStatus;

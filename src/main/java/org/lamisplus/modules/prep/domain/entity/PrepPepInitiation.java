@@ -78,8 +78,8 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @Column(name = "supporter_phone")
     private String supporterPhone;
 
-    @Column(name = "hts_uuid")
-    private String htsUuid;
+    @Column(name = "hts_encounter_uuid")
+    private String htsEncounterUuid;
 
     @Column(name = "weight")
     private Double weight;

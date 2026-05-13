@@ -15,7 +15,7 @@ public class PrepFollowupVisitDto implements Serializable {
     private LocalDate dateInitialAdherenceCounseling;
     private Double weight;
     private Double height;
-    private String htsUuid;
+    private String htsEncounterUuid;
     private String prophylaxisInitiationUuid;
     private Long regimenId;
     private Long regimenTypeId;

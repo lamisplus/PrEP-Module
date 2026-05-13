@@ -87,8 +87,8 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "diastolic")
     private Double diastolic;
 
-    @Column(name = "hts_uuid")
-    private String htsUuid;
+    @Column(name = "hts_encounter_uuid")
+    private String htsEncounterUuid;
 
     @Column(name = "population_type")
     private String populationType;

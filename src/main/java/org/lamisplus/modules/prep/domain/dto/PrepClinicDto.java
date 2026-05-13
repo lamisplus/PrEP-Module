@@ -22,7 +22,7 @@ public class PrepClinicDto implements Serializable {
 
     private Double height;
 
-    private String htsUuid;
+    private String htsEncounterUuid;
 
     private String prepEnrollmentUuid;
 

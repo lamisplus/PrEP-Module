@@ -57,7 +57,7 @@ const PrEPInitialVisitForm = props => {
     supporterRelationshipType: "",
     uniqueId: "",
     hivTestingPoint: "",
-    htsUuid: "",
+    htsEncounterUuid: "",
     enrollmentType: screeningType || "",
     populationType: "",
     weight: "",
@@ -79,10 +79,10 @@ const PrEPInitialVisitForm = props => {
 
   // The Patient tab now ships the latest HTS encounter with each row. When
   // present, HIV Testing Point / Date of HIV Test / Result of HIV Test /
-  // Pregnant are sourced from it (not collected on this form), and `htsUuid`
+  // Pregnant are sourced from it (not collected on this form), and `htsEncounterUuid`
   // is what we persist server-side.
   //
-  // On edit/view the saved record carries a `htsUuid` — fetched via
+  // On edit/view the saved record carries a `htsEncounterUuid` — fetched via
   // GET /prep/hts-encounter/{uuid} into `loadedHts` so the same auto-pop /
   // disable logic applies on every render path.
   const [loadedHts, setLoadedHts] = useState(null);
@@ -134,11 +134,11 @@ const PrEPInitialVisitForm = props => {
     }
   }, []);
 
-  // On edit/view: once the saved record loads and exposes its `htsUuid`,
+  // On edit/view: once the saved record loads and exposes its `htsEncounterUuid`,
   // fetch the underlying hts_encounter so the read-only HTS fields can show
   // the values that were captured at save time.
   useEffect(() => {
-    const savedUuid = objValues?.htsUuid;
+    const savedUuid = objValues?.htsEncounterUuid;
     if (!savedUuid) return;
     if (props.patientObj?.latestHtsResult?.uuid === savedUuid) return;
     if (loadedHts?.uuid === savedUuid) return;
@@ -148,7 +148,7 @@ const PrEPInitialVisitForm = props => {
       })
       .then(resp => setLoadedHts(resp?.data || null))
       .catch(() => setLoadedHts(null));
-  }, [objValues?.htsUuid, props.patientObj?.latestHtsResult?.uuid]);
+  }, [objValues?.htsEncounterUuid, props.patientObj?.latestHtsResult?.uuid]);
 
   // Auto-populate fields sourced from the latest hts_encounter. Runs on both
   // create (latestHtsResult from the row) and edit/view (loadedHts from the
@@ -158,7 +158,7 @@ const PrEPInitialVisitForm = props => {
     if (!isFromHts) return;
     setObjValues(prev => ({
       ...prev,
-      htsUuid: prev.htsUuid || latestHts.uuid || "",
+      htsEncounterUuid: prev.htsEncounterUuid || latestHts.uuid || "",
       hivTestingPoint: latestHts.setting || prev.hivTestingPoint,
       dateOfHivTest: latestHts.dateOfVisit || prev.dateOfHivTest,
       // HTS observation stores STI_HIV_RESULT_* codes; the initiation form's

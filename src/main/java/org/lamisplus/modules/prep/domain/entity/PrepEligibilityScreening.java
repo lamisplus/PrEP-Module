@@ -53,8 +53,8 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
     @Column(name = "unique_client_id")
     private String uniqueClientId;
 
-    @Column(name = "hts_uuid")
-    private String htsUuid;
+    @Column(name = "hts_encounter_uuid")
+    private String htsEncounterUuid;
 
     @Column(name = "target_group")
     private String targetGroup;

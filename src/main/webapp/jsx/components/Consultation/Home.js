@@ -142,7 +142,7 @@ const INITIAL_VALUES = {
   otherTestsDone: [],
   personId: "",
   pregnant: "",
-  htsUuid: "",
+  htsEncounterUuid: "",
   prepEnrollmentUuid: "",
   pulse: "",
   referred: "",
@@ -203,9 +203,9 @@ const ClinicVisit = props => {
 
   // The Patient tab now ships the latest HTS encounter with each row. When
   // present, Pregnancy Status / HTS Result are sourced from it (not collected
-  // on this form), and `htsUuid` is what we persist server-side.
+  // on this form), and `htsEncounterUuid` is what we persist server-side.
   //
-  // On edit/view the saved record carries a `htsUuid` — fetched via
+  // On edit/view the saved record carries a `htsEncounterUuid` — fetched via
   // GET /prep/hts-encounter/{uuid} into `loadedHts` so the same auto-pop /
   // disable logic applies on every render path.
   const [loadedHts, setLoadedHts] = useState(null);
@@ -789,11 +789,11 @@ const ClinicVisit = props => {
     }
   }, [props.activeContent]);
 
-  // On edit/view: once the followup record loads and its `htsUuid` is in the
+  // On edit/view: once the followup record loads and its `htsEncounterUuid` is in the
   // form, fetch the underlying hts_encounter so the read-only HTS fields show
   // the values captured at save time.
   useEffect(() => {
-    const savedUuid = formikRef.current?.values?.htsUuid;
+    const savedUuid = formikRef.current?.values?.htsEncounterUuid;
     if (!savedUuid) return;
     if (props.patientObj?.latestHtsResult?.uuid === savedUuid) return;
     if (loadedHts?.uuid === savedUuid) return;
@@ -803,7 +803,7 @@ const ClinicVisit = props => {
       })
       .then(resp => setLoadedHts(resp?.data || null))
       .catch(() => setLoadedHts(null));
-  }, [formikRef.current?.values?.htsUuid, props.patientObj?.latestHtsResult?.uuid]);
+  }, [formikRef.current?.values?.htsEncounterUuid, props.patientObj?.latestHtsResult?.uuid]);
 
   // Auto-populate fields sourced from the latest hts_encounter. Runs on both
   // create (latestHtsResult from the row) and edit/view (loadedHts from the
@@ -813,7 +813,7 @@ const ClinicVisit = props => {
   useEffect(() => {
     if (!isFromHts) return;
     if (formikRef.current) {
-      formikRef.current.setFieldValue("htsUuid", latestHts.uuid || "");
+      formikRef.current.setFieldValue("htsEncounterUuid", latestHts.uuid || "");
       if (htsObs.pregnancyStatus) {
         formikRef.current.setFieldValue("pregnant", htsObs.pregnancyStatus);
       }
@@ -1081,11 +1081,11 @@ const ClinicVisit = props => {
     const payload = { ...values };
     payload.duration = getDuration(payload.monthsOfRefill);
     payload.monthsOfRefill = getDuration(payload.monthsOfRefill);
-    // On the HTS path we persist only `htsUuid`; the backend no longer stores
+    // On the HTS path we persist only `htsEncounterUuid`; the backend no longer stores
     // hiv_test_result / hiv_test_result_date / pregnant on prep_followup_visit
     // (everything is dereferenced via hts_encounter at read time).
     if (isFromHts) {
-      payload.htsUuid = latestHts.uuid;
+      payload.htsEncounterUuid = latestHts.uuid;
     } else {
       payload.hivTestResultDate = hivTestResultDate;
       payload.hivTestResult = hivTestValue;

@@ -5,7 +5,7 @@ import java.time.LocalDate;
 /**
  * Spring Data projection for a single row of {@code hts_encounter}, used when
  * a PrEP form needs to rehydrate the HTS values it once linked via
- * {@code hts_uuid}. JSON-typed columns are exposed as text and parsed in the
+ * {@code hts_encounter_uuid}. JSON-typed columns are exposed as text and parsed in the
  * service layer.
  */
 public interface HtsEncounterRow {

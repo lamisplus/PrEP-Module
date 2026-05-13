@@ -34,7 +34,7 @@ public class PrepEnrollmentRequestDto implements Serializable {
 
     private String supporterPhone;
 
-    private String htsUuid;
+    private String htsEncounterUuid;
 
     private String enrollmentType;
 
