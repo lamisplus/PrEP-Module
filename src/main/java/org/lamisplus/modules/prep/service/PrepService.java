@@ -419,47 +419,37 @@ public class PrepService {
     }
 
     public Page<PrepClient> findAllEnrolledPrepPersonPage(String searchValue, int pageNo, int pageSize) {
-        Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<PrepClient> resultPage;
-
-        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            searchValue = searchValue.replaceAll("\\\\s", "");
-            String queryParam = "%" + searchValue + "%";
-            resultPage = prepPepInitiationRepository.findAllPersonPrepAndStatusBySearchParam(false, facilityId, queryParam, pageable);
-        } else {
-            resultPage = prepPepInitiationRepository.findAllPersonPrepAndStatus(false, facilityId, pageable);
-        }
-        List<PrepClient> filteredList = resultPage.getContent().stream()
-                .filter(prepClient -> !"Not Enrolled".equals(prepClient.getPrepStatus()))
-                .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
-                // Keep only PrEP-arm clients: the latest initiation must be PrEP. The shared
-                // query above does not filter by enrollment_type (the Patients tab needs all
-                // patients), so we apply the arm filter here for the PrEP-Enrolled tab only.
-                .filter(prepClient -> prepClient.getPersonUuid() != null
-                        && prepPepInitiationRepository
-                                .findTopByPersonUuidAndArchived(prepClient.getPersonUuid(), false)
-                                .map(latest -> EnrollmentType.isPrep(latest.getEnrollmentType()))
-                                .orElse(false))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(filteredList, pageable, resultPage.getTotalElements());
+        return findEnrolledByEnrollmentType(EnrollmentType.PREP, searchValue, pageNo, pageSize);
     }
 
     public Page<PrepClient> findAllPepEnrolledPrepPersonPage(String searchValue, int pageNo, int pageSize) {
+        return findEnrolledByEnrollmentType(EnrollmentType.PEP, searchValue, pageNo, pageSize);
+    }
+
+    /**
+     * Pulls rows directly from {@code prophylaxis_initiation} filtered by
+     * {@code enrollment_type}. Replaces the old patient_person-driven queries
+     * that depended on hts_client + complex post-filters in Java. The native
+     * query in {@link PrepPepInitiationRepository#findEnrolledByType} computes
+     * the same status CASE as the Patients tab; the post-filter here strips
+     * Seroconverted clients to mirror existing tab behaviour.
+     */
+    private Page<PrepClient> findEnrolledByEnrollmentType(
+            String enrollmentType, String searchValue, int pageNo, int pageSize) {
         Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<PrepClient> resultPage;
 
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            searchValue = searchValue.replaceAll("\\\\s", "");
-            String queryParam = "%" + searchValue + "%";
-            resultPage = prepPepInitiationRepository.findAllPepEnrolledPersonPrepAndStatusBySearchParam(false, facilityId, queryParam, pageable);
+            String queryParam = "%" + searchValue.replaceAll("\\s", "") + "%";
+            resultPage = prepPepInitiationRepository
+                    .findEnrolledByTypeBySearchParam(false, facilityId, enrollmentType, queryParam, pageable);
         } else {
-            resultPage = prepPepInitiationRepository.findAllPepEnrolledPersonPrepAndStatus(false, facilityId, pageable);
+            resultPage = prepPepInitiationRepository
+                    .findEnrolledByType(false, facilityId, enrollmentType, pageable);
         }
+
         List<PrepClient> filteredList = resultPage.getContent().stream()
-                .filter(prepClient -> !"Not Enrolled".equals(prepClient.getPrepStatus()))
                 .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
                 .collect(Collectors.toList());
 
