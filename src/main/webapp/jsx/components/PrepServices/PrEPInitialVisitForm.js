@@ -134,21 +134,30 @@ const PrEPInitialVisitForm = props => {
     }
   }, []);
 
-  // On edit/view: once the saved record loads and exposes its `htsEncounterUuid`,
-  // fetch the underlying hts_encounter so the read-only HTS fields can show
-  // the values that were captured at save time.
+  // Fetch the linked hts_encounter so the read-only HTS fields can populate.
+  // Picks a target uuid in priority order:
+  //   1. Saved initiation record's `htsEncounterUuid` (edit/view path)
+  //   2. Eligibility's `htsEncounterUuid` from `patientDto` (when entering
+  //      from the dashboard the screening record is loaded by
+  //      `GetPatientDTOObj` — its linked HTS encounter is the right source
+  //      for pregnancy / HTS test result on the new initiation).
   useEffect(() => {
-    const savedUuid = objValues?.htsEncounterUuid;
-    if (!savedUuid) return;
-    if (props.patientObj?.latestHtsResult?.uuid === savedUuid) return;
-    if (loadedHts?.uuid === savedUuid) return;
+    const targetUuid =
+      objValues?.htsEncounterUuid || patientDto?.htsEncounterUuid;
+    if (!targetUuid) return;
+    if (props.patientObj?.latestHtsResult?.uuid === targetUuid) return;
+    if (loadedHts?.uuid === targetUuid) return;
     axios
-      .get(`${baseUrl}prep/hts-encounter/${savedUuid}`, {
+      .get(`${baseUrl}prep/hts-encounter/${targetUuid}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(resp => setLoadedHts(resp?.data || null))
       .catch(() => setLoadedHts(null));
-  }, [objValues?.htsEncounterUuid, props.patientObj?.latestHtsResult?.uuid]);
+  }, [
+    objValues?.htsEncounterUuid,
+    patientDto?.htsEncounterUuid,
+    props.patientObj?.latestHtsResult?.uuid,
+  ]);
 
   // Auto-populate fields sourced from the latest hts_encounter. Runs on both
   // create (latestHtsResult from the row) and edit/view (loadedHts from the
@@ -179,12 +188,11 @@ const PrEPInitialVisitForm = props => {
       )
       .then(response => {
         setPatientDto(response.data);
-        // Auto-populate fields from latest screening data — but only the ones
-        // NOT sourced from the latest hts_encounter. When isFromHts, the HTS
-        // useEffect is the canonical source for resultOfHivTest /
-        // pregnancyStatus / dateOfHivTest / hivTestingPoint.
+        // Auto-populate non-HTS fields from the latest screening (eligibility)
+        // record. HTS-sourced fields (resultOfHivTest, dateOfHivTest,
+        // hivTestingPoint, pregnancyStatus) are owned by the hts_encounter
+        // useEffect above — eligibility no longer stores them.
         if (response.data) {
-          const hivResult = response.data.drugUseHistory?.hivTestResultAtvisit;
           setObjValues(prev => ({
             ...prev,
             // category arrives as a PREP_PEP_ENROLLMENT_TYPE code; normalize to short label
@@ -193,11 +201,6 @@ const PrEPInitialVisitForm = props => {
               fromEnrollmentTypeCode(response.data.category) || prev.enrollmentType,
             uniqueId: response.data.uniqueClientId || prev.uniqueId,
             populationType: response.data.populationType || prev.populationType,
-            ...(isFromHts ? {} : {
-              resultOfHivTest: hivResult || prev.resultOfHivTest,
-              pregnancyStatus: response.data.pregnancyStatus || prev.pregnancyStatus,
-              dateOfHivTest: response.data.visitDate || prev.dateOfHivTest,
-            }),
           }));
         }
         // Fetch previous initiation records for returning clients

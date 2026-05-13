@@ -789,24 +789,33 @@ const ClinicVisit = props => {
     }
   }, [props.activeContent]);
 
-  // On edit/view: once the followup record loads and its `htsEncounterUuid`
-  // lands in `formInitialValues` (the reactive state mirror of the saved
-  // record), fetch the underlying hts_encounter so the read-only HTS fields
-  // show the values captured at save time. We can't depend on
-  // `formikRef.current.values.htsEncounterUuid` directly — refs don't trigger
-  // re-renders; `formInitialValues` does.
+  // Fetch the linked hts_encounter so the read-only HTS fields can populate.
+  // Picks a target uuid in priority order:
+  //   1. Saved followup record's `htsEncounterUuid` (edit/view path)
+  //   2. Latest eligibility's `htsEncounterUuid` (when entering via the
+  //      visit-date sync — keeps pregnancy / HTS result accurate for the
+  //      eligibility that matches this encounter date)
+  // We can't depend on `formikRef.current.values.htsEncounterUuid` directly —
+  // refs don't trigger re-renders; `formInitialValues` does, and so does
+  // `latestFromEligibility`.
   useEffect(() => {
-    const savedUuid = formInitialValues?.htsEncounterUuid;
-    if (!savedUuid) return;
-    if (props.patientObj?.latestHtsResult?.uuid === savedUuid) return;
-    if (loadedHts?.uuid === savedUuid) return;
+    const targetUuid =
+      formInitialValues?.htsEncounterUuid
+      || latestFromEligibility?.htsEncounterUuid;
+    if (!targetUuid) return;
+    if (props.patientObj?.latestHtsResult?.uuid === targetUuid) return;
+    if (loadedHts?.uuid === targetUuid) return;
     axios
-      .get(`${baseUrl}prep/hts-encounter/${savedUuid}`, {
+      .get(`${baseUrl}prep/hts-encounter/${targetUuid}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(resp => setLoadedHts(resp?.data || null))
       .catch(() => setLoadedHts(null));
-  }, [formInitialValues?.htsEncounterUuid, props.patientObj?.latestHtsResult?.uuid]);
+  }, [
+    formInitialValues?.htsEncounterUuid,
+    latestFromEligibility?.htsEncounterUuid,
+    props.patientObj?.latestHtsResult?.uuid,
+  ]);
 
   // Auto-populate fields sourced from the latest hts_encounter. Runs on both
   // create (latestHtsResult from the row) and edit/view (loadedHts from the
@@ -891,14 +900,13 @@ const ClinicVisit = props => {
         "reasonForSwitch",
         latestFromEligibility?.reasonForSwitch || ""
       );
-      // Pregnant comes from the latest hts_encounter on the HTS path; only
-      // fall back to eligibility's value on legacy / no-HTS paths.
-      if (!isFromHts) {
-        formikRef.current.setFieldValue(
-          "pregnant",
-          latestFromEligibility?.pregnancyStatus || ""
-        );
-      }
+      // Pregnant now comes from the linked hts_encounter (auto-pop useEffect
+      // keyed on latestHts.uuid). When the eligibility-sync brings in a new
+      // eligibility with a different htsEncounterUuid, the fetch useEffect
+      // above swaps `loadedHts`, which re-runs the auto-pop and refreshes
+      // pregnant + HTS Result correctly. The legacy
+      // `latestFromEligibility.pregnancyStatus` field no longer exists on
+      // prophylaxis_screening, so this block stops writing pregnant directly.
     }
   }, [latestFromEligibility, eligibilityVisitDateSync]);
 
