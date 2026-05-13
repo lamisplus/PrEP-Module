@@ -770,4 +770,34 @@
         </sql>
     </changeSet>
 
+    <!-- Indexes covering the Patient-tab + Enrollment-tab joins. Each is an
+         additive CREATE INDEX IF NOT EXISTS, so safe on every boot. -->
+    <changeSet failOnError="false" author="Gamaliel" id="patient-grid-perf-indexes">
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_hts_encounter_patient_archived_date
+                ON hts_encounter (patient_id, archived, date_of_visit DESC);
+
+            CREATE INDEX IF NOT EXISTS idx_prophylaxis_initiation_person_archived
+                ON prophylaxis_initiation (person_uuid, archived);
+
+            CREATE INDEX IF NOT EXISTS idx_prophylaxis_screening_person_archived
+                ON prophylaxis_screening (person_uuid, archived);
+
+            CREATE INDEX IF NOT EXISTS idx_prep_followup_visit_person_archived
+                ON prep_followup_visit (person_uuid, archived, encounter_date DESC);
+
+            CREATE INDEX IF NOT EXISTS idx_prophylaxis_interruptions_person_archived
+                ON prophylaxis_interruptions (person_uuid, archived);
+
+            CREATE INDEX IF NOT EXISTS idx_hiv_enrollment_person_archived
+                ON hiv_enrollment (person_uuid, archived);
+
+            CREATE INDEX IF NOT EXISTS idx_patient_person_facility_archived
+                ON patient_person (facility_id, archived);
+
+            CREATE INDEX IF NOT EXISTS idx_base_application_codeset_code
+                ON base_application_codeset (code);
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
