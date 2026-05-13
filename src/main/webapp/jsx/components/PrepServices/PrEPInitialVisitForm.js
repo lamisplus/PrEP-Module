@@ -23,6 +23,7 @@ import { Spinner } from "reactstrap";
 import { useStyles } from "../../../hooks/styles/prepRegistration/useStyle";
 import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 import { fetchInitialVisitCodesets } from "../../../apiCalls/hivPreventionCodesets";
+import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { fetchPrepRegimens, getPepRegimenOptions } from "../Consultation/codesets";
 
 // Map between the canonical PREP_PEP_ENROLLMENT_TYPE codeset codes and the short
@@ -138,8 +139,11 @@ const PrEPInitialVisitForm = props => {
       htsUuid: latestHts.uuid || "",
       hivTestingPoint: latestHts.setting || prev.hivTestingPoint,
       dateOfHivTest: latestHts.dateOfVisit || prev.dateOfHivTest,
+      // HTS observation stores STI_HIV_RESULT_* codes; the initiation form's
+      // dropdown is on HIV_TEST_RESULT_*, so translate.
       resultOfHivTest:
-        htsObs.confirmatoryHivTest || htsObs.initialHivTest || prev.resultOfHivTest,
+        toHivTestResultCode(htsObs.confirmatoryHivTest || htsObs.initialHivTest)
+          || prev.resultOfHivTest,
       pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
     }));
   }, [latestHts?.uuid, props.activeContent?.id]);

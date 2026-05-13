@@ -9,6 +9,7 @@ import {
 } from "reactstrap";
 import { url as baseUrl, token } from "../../../api";
 import { ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
+import { toHtsResultCode } from "../../../Utils/htsResultMapper";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
 import AddIcon from "@mui/icons-material/Add";
@@ -361,9 +362,13 @@ const ClinicVisit = props => {
   // HIV test result is now sourced from the latest hts_encounter shipped with
   // the patient row (see `props.patientObj.latestHtsResult`) — the legacy
   // hts_client lookup endpoint and its "HTS record found" toast are gone.
+  // HTS observation stores STI_HIV_RESULT_* codes; the followup form's
+  // dropdown is on HTS_RESULT_HIV_*, so translate.
   const getHivResult = () => {
     if (!latestHts) return;
-    setHivTestValue(htsObs.confirmatoryHivTest || htsObs.initialHivTest || "");
+    setHivTestValue(
+      toHtsResultCode(htsObs.confirmatoryHivTest || htsObs.initialHivTest) || ""
+    );
     setHivTestResultDate(latestHts.dateOfVisit || "");
   };
 

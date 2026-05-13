@@ -14,6 +14,7 @@ import "react-widgets/dist/css/react-widgets.css";
 import { token, url as baseUrl } from "../../../api";
 import "react-phone-input-2/lib/style.css";
 import { fetchEligibilityScreeningCodesets } from "../../../apiCalls/hivPreventionCodesets";
+import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
@@ -258,8 +259,11 @@ const BasicInfo = props => {
     }));
     setDrugHistory(prev => ({
       ...prev,
+      // HTS observation stores STI_HIV_RESULT_* codes; the screening form's
+      // dropdown is on HIV_TEST_RESULT_*, so translate.
       hivTestResultAtvisit:
-        htsObs.confirmatoryHivTest || htsObs.initialHivTest || prev.hivTestResultAtvisit,
+        toHivTestResultCode(htsObs.confirmatoryHivTest || htsObs.initialHivTest)
+          || prev.hivTestResultAtvisit,
     }));
   }, [latestHts?.uuid, props.activeContent?.id]);
 

@@ -137,7 +137,10 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    ON preg_codeset.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n";
 
     // initialHivTest must be NEGATIVE; confirmatoryHivTest must NOT be POSITIVE
-    // (empty / null / NEGATIVE all pass); early-detect must indicate acute infection.
+    // (empty / null / NEGATIVE all pass). For early-detect: include patients
+    // with one of the acute-infection markers AND patients with no early-detect
+    // result at all (a plain HIV-negative client without acute-infection
+    // testing is still eligible for PrEP).
     String WHERE_FILTERS =
             "WHERE hts.archived = false\n" +
             "AND p.archived = CAST(?1 AS INTEGER)\n" +
@@ -147,10 +150,12 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "AND (hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' IS NULL\n" +
             "     OR hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' <> '"
                     + HtsObservationKeys.HIV_RESULT_POSITIVE + "')\n" +
-            "AND hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN (\n" +
-            "    '" + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "',\n" +
-            "    '" + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "'\n" +
-            ")\n";
+            "AND (hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IS NULL\n" +
+            "     OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' = ''\n" +
+            "     OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN (\n" +
+            "         '" + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "',\n" +
+            "         '" + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "'\n" +
+            "     ))\n";
 
     String GROUP_BY =
             "GROUP BY\n" +

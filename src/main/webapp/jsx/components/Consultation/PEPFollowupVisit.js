@@ -1180,14 +1180,32 @@ const PEPFollowupVisit = props => {
                                 <td>{index + 1}</td>
                                 <td>{codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.find(v => v.code === entry.test)?.display || entry.test}</td>
                                 <td>
-                                  <span
-                                    style={{
-                                      color: entry.result?.toLowerCase() === "positive" ? "red" : "green",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    {entry.result}
-                                  </span>
+                                  {(() => {
+                                    // entry.result is a code (e.g. STI_HIV_RESULT_POSITIVE
+                                    // or HTS_RESULT_HIV_NEGATIVE). Render the codeset
+                                    // display, fall back to the raw value, and colour
+                                    // by whether the resolved label contains "positive".
+                                    const resolved =
+                                      codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.find(
+                                        v => v.code === entry.result
+                                      )?.display ||
+                                      codeset?.HTS_RESULT?.find(v => v.code === entry.result)?.display ||
+                                      codeset?.HIV_TEST_RESULT?.find(v => v.code === entry.result)?.display ||
+                                      entry.result;
+                                    const isPositive = (resolved || "")
+                                      .toLowerCase()
+                                      .includes("positive");
+                                    return (
+                                      <span
+                                        style={{
+                                          color: isPositive ? "red" : "green",
+                                          fontWeight: "bold",
+                                        }}
+                                      >
+                                        {resolved}
+                                      </span>
+                                    );
+                                  })()}
                                 </td>
                                 {!disabledField && (
                                   <td>

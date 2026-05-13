@@ -71,6 +71,14 @@ function PatientCard(props) {
   const [showReminder, setShowReminder] = useState(0);
   const toggleModal = () => setShowReminder(0);
 
+  // Pregnancy is shown only for female patients (codeset display already
+  // resolved server-side via base_application_codeset). Gender on the row
+  // is plain English ("Female") — fall back to patientDetail when patientObj
+  // hasn't been rehydrated yet.
+  const genderRaw =
+    patientObj?.gender || patientObj?.sex || getSex(patientDetail);
+  const isFemale = (genderRaw || "").toLowerCase() === "female";
+
   useEffect(() => {
     setShowReminder(getReminderAlert(parseInt(patientObj?.sendCabLaAlert)));
   }, []);
@@ -116,6 +124,26 @@ function PatientCard(props) {
                           </span>
                         </ButtonMui>
                       </Link>
+                      {/* Quick badges directly under the patient name so the
+                          dashboard surfaces clinically relevant state up top:
+                          current PrEP regimen, and pregnancy status for female
+                          patients. Display strings (not codes) are resolved
+                          server-side. */}
+                      {(patientDetail?.currentRegimen ||
+                        (isFemale && patientDetail?.pregnant)) && (
+                        <div className="mt-2" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                          {patientDetail?.currentRegimen && (
+                            <Label color={"blue"} size={"small"}>
+                              Current Regimen:&nbsp;<b>{patientDetail.currentRegimen}</b>
+                            </Label>
+                          )}
+                          {isFemale && patientDetail?.pregnant && (
+                            <Label color={"pink"} size={"small"}>
+                              Pregnancy Status:&nbsp;<b>{patientDetail.pregnant}</b>
+                            </Label>
+                          )}
+                        </div>
+                      )}
                     </Col>
                     <Col md={4} className={classes.root2}>
                       <span>
@@ -204,26 +232,11 @@ function PatientCard(props) {
                         </div>
                       </Col>
                     )}
-                    {patientDetail?.pregnant && (
-                      <Col md={6} className={classes.root2}>
-                        <span>
-                          Pregnant :{" "}
-                          <b style={{ color: "#0B72AA" }}>
-                            {patientDetail.pregnant}
-                          </b>
-                        </span>
-                      </Col>
-                    )}
-                    {patientDetail?.breastfeeding && (
-                      <Col md={6} className={classes.root2}>
-                        <span>
-                          Breastfeeding :{" "}
-                          <b style={{ color: "#0B72AA" }}>
-                            {patientDetail.breastfeeding}
-                          </b>
-                        </span>
-                      </Col>
-                    )}
+                    {/* Pregnancy + Current Regimen now render as top-row
+                        chips next to the patient name; the old footer
+                        rows here were removed. Breastfeeding is folded into
+                        Pregnancy Status (one of the PREGNANCY_STATUS codeset
+                        values). */}
                   </Row>
                 </>
               ) : (

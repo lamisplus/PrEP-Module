@@ -22,6 +22,7 @@ import org.lamisplus.modules.prep.repository.PrepHtsEncounterPatientRepository;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
 import org.lamisplus.modules.prep.repository.ProphylaxisInterruptionRepository;
 import org.lamisplus.modules.prep.util.EnrollmentType;
+import org.lamisplus.modules.prep.util.PrepRegimens;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -617,6 +618,23 @@ public class PrepService {
         // is one of the possible values). Patient Card reads this directly.
         prepDtos.setPregnant(
                 prepHtsEncounterPatientRepository.findLatestPregnancyStatusDisplay(person.getUuid()));
+
+        // Current regimen — display name from the patient's most recent
+        // prep_followup_visit (covers both initiation and ongoing visits).
+        // Patient Card renders this; falling back to the regimen code when an
+        // entry is not mapped in PrepRegimens.
+        prepFollowupVisitRepository
+                .findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(
+                        person.getUuid(), currentUserOrganizationService.getCurrentUserOrganization(),
+                        false, false)
+                .stream()
+                .findFirst()
+                .ifPresent(latestVisit -> {
+                    Long regimenId = latestVisit.getRegimenId();
+                    if (regimenId != null && regimenId != 0L) {
+                        prepDtos.setCurrentRegimen(PrepRegimens.displayById(regimenId));
+                    }
+                });
 
         // isCurrentStatus* flags still come off the latest initiation — they
         // drive the Patient List "Enroll" modal and the PrEP/PEP enrollment-tab

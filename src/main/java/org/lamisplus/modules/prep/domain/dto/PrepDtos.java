@@ -25,6 +25,8 @@ public class PrepDtos {
     // screening or initiation record. Used by the Patient Card.
     private String pregnant;
     private String breastfeeding;
+    /** Display name of the patient's current regimen (latest prep_followup_visit). */
+    private String currentRegimen;
 
     /**
      * TRUE when the patient is currently active on PrEP — i.e. their latest
