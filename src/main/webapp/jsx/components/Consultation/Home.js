@@ -789,11 +789,14 @@ const ClinicVisit = props => {
     }
   }, [props.activeContent]);
 
-  // On edit/view: once the followup record loads and its `htsEncounterUuid` is in the
-  // form, fetch the underlying hts_encounter so the read-only HTS fields show
-  // the values captured at save time.
+  // On edit/view: once the followup record loads and its `htsEncounterUuid`
+  // lands in `formInitialValues` (the reactive state mirror of the saved
+  // record), fetch the underlying hts_encounter so the read-only HTS fields
+  // show the values captured at save time. We can't depend on
+  // `formikRef.current.values.htsEncounterUuid` directly — refs don't trigger
+  // re-renders; `formInitialValues` does.
   useEffect(() => {
-    const savedUuid = formikRef.current?.values?.htsEncounterUuid;
+    const savedUuid = formInitialValues?.htsEncounterUuid;
     if (!savedUuid) return;
     if (props.patientObj?.latestHtsResult?.uuid === savedUuid) return;
     if (loadedHts?.uuid === savedUuid) return;
@@ -803,7 +806,7 @@ const ClinicVisit = props => {
       })
       .then(resp => setLoadedHts(resp?.data || null))
       .catch(() => setLoadedHts(null));
-  }, [formikRef.current?.values?.htsEncounterUuid, props.patientObj?.latestHtsResult?.uuid]);
+  }, [formInitialValues?.htsEncounterUuid, props.patientObj?.latestHtsResult?.uuid]);
 
   // Auto-populate fields sourced from the latest hts_encounter. Runs on both
   // create (latestHtsResult from the row) and edit/view (loadedHts from the

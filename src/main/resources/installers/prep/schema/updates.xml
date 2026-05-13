@@ -755,5 +755,19 @@
     <!-- is_interrupted, breast_feeding and prophylaxis_initiation_uuid columns are
          declared inline on the CREATE TABLE changesets above; no ALTER required. -->
 
+    <!-- Adds the hts_encounter_uuid link column to the four prep tables that now
+         dereference an hts_encounter (uuid) instead of denormalising HTS fields
+         (pregnancy_status, hiv_test_result, hiv_testing_point, etc.). Each ALTER
+         is idempotent (ADD COLUMN IF NOT EXISTS) so this changeset is safe to
+         re-run against environments that may already have the column. The set
+         tolerates a table not existing yet (failOnError=false). -->
+    <changeSet failOnError="false" author="Gamaliel" id="add-hts-encounter-uuid-to-prep-tables">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening   ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+            ALTER TABLE IF EXISTS prophylaxis_initiation  ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+            ALTER TABLE IF EXISTS prep_followup_visit     ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+            ALTER TABLE IF EXISTS prep_clinic             ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+        </sql>
+    </changeSet>
 
 </databaseChangeLog>
