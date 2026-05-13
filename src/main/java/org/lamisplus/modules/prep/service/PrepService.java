@@ -186,9 +186,8 @@ public class PrepService {
         prepClinic.setHealthCareWorkerSignature(clinicRequestDto.getHealthCareWorkerSignature());
         prepClinic.setComment(clinicRequestDto.getComment());
         prepClinic.setPreviousPrepStatus(clinicRequestDto.getPreviousPrepStatus());
-        System.out.println("prepClinic: " + prepClinic);
         prepClinic = prepFollowupVisitRepository.save(prepClinic);
-        prepClinic.setPregnant(clinicRequestDto.getPregnant());
+        prepClinic.setHtsUuid(clinicRequestDto.getHtsUuid());
         prepClinic.setPerson(person);
         PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic);
         return prepClinicDto;
@@ -872,7 +871,7 @@ public class PrepService {
         prepClinic.setDateInitialAdherenceCounseling(prepClinicRequestDto.getDateInitialAdherenceCounseling());
         prepClinic.setWeight(prepClinicRequestDto.getWeight());
         prepClinic.setHeight(prepClinicRequestDto.getHeight());
-        prepClinic.setPregnant(prepClinicRequestDto.getPregnant());
+        prepClinic.setHtsUuid(prepClinicRequestDto.getHtsUuid());
         prepClinic.setPrepDistributionSetting(prepClinicRequestDto.getPrepDistributionSetting());
         prepClinic.setFamilyPlanning(prepClinicRequestDto.getFamilyPlanning());
         prepClinic.setDateOfFamilyPlanning(prepClinicRequestDto.getDateOfFamilyPlanning());
@@ -907,14 +906,12 @@ public class PrepService {
         prepClinic.setDuration(prepClinicRequestDto.getDuration());
         prepClinic.setPrepGiven(prepClinicRequestDto.getPrepGiven());
         prepClinic.setOtherDrugs(prepClinicRequestDto.getOtherDrugs());
-        prepClinic.setHivTestResult(prepClinicRequestDto.getHivTestResult());
         prepClinic.setDateLiverFunctionTestResults(prepClinicRequestDto.getDateLiverFunctionTestResults());
         prepClinic.setPrepType(prepClinicRequestDto.getPrepType());
         prepClinic.setPopulationType(prepClinicRequestDto.getPopulationType());
         prepClinic.setLiverFunctionTestResults(prepClinicRequestDto.getLiverFunctionTestResults());
         prepClinic.setPrepNotedSideEffects(prepClinicRequestDto.getPrepNotedSideEffects());
         prepClinic.setHistoryOfDrugToDrugInteraction(prepClinicRequestDto.getHistoryOfDrugToDrugInteraction());
-        prepClinic.setHivTestResultDate(prepClinicRequestDto.getHivTestResultDate());
         prepClinic.setMonthsOfRefill(prepClinicRequestDto.getMonthsOfRefill());
         prepClinic.setHistoryOfDrugAllergies(prepClinicRequestDto.getHistoryOfDrugAllergies());
         prepClinic.setHealthCareWorkerSignature(prepClinicRequestDto.getHealthCareWorkerSignature());
@@ -944,7 +941,7 @@ public class PrepService {
         prepClinicDto.setDateInitialAdherenceCounseling(clinic.getDateInitialAdherenceCounseling());
         prepClinicDto.setWeight(clinic.getWeight());
         prepClinicDto.setHeight(clinic.getHeight());
-        prepClinicDto.setPregnant(clinic.getPregnant());
+        prepClinicDto.setHtsUuid(clinic.getHtsUuid());
         prepClinicDto.setPrepDistributionSetting(clinic.getPrepDistributionSetting());
         prepClinicDto.setFamilyPlanning(clinic.getFamilyPlanning());
         prepClinicDto.setDateReferred(clinic.getDateReferred());
@@ -980,14 +977,11 @@ public class PrepService {
         prepClinicDto.setVisitType(clinic.getVisitType());
         prepClinicDto.setPrepGiven(clinic.getPrepGiven());
         prepClinicDto.setOtherDrugs(clinic.getOtherDrugs());
-        prepClinicDto.setHivTestResult(clinic.getHivTestResult());
-        prepClinicDto.setHivTestResultDate(clinic.getHivTestResultDate());
         prepClinicDto.setDateLiverFunctionTestResults(clinic.getDateLiverFunctionTestResults());
         prepClinicDto.setPrepType(clinic.getPrepType());
         prepClinicDto.setPopulationType(clinic.getPopulationType());
         prepClinicDto.setLiverFunctionTestResults(clinic.getLiverFunctionTestResults());
         prepClinicDto.setHistoryOfDrugToDrugInteraction(clinic.getHistoryOfDrugToDrugInteraction());
-        prepClinicDto.setHivTestResultDate(clinic.getHivTestResultDate());
         prepClinicDto.setMonthsOfRefill(clinic.getMonthsOfRefill());
         prepClinicDto.setHistoryOfDrugAllergies(clinic.getHistoryOfDrugAllergies());
         prepClinicDto.setDateLiverFunctionTestResults(clinic.getDateLiverFunctionTestResults());

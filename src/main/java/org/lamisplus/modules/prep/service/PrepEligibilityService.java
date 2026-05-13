@@ -134,7 +134,6 @@ public class PrepEligibilityService {
                     prepEligibility.getPersonUuid(),
                     prepEligibility.getVisitType(),
                     prepEligibility.getPopulationType(),
-                    prepEligibility.getPregnancyStatus(),
                     null,
                     prepEligibility.getReasonForSwitch(),
                     null

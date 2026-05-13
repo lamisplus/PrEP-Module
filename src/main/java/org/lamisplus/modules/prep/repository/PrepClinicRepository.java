@@ -142,17 +142,15 @@ public interface PrepClinicRepository extends JpaRepository<PrepClinic, Long>, J
                     "UPDATE prep_clinic " +
                     "SET visit_type = ?3, " +
                     "population_type = ?4, " +
-                    "pregnant = ?5, " +
-                    "liver_function_test_results = CAST(?6 AS jsonb), " +  // ✅ This cast is essential
-                    "reason_for_switch = ?7, " +
-                    "date_of_liver_function_test_results = ?8 " +
+                    "liver_function_test_results = CAST(?5 AS jsonb), " +
+                    "reason_for_switch = ?6, " +
+                    "date_of_liver_function_test_results = ?7 " +
                     "WHERE id = (SELECT id FROM target)", nativeQuery = true)
     int updateFirstPrepClinicMatchViaCte(
             LocalDate encounterDate,
             String personUuid,
             String visitType,
             String populationType,
-            String pregnant,
             String liverFunctionTestResults, // ✅ must be a JSON string
             String reasonForSwitch,
             LocalDate dateOfLiverFunctionTestResults

@@ -51,8 +51,8 @@ public class PrepClinic extends Audit implements Serializable {
     @Column(name = "height")
     private Double height;
 
-    @Column(name = "pregnant")
-    private String pregnant;
+    @Column(name = "hts_uuid")
+    private String htsUuid;
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     private String uuid;
@@ -177,10 +177,6 @@ public class PrepClinic extends Audit implements Serializable {
     @Column(name = "other_drugs")
     private String otherDrugs;
 
-    @Column(name = "hiv_test_result")
-    private String hivTestResult;
-    @Column(name = "hiv_test_result_date")
-    private LocalDate hivTestResultDate;
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "urinalysis", columnDefinition = "jsonb")

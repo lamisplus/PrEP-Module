@@ -22,7 +22,7 @@ public class PrepClinicDto implements Serializable {
 
     private Double height;
 
-    private String pregnant;
+    private String htsUuid;
 
     private String prepEnrollmentUuid;
 
@@ -86,7 +86,6 @@ public class PrepClinicDto implements Serializable {
     private String familyPlanning;
     private LocalDate dateOfFamilyPlanning;
     private String otherDrugs;
-    private String hivTestResult;
     private String prepType;
     private String populationType;
     private String visitType;
@@ -99,7 +98,6 @@ public class PrepClinicDto implements Serializable {
 
     private String historyOfDrugToDrugInteraction;
     private String historyOfDrugAllergies;
-    private LocalDate hivTestResultDate;
     private Integer monthsOfRefill;
     private String comment;
     private String previousPrepStatus;

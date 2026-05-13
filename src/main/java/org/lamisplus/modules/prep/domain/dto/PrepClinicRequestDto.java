@@ -21,7 +21,7 @@ public class PrepClinicRequestDto implements Serializable {
     //@NotNull(message = "height is mandatory")
     private Double height;
 
-    private String pregnant;
+    private String htsUuid;
 
     //@NotBlank(message = "prepEnrollmentUuid is mandatory")
     private String prepEnrollmentUuid;
@@ -91,7 +91,6 @@ public class PrepClinicRequestDto implements Serializable {
     private String familyPlanning;
     private LocalDate dateOfFamilyPlanning;
     private String otherDrugs;
-    private String hivTestResult;
 
     private String prepType;
     private String populationType;
@@ -104,7 +103,6 @@ public class PrepClinicRequestDto implements Serializable {
     private String wasPrepAdministered;
     private String historyOfDrugToDrugInteraction;
     private String historyOfDrugAllergies;
-    private LocalDate hivTestResultDate;
     private Integer monthsOfRefill;
     private String comment;
     private String previousPrepStatus;
