@@ -1390,7 +1390,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    CAST(EXTRACT(YEAR FROM AGE(NOW(), p.date_of_birth)) AS INTEGER) AS age,\n" +
             "    INITCAP(p.sex) AS gender,\n" +
             "    p.date_of_birth AS dateOfBirth,\n" +
-            "    NULL::date AS dateConfirmedHiv,\n" +
+            "    CAST(NULL AS DATE) AS dateConfirmedHiv,\n" +
             "    CAST(1 AS INTEGER) AS prepCount,\n" +
             "    pet.is_interrupted AS isInterrupted,\n" +
             // HTS encounter projection — same column aliases the Patient tab ships
