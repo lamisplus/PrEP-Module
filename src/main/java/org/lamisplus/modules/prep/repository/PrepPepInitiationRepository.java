@@ -1533,7 +1533,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             // Latest followup visit on the SAME arm as ?3.
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
-            "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            "           pc.encounter_date AS encounter_date, pc.duration,\n" +
             "           pc.visit_type, pc.prep_type, pc.previous_prep_status,\n" +
             "           CASE WHEN (pc.encounter_date + pc.duration) > CURRENT_DATE THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
@@ -1548,7 +1548,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    ) max_pc ON max_pc.encounter_date = pc.encounter_date AND max_pc.person_uuid = pc.person_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
             "      AND pip_c.enrollment_type = ?3\n" +
-            "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
+            // Add pc.encounter_date to GROUP BY so the status CASE that references
+            // it is GROUP-BY-valid (the INNER JOIN to max_pc already constrains
+            // it to one date per person, so grouping by it doesn't change rows).
+            "    GROUP BY pc.person_uuid, pc.encounter_date, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status\n" +
             ") prepc ON prepc.person_uuid = pet.person_uuid\n" +
             // Latest interruption on the SAME arm as ?3.
             "LEFT JOIN (\n" +
