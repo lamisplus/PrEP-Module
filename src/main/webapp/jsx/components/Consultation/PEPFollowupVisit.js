@@ -1140,7 +1140,10 @@ const PEPFollowupVisit = props => {
                                 style={inputStyle}
                               >
                                 <option value="">Select</option>
-                                {(codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT || []).map(item => (
+                                {/* Result options come from HIV_TEST_RESULT;
+                                    the Test column above uses
+                                    PEP_FOLLOWUP_HIV_TEST_RESULT. */}
+                                {(codeset?.HIV_TEST_RESULT || []).map(item => (
                                   <option key={item.code} value={item.code}>{item.display}</option>
                                 ))}
                               </Input>
@@ -1181,16 +1184,14 @@ const PEPFollowupVisit = props => {
                                 <td>{codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.find(v => v.code === entry.test)?.display || entry.test}</td>
                                 <td>
                                   {(() => {
-                                    // entry.result is a code (e.g. STI_HIV_RESULT_POSITIVE
-                                    // or HTS_RESULT_HIV_NEGATIVE). Render the codeset
-                                    // display, fall back to the raw value, and colour
-                                    // by whether the resolved label contains "positive".
+                                    // entry.result is now an HIV_TEST_RESULT
+                                    // code; render its display, fall back to
+                                    // related codesets, and colour by whether
+                                    // the resolved label contains "positive".
                                     const resolved =
-                                      codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.find(
-                                        v => v.code === entry.result
-                                      )?.display ||
-                                      codeset?.HTS_RESULT?.find(v => v.code === entry.result)?.display ||
                                       codeset?.HIV_TEST_RESULT?.find(v => v.code === entry.result)?.display ||
+                                      codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.find(v => v.code === entry.result)?.display ||
+                                      codeset?.HTS_RESULT?.find(v => v.code === entry.result)?.display ||
                                       entry.result;
                                     const isPositive = (resolved || "")
                                       .toLowerCase()

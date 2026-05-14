@@ -1493,19 +1493,19 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        ELSE prepc.status\n" +
             "    END AS prepStatus\n";
 
-    // PEP: 28-day prophylaxis window anchored to the latest PEP visit's
-    // date_prep_given (falling back to encounter_date and finally to the
-    // initiation's date_enrolled). isInterrupted and Enrolled into HIV both
-    // outrank the time-based status.
+    // PEP status precedence (per spec):
+    //   1. Explicit Completed — latest PEP interruption form has
+    //      pep_completion = 'YES_NO_YES'  → 'Completed'.
+    //   2. No PEP follow-up visit at all  → 'Enrolled'.
+    //   3. Days since latest PEP visit's PEP start (date_start_pep, falling
+    //      back to encounter_date):
+    //         0-28 days  → 'Active'
+    //         >= 29 days → 'Completed'
     String PEP_STATUS_CASE =
             "    CASE\n" +
-            // Interruption takes precedence (Stopped / Dead / Seroconverted /
-            // Transfer out / Default / Referred).
-            "        WHEN pet.is_interrupted = true THEN COALESCE(bac.display, prepi.interruption_type)\n" +
-            // 28-day prophylaxis window anchored to the latest PEP visit's
-            // date_prep_given (falling back to encounter_date and finally to
-            // the initiation's date_enrolled).
-            "        WHEN (CURRENT_DATE - COALESCE(latest_pep_visit.pep_anchor_date, pet.date_enrolled)) >= 28 THEN 'Completed'\n" +
+            "        WHEN latest_pep_interruption.pep_completion = 'YES_NO_YES' THEN 'Completed'\n" +
+            "        WHEN latest_pep_visit.pep_start_date IS NULL THEN 'Enrolled'\n" +
+            "        WHEN (CURRENT_DATE - latest_pep_visit.pep_start_date) >= 29 THEN 'Completed'\n" +
             "        ELSE 'Active'\n" +
             "    END AS prepStatus\n";
 
@@ -1585,17 +1585,37 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN base_application_codeset preg_codeset\n" +
             "    ON preg_codeset.code = latest_hts.observation->>'pregnancyStatus'\n";
 
-    // PEP-only extra join: anchor date for the 28-day window. Uses
-    // date_prep_given when available, falling back to encounter_date.
+    // PEP-only joins:
+    //   • latest_pep_visit: drives the 28-day Active/Completed window.
+    //       Anchor date = MAX(date_start_pep), falling back to encounter_date.
+    //       Sourced from pep_followup_visit (the dedicated PEP table).
+    //   • latest_pep_interruption: exposes pep_completion of the most recent
+    //       PEP interruption row so the CASE can short-circuit to 'Completed'
+    //       when pep_completion = 'YES_NO_YES'.
     String PEP_LATEST_VISIT_JOIN =
             "LEFT JOIN (\n" +
-            "    SELECT pip3.person_uuid, MAX(COALESCE(pc.date_prep_given, pc.encounter_date)) AS pep_anchor_date\n" +
-            "    FROM prep_followup_visit pc\n" +
-            "    JOIN prophylaxis_initiation pip3 ON pip3.uuid = pc.prophylaxis_initiation_uuid\n" +
-            "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
-            "      AND pip3.enrollment_type = ?3\n" +
-            "    GROUP BY pip3.person_uuid\n" +
-            ") latest_pep_visit ON latest_pep_visit.person_uuid = pet.person_uuid\n";
+            "    SELECT pv.person_uuid,\n" +
+            "           MAX(COALESCE(pv.date_start_pep, pv.encounter_date)) AS pep_start_date\n" +
+            "    FROM pep_followup_visit pv\n" +
+            "    WHERE CAST(pv.archived AS BOOLEAN) = false\n" +
+            "    GROUP BY pv.person_uuid\n" +
+            ") latest_pep_visit ON latest_pep_visit.person_uuid = pet.person_uuid\n" +
+            "LEFT JOIN (\n" +
+            "    SELECT pi.person_uuid, pi.pep_completion\n" +
+            "    FROM prophylaxis_interruptions pi\n" +
+            "    JOIN prophylaxis_initiation pip_pep_i ON pip_pep_i.uuid = pi.prophylaxis_initiation_uuid\n" +
+            "    INNER JOIN (\n" +
+            "        SELECT MAX(pi2.interruption_date) AS interruption_date, pi2.person_uuid\n" +
+            "        FROM prophylaxis_interruptions pi2\n" +
+            "        JOIN prophylaxis_initiation pip_pep_i2 ON pip_pep_i2.uuid = pi2.prophylaxis_initiation_uuid\n" +
+            "        WHERE CAST(pi2.archived AS BOOLEAN) = false\n" +
+            "          AND pip_pep_i2.enrollment_type = ?3\n" +
+            "        GROUP BY pi2.person_uuid\n" +
+            "    ) max_pep_i ON max_pep_i.interruption_date = pi.interruption_date\n" +
+            "               AND max_pep_i.person_uuid = pi.person_uuid\n" +
+            "    WHERE CAST(pi.archived AS BOOLEAN) = false\n" +
+            "      AND pip_pep_i.enrollment_type = ?3\n" +
+            ") latest_pep_interruption ON latest_pep_interruption.person_uuid = pet.person_uuid\n";
 
     String ENROLLED_WHERE =
             "WHERE CAST(pet.archived AS BOOLEAN) = ?1\n" +

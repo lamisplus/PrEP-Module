@@ -244,6 +244,11 @@ export async function fetchPEPFollowupCodesets() {
       "PrEP_LEVEL_OF_ADHERENCE_REASONS",
       "PEP_REGIMEN",
       "PEP_FOLLOW_UP_HIV_TEST_RESULT",
+      // Used by the "Result" select on Follow-up HIV Test Results — the
+      // "Test" select uses PEP_FOLLOW_UP_HIV_TEST_RESULT (remapped to
+      // PEP_FOLLOWUP_HIV_TEST_RESULT below) but the "Result" select uses
+      // the canonical HIV_TEST_RESULT codeset.
+      "HIV_TEST_RESULT",
       "PREGNANCY_STATUS",
       "YES_NO",
     ]);
