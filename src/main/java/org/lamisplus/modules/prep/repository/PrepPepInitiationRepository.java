@@ -2,6 +2,7 @@ package org.lamisplus.modules.prep.repository;
 
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.prep.domain.entity.PrepClient;
+import org.lamisplus.modules.prep.domain.entity.PrepHtsPatient;
 import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.springframework.data.domain.Page;
