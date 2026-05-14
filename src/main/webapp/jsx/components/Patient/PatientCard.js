@@ -132,11 +132,11 @@ function PatientCard(props) {
                       {(patientDetail?.currentRegimen ||
                         (isFemale && patientDetail?.pregnant)) && (
                         <div className="mt-2" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                          {patientDetail?.currentRegimen && (
+                          {/* {patientDetail?.currentRegimen && (
                             <Label color={"blue"} size={"small"}>
                               Current Regimen:&nbsp;<b>{patientDetail.currentRegimen}</b>
                             </Label>
-                          )}
+                          )} */}
                           {isFemale && patientDetail?.pregnant && (
                             <Label color={"pink"} size={"small"}>
                               Pregnancy Status:&nbsp;<b>{patientDetail.pregnant}</b>
