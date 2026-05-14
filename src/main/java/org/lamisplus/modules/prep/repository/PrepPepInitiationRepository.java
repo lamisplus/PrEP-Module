@@ -1406,22 +1406,81 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
 
     String PREP_STATUS_CASE =
             "    CASE\n" +
+            // ── Top-precedence: an explicit interruption flagged on the
+            //    enrollment row (Stopped / Dead / Seroconverted / Transfer out /
+            //    Default / Referred). Displays the codeset label.
             "        WHEN pet.is_interrupted = true THEN COALESCE(bac.display, prepi.interruption_type)\n" +
+            // ── Restart flag from the latest followup
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
+            // ── No followup visit yet
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
-            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
+
+            // ── INJECTIBLES: Early bands ─────────────────────────────────────
+            //   Visits: Initiation, Restart, Transfer In
+            //   Schedule anchor: 28-day second dose
+            //   0-23 = Active, 24-37 = Active (Due), 38-59 = Delayed Injection,
+            //   >60 = Discontinued
+            "        WHEN prepc.prep_type = 'PREP_TYPE_INJECTIBLES'\n" +
+            "             AND prepc.visit_type IN ('PREP_VISIT_TYPE_INITIATION',\n" +
+            "                                       'PREP_VISIT_TYPE_RESTART',\n" +
+            "                                       'PREP_VISIT_TYPE_TRANSFER_IN') THEN\n" +
             "            CASE\n" +
             "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 59 THEN 'Discontinued'\n" +
             "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 37 THEN 'Delayed Injection'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 23 THEN 'Active (Due)'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
-            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
+
+            // ── INJECTIBLES: Late bands ─────────────────────────────────────
+            //   Visits: Second Initiation, Method Switch, Refill / Re-injection
+            //   Schedule anchor: 8-week third dose
+            //   0-53 = Active, 54-67 = Active (Due), 68-89 = Delayed Injection,
+            //   >90 = Discontinued
+            "        WHEN prepc.prep_type = 'PREP_TYPE_INJECTIBLES'\n" +
+            "             AND prepc.visit_type IN ('PREP_VISIT_TYPE_SECOND_INITIATION',\n" +
+            "                                       'PREP_VISIT_TYPE_METHOD_SWITCH',\n" +
+            "                                       'PREP_VISIT_TYPE_REFILL_RE-INJECTION') THEN\n" +
             "            CASE\n" +
             "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 89 THEN 'Discontinued'\n" +
             "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 67 THEN 'Delayed Injection'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 53 THEN 'Active (Due)'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
+
+            // ── INJECTIBLES: No PrEP Provided / Discontinuation Followup ────
+            //   60-day cutoff
+            "        WHEN prepc.prep_type = 'PREP_TYPE_INJECTIBLES'\n" +
+            "             AND prepc.visit_type = 'PREP_VISIT_TYPE_NO_PREP_PROVIDED' THEN\n" +
+            "            CASE\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 60 THEN 'Defaulted'\n" +
+            "                ELSE 'Pending'\n" +
+            "            END\n" +
+            "        WHEN prepc.prep_type = 'PREP_TYPE_INJECTIBLES'\n" +
+            "             AND prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION_FOLLOW-UP' THEN\n" +
+            "            CASE\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 60 THEN 'Defaulted'\n" +
+            "                ELSE 'Restart Pending'\n" +
+            "            END\n" +
+
+            // ── ORAL: No PrEP Provided / Discontinuation Followup ───────────
+            //   30-day cutoff
+            "        WHEN prepc.prep_type = 'PREP_TYPE_ORAL'\n" +
+            "             AND prepc.visit_type = 'PREP_VISIT_TYPE_NO_PREP_PROVIDED' THEN\n" +
+            "            CASE\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 30 THEN 'Defaulted'\n" +
+            "                ELSE 'Pending'\n" +
+            "            END\n" +
+            "        WHEN prepc.prep_type = 'PREP_TYPE_ORAL'\n" +
+            "             AND prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION_FOLLOW-UP' THEN\n" +
+            "            CASE\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 30 THEN 'Defaulted'\n" +
+            "                ELSE 'Restart Pending'\n" +
+            "            END\n" +
+
+            // ── ORAL: regular duration-based status ──────────────────────────
+            //   Within duration -> Active; past duration -> Discontinued for
+            //   closing visit types (Method Switch, Discontinuation), Stopped
+            //   for everything else.
             "        WHEN prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
             "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER))\n" +
@@ -1429,6 +1488,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
+
             "        ELSE prepc.status\n" +
             "    END AS prepStatus\n";
 
@@ -1438,8 +1498,12 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     // outrank the time-based status.
     String PEP_STATUS_CASE =
             "    CASE\n" +
+            // Interruption takes precedence (Stopped / Dead / Seroconverted /
+            // Transfer out / Default / Referred).
             "        WHEN pet.is_interrupted = true THEN COALESCE(bac.display, prepi.interruption_type)\n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
+            // 28-day prophylaxis window anchored to the latest PEP visit's
+            // date_prep_given (falling back to encounter_date and finally to
+            // the initiation's date_enrolled).
             "        WHEN (CURRENT_DATE - COALESCE(latest_pep_visit.pep_anchor_date, pet.date_enrolled)) >= 28 THEN 'Completed'\n" +
             "        ELSE 'Active'\n" +
             "    END AS prepStatus\n";
@@ -1463,7 +1527,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    WHERE CAST(archived AS BOOLEAN) = false\n" +
             "    GROUP BY person_uuid\n" +
             ") init_count ON init_count.person_uuid = p.uuid\n" +
-            "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = 0\n" +
+            // (hiv_enrollment join removed — 'Enrolled into HIV' status branch
+            //  has been dropped from both PREP_STATUS_CASE and PEP_STATUS_CASE.)
             // Latest followup visit on the SAME arm as ?3.
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
