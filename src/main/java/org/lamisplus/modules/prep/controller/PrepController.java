@@ -62,7 +62,7 @@ public class PrepController {
     public ResponseEntity<PageDTO> getAllEnrolledPersons2(@RequestParam(required = false, defaultValue = "*") String searchValue,
                                                           @RequestParam(required = false, defaultValue = "20") int pageSize,
                                                           @RequestParam(required = false, defaultValue = "0") int pageNo) {
-        Page<PrepClient> page = prepService.findAllEnrolledPrepPersonPage(searchValue, pageNo, pageSize);
+        Page<PrepHtsPatientDto> page = prepService.findAllEnrolledPrepPersonPage(searchValue, pageNo, pageSize);
         return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
     }
 
@@ -71,7 +71,7 @@ public class PrepController {
     public ResponseEntity<PageDTO> getAllPepEnrolledPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,
                                                             @RequestParam(required = false, defaultValue = "20") int pageSize,
                                                             @RequestParam(required = false, defaultValue = "0") int pageNo) {
-        Page<PrepClient> page = prepService.findAllPepEnrolledPrepPersonPage(searchValue, pageNo, pageSize);
+        Page<PrepHtsPatientDto> page = prepService.findAllPepEnrolledPrepPersonPage(searchValue, pageNo, pageSize);
         return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
     }
 

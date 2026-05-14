@@ -27,6 +27,7 @@ public class PrepHtsPatientDto {
     private String previousProphylaxis;
     private String sendCabLaAlert;
     private String pregnancyStatusDisplay;
+    private Boolean isInterrupted;
 
     private String htsClientCode;
     private LatestHtsResultDto latestHtsResult;

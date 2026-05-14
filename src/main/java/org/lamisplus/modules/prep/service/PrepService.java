@@ -418,42 +418,52 @@ public class PrepService {
         return new PageImpl<>(filteredList, pageable, resultPage.getTotalElements());
     }
 
-    public Page<PrepClient> findAllEnrolledPrepPersonPage(String searchValue, int pageNo, int pageSize) {
-        return findEnrolledByEnrollmentType(EnrollmentType.PREP, searchValue, pageNo, pageSize);
-    }
-
-    public Page<PrepClient> findAllPepEnrolledPrepPersonPage(String searchValue, int pageNo, int pageSize) {
-        return findEnrolledByEnrollmentType(EnrollmentType.PEP, searchValue, pageNo, pageSize);
-    }
-
-    /**
-     * Pulls rows directly from {@code prophylaxis_initiation} filtered by
-     * {@code enrollment_type}. Replaces the old patient_person-driven queries
-     * that depended on hts_client + complex post-filters in Java. The native
-     * query in {@link PrepPepInitiationRepository#findEnrolledByType} computes
-     * the same status CASE as the Patients tab; the post-filter here strips
-     * Seroconverted clients to mirror existing tab behaviour.
-     */
-    private Page<PrepClient> findEnrolledByEnrollmentType(
-            String enrollmentType, String searchValue, int pageNo, int pageSize) {
+    public Page<PrepHtsPatientDto> findAllEnrolledPrepPersonPage(String searchValue, int pageNo, int pageSize) {
         Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<PrepClient> resultPage;
+        Page<PrepHtsPatient> resultPage;
 
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
             String queryParam = "%" + searchValue.replaceAll("\\s", "") + "%";
             resultPage = prepPepInitiationRepository
-                    .findEnrolledByTypeBySearchParam(false, facilityId, enrollmentType, queryParam, pageable);
+                    .findPrepEnrolledBySearchParam(false, facilityId, EnrollmentType.PREP, queryParam, pageable);
         } else {
             resultPage = prepPepInitiationRepository
-                    .findEnrolledByType(false, facilityId, enrollmentType, pageable);
+                    .findPrepEnrolled(false, facilityId, EnrollmentType.PREP, pageable);
         }
+        return mapEnrolledPage(resultPage, pageable);
+    }
 
-        List<PrepClient> filteredList = resultPage.getContent().stream()
-                .filter(prepClient -> !"Seroconverted".equals(prepClient.getPrepStatus()))
+    public Page<PrepHtsPatientDto> findAllPepEnrolledPrepPersonPage(String searchValue, int pageNo, int pageSize) {
+        Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<PrepHtsPatient> resultPage;
+
+        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
+            String queryParam = "%" + searchValue.replaceAll("\\s", "") + "%";
+            resultPage = prepPepInitiationRepository
+                    .findPepEnrolledBySearchParam(false, facilityId, EnrollmentType.PEP, queryParam, pageable);
+        } else {
+            resultPage = prepPepInitiationRepository
+                    .findPepEnrolled(false, facilityId, EnrollmentType.PEP, pageable);
+        }
+        return mapEnrolledPage(resultPage, pageable);
+    }
+
+    /**
+     * Re-uses the same projection mapper the Patient tab uses so enrollment-tab
+     * rows ship every property the dashboard expects (HTS encounter,
+     * pregnancyStatusDisplay, isInterrupted, counts, etc).
+     * <p>
+     * Pagination is preserved verbatim from the underlying {@code Page} —
+     * total elements + total pages come straight from the SQL count query;
+     * we only re-wrap the content list after DTO mapping.
+     */
+    private Page<PrepHtsPatientDto> mapEnrolledPage(Page<PrepHtsPatient> resultPage, Pageable pageable) {
+        List<PrepHtsPatientDto> dtos = resultPage.getContent().stream()
+                .map(this::toPrepHtsPatientDto)
                 .collect(Collectors.toList());
-
-        return new PageImpl<>(filteredList, pageable, resultPage.getTotalElements());
+        return new PageImpl<>(dtos, pageable, resultPage.getTotalElements());
     }
 
     public Page<PrepHtsPatientDto> findAllHtsEncounterPatientPage(String searchValue, int pageNo, int pageSize) {
@@ -499,6 +509,7 @@ public class PrepService {
                 .previousProphylaxis(row.getPreviousProphylaxis())
                 .sendCabLaAlert(row.getSendCabLaAlert())
                 .pregnancyStatusDisplay(row.getPregnancyStatusDisplay())
+                .isInterrupted(row.getIsInterrupted())
                 .htsClientCode(row.getHtsClientCode())
                 .latestHtsResult(toLatestHtsResultDto(row))
                 .build();

@@ -1348,35 +1348,36 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPepEnrolledPersonPrepAndStatus(Boolean archived, Long facilityId, Pageable pageable);
 
-    // ─── Simple enrollment-type-driven listings for the PrEP / PEP Enrolled tabs ──────
+    // ─── Arm-aware enrollment-tab queries projecting PrepHtsPatient ────────────
     //
     // Driven directly by `prophylaxis_initiation` so the result naturally
-    // excludes "Not Enrolled" patients. Joins:
-    //   • patient_person       — for the display columns
-    //   • prophylaxis_screening — for the eligibility count
-    //   • prep_followup_visit   — for the latest commencement + status CASE inputs
-    //   • prophylaxis_interruptions — for the latest interruption row + display
-    //   • base_application_codeset — to render interruption display strings
-    //   • hiv_enrollment        — so "Enrolled into HIV" status takes precedence
+    // excludes "Not Enrolled" patients. Projection is `PrepHtsPatient` (the
+    // same shape the Patient tab ships) so the enrollment grids have every
+    // field a row can reach for: HTS encounter fields, pregnancyStatusDisplay,
+    // eligibilityCount / enrollmentCount, plus the new `isInterrupted` flag
+    // resolved off `prophylaxis_initiation.is_interrupted`.
     //
-    // We deliberately do NOT join to hts_encounter / hts_client here — those
-    // forms now persist `hts_encounter_uuid`, and the per-patient HTS lookup
-    // is best done in the read path (LatestHtsResultDto endpoint), not as
-    // a join on every grid row.
+    // Status precedence (top wins):
+    //   1. is_interrupted = true        -> codeset display of the latest
+    //                                       interruption_type on the SAME arm.
+    //   2. hiv_enrollment exists        -> 'Enrolled into HIV'
+    //   3. previous_prep_status flips   -> 'Restart'
+    //   4. prepc.person_uuid IS NULL    -> 'Not Commenced'
+    //   5. PrEP CASE (Injectibles bands / Oral duration) — used by findPrepEnrolled
+    //      PEP CASE  (28-day window after latest PEP visit) — used by findPepEnrolled
     //
-    // The same status CASE as the original findAllPersonPrepAndStatus is used,
-    // minus the "HIV Positive" branch (which depended on hts_client.hiv_test_result).
-    // A confirmed-positive client should not have a prophylaxis_initiation row in
-    // the first place; if one exists, the hiv_enrollment branch
-    // ("Enrolled into HIV") still flags it.
+    // Arm filtering uses prophylaxis_interruptions.prophylaxis_initiation_uuid
+    // joined to prophylaxis_initiation.enrollment_type so a patient's PrEP
+    // interruption never spills into PEP and vice versa.
 
-    String ENROLLED_TAB_SELECT =
+    String COMMON_SELECT_HEAD =
             "SELECT DISTINCT ON (p.id)\n" +
             "    p.hospital_number AS hospitalNumber,\n" +
             "    NULL AS HIVResultAtVisit,\n" +
             "    p.date_of_registration AS dateOfRegistration,\n" +
             "    COALESCE(prepc.commencementCount, 0) AS commencementCount,\n" +
             "    COALESCE(el.eligibility_count, 0) AS eligibilityCount,\n" +
+            "    COALESCE(init_count.enrollment_count, 0) AS enrollmentCount,\n" +
             "    pet.created_by AS createdBy,\n" +
             "    pet.unique_id AS uniqueId,\n" +
             "    p.id AS personId,\n" +
@@ -1388,15 +1389,27 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    CAST(EXTRACT(YEAR FROM AGE(NOW(), p.date_of_birth)) AS INTEGER) AS age,\n" +
             "    INITCAP(p.sex) AS gender,\n" +
             "    p.date_of_birth AS dateOfBirth,\n" +
-            "    he.date_confirmed_hiv AS dateConfirmedHiv,\n" +
+            "    NULL::date AS dateConfirmedHiv,\n" +
             "    CAST(1 AS INTEGER) AS prepCount,\n" +
+            "    pet.is_interrupted AS isInterrupted,\n" +
+            // HTS encounter projection — same column aliases the Patient tab ships
+            "    latest_hts.client_code AS htsClientCode,\n" +
+            "    latest_hts.id AS latestHtsId,\n" +
+            "    CAST(latest_hts.uuid AS text) AS latestHtsUuid,\n" +
+            "    latest_hts.patient_id AS latestHtsPatientId,\n" +
+            "    CAST(latest_hts.patient_uuid AS text) AS latestHtsPatientUuid,\n" +
+            "    latest_hts.date_of_visit AS latestHtsDateOfVisit,\n" +
+            "    latest_hts.setting AS latestHtsSetting,\n" +
+            "    CAST(latest_hts.observation AS text) AS latestHtsObservation,\n" +
+            "    latest_hts.facility_id AS latestHtsFacilityId,\n" +
+            "    preg_codeset.display AS pregnancyStatusDisplay,\n";
+
+    String PREP_STATUS_CASE =
             "    CASE\n" +
+            "        WHEN pet.is_interrupted = true THEN COALESCE(bac.display, prepi.interruption_type)\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
-            "        WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
             "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
-            "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
-            "        WHEN prepi.interruption_type = 'PREP_STATUS_SEROCONVERTED' THEN 'Seroconverted'\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
             "            CASE\n" +
             "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 59 THEN 'Discontinued'\n" +
@@ -1409,25 +1422,33 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 67 THEN 'Delayed Injection'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
-            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
+            "        WHEN prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
-            "                ELSE 'Active'\n" +
-            "            END\n" +
-            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
-            "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
-            "                ELSE 'Active'\n" +
-            "            END\n" +
-            "        WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
-            "            CASE\n" +
+            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER))\n" +
+            "                     AND prepc.visit_type IN ('PREP_VISIT_TYPE_METHOD_SWITCH', 'PREP_VISIT_TYPE_DISCONTINUATION') THEN 'Discontinued'\n" +
             "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
             "    END AS prepStatus\n";
 
-    String ENROLLED_TAB_JOINS =
+    // PEP: 28-day prophylaxis window anchored to the latest PEP visit's
+    // date_prep_given (falling back to encounter_date and finally to the
+    // initiation's date_enrolled). isInterrupted and Enrolled into HIV both
+    // outrank the time-based status.
+    String PEP_STATUS_CASE =
+            "    CASE\n" +
+            "        WHEN pet.is_interrupted = true THEN COALESCE(bac.display, prepi.interruption_type)\n" +
+            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
+            "        WHEN (CURRENT_DATE - COALESCE(latest_pep_visit.pep_anchor_date, pet.date_enrolled)) >= 28 THEN 'Completed'\n" +
+            "        ELSE 'Active'\n" +
+            "    END AS prepStatus\n";
+
+    // FROM + JOIN block common to both arms. The arm-specific filter is passed
+    // as ?3 and applied to (a) the WHERE on pet, (b) the prepi subselect that
+    // resolves the latest interruption for that arm, and (c) the prepc
+    // subselect that resolves the latest followup visit for that arm.
+    String ENROLLED_JOINS =
             "FROM prophylaxis_initiation pet\n" +
             "INNER JOIN patient_person p ON p.uuid = pet.person_uuid\n" +
             "LEFT JOIN (\n" +
@@ -1436,74 +1457,135 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    WHERE CAST(el.archived AS BOOLEAN) = false\n" +
             "    GROUP BY el.person_uuid\n" +
             ") el ON el.person_uuid = p.uuid\n" +
+            "LEFT JOIN (\n" +
+            "    SELECT COUNT(*) AS enrollment_count, person_uuid\n" +
+            "    FROM prophylaxis_initiation\n" +
+            "    WHERE CAST(archived AS BOOLEAN) = false\n" +
+            "    GROUP BY person_uuid\n" +
+            ") init_count ON init_count.person_uuid = p.uuid\n" +
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = 0\n" +
+            // Latest followup visit on the SAME arm as ?3.
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
             "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
             "           pc.visit_type, pc.prep_type, pc.previous_prep_status,\n" +
             "           CASE WHEN (pc.encounter_date + pc.duration) > CURRENT_DATE THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
+            "    JOIN prophylaxis_initiation pip_c ON pip_c.uuid = pc.prophylaxis_initiation_uuid\n" +
             "    INNER JOIN (\n" +
-            "        SELECT MAX(encounter_date) AS encounter_date, person_uuid\n" +
-            "        FROM prep_followup_visit\n" +
-            "        WHERE CAST(archived AS BOOLEAN) = false\n" +
-            "        GROUP BY person_uuid\n" +
+            "        SELECT MAX(pc2.encounter_date) AS encounter_date, pc2.person_uuid\n" +
+            "        FROM prep_followup_visit pc2\n" +
+            "        JOIN prophylaxis_initiation pip_c2 ON pip_c2.uuid = pc2.prophylaxis_initiation_uuid\n" +
+            "        WHERE CAST(pc2.archived AS BOOLEAN) = false\n" +
+            "          AND pip_c2.enrollment_type = ?3\n" +
+            "        GROUP BY pc2.person_uuid\n" +
             "    ) max_pc ON max_pc.encounter_date = pc.encounter_date AND max_pc.person_uuid = pc.person_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
+            "      AND pip_c.enrollment_type = ?3\n" +
             "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = pet.person_uuid\n" +
+            // Latest interruption on the SAME arm as ?3.
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             "    FROM prophylaxis_interruptions pi\n" +
+            "    JOIN prophylaxis_initiation pip_i ON pip_i.uuid = pi.prophylaxis_initiation_uuid\n" +
             "    INNER JOIN (\n" +
-            "        SELECT MAX(interruption_date) AS interruption_date, person_uuid\n" +
-            "        FROM prophylaxis_interruptions\n" +
-            "        WHERE CAST(archived AS BOOLEAN) = false\n" +
-            "        GROUP BY person_uuid\n" +
+            "        SELECT MAX(pi2.interruption_date) AS interruption_date, pi2.person_uuid\n" +
+            "        FROM prophylaxis_interruptions pi2\n" +
+            "        JOIN prophylaxis_initiation pip_i2 ON pip_i2.uuid = pi2.prophylaxis_initiation_uuid\n" +
+            "        WHERE CAST(pi2.archived AS BOOLEAN) = false\n" +
+            "          AND pip_i2.enrollment_type = ?3\n" +
+            "        GROUP BY pi2.person_uuid\n" +
             "    ) max_pi ON max_pi.interruption_date = pi.interruption_date AND max_pi.person_uuid = pi.person_uuid\n" +
             "    WHERE CAST(pi.archived AS BOOLEAN) = false\n" +
+            "      AND pip_i.enrollment_type = ?3\n" +
             ") prepi ON prepi.person_uuid = pet.person_uuid\n" +
-            "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n";
+            "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
+            // Latest hts_encounter for this patient (for the new HTS fields)
+            "LEFT JOIN (\n" +
+            "    SELECT he2.*\n" +
+            "    FROM hts_encounter he2\n" +
+            "    INNER JOIN (\n" +
+            "        SELECT patient_id, MAX(date_of_visit) AS max_date\n" +
+            "        FROM hts_encounter\n" +
+            "        WHERE archived = false\n" +
+            "        GROUP BY patient_id\n" +
+            "    ) lh ON lh.patient_id = he2.patient_id AND lh.max_date = he2.date_of_visit\n" +
+            "    WHERE he2.archived = false\n" +
+            ") latest_hts ON latest_hts.patient_id = p.id\n" +
+            "LEFT JOIN base_application_codeset preg_codeset\n" +
+            "    ON preg_codeset.code = latest_hts.observation->>'pregnancyStatus'\n";
 
-    String ENROLLED_TAB_WHERE =
+    // PEP-only extra join: anchor date for the 28-day window. Uses
+    // date_prep_given when available, falling back to encounter_date.
+    String PEP_LATEST_VISIT_JOIN =
+            "LEFT JOIN (\n" +
+            "    SELECT pip3.person_uuid, MAX(COALESCE(pc.date_prep_given, pc.encounter_date)) AS pep_anchor_date\n" +
+            "    FROM prep_followup_visit pc\n" +
+            "    JOIN prophylaxis_initiation pip3 ON pip3.uuid = pc.prophylaxis_initiation_uuid\n" +
+            "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
+            "      AND pip3.enrollment_type = ?3\n" +
+            "    GROUP BY pip3.person_uuid\n" +
+            ") latest_pep_visit ON latest_pep_visit.person_uuid = pet.person_uuid\n";
+
+    String ENROLLED_WHERE =
             "WHERE CAST(pet.archived AS BOOLEAN) = ?1\n" +
             "  AND pet.facility_id = ?2\n" +
             "  AND pet.enrollment_type = ?3\n";
 
-    @Query(value =
-            ENROLLED_TAB_SELECT +
-            ENROLLED_TAB_JOINS +
-            ENROLLED_TAB_WHERE +
-            "ORDER BY p.id, pet.date_enrolled DESC NULLS LAST",
-            countQuery =
-                    "SELECT COUNT(DISTINCT p.id) " +
-                    ENROLLED_TAB_JOINS +
-                    ENROLLED_TAB_WHERE,
-            nativeQuery = true)
-    Page<PrepClient> findEnrolledByType(
-            Boolean archived, Long facilityId, String enrollmentType, Pageable pageable);
-
-    @Query(value =
-            ENROLLED_TAB_SELECT +
-            ENROLLED_TAB_JOINS +
-            ENROLLED_TAB_WHERE +
+    String SEARCH_PREDICATE =
             "  AND (p.first_name ILIKE ?4\n" +
             "       OR p.surname ILIKE ?4\n" +
             "       OR p.other_name ILIKE ?4\n" +
             "       OR p.hospital_number ILIKE ?4\n" +
-            "       OR pet.unique_id ILIKE ?4)\n" +
-            "ORDER BY p.id, pet.date_enrolled DESC NULLS LAST",
+            "       OR pet.unique_id ILIKE ?4)\n";
+
+    String ORDER_BY = "ORDER BY p.id, pet.date_enrolled DESC NULLS LAST";
+
+    // ── PrEP-Enrolled tab ─────────────────────────────────────────────────────
+    @Query(value =
+            COMMON_SELECT_HEAD + PREP_STATUS_CASE +
+            ENROLLED_JOINS +
+            ENROLLED_WHERE + ORDER_BY,
             countQuery =
                     "SELECT COUNT(DISTINCT p.id) " +
-                    ENROLLED_TAB_JOINS +
-                    ENROLLED_TAB_WHERE +
-                    "  AND (p.first_name ILIKE ?4\n" +
-                    "       OR p.surname ILIKE ?4\n" +
-                    "       OR p.other_name ILIKE ?4\n" +
-                    "       OR p.hospital_number ILIKE ?4\n" +
-                    "       OR pet.unique_id ILIKE ?4)",
+                    ENROLLED_JOINS + ENROLLED_WHERE,
             nativeQuery = true)
-    Page<PrepClient> findEnrolledByTypeBySearchParam(
+    Page<PrepHtsPatient> findPrepEnrolled(
+            Boolean archived, Long facilityId, String enrollmentType, Pageable pageable);
+
+    @Query(value =
+            COMMON_SELECT_HEAD + PREP_STATUS_CASE +
+            ENROLLED_JOINS +
+            ENROLLED_WHERE + SEARCH_PREDICATE + ORDER_BY,
+            countQuery =
+                    "SELECT COUNT(DISTINCT p.id) " +
+                    ENROLLED_JOINS + ENROLLED_WHERE + SEARCH_PREDICATE,
+            nativeQuery = true)
+    Page<PrepHtsPatient> findPrepEnrolledBySearchParam(
+            Boolean archived, Long facilityId, String enrollmentType, String search, Pageable pageable);
+
+    // ── PEP-Enrolled tab ──────────────────────────────────────────────────────
+    @Query(value =
+            COMMON_SELECT_HEAD + PEP_STATUS_CASE +
+            ENROLLED_JOINS + PEP_LATEST_VISIT_JOIN +
+            ENROLLED_WHERE + ORDER_BY,
+            countQuery =
+                    "SELECT COUNT(DISTINCT p.id) " +
+                    ENROLLED_JOINS + PEP_LATEST_VISIT_JOIN + ENROLLED_WHERE,
+            nativeQuery = true)
+    Page<PrepHtsPatient> findPepEnrolled(
+            Boolean archived, Long facilityId, String enrollmentType, Pageable pageable);
+
+    @Query(value =
+            COMMON_SELECT_HEAD + PEP_STATUS_CASE +
+            ENROLLED_JOINS + PEP_LATEST_VISIT_JOIN +
+            ENROLLED_WHERE + SEARCH_PREDICATE + ORDER_BY,
+            countQuery =
+                    "SELECT COUNT(DISTINCT p.id) " +
+                    ENROLLED_JOINS + PEP_LATEST_VISIT_JOIN + ENROLLED_WHERE + SEARCH_PREDICATE,
+            nativeQuery = true)
+    Page<PrepHtsPatient> findPepEnrolledBySearchParam(
             Boolean archived, Long facilityId, String enrollmentType, String search, Pageable pageable);
 
 }
