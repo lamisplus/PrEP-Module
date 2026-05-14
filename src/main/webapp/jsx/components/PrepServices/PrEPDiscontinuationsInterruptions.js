@@ -54,7 +54,9 @@ const PrEPDiscontinuationsInterruptions = props => {
   const showStoppedDefaultFields = isStopped || isDefault;
   const showDeadFields = isDead;
   const showReferredFields = isReferred;
-  const showFollowUpVisitDate = objValues.pepCompletion === "Yes";
+  // pepCompletion is persisted as a YES_NO codeset code (YES_NO_YES /
+  // YES_NO_NO) so the backend PEP-tab query can match exact codes.
+  const showFollowUpVisitDate = objValues.pepCompletion === "YES_NO_YES";
   const showHivPositiveFields = objValues.hivResult?.toLowerCase().includes("positive");
 
   useEffect(() => {
@@ -131,7 +133,7 @@ const PrEPDiscontinuationsInterruptions = props => {
       }));
       return;
     }
-    if (name === "pepCompletion" && value !== "Yes") {
+    if (name === "pepCompletion" && value !== "YES_NO_YES") {
       setObjValues(prev => ({
         ...prev,
         [name]: value,
@@ -578,8 +580,14 @@ const PrEPDiscontinuationsInterruptions = props => {
                         disabled={disabledField}
                       >
                         <option value="">Select</option>
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
+                        {/* Drive from the YES_NO codeset so we save the
+                            canonical codes (YES_NO_YES / YES_NO_NO) that the
+                            PEP-tab query matches against. */}
+                        {(codeset?.YES_NO || []).map(item => (
+                          <option key={item.code} value={item.code}>
+                            {item.display}
+                          </option>
+                        ))}
                       </Input>
                       {errors.pepCompletion !== "" ? (
                         <span className={classes.error}>

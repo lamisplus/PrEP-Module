@@ -224,6 +224,10 @@ export async function fetchDiscontinuationCodesets() {
       "PREP_DISCONTINUATION_REASON",
       "HIV_TEST_RESULT",
       "EARLY_DETECT_VIRAL_LOAD_RESULT",
+      // Drives the PEP Completion select (Yes / No). We persist the codeset
+      // code (YES_NO_YES / YES_NO_NO) so server-side queries can match exact
+      // strings without resorting to fuzzy ILIKE.
+      "YES_NO",
     ]);
   } catch (_err) {
     return hardcodedFallback();

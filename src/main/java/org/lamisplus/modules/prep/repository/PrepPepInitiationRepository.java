@@ -1605,13 +1605,17 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    FROM prophylaxis_interruptions pi\n" +
             "    JOIN prophylaxis_initiation pip_pep_i ON pip_pep_i.uuid = pi.prophylaxis_initiation_uuid\n" +
             "    INNER JOIN (\n" +
-            "        SELECT MAX(pi2.interruption_date) AS interruption_date, pi2.person_uuid\n" +
+            // Latest PEP interruption is keyed off follow_up_visit_date — that
+            // is the date the patient was actually seen for the discontinuation
+            // / completion entry (interruption_date can be an older record
+            // date in some flows).
+            "        SELECT MAX(pi2.follow_up_visit_date) AS follow_up_visit_date, pi2.person_uuid\n" +
             "        FROM prophylaxis_interruptions pi2\n" +
             "        JOIN prophylaxis_initiation pip_pep_i2 ON pip_pep_i2.uuid = pi2.prophylaxis_initiation_uuid\n" +
             "        WHERE CAST(pi2.archived AS BOOLEAN) = false\n" +
             "          AND pip_pep_i2.enrollment_type = ?3\n" +
             "        GROUP BY pi2.person_uuid\n" +
-            "    ) max_pep_i ON max_pep_i.interruption_date = pi.interruption_date\n" +
+            "    ) max_pep_i ON max_pep_i.follow_up_visit_date = pi.follow_up_visit_date\n" +
             "               AND max_pep_i.person_uuid = pi.person_uuid\n" +
             "    WHERE CAST(pi.archived AS BOOLEAN) = false\n" +
             "      AND pip_pep_i.enrollment_type = ?3\n" +
