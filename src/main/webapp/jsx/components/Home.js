@@ -5,18 +5,31 @@ import React, {
   Suspense,
   useMemo,
   memo,
+  lazy,
 } from "react";
-import { Row, Col, Card, Tab, Tabs } from "react-bootstrap";
-import PatientList from "./Patient/PatientList";
-import CheckedInPatients from "./Patient/CheckedInPatients";
+import { Row, Col, Card, Tab, Tabs, Spinner } from "react-bootstrap";
 import { useRoles } from "../../hooks/useRoles";
-import NotEnrolledPatients from "./Patient/NotEnrolledPatientList";
-import PepEnrolledPatients from "./Patient/PepEnrolledPatientList";
+
+// Tab content is code-split so the HIV Prevention landing page can render its
+// shell (title + tabs row) on first paint. Each chunk is fetched only when
+// its tab is first activated; once loaded it stays in memory so subsequent
+// switches between tabs are instant. Without this split, all four heavy
+// MaterialTable-based grids parsed before the page could render.
+const PatientList = lazy(() => import("./Patient/PatientList"));
+const CheckedInPatients = lazy(() => import("./Patient/CheckedInPatients"));
+const NotEnrolledPatients = lazy(() => import("./Patient/NotEnrolledPatientList"));
+const PepEnrolledPatients = lazy(() => import("./Patient/PepEnrolledPatientList"));
 
 const divStyle = {
   borderRadius: "2px",
   fontSize: 14,
 };
+
+const TabLoading = () => (
+  <div style={{ display: "flex", justifyContent: "center", padding: "3rem 0" }}>
+    <Spinner animation="border" role="status" variant="primary" />
+  </div>
+);
 
 const Home = () => {
   const { hasRole, loading: rolesLoading } = useRoles();
@@ -94,28 +107,28 @@ const Home = () => {
                 >
                   {permissions.canSeeFindPatients && (
                     <Tab eventKey="home" title="Patients">
-                      <Suspense>
+                      <Suspense fallback={<TabLoading />}>
                         {visitedTabs.has("home") && <PatientList />}
                       </Suspense>
                     </Tab>
                   )}
                   {permissions.canSeeFindPatients && (
                     <Tab eventKey="not-enrolled" title="PrEP Enrolments">
-                      <Suspense>
+                      <Suspense fallback={<TabLoading />}>
                         {visitedTabs.has("not-enrolled") && <NotEnrolledPatients />}
                       </Suspense>
                     </Tab>
                   )}
                   {permissions.canSeeFindPatients && (
                     <Tab eventKey="pep-enrolled" title="PEP Enrollments">
-                      <Suspense>
+                      <Suspense fallback={<TabLoading />}>
                         {visitedTabs.has("pep-enrolled") && <PepEnrolledPatients />}
                       </Suspense>
                     </Tab>
                   )}
                   {permissions.canSeeCheckedInPatients && (
                     <Tab eventKey="checkedIn" title="Checked-In Patients">
-                      <Suspense>
+                      <Suspense fallback={<TabLoading />}>
                         {visitedTabs.has("checkedIn") && <CheckedInPatients />}
                       </Suspense>
                     </Tab>
