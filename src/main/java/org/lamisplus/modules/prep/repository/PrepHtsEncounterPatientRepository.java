@@ -139,26 +139,26 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "LEFT JOIN base_application_codeset preg_codeset\n" +
             "    ON preg_codeset.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n";
 
-    // initialHivTest must be NEGATIVE; confirmatoryHivTest must NOT be POSITIVE
-    // (empty / null / NEGATIVE all pass). For early-detect: include patients
-    // with one of the acute-infection markers AND patients with no early-detect
-    // result at all (a plain HIV-negative client without acute-infection
-    // testing is still eligible for PrEP).
+    // Patient qualifies if ANY of the three is true:
+    //   1. confirmatoryHivTest = STI_HIV_RESULT_NEGATIVE
+    //   2. initialHivTest      = STI_HIV_RESULT_NEGATIVE
+    //   3. hivEarlyDetectResult IN ('Antigen Reactive',
+    //                               'Antigen + Antibody Reactive')
+    // i.e. a single negative test on either field, OR a reactive early-detect
+    // marker, is enough to include the row.
     String WHERE_FILTERS =
             "WHERE hts.archived = false\n" +
             "AND p.archived = CAST(?1 AS INTEGER)\n" +
             "AND hts.facility_id = ?2\n" +
-            "AND hts.observation->>'" + HtsObservationKeys.KEY_INITIAL_HIV_TEST + "' = '"
+            "AND (\n" +
+            "     hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' = '"
                     + HtsObservationKeys.HIV_RESULT_NEGATIVE + "'\n" +
-            "AND (hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' IS NULL\n" +
-            "     OR hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' <> '"
-                    + HtsObservationKeys.HIV_RESULT_POSITIVE + "')\n" +
-            "AND (hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IS NULL\n" +
-            "     OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' = ''\n" +
-            "     OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN (\n" +
-            "         '" + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "',\n" +
-            "         '" + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "'\n" +
-            "     ))\n";
+            "  OR hts.observation->>'" + HtsObservationKeys.KEY_INITIAL_HIV_TEST + "' = '"
+                    + HtsObservationKeys.HIV_RESULT_NEGATIVE + "'\n" +
+            "  OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            ")\n";
 
     String GROUP_BY =
             "GROUP BY\n" +
