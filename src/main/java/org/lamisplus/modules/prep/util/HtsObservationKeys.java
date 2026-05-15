@@ -21,8 +21,8 @@ public final class HtsObservationKeys {
     public static final String HIV_RESULT_POSITIVE = "STI_HIV_RESULT_POSITIVE";
 
     /** Early-detect results indicating acute infection (drive PrEP-side eligibility). */
-    public static final String EARLY_DETECT_ANTIGEN_REACTIVE = "Antigen Reactive";
-    public static final String EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE = "Antigen + Antibody Reactive";
+    public static final String EARLY_DETECT_ANTIGEN_REACTIVE = "HIV_EARLY_DETECT_RESULT_ANTIBODY_REACTIVE";
+    public static final String EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE = "HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE";
 
     private HtsObservationKeys() {}
 }

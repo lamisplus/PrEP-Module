@@ -113,14 +113,14 @@ const Home = () => {
                     </Tab>
                   )}
                   {permissions.canSeeFindPatients && (
-                    <Tab eventKey="not-enrolled" title="PrEP Enrolments">
+                    <Tab eventKey="not-enrolled" title="PrEP Patients">
                       <Suspense fallback={<TabLoading />}>
                         {visitedTabs.has("not-enrolled") && <NotEnrolledPatients />}
                       </Suspense>
                     </Tab>
                   )}
                   {permissions.canSeeFindPatients && (
-                    <Tab eventKey="pep-enrolled" title="PEP Enrollments">
+                    <Tab eventKey="pep-enrolled" title="PEP Patients">
                       <Suspense fallback={<TabLoading />}>
                         {visitedTabs.has("pep-enrolled") && <PepEnrolledPatients />}
                       </Suspense>
