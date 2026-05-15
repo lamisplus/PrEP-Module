@@ -7,6 +7,7 @@ import org.lamisplus.modules.prep.domain.dto.PatientActivity;
 import org.lamisplus.modules.prep.domain.entity.PrepEligibilityScreening;
 import org.lamisplus.modules.prep.repository.PrepEligibilityScreeningRepository;
 import org.lamisplus.modules.prep.service.PatientActivityProvider;
+import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -25,8 +26,11 @@ public class PrepEligibilityActivityProvider implements PatientActivityProvider 
 	
 	@NotNull
 	private PatientActivity buildPatientActivity(PrepEligibilityScreening prepEligibility) {
+		// `category` stores the canonical PREP_PEP_ENROLLMENT_TYPE code; older rows
+		// may still carry the short "PEP" / "PrEP" label, so check both forms.
 		String category = prepEligibility.getCategory();
-		String name = "PEP".equals(category) ? "PEP Eligibility Screening" : "PrEP Eligibility Screening";
+		boolean isPep = "PEP".equalsIgnoreCase(category) || EnrollmentType.isPep(category);
+		String name = isPep ? "PEP Eligibility Screening" : "PrEP Eligibility Screening";
 		assert prepEligibility.getId() != null;
 		return new PatientActivity(prepEligibility.getId(), name, prepEligibility.getVisitDate(), "", "prep-eligibility-screening");
 	}
