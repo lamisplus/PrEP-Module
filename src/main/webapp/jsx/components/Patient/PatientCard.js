@@ -1,31 +1,31 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
-import Accordion from '@material-ui/core/Accordion';
-import { Link } from 'react-router-dom';
-import ButtonMui from '@material-ui/core/Button';
-import { TiArrowBack } from 'react-icons/ti';
-import Divider from '@material-ui/core/Divider';
-import { Label } from 'semantic-ui-react';
-import 'semantic-ui-css/semantic.min.css';
-import { Col, Row } from 'reactstrap';
-import Moment from 'moment';
-import momentLocalizer from 'react-widgets-moment';
-import moment from 'moment';
-import Typography from '@material-ui/core/Typography';
-import { AccordionSummary } from '@material-ui/core';
-import { Alert as Reminder } from '../Consultation/Alert/Alert';
-import { useGetAddress } from '../../../hooks/patientCard/useGetAddress';
-import useGetPhoneNumber from '../../../hooks/patientCard/useGetPhoneNumber';
-import useCalculateAge from '../../../hooks/patientCard/useCalculateAge';
-import useGetReminderAlert from '../../../hooks/patientCard/useGetReminderAlert';
-import useBasicPatientDetails from '../../../hooks/patientCard/useBasicPatientDetails';
-Moment.locale('en');
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import PropTypes from "prop-types";
+import { withStyles } from "@material-ui/core/styles";
+import Accordion from "@material-ui/core/Accordion";
+import { Link } from "react-router-dom";
+import ButtonMui from "@material-ui/core/Button";
+import { TiArrowBack } from "react-icons/ti";
+import Divider from "@material-ui/core/Divider";
+import { Label } from "semantic-ui-react";
+import "semantic-ui-css/semantic.min.css";
+import { Col, Row } from "reactstrap";
+import Moment from "moment";
+import momentLocalizer from "react-widgets-moment";
+import moment from "moment";
+import Typography from "@material-ui/core/Typography";
+import { AccordionSummary } from "@material-ui/core";
+import { Alert as Reminder } from "../Consultation/Alert/Alert";
+import { useGetAddress } from "../../../hooks/patientCard/useGetAddress";
+import useGetPhoneNumber from "../../../hooks/patientCard/useGetPhoneNumber";
+import useCalculateAge from "../../../hooks/patientCard/useCalculateAge";
+import useGetReminderAlert from "../../../hooks/patientCard/useGetReminderAlert";
+import useBasicPatientDetails from "../../../hooks/patientCard/useBasicPatientDetails";
+Moment.locale("en");
 momentLocalizer();
 
 const styles = theme => ({
   root: {
-    width: '100%',
+    width: "100%",
   },
   heading: {
     fontSize: theme.typography.pxToRem(15),
@@ -35,15 +35,15 @@ const styles = theme => ({
     color: theme.palette.text.secondary,
   },
   icon: {
-    verticalAlign: 'bottom',
+    verticalAlign: "bottom",
     height: 20,
     width: 20,
   },
   details: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   column: {
-    flexBasis: '20.33%',
+    flexBasis: "20.33%",
   },
   helper: {
     borderLeft: `2px solid ${theme.palette.divider}`,
@@ -51,16 +51,16 @@ const styles = theme => ({
   },
   link: {
     color: theme.palette.primary.main,
-    textDecoration: 'none',
-    '&:hover': {
-      textDecoration: 'underline',
+    textDecoration: "none",
+    "&:hover": {
+      textDecoration: "underline",
     },
   },
 });
 
 function PatientCard(props) {
   const { classes } = props;
-  const patientObj = props?.patientObj;
+  const { patientObj, patientDetail } = props;
 
   const { getAddress } = useGetAddress();
   const { getPhoneNumber } = useGetPhoneNumber();
@@ -70,6 +70,14 @@ function PatientCard(props) {
     useBasicPatientDetails();
   const [showReminder, setShowReminder] = useState(0);
   const toggleModal = () => setShowReminder(0);
+
+  // Pregnancy is shown only for female patients (codeset display already
+  // resolved server-side via base_application_codeset). Gender on the row
+  // is plain English ("Female") — fall back to patientDetail when patientObj
+  // hasn't been rehydrated yet.
+  const genderRaw =
+    patientObj?.gender || patientObj?.sex || getSex(patientDetail);
+  const isFemale = (genderRaw || "").toLowerCase() === "female";
 
   useEffect(() => {
     setShowReminder(getReminderAlert(parseInt(patientObj?.sendCabLaAlert)));
@@ -90,38 +98,58 @@ function PatientCard(props) {
             <Col md={12}>
               {patientObj && patientObj !== null ? (
                 <>
-                  <Row className={'mt-1'}>
+                  <Row className={"mt-1"}>
                     <Col md={12} className={classes?.root2}>
                       <b
-                        style={{ fontSize: '25px', color: 'rgb(153, 46, 98)' }}
+                        style={{ fontSize: "25px", color: "rgb(153, 46, 98)" }}
                       >
                         {(patientObj?.firstName || getFirstName()) +
-                          ' ' +
+                          " " +
                           (patientObj?.surname || getSurname())}
                       </b>
-                      <Link to={'/'}>
+                      <Link to={"/"}>
                         <ButtonMui
                           variant="contained"
                           color="primary"
                           className=" float-end ms-2 mr-2 mt-2"
                           startIcon={<TiArrowBack />}
                           style={{
-                            backgroundColor: 'rgb(153, 46, 98)',
-                            color: '#fff',
-                            height: '35px',
+                            backgroundColor: "rgb(153, 46, 98)",
+                            color: "#fff",
+                            height: "35px",
                           }}
                         >
-                          <span style={{ textTransform: 'capitalize' }}>
+                          <span style={{ textTransform: "capitalize" }}>
                             Back
                           </span>
                         </ButtonMui>
                       </Link>
+                      {/* Quick badges directly under the patient name so the
+                          dashboard surfaces clinically relevant state up top:
+                          current PrEP regimen, and pregnancy status for female
+                          patients. Display strings (not codes) are resolved
+                          server-side. */}
+                      {(patientDetail?.currentRegimen ||
+                        (isFemale && patientDetail?.pregnant)) && (
+                        <div className="mt-2" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                          {/* {patientDetail?.currentRegimen && (
+                            <Label color={"blue"} size={"small"}>
+                              Current Regimen:&nbsp;<b>{patientDetail.currentRegimen}</b>
+                            </Label>
+                          )} */}
+                          {isFemale && patientDetail?.pregnant && (
+                            <Label color={"pink"} size={"small"}>
+                              Pregnancy Status:&nbsp;<b>{patientDetail.pregnant}</b>
+                            </Label>
+                          )}
+                        </div>
+                      )}
                     </Col>
                     <Col md={4} className={classes.root2}>
                       <span>
-                        {' '}
-                        Patient ID :{' '}
-                        <b style={{ color: '#0B72AA' }}>
+                        {" "}
+                        Patient ID :{" "}
+                        <b style={{ color: "#0B72AA" }}>
                           {patientObj?.hospitalNumber ||
                             getUniqueId(props?.patientDetail)}
                         </b>
@@ -130,8 +158,8 @@ function PatientCard(props) {
 
                     <Col md={4} className={classes.root2}>
                       <span>
-                        Date Of Birth :{' '}
-                        <b style={{ color: '#0B72AA' }}>
+                        Date Of Birth :{" "}
+                        <b style={{ color: "#0B72AA" }}>
                           {patientObj?.dateOfBirth ||
                             getDateOfBirth(props?.patientDetail)}
                         </b>
@@ -139,32 +167,32 @@ function PatientCard(props) {
                     </Col>
                     <Col md={4} className={classes.root2}>
                       <span>
-                        {' '}
-                        Age :{' '}
-                        <b style={{ color: '#0B72AA' }}>
+                        {" "}
+                        Age :{" "}
+                        <b style={{ color: "#0B72AA" }}>
                           {calculateAge(
                             moment(
                               patientObj?.dateOfBirth ||
                                 getDateOfBirth(props?.patientDetail)
-                            ).format('DD-MM-YYYY')
+                            ).format("DD-MM-YYYY")
                           )}
                         </b>
                       </span>
                     </Col>
                     <Col md={4}>
                       <span>
-                        {' '}
-                        Gender :{' '}
-                        <b style={{ color: '#0B72AA' }}>
+                        {" "}
+                        Gender :{" "}
+                        <b style={{ color: "#0B72AA" }}>
                           {patientObj?.gender || getSex(props?.patientDetail)}
                         </b>
                       </span>
                     </Col>
                     <Col md={4}>
                       <span>
-                        {' '}
-                        Sex at Birth :{' '}
-                        <b style={{ color: '#0B72AA' }}>
+                        {" "}
+                        Sex at Birth :{" "}
+                        <b style={{ color: "#0B72AA" }}>
                           {patientObj?.sexAtBirth ||
                             patientObj?.gender ||
                             getSex(props?.patientDetail)}
@@ -173,9 +201,9 @@ function PatientCard(props) {
                     </Col>
                     <Col md={4} className={classes.root2}>
                       <span>
-                        {' '}
-                        Phone Number :{' '}
-                        <b style={{ color: '#0B72AA' }}>
+                        {" "}
+                        Phone Number :{" "}
+                        <b style={{ color: "#0B72AA" }}>
                           {patientObj?.phoneNumber ||
                             getPhoneNumber(props?.patientDetail)}
                         </b>
@@ -183,11 +211,11 @@ function PatientCard(props) {
                     </Col>
                     <Col md={6} className={classes.root2}>
                       <span>
-                        {' '}
-                        Address :{' '}
-                        <b style={{ color: '#0B72AA' }}>
+                        {" "}
+                        Address :{" "}
+                        <b style={{ color: "#0B72AA" }}>
                           {patientObj?.address ||
-                            getAddress(props?.patientDetail)}{' '}
+                            getAddress(props?.patientDetail)}{" "}
                         </b>
                       </span>
                     </Col>
@@ -195,13 +223,20 @@ function PatientCard(props) {
                       <Col md={12}>
                         <div>
                           <Typography variant="caption">
-                            <Label color={'teal'} size={'mini'}>
-                              STATUS : {patientObj?.prepStatus}
+                            <Label color={"teal"} size={"mini"}>
+                              STATUS :{" "}
+                              {patientObj?.prepStatus ||
+                                patientDetail?.prepStatus}
                             </Label>
                           </Typography>
                         </div>
                       </Col>
                     )}
+                    {/* Pregnancy + Current Regimen now render as top-row
+                        chips next to the patient name; the old footer
+                        rows here were removed. Breastfeeding is folded into
+                        Pregnancy Status (one of the PREGNANCY_STATUS codeset
+                        values). */}
                   </Row>
                 </>
               ) : (

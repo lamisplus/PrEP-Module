@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardBody,
@@ -8,90 +8,35 @@ import {
   InputGroup,
   InputGroupText,
   Label as FormLabelName,
-} from 'reactstrap';
-import MatButton from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
-import SaveIcon from '@material-ui/icons/Save';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { url as baseUrl, token } from '../../../api';
-import 'react-widgets/dist/css/react-widgets.css';
-import moment from 'moment';
-import { Spinner } from 'reactstrap';
-import { LiverFunctionTest } from './PrEPEligibiltyScreeningForm';
-import DurationWrapper from '../Consultation/DurationWrapper/DurationWrapper';
-
-const useStyles = makeStyles(theme => ({
-  card: {
-    margin: theme.spacing(20),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(3),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-  cardBottom: {
-    marginBottom: 20,
-  },
-  Select: {
-    height: 45,
-    width: 350,
-  },
-  button: {
-    margin: theme.spacing(1),
-  },
-  root: {
-    flexGrow: 1,
-    '& .card-title': {
-      color: '#fff',
-      fontWeight: 'bold',
-    },
-    '& .form-control': {
-      borderRadius: '0.25rem',
-      height: '41px',
-    },
-    '& .card-header:first-child': {
-      borderRadius: 'calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0',
-    },
-    '& .dropdown-toggle::after': {
-      display: ' block !important',
-    },
-    '& select': {
-      '-webkit-appearance': 'listbox !important',
-    },
-    '& p': {
-      color: 'red',
-    },
-    '& label': {
-      fontSize: '14px',
-      color: '#014d88',
-      fontWeight: 'bold',
-    },
-  },
-  input: {
-    display: 'none',
-  },
-  error: {
-    color: '#f85032',
-    fontSize: '11px',
-  },
-  success: {
-    color: '#4BB543 ',
-    fontSize: '11px',
-  },
-}));
+} from "reactstrap";
+import MatButton from "@material-ui/core/Button";
+import { makeStyles } from "@material-ui/core/styles";
+import SaveIcon from "@material-ui/icons/Save";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { url as baseUrl, token } from "../../../api";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
+import "react-widgets/dist/css/react-widgets.css";
+import moment from "moment";
+import { Spinner } from "reactstrap";
+import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
+import DurationWrapper from "../Consultation/DurationWrapper/DurationWrapper";
+import { useStyles } from "../../../hooks/styles/prepCommencement/useStyles";
+import { fetchCommencementCodesets } from "../../../apiCalls/hivPreventionCodesets";
+import { fetchPrepRegimens, fetchPrepRegimenByType } from "../Consultation/codesets";
 
 const durationMap = {
-  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_30': '30',
-  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_60': '60',
-  'DURATION_OF_CAB-LA_INJECTABLE_REFILL_90': '90',
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": "30",
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": "60",
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90": "90",
 };
-const regimenMapping = { orals: '1', cabLa: '2' };
+// Long-acting injectable regimens. Compare on canonical PREP_REGIMEN codes
+// (numeric `regimenId` shifts when the codeset changes; codes are stable).
+const LONG_ACTING_INJECTABLE_CODES = [
+  "PREP_REGIMEN_CABOTEGRAVIR",
+  "PREP_REGIMEN_LENACAPAVIR",
+];
+
 function getDuration(key) {
   if (durationMap[key]) {
     return durationMap[key];
@@ -99,157 +44,95 @@ function getDuration(key) {
   const match = key?.toString().match(/\d+/);
   return match ? match[0] : key;
 }
+
 function getDurationByValue(value) {
   for (const key in durationMap) {
-    if (durationMap[key] === '' + value) {
+    if (durationMap[key] === "" + value) {
       return key;
     }
   }
 }
+
+// CODESET_KEYS removed — codesets now loaded from codesets.js
+
 const PrEPCommencementForm = props => {
-  const patientObj = props.patientObj;
+  const { patientObj } = props;
   const classes = useStyles();
   const [disabledField, setDisabledField] = useState(false);
   const [prepRegimen, setPrepRegimen] = useState([]);
-  const [historyOfDrugToDrugInteraction, setHistoryOfDrugToDrugInteraction] =
-    useState([]);
   const [objValues, setObjValues] = useState({
-    dateInitialAdherenceCounseling: '',
-    datePrepStart: '',
-    height: '',
-    personId: patientObj.personId,
+    dateInitialAdherenceCounseling: "",
+    datePrepStart: "",
+    height: "",
+    personId: patientObj.personId || patientObj.id,
     prepClientId: props.prepId,
-    regimenId: '',
-    urinalysisResult: '',
-    prepEligibilityUuid: '',
-    weight: '',
-    drugAllergies: '',
-    referred: '',
-    datereferred: '',
-    extra: {},
-    nextAppointment: '',
-    pregnant: true,
-    prepEnrollmentUuid: '',
-    duration: '',
-    prepDistributionSetting: '',
-    prepType: '',
-    monthsOfRefill: '',
+    regimenId: "",
+    urinalysisResult: "",
+    prepEligibilityUuid: "",
+    weight: "",
+    drugAllergies: "",
+    referred: "",
+    datereferred: "",
+    nextAppointment: "",
+    pregnant: "",
+    prepEnrollmentUuid: "",
+    duration: "",
+    prepDistributionSetting: "",
+    prepType: "",
+    monthsOfRefill: "",
     liverFunctionTestResults: [],
-    dateLiverFunctionTestResults: '',
-    historyOfDrugToDrugInteraction: '',
+    dateLiverFunctionTestResults: "",
+    historyOfDrugToDrugInteraction: "",
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [pregnant, setPregnant] = useState([]);
   const [patientDto, setPatientDto] = useState();
-  const [prepEntryPoint, setPrepEntryPoint] = useState([]);
-  const [urinalysisTestResult, setUrinalysisTestResult] = useState([]);
-  const [prepType, setPrepType] = useState([]);
-  const [liverFunctionTestResult, setLiverFunctionTestResult] = useState([]);
-
+  const [codeset, setCodeset] = useState({});
+  const [availableRegimens, setAvailableRegimens] = useState([]);
   useEffect(() => {
-    pregnancyStatus();
-    getPatientDTOObj();
+    fetchAllCodesets();
     fetchPrepRegimen();
-    fetchPrepEntryPoint();
-    fetchPrepType();
-    fetchLiverFunctionTestResult();
-    fetchHistoryOfDrugToDrugInteraction();
-    fetchPrepUrinalysisResult();
+    getPatientDTOObj();
     if (
       props.activeContent.id &&
-      props.activeContent.id !== '' &&
+      props.activeContent.id !== "" &&
       props.activeContent.id !== null
     ) {
       getPatientCommencement(props.activeContent.id);
-      setDisabledField(props.activeContent.actionType === 'view');
+      setDisabledField(props.activeContent.actionType === "view");
     }
   }, []);
 
+  const fetchAllCodesets = async () => {
+    try {
+      const data = await fetchCommencementCodesets();
+      setCodeset(data);
+    } catch (error) {
+      console.error("Error fetching codesets:", error);
+    }
+  };
+
   const fetchPrepRegimen = async () => {
-    axios
-      .get(`${baseUrl}prep-regimen`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepRegimen(response.data);
+    fetchPrepRegimens()
+      .then(data => {
+        setPrepRegimen(data);
+        setAvailableRegimens(data);
       })
       .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const fetchPrepEntryPoint = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_ENTRY_POINT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepEntryPoint(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const fetchPrepUrinalysisResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_URINALYSIS_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setUrinalysisTestResult(response.data);
-      })
-      .catch(error => {});
-  };
-
-  const fetchPrepType = async () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepType(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const fetchLiverFunctionTestResult = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/LIVER_FUNCTION_TEST_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setLiverFunctionTestResult(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const fetchHistoryOfDrugToDrugInteraction = () => {
-    axios
-      .get(
-        `${baseUrl}application-codesets/v2/PREP_HISTORY_OF_DRUG_INTERACTIONS`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-      .then(response => {
-        setHistoryOfDrugToDrugInteraction(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
+        console.error("Error fetching prep regimen:", error);
       });
   };
 
   const getPatientCommencement = id => {
     axios
-      .get(`${baseUrl}prep/commencement/person/${props.patientObj.personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(
+        `${baseUrl}prep/commencement/person/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .then(response => {
         let data = response.data.find(x => x.id === id);
         data = {
@@ -260,27 +143,16 @@ const PrEPCommencementForm = props => {
         setObjValues(data);
       })
       .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const pregnancyStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPregnant(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
+        console.error("Error fetching patient commencement:", error);
       });
   };
 
   const getPatientDTOObj = () => {
     axios
       .get(
-        `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+        `${baseUrl}prep/enrollment/open/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -289,22 +161,22 @@ const PrEPCommencementForm = props => {
         setPatientDto(response.data);
       })
       .catch(error => {
-        //console.log(error);
+        console.error("Error fetching patient DTO:", error);
       });
   };
 
-  //Vital signs clinical decision support
+  // Vital signs clinical decision support
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
-    weight: '',
-    height: '',
+    weight: "",
+    height: "",
   });
 
   const handleInputChange = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.name === 'referred' && e.target.value === 'false') {
-      objValues.datereferred = '';
-      setObjValues({ ...objValues, ['datereferred']: '' });
-    } else if (e.target.name === 'monthsOfRefill') {
+    setErrors({ ...errors, [e.target.name]: "" });
+    if (e.target.name === "referred" && e.target.value === "false") {
+      objValues.datereferred = "";
+      setObjValues({ ...objValues, ["datereferred"]: "" });
+    } else if (e.target.name === "monthsOfRefill") {
       const durationInDays = Number(e.target.value) * 30;
       setObjValues({
         ...objValues,
@@ -315,51 +187,70 @@ const PrEPCommencementForm = props => {
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
   };
 
+  const isFemalePatient =
+    (props.patientObj.gender?.toLowerCase() === "female" ||
+      props.patientObj.sex?.toLowerCase() === "female");
+
   const validate = () => {
     let temp = { ...errors };
     temp.dateInitialAdherenceCounseling =
-      objValues.dateInitialAdherenceCounseling ? '' : 'This field is required';
+      objValues.dateInitialAdherenceCounseling ? "" : "This field is required";
     temp.datePrepStart = objValues.datePrepStart
-      ? ''
-      : 'This field is required';
-    temp.prepType = objValues.prepType ? '' : 'This field is required';
-    temp.regimenId = objValues.regimenId ? '' : 'This field is required';
-    temp.height = objValues.height ? '' : 'This field is required';
-    temp.weight = objValues.weight ? '' : 'This field is required';
-    temp.referred = objValues.referred ? '' : 'This field is required';
+      ? ""
+      : "This field is required";
+    temp.prepType = objValues.prepType ? "" : "This field is required";
+    temp.regimenId = objValues.regimenId ? "" : "This field is required";
+    temp.height = objValues.height ? "" : "This field is required";
+    temp.weight = objValues.weight ? "" : "This field is required";
+    temp.referred = objValues.referred ? "" : "This field is required";
     temp.prepDistributionSetting = objValues.prepDistributionSetting
-      ? ''
-      : 'This field is required';
+      ? ""
+      : "This field is required";
+    temp.drugAllergies = objValues.drugAllergies
+      ? ""
+      : "This field is required";
+    temp.urinalysisResult = objValues.urinalysisResult
+      ? ""
+      : "This field is required";
+    temp.liverFunctionTestResults =
+      objValues.liverFunctionTestResults &&
+      objValues.liverFunctionTestResults.length > 0
+        ? ""
+        : "This field is required";
+    if (isFemalePatient) {
+      temp.pregnant = objValues.pregnant ? "" : "This field is required";
+      temp.breastFeeding = objValues.breastFeeding
+        ? ""
+        : "This field is required";
+    }
     setErrors({ ...temp });
-    return Object.values(temp).every(x => x === '');
+    return Object.values(temp).every(x => x === "");
   };
 
-  //to check the input value for clinical decision
   const handleInputValueCheckHeight = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
+    setErrors({ ...errors, [e.target.name]: "" });
     if (
-      e.target.name === 'height' &&
-      (e.target.value < 48.26 || e.target.value > 216.408)
+      e.target.name === "height" &&
+      (e.target.value < 30 || e.target.value > 250)
     ) {
-      const message =
-        'Height cannot be greater than 216.408 and less than 48.26';
+      const message = "Height must be between 30 and 250 cm";
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: message });
     } else {
-      setVitalClinicalSupport({ ...vitalClinicalSupport, height: '' });
+      setVitalClinicalSupport({ ...vitalClinicalSupport, height: "" });
     }
   };
 
   const handleInputValueCheckBodyWeight = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
+    setErrors({ ...errors, [e.target.name]: "" });
     if (
-      e.target.name === 'weight' &&
-      (e.target.value < 3 || e.target.value > 150)
+      e.target.name === "weight" &&
+      (e.target.value < 1 || e.target.value > 300)
     ) {
       const message =
-        'Body weight must not be greater than 150 and less than 3';
+        "Body weight must be between 1 and 300 kg";
       setVitalClinicalSupport({ ...vitalClinicalSupport, weight: message });
     } else {
-      setVitalClinicalSupport({ ...vitalClinicalSupport, weight: '' });
+      setVitalClinicalSupport({ ...vitalClinicalSupport, weight: "" });
     }
   };
 
@@ -370,44 +261,27 @@ const PrEPCommencementForm = props => {
       objValues.duration = getDuration(objValues.monthsOfRefill);
       objValues.monthsOfRefill = getDuration(objValues.monthsOfRefill);
       objValues.prepEnrollmentUuid = patientDto.uuid;
-      if (props.activeContent && props.activeContent.actionType === 'update') {
+      if (props.activeContent && props.activeContent.actionType === "update") {
         axios
-          .put(`${baseUrl}prep-clinic/${props.activeContent.id}`, objValues, {
+          .put(`${baseUrl}prep-followup-visit/${props.activeContent.id}`, objValues, {
             headers: { Authorization: `Bearer ${token}` },
           })
           .then(response => {
             setSaving(false);
             patientObj.commencementCount = 1;
-            toast.success('Record save successful', {
+            toast.success("Record save successful", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
-              route: 'recent-history',
+              route: "recent-history",
             });
           })
           .catch(error => {
             setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                error.response.data.apierror &&
-                error.response.data.apierror.message !== ''
-                  ? error.response.data.apierror.message
-                  : 'Something went wrong, please try again';
-              if (error.response.data.apierror) {
-                toast.error(error.response.data.apierror.message, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              } else {
-                toast.error(errorMessage, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              }
-            } else {
-              toast.error('Something went wrong, please try again...', {
-                position: toast.POSITION.BOTTOM_CENTER,
-              });
-            }
+            toast.error(extractErrorMessage(error), {
+              position: toast.POSITION.BOTTOM_CENTER,
+            });
           });
       } else {
         axios
@@ -418,61 +292,39 @@ const PrEPCommencementForm = props => {
             setSaving(false);
             patientObj.commencementCount = 1;
             props.PatientObject();
-            toast.success('Record save successful', {
+            toast.success("Record save successful", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
-              route: 'recent-history',
+              route: "recent-history",
             });
           })
           .catch(error => {
             setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                error.response.data.apierror &&
-                error.response.data.apierror.message !== ''
-                  ? error.response.data.apierror.message
-                  : 'Something went wrong, please try again';
-              if (error.response.data.apierror) {
-                toast.error(error.response.data.apierror.message, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              } else {
-                toast.error(errorMessage, {
-                  position: toast.POSITION.BOTTOM_CENTER,
-                });
-              }
-            } else {
-              toast.error('Something went wrong, please try again...', {
-                position: toast.POSITION.BOTTOM_CENTER,
-              });
-            }
+            toast.error(extractErrorMessage(error), {
+              position: toast.POSITION.BOTTOM_CENTER,
+            });
           });
       }
     }
   };
 
   const handlePrepTypeChange = e => {
-    setObjValues({ ...objValues, regimenId: '', prepType: e.target.value });
-    if (
-      e.target.value === 'PREP_TYPE_OTHERS' ||
-      e.target.value === 'PREP_TYPE_ED_PREP'
-    ) {
-      fetchPrepRegimen();
+    const value = e.target.value;
+    setObjValues({ ...objValues, regimenId: "", prepType: value });
+    if (value === "PREP_TYPE_OTHERS" || value === "PREP_TYPE_ED_PREP") {
+      // Catch-all types — show every regimen.
+      setPrepRegimen([...availableRegimens]);
     } else {
-      axios
-        .get(`${baseUrl}prep-regimen/prepType?prepType=${e.target.value}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then(response => {
-          setPrepRegimen(response.data);
-        })
-        .catch(error => {
-          //console.log(error);
-        });
+      // Per data dictionary: ORAL -> TDF/FTC, TDF/3TC; INJECTIBLES -> Cabotegravir, Lenacapavir.
+      // The mapping lives in ALL_REGIMENS via the `types` field; let it filter for us.
+      // TODO: Replace fetchPrepRegimenByType() with API call when endpoint is ready.
+      fetchPrepRegimenByType(value)
+        .then(data => setPrepRegimen(data))
+        .catch(error => console.error("Error fetching regimen by prep type:", error));
     }
-    setErrors({ ...errors, [e.target.name]: '' });
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
   const [latestFromEligibility, setLatestFromEligibility] = useState(null);
@@ -490,7 +342,7 @@ const PrEPCommencementForm = props => {
       )[response.data.length - 1];
       setLatestFromEligibility(latestEligibility);
     } catch (error) {
-      console.error('Error fetching latest eligibility:', error);
+      console.error("Error fetching latest eligibility:", error);
     }
   };
 
@@ -513,18 +365,22 @@ const PrEPCommencementForm = props => {
         liverFunctionTestResults:
           latestFromEligibility.liverFunctionTestResults || [],
         dateLiverFunctionTestResults:
-          latestFromEligibility.dateLiverFunctionTestResults || '',
+          latestFromEligibility.dateLiverFunctionTestResults || "",
       }));
     }
   }, [latestFromEligibility]);
 
   const isSelectedRegimenCabLa = useCallback(() => {
-    return objValues?.regimenId.toString() === regimenMapping['cabLa'];
-  }, [objValues]);
+    if (!objValues?.regimenId) return false;
+    const selected = (prepRegimen || availableRegimens || []).find(
+      r => r.id?.toString() === objValues.regimenId.toString()
+    );
+    return LONG_ACTING_INJECTABLE_CODES.includes(selected?.code);
+  }, [objValues, prepRegimen, availableRegimens]);
 
   useEffect(() => {
-    if (!['update', 'view'].includes(props.activeContent.actionType))
-      setObjValues(prev => ({ ...prev, monthsOfRefill: '', duration: '' }));
+    if (!["update", "view"].includes(props.activeContent.actionType))
+      setObjValues(prev => ({ ...prev, monthsOfRefill: "", duration: "" }));
   }, [objValues?.regimenId]);
 
   return (
@@ -536,8 +392,8 @@ const PrEPCommencementForm = props => {
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
                 <Label for="uniqueId">
-                  Date of Initial Adherence Counseling{' '}
-                  <span style={{ color: 'red' }}>*</span>
+                  Date of Initial Adherence Counseling{" "}
+                  <span style={{ color: "red" }}>*</span>
                 </Label>
                 <Input
                   className="form-control"
@@ -545,13 +401,13 @@ const PrEPCommencementForm = props => {
                   onKeyDown={e => e.preventDefault()}
                   name="dateInitialAdherenceCounseling"
                   id="dateInitialAdherenceCounseling"
-                  min={patientDto?.dateEnrolled || ''}
-                  max={moment(new Date()).format('YYYY-MM-DD')}
+                  min={patientDto?.dateEnrolled || ""}
+                  max={moment(new Date()).format("YYYY-MM-DD")}
                   value={objValues.dateInitialAdherenceCounseling}
                   onChange={handleInputChange}
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                   disabled={disabledField}
                 />
@@ -565,7 +421,7 @@ const PrEPCommencementForm = props => {
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
                 <Label>
-                  Date PrEP started <span style={{ color: 'red' }}>*</span>
+                  Date PrEP started <span style={{ color: "red" }}>*</span>
                 </Label>
                 <Input
                   className="form-control"
@@ -573,13 +429,13 @@ const PrEPCommencementForm = props => {
                   onKeyDown={e => e.preventDefault()}
                   name="datePrepStart"
                   id="datePrepStart"
-                  min={patientDto?.dateEnrolled || ''}
-                  max={moment(new Date()).format('YYYY-MM-DD')}
+                  min={patientDto?.dateEnrolled || ""}
+                  max={moment(new Date()).format("YYYY-MM-DD")}
                   value={objValues.datePrepStart}
                   onChange={handleInputChange}
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                   disabled={disabledField}
                 />
@@ -593,7 +449,7 @@ const PrEPCommencementForm = props => {
             <div className="mb-3 col-md-4">
               <FormGroup>
                 <Label>
-                  Body Weight <span style={{ color: 'red' }}>*</span>
+                  Body Weight <span style={{ color: "red" }}>*</span>
                 </Label>
                 <InputGroup>
                   <Input
@@ -601,27 +457,27 @@ const PrEPCommencementForm = props => {
                     name="weight"
                     id="weight"
                     onChange={handleInputChange}
-                    min="3"
-                    max="150"
+                    min="1"
+                    max="300"
                     value={objValues.weight}
                     onKeyUp={handleInputValueCheckBodyWeight}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
-                      borderTopRightRadius: '0',
-                      borderBottomRightRadius: '0',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                      borderTopRightRadius: "0",
+                      borderBottomRightRadius: "0",
                     }}
                     disabled={disabledField}
                   />
                   <InputGroupText
                     addonType="append"
                     style={{
-                      backgroundColor: '#014D88',
-                      color: '#fff',
-                      border: '1px solid #014D88',
-                      borderRadius: '0rem',
-                      borderTopRightRadius: '0.25rem',
-                      borderBottomRightRadius: '0.25rem',
+                      backgroundColor: "#014D88",
+                      color: "#fff",
+                      border: "1px solid #014D88",
+                      borderRadius: "0rem",
+                      borderTopRightRadius: "0.25rem",
+                      borderBottomRightRadius: "0.25rem",
                     }}
                   >
                     kg
@@ -640,18 +496,18 @@ const PrEPCommencementForm = props => {
             <div className="form-group mb-3 col-md-4">
               <FormGroup>
                 <Label>
-                  Height <span style={{ color: 'red' }}>*</span>
+                  Height <span style={{ color: "red" }}>*</span>
                 </Label>
                 <InputGroup>
                   <InputGroupText
                     addonType="append"
                     style={{
-                      backgroundColor: '#014D88',
-                      color: '#fff',
-                      border: '1px solid #014D88',
-                      borderRadius: '0rem',
-                      borderTopLeftRadius: '0.25rem',
-                      borderBottomLeftRadius: '0.25rem',
+                      backgroundColor: "#014D88",
+                      color: "#fff",
+                      border: "1px solid #014D88",
+                      borderRadius: "0rem",
+                      borderTopLeftRadius: "0.25rem",
+                      borderBottomLeftRadius: "0.25rem",
                     }}
                   >
                     cm
@@ -662,30 +518,18 @@ const PrEPCommencementForm = props => {
                     id="height"
                     onChange={handleInputChange}
                     value={objValues.height}
-                    min="48.26"
-                    max="216.408"
+                    min="30"
+                    max="250"
+                    step="1"
                     disabled={disabledField}
                     onKeyUp={handleInputValueCheckHeight}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0rem",
+                      borderTopRightRadius: "0.25rem",
+                      borderBottomRightRadius: "0.25rem",
                     }}
                   />
-                  <InputGroupText
-                    addonType="append"
-                    style={{
-                      backgroundColor: '#992E62',
-                      color: '#fff',
-                      border: '1px solid #992E62',
-                      borderRadius: '0rem',
-                      borderTopRightRadius: '0.25rem',
-                      borderBottomRightRadius: '0.25rem',
-                    }}
-                  >
-                    {objValues.height
-                      ? (objValues.height / 100).toFixed(2) + 'm'
-                      : 'm'}
-                  </InputGroupText>
                 </InputGroup>
                 {vitalClinicalSupport.height && (
                   <span className={classes.error}>
@@ -700,30 +544,27 @@ const PrEPCommencementForm = props => {
             <div className="form-group mb-3 mt-2 col-md-4">
               {objValues.weight && objValues.height && (
                 <FormGroup>
-                  <InputGroup>
-                    <InputGroupText
-                      addonType="append"
-                      style={{
-                        backgroundColor: '#014D88',
-                        color: '#fff',
-                        border: '1px solid #014D88',
-                        borderRadius: '0rem',
-                      }}
-                    >
-                      BMI:{' '}
-                      {(
-                        objValues.weight /
-                        (objValues.height / 100) ** 2
-                      ).toFixed(2)}
-                    </InputGroupText>
-                  </InputGroup>
+                  <Label>BMI</Label>
+                  <Input
+                    type="text"
+                    value={(
+                      objValues.weight /
+                      objValues.height ** 2
+                    ).toFixed(2)}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                    }}
+                    disabled
+                  />
                 </FormGroup>
               )}
             </div>
-            {props.patientObj.gender.toLowerCase() === 'female' && (
+            {(props.patientObj.gender?.toLowerCase() === "female" ||
+              props.patientObj.sex?.toLowerCase()) === "female" && (
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <Label>Pregnancy Status</Label>
+                  <Label>Pregnant <span style={{ color: "red" }}>*</span></Label>
                   <Input
                     type="select"
                     name="pregnant"
@@ -732,24 +573,28 @@ const PrEPCommencementForm = props => {
                     value={objValues.pregnant}
                     disabled={disabledField}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                   >
-                    <option value=""></option>
-                    {pregnant.map(value => (
-                      <option key={value.id} value={value.code}>
+                    <option value="">Select</option>
+                    {(codeset?.YES_NO || []).map(value => (
+                      <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
                     ))}
                   </Input>
+                  {errors.pregnant && (
+                    <span className={classes.error}>{errors.pregnant}</span>
+                  )}
                 </FormGroup>
               </div>
             )}
-            {objValues.pregnant === 'PREGANACY_STATUS_BREASTFEEDING' && (
+            {(props.patientObj.gender?.toLowerCase() === "female" ||
+              props.patientObj.sex?.toLowerCase()) === "female" && (
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <Label>Breast Feeding</Label>
+                  <Label>Breastfeeding <span style={{ color: "red" }}>*</span></Label>
                   <Input
                     type="select"
                     name="breastFeeding"
@@ -758,20 +603,26 @@ const PrEPCommencementForm = props => {
                     value={objValues.breastFeeding}
                     disabled={disabledField}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                   >
                     <option value="">Select</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
+                    {(codeset?.YES_NO || []).map(value => (
+                      <option key={value.code} value={value.code}>
+                        {value.display}
+                      </option>
+                    ))}
                   </Input>
+                  {errors.breastFeeding && (
+                    <span className={classes.error}>{errors.breastFeeding}</span>
+                  )}
                 </FormGroup>
               </div>
             )}
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
-                <Label>History of drug Allergies</Label>
+                <Label>History of drug Allergies <span style={{ color: "red" }}>*</span></Label>
                 <Input
                   type="select"
                   name="drugAllergies"
@@ -780,19 +631,23 @@ const PrEPCommencementForm = props => {
                   value={objValues.drugAllergies}
                   disabled={disabledField}
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                 >
                   <option value="">Select</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
+                  {(codeset?.YES_NO || []).map(item => (
+                    <option key={item.code} value={item.code}>{item.display}</option>
+                  ))}
                 </Input>
+                {errors.drugAllergies && (
+                  <span className={classes.error}>{errors.drugAllergies}</span>
+                )}
               </FormGroup>
             </div>
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
-                <Label>Urinalysis Result</Label>
+                <Label>Urinalysis Result <span style={{ color: "red" }}>*</span></Label>
                 <Input
                   type="select"
                   name="urinalysisResult"
@@ -801,17 +656,20 @@ const PrEPCommencementForm = props => {
                   value={objValues.urinalysisResult}
                   disabled={disabledField}
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                 >
                   <option value="">Select</option>
-                  {urinalysisTestResult.map(value => (
+                  {codeset?.PREP_URINALYSIS_RESULT?.map(value => (
                     <option key={value.id} value={value.display}>
                       {value.display}
                     </option>
                   ))}
                 </Input>
+                {errors.urinalysisResult && (
+                  <span className={classes.error}>{errors.urinalysisResult}</span>
+                )}
               </FormGroup>
             </div>
             <div className="form-group mb-3 col-md-6">
@@ -825,13 +683,13 @@ const PrEPCommencementForm = props => {
                   value={objValues.historyOfDrugToDrugInteraction}
                   onChange={handleInputChange}
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                   disabled={disabledField}
                 >
                   <option value="">Select</option>
-                  {historyOfDrugToDrugInteraction.map(value => (
+                  {codeset?.PREP_HISTORY_OF_DRUG_INTERACTIONS?.map(value => (
                     <option key={value.id} value={value.code}>
                       {value.display}
                     </option>
@@ -846,11 +704,11 @@ const PrEPCommencementForm = props => {
             </div>
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
-                <Label>Liver Function Tests Result </Label>
+                <Label>Liver Function Tests Result <span style={{ color: "red" }}>*</span></Label>
                 <LiverFunctionTest
                   objValues={objValues}
                   handleInputChange={handleLftInputChange}
-                  liverFunctionTestResult={liverFunctionTestResult}
+                  liverFunctionTestResult={codeset?.LIVER_FUNCTION_TEST_RESULT}
                   disabledField={disabledField}
                   isAutoPop={true}
                 />
@@ -870,12 +728,12 @@ const PrEPCommencementForm = props => {
                   onKeyDown={e => e.preventDefault()}
                   name="dateLiverFunctionTestResults"
                   id="dateLiverFunctionTestResults"
-                  max={moment(new Date()).format('YYYY-MM-DD')}
+                  max={moment(new Date()).format("YYYY-MM-DD")}
                   value={objValues.dateLiverFunctionTestResults}
                   onChange={handleInputChange}
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                   disabled
                 />
@@ -889,7 +747,7 @@ const PrEPCommencementForm = props => {
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
                 <Label>
-                  Referred <span style={{ color: 'red' }}>*</span>
+                  Referred <span style={{ color: "red" }}>*</span>
                 </Label>
                 <Input
                   type="select"
@@ -899,20 +757,21 @@ const PrEPCommencementForm = props => {
                   value={objValues.referred}
                   disabled={disabledField}
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                 >
                   <option value="">Select</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
+                  {(codeset?.YES_NO || []).map(item => (
+                    <option key={item.code} value={item.code}>{item.display}</option>
+                  ))}
                 </Input>
                 {errors.referred && (
                   <span className={classes.error}>{errors.referred}</span>
                 )}
               </FormGroup>
             </div>
-            {objValues.referred === 'true' && (
+            {objValues.referred === "true" && (
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label>Date referred</Label>
@@ -923,12 +782,12 @@ const PrEPCommencementForm = props => {
                     id="datereferred"
                     onChange={handleInputChange}
                     value={objValues.datereferred}
-                    min={patientDto?.dateEnrolled || ''}
+                    min={patientDto?.dateEnrolled || ""}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
-                    max={moment(new Date()).format('YYYY-MM-DD')}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
                     disabled={disabledField}
                   />
                   {errors.datereferred && (
@@ -940,22 +799,22 @@ const PrEPCommencementForm = props => {
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
                 <FormLabelName for="prepType">
-                  Prep Type At Start <span style={{ color: 'red' }}>*</span>
+                  Prep Type At Start <span style={{ color: "red" }}>*</span>
                 </FormLabelName>
                 <Input
                   type="select"
                   name="prepType"
                   id="prepType"
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                   onChange={handlePrepTypeChange}
                   value={objValues.prepType}
                   disabled={disabledField}
                 >
                   <option value="">Select Prep Type</option>
-                  {prepType.map(value => (
+                  {codeset?.PrEP_TYPE?.map(value => (
                     <option key={value.id} value={value.code}>
                       {value.display}
                     </option>
@@ -969,7 +828,7 @@ const PrEPCommencementForm = props => {
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
                 <Label>
-                  PrEP Regimen <span style={{ color: 'red' }}>*</span>
+                  PrEP Regimen <span style={{ color: "red" }}>*</span>
                 </Label>
                 <Input
                   type="select"
@@ -979,8 +838,8 @@ const PrEPCommencementForm = props => {
                   value={objValues.regimenId}
                   disabled={disabledField}
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                 >
                   <option value="">Select</option>
@@ -998,8 +857,8 @@ const PrEPCommencementForm = props => {
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
                 <FormLabelName>
-                  Prep Distribution Setting{' '}
-                  <span style={{ color: 'red' }}>*</span>
+                  Prep Distribution Setting{" "}
+                  <span style={{ color: "red" }}>*</span>
                 </FormLabelName>
                 <Input
                   type="select"
@@ -1009,12 +868,12 @@ const PrEPCommencementForm = props => {
                   value={objValues.prepDistributionSetting}
                   disabled={disabledField}
                   style={{
-                    border: '1px solid #014D88',
-                    borderRadius: '0.25rem',
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
                   }}
                 >
                   <option value=""></option>
-                  {prepEntryPoint.map(value => (
+                  {codeset?.PrEP_ENTRY_POINT?.map(value => (
                     <option key={value.code} value={value.code}>
                       {value.display}
                     </option>
@@ -1031,29 +890,29 @@ const PrEPCommencementForm = props => {
               <div className=" mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    {`Duration of refill (days)`}{' '}
-                    <span style={{ color: 'red' }}> *</span>
+                    {`Duration of refill (days)`}{" "}
+                    <span style={{ color: "red" }}> *</span>
                   </FormLabelName>
                   <DurationWrapper
                     isCabLaEligible={true}
                     isSelectedRegimenCabLa={isSelectedRegimenCabLa()}
-                    name={'monthsOfRefill'}
+                    name={"monthsOfRefill"}
                     id="monthsOfRefill"
                     value={objValues.monthsOfRefill}
                     style={{
-                      border: '1px solid #014D88',
-                      borderRadius: '0.25rem',
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
                     }}
                     handleInputChange={handleInputChange}
                     disabledField={disabledField}
                     setObjValues={setObjValues}
                   />
-                  {errors.monthsOfRefill !== '' ? (
+                  {errors.monthsOfRefill !== "" ? (
                     <span className={classes.error}>
                       {errors.monthsOfRefill}
                     </span>
                   ) : (
-                    ''
+                    ""
                   )}
                 </FormGroup>
               </div>
@@ -1061,23 +920,23 @@ const PrEPCommencementForm = props => {
           </div>
           {saving && <Spinner />}
           <br />
-          {!(props.activeContent.actionType === 'view') && (
+          {!(props.activeContent.actionType === "view") && (
             <MatButton
               type="submit"
               variant="contained"
               color="primary"
               className={classes.button}
               startIcon={<SaveIcon />}
-              style={{ backgroundColor: '#014d88' }}
+              style={{ backgroundColor: "#014d88" }}
               onClick={handleSubmit}
               disabled={saving}
             >
-              <span style={{ textTransform: 'capitalize' }}>
+              <span style={{ textTransform: "capitalize" }}>
                 {saving
-                  ? 'Saving...'
+                  ? "Saving..."
                   : props.activeContent?.actionType
-                  ? 'Update'
-                  : 'Save'}
+                  ? "Update"
+                  : "Save"}
               </span>
             </MatButton>
           )}

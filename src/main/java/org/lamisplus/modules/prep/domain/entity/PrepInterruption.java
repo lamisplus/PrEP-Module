@@ -88,11 +88,6 @@ public class PrepInterruption extends Audit implements Serializable {
     @Column(name = "facility_id")
     private Long facilityId;
 
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "extra", columnDefinition = "jsonb")
-    private Object extra;
-
     @Column(name = "date_sero_converted")
     private LocalDate dateSeroConverted;
 
@@ -111,6 +106,21 @@ public class PrepInterruption extends Audit implements Serializable {
     private String reasonForPrepDiscontinuation;
     @Column(name = "previous_prep_status")
     private String previousPrepStatus;
+
+    @Column(name = "why")
+    private String why;
+
+    @Column(name = "pep_completion")
+    private String pepCompletion;
+
+    @Column(name = "follow_up_visit_date")
+    private LocalDate followUpVisitDate;
+
+    @Column(name = "hiv_result")
+    private String hivResult;
+
+    @Column(name = "early_detect_viral_load_result")
+    private String earlyDetectViralLoadResult;
 
     @PrePersist
     public void setFields() {

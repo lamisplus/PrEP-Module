@@ -10,6 +10,7 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.patient.repository.VisitRepository;
 import org.lamisplus.modules.patient.service.PersonService;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.patient.service.VisitService;
 import org.lamisplus.modules.prep.domain.dto.PrepClinicDto;
 import org.lamisplus.modules.prep.domain.dto.PrepClinicRequestDto;
@@ -57,15 +58,23 @@ public class PrepClinicService {
     }
 
     public PrepClinicDto saveCommencement(PrepClinicRequestDto commencementRequestDto) {
-        String enrollmentUuid = commencementRequestDto.getPrepEnrollmentUuid();
-
         Person person = this.getPerson(commencementRequestDto.getPersonId());
 
-        PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(enrollmentUuid)
-                .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", enrollmentUuid));
+        String enrollmentUuid = commencementRequestDto.getPrepEnrollmentUuid();
+        if (enrollmentUuid == null || enrollmentUuid.trim().isEmpty()) {
+            PrepEnrollment enrollment = prepEnrollmentRepository
+                    .findTopByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED)
+                    .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "PersonUuid", person.getUuid()));
+            enrollmentUuid = enrollment.getUuid();
+            commencementRequestDto.setPrepEnrollmentUuid(enrollmentUuid);
+        }
+        final String finalEnrollmentUuid = enrollmentUuid;
+
+        PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(finalEnrollmentUuid)
+                .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", finalEnrollmentUuid));
 
         if (!prepEnrollment.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepClinic.class, "Person not same enrolled", enrollmentUuid);
+            throw PrepErrors.personMismatch("enrollment");
         }
 
         PrepClinic prepClinic = this.clinicRequestDtoToClinic(commencementRequestDto, person.getUuid());
@@ -80,15 +89,23 @@ public class PrepClinicService {
     }
 
     public PrepClinicDto saveClinic(PrepClinicRequestDto clinicRequestDto) {
-        String enrollmentUuid = clinicRequestDto.getPrepEnrollmentUuid();
-
         Person person = this.getPerson(clinicRequestDto.getPersonId());
 
-        PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(enrollmentUuid)
-                .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", enrollmentUuid));
+        String enrollmentUuid = clinicRequestDto.getPrepEnrollmentUuid();
+        if (enrollmentUuid == null || enrollmentUuid.trim().isEmpty()) {
+            PrepEnrollment enrollment = prepEnrollmentRepository
+                    .findTopByPersonUuidAndArchived(person.getUuid(), UN_ARCHIVED)
+                    .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "PersonUuid", person.getUuid()));
+            enrollmentUuid = enrollment.getUuid();
+            clinicRequestDto.setPrepEnrollmentUuid(enrollmentUuid);
+        }
+        final String finalEnrollmentUuid = enrollmentUuid;
+
+        PrepEnrollment prepEnrollment = this.prepEnrollmentRepository.findByUuid(finalEnrollmentUuid)
+                .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", finalEnrollmentUuid));
 
         if (!prepEnrollment.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepClinic.class, "Person not same enrolled", enrollmentUuid);
+            throw PrepErrors.personMismatch("enrollment");
         }
 
         PrepClinic prepClinic = this.clinicRequestDtoToClinic(clinicRequestDto, person.getUuid());
@@ -150,11 +167,18 @@ public class PrepClinicService {
         prepClinic.setPrepEnrollmentUuid(enrollmentUuid);
         prepClinic.setFamilyPlanning(prepClinicDto.getFamilyPlanning());
         prepClinic.setDateOfFamilyPlanning(prepClinicDto.getDateOfFamilyPlanning());
-        prepClinic.setPregnant(prepClinicDto.getPregnant());
+        prepClinic.setHtsEncounterUuid(prepClinicDto.getHtsEncounterUuid());
         prepClinic.setPrepDistributionSetting(prepClinicDto.getPrepDistributionSetting());
         prepClinic.setPreviousPrepStatus(prepClinicDto.getPreviousPrepStatus());
         prepClinic.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         return clinicToClinicDto(prepClinicRepository.save(prepClinic), null);
+    }
+
+    private Object sanitizeJsonb(Object value) {
+        if (value instanceof String && ((String) value).trim().isEmpty()) {
+            return null;
+        }
+        return value;
     }
 
     private PrepClinic clinicDtoToClinic(PrepClinicDto prepClinicDto, String personUuid) {
@@ -164,13 +188,12 @@ public class PrepClinicService {
         PrepClinic prepClinic = new PrepClinic();
         prepClinic.setId(prepClinicDto.getId());
         prepClinic.setPersonUuid(personUuid);
-        prepClinic.setExtra(prepClinicDto.getExtra());
         prepClinic.setDateInitialAdherenceCounseling(prepClinicDto.getDateInitialAdherenceCounseling());
         prepClinic.setWeight(prepClinicDto.getWeight());
         prepClinic.setHeight(prepClinicDto.getHeight());
         prepClinic.setFamilyPlanning(prepClinicDto.getFamilyPlanning());
         prepClinic.setDateOfFamilyPlanning(prepClinicDto.getDateOfFamilyPlanning());
-        prepClinic.setPregnant(prepClinicDto.getPregnant());
+        prepClinic.setHtsEncounterUuid(prepClinicDto.getHtsEncounterUuid());
         prepClinic.setPrepDistributionSetting(prepClinicDto.getPrepDistributionSetting());
         prepClinic.setDateReferred(prepClinicDto.getDateReferred());
         prepClinic.setPrepEnrollmentUuid(prepClinicDto.getPrepEnrollmentUuid());
@@ -181,7 +204,6 @@ public class PrepClinicService {
         prepClinic.setDateReferred(prepClinicDto.getDateReferred());
         prepClinic.setNextAppointment(prepClinicDto.getNextAppointment());
         prepClinic.setEncounterDate(prepClinicDto.getEncounterDate());
-        prepClinic.setExtra(prepClinicDto.getExtra());
         prepClinic.setDatePrepStart(prepClinicDto.getDatePrepStart());
         prepClinic.setPulse(prepClinicDto.getPulse());
         prepClinic.setRespiratoryRate(prepClinicDto.getRespiratoryRate());
@@ -192,27 +214,26 @@ public class PrepClinicService {
         prepClinic.setStiScreening(prepClinicDto.getStiScreening());
         prepClinic.setWhy(prepClinicDto.getWhy());
         prepClinic.setDatePrepGiven(prepClinicDto.getDatePrepGiven());
-        prepClinic.setUrinalysis(prepClinicDto.getUrinalysis());
-        prepClinic.setCreatinine(prepClinicDto.getCreatinine());
-        prepClinic.setHepatitis(prepClinicDto.getHepatitis());
-        prepClinic.setSyphilis(prepClinicDto.getSyphilis());
-        prepClinic.setOtherTestsDone(prepClinicDto.getOtherTestsDone());
-        prepClinic.setSyndromicStiScreening(prepClinicDto.getSyndromicStiScreening());
+        prepClinic.setUrinalysis(sanitizeJsonb(prepClinicDto.getUrinalysis()));
+        prepClinic.setCreatinine(sanitizeJsonb(prepClinicDto.getCreatinine()));
+        prepClinic.setHepatitis(sanitizeJsonb(prepClinicDto.getHepatitis()));
+        prepClinic.setSyphilis(sanitizeJsonb(prepClinicDto.getSyphilis()));
+        prepClinic.setOtherTestsDone(sanitizeJsonb(prepClinicDto.getOtherTestsDone()));
+        prepClinic.setSyndromicStiScreening(sanitizeJsonb(prepClinicDto.getSyndromicStiScreening()));
+        prepClinic.setSyndromicScreening(prepClinicDto.getSyndromicScreening());
         prepClinic.setRiskReductionServices(prepClinicDto.getRiskReductionServices());
         prepClinic.setNotedSideEffects(prepClinicDto.getNotedSideEffects());
         prepClinic.setHealthCareWorkerSignature(prepClinicDto.getHealthCareWorkerSignature());
         prepClinic.setDuration(prepClinicDto.getDuration());
         prepClinic.setPrepGiven(prepClinicDto.getPrepGiven());
         prepClinic.setOtherDrugs(prepClinicDto.getOtherDrugs());
-        prepClinic.setHivTestResult(prepClinicDto.getHivTestResult());
         prepClinic.setDateLiverFunctionTestResults(prepClinicDto.getDateLiverFunctionTestResults());
         prepClinic.setPrepType(prepClinicDto.getPrepType());
         prepClinic.setPopulationType(prepClinicDto.getPopulationType());
-        prepClinic.setLiverFunctionTestResults(prepClinicDto.getLiverFunctionTestResults());
-        prepClinic.setPrepNotedSideEffects(prepClinicDto.getPrepNotedSideEffects());
+        prepClinic.setLiverFunctionTestResults(sanitizeJsonb(prepClinicDto.getLiverFunctionTestResults()));
+        prepClinic.setPrepNotedSideEffects(sanitizeJsonb(prepClinicDto.getPrepNotedSideEffects()));
         prepClinic.setHistoryOfDrugToDrugInteraction(prepClinicDto.getHistoryOfDrugToDrugInteraction());
         prepClinic.setMonthsOfRefill(prepClinicDto.getMonthsOfRefill());
-        prepClinic.setHivTestResultDate(prepClinicDto.getHivTestResultDate());
         prepClinic.setHistoryOfDrugAllergies(prepClinicDto.getHistoryOfDrugAllergies());
         prepClinic.setDateLiverFunctionTestResults(prepClinicDto.getDateLiverFunctionTestResults());
         prepClinic.setLiverFunctionTestResults(prepClinicDto.getLiverFunctionTestResults());
@@ -224,6 +245,10 @@ public class PrepClinicService {
         prepClinic.setOtherRegimenId(prepClinicDto.getOtherRegimenId());
         prepClinic.setComment(prepClinicDto.getComment());
         prepClinic.setPreviousPrepStatus(prepClinicDto.getPreviousPrepStatus());
+        prepClinic.setWhyAdherenceLevelPoor(prepClinicDto.getWhyAdherenceLevelPoor());
+        prepClinic.setOtherReasonForPoorFairAdherence(prepClinicDto.getOtherReasonForPoorFairAdherence());
+        prepClinic.setOtherNotedSideEffects(prepClinicDto.getOtherNotedSideEffects());
+        prepClinic.setOtherSyndromicStiScreening(prepClinicDto.getOtherSyndromicStiScreening());
         return prepClinic;
     }
 
@@ -233,11 +258,10 @@ public class PrepClinicService {
         }
         PrepClinic prepClinic = new PrepClinic();
         prepClinic.setPersonUuid(personUuid);
-        prepClinic.setExtra(prepClinicRequestDto.getExtra());
         prepClinic.setDateInitialAdherenceCounseling(prepClinicRequestDto.getDateInitialAdherenceCounseling());
         prepClinic.setWeight(prepClinicRequestDto.getWeight());
         prepClinic.setHeight(prepClinicRequestDto.getHeight());
-        prepClinic.setPregnant(prepClinicRequestDto.getPregnant());
+        prepClinic.setHtsEncounterUuid(prepClinicRequestDto.getHtsEncounterUuid());
         prepClinic.setPrepDistributionSetting(prepClinicRequestDto.getPrepDistributionSetting());
         prepClinic.setDateReferred(prepClinicRequestDto.getDateReferred());
         prepClinic.setPrepEnrollmentUuid(prepClinicRequestDto.getPrepEnrollmentUuid());
@@ -248,9 +272,8 @@ public class PrepClinicService {
         prepClinic.setDateReferred(prepClinicRequestDto.getDateReferred());
         prepClinic.setNextAppointment(prepClinicRequestDto.getNextAppointment());
         prepClinic.setEncounterDate(prepClinicRequestDto.getEncounterDate());
-        prepClinic.setExtra(prepClinicRequestDto.getExtra());
-        prepClinic.setFamilyPlanning(prepClinic.getFamilyPlanning());
-        prepClinic.setDateOfFamilyPlanning(prepClinic.getDateOfFamilyPlanning());
+        prepClinic.setFamilyPlanning(prepClinicRequestDto.getFamilyPlanning());
+        prepClinic.setDateOfFamilyPlanning(prepClinicRequestDto.getDateOfFamilyPlanning());
         prepClinic.setDatePrepStart(prepClinicRequestDto.getDatePrepStart());
         prepClinic.setPulse(prepClinicRequestDto.getPulse());
         prepClinic.setRespiratoryRate(prepClinicRequestDto.getRespiratoryRate());
@@ -261,26 +284,25 @@ public class PrepClinicService {
         prepClinic.setStiScreening(prepClinicRequestDto.getStiScreening());
         prepClinic.setWhy(prepClinicRequestDto.getWhy());
         prepClinic.setDatePrepGiven(prepClinicRequestDto.getDatePrepGiven());
-        prepClinic.setUrinalysis(prepClinicRequestDto.getUrinalysis());
-        prepClinic.setCreatinine(prepClinicRequestDto.getCreatinine());
-        prepClinic.setHepatitis(prepClinicRequestDto.getHepatitis());
-        prepClinic.setSyphilis(prepClinicRequestDto.getSyphilis());
-        prepClinic.setOtherTestsDone(prepClinicRequestDto.getOtherTestsDone());
-        prepClinic.setSyndromicStiScreening(prepClinicRequestDto.getSyndromicStiScreening());
+        prepClinic.setUrinalysis(sanitizeJsonb(prepClinicRequestDto.getUrinalysis()));
+        prepClinic.setCreatinine(sanitizeJsonb(prepClinicRequestDto.getCreatinine()));
+        prepClinic.setHepatitis(sanitizeJsonb(prepClinicRequestDto.getHepatitis()));
+        prepClinic.setSyphilis(sanitizeJsonb(prepClinicRequestDto.getSyphilis()));
+        prepClinic.setOtherTestsDone(sanitizeJsonb(prepClinicRequestDto.getOtherTestsDone()));
+        prepClinic.setSyndromicStiScreening(sanitizeJsonb(prepClinicRequestDto.getSyndromicStiScreening()));
+        prepClinic.setSyndromicScreening(prepClinicRequestDto.getSyndromicScreening());
         prepClinic.setRiskReductionServices(prepClinicRequestDto.getRiskReductionServices());
         prepClinic.setNotedSideEffects(prepClinicRequestDto.getNotedSideEffects());
         prepClinic.setHealthCareWorkerSignature(prepClinicRequestDto.getHealthCareWorkerSignature());
         prepClinic.setDuration(prepClinicRequestDto.getDuration());
-        prepClinic.setPrepGiven(prepClinicRequestDto.getHivTestResult());
+        prepClinic.setPrepGiven(prepClinicRequestDto.getPrepGiven());
         prepClinic.setOtherDrugs(prepClinicRequestDto.getOtherDrugs());
-        prepClinic.setHivTestResult(prepClinicRequestDto.getHivTestResult());
         prepClinic.setDateLiverFunctionTestResults(prepClinicRequestDto.getDateLiverFunctionTestResults());
         prepClinic.setPrepType(prepClinicRequestDto.getPrepType());
         prepClinic.setPopulationType(prepClinicRequestDto.getPopulationType());
-        prepClinic.setLiverFunctionTestResults(prepClinicRequestDto.getLiverFunctionTestResults());
-        prepClinic.setPrepNotedSideEffects(prepClinicRequestDto.getPrepNotedSideEffects());
+        prepClinic.setLiverFunctionTestResults(sanitizeJsonb(prepClinicRequestDto.getLiverFunctionTestResults()));
+        prepClinic.setPrepNotedSideEffects(sanitizeJsonb(prepClinicRequestDto.getPrepNotedSideEffects()));
         prepClinic.setHistoryOfDrugToDrugInteraction(prepClinicRequestDto.getHistoryOfDrugToDrugInteraction());
-        prepClinic.setHivTestResultDate(prepClinicRequestDto.getHivTestResultDate());
         prepClinic.setMonthsOfRefill(prepClinicRequestDto.getMonthsOfRefill());
         prepClinic.setDateLiverFunctionTestResults(prepClinicRequestDto.getDateLiverFunctionTestResults());
         prepClinic.setLiverFunctionTestResults(prepClinicRequestDto.getLiverFunctionTestResults());
@@ -291,6 +313,11 @@ public class PrepClinicService {
         prepClinic.setOtherRegimenId(prepClinicRequestDto.getOtherRegimenId());
         prepClinic.setComment(prepClinicRequestDto.getComment());
         prepClinic.setPreviousPrepStatus(prepClinicRequestDto.getPreviousPrepStatus());
+        prepClinic.setVisitType(prepClinicRequestDto.getVisitType());
+        prepClinic.setWhyAdherenceLevelPoor(prepClinicRequestDto.getWhyAdherenceLevelPoor());
+        prepClinic.setOtherReasonForPoorFairAdherence(prepClinicRequestDto.getOtherReasonForPoorFairAdherence());
+        prepClinic.setOtherNotedSideEffects(prepClinicRequestDto.getOtherNotedSideEffects());
+        prepClinic.setOtherSyndromicStiScreening(prepClinicRequestDto.getOtherSyndromicStiScreening());
         return prepClinic;
     }
 
@@ -300,24 +327,17 @@ public class PrepClinicService {
         }
         PrepClinicDto prepClinicDto = new PrepClinicDto();
         prepClinicDto.setId(clinic.getId());
-        prepClinicDto.setExtra(clinic.getExtra());
         prepClinicDto.setDateInitialAdherenceCounseling(clinic.getDateInitialAdherenceCounseling());
         prepClinicDto.setWeight(clinic.getWeight());
         prepClinicDto.setHeight(clinic.getHeight());
-        prepClinicDto.setPregnant(clinic.getPregnant());
+        prepClinicDto.setHtsEncounterUuid(clinic.getHtsEncounterUuid());
         prepClinicDto.setPrepDistributionSetting(clinic.getPrepDistributionSetting());
-        if (last != null && last) {
-            prepClinicDto.setVisitCount(prepClinicRepository.countAllByPersonUuid(clinic.getPersonUuid()));
-        }
         prepClinicDto.setDateOfFamilyPlanning(clinic.getDateOfFamilyPlanning());
         prepClinicDto.setFamilyPlanning(clinic.getFamilyPlanning());
         prepClinicDto.setVisitType(clinic.getVisitType());
         prepClinicDto.setDateReferred(clinic.getDateReferred());
         prepClinicDto.setPrepEnrollmentUuid(clinic.getPrepEnrollmentUuid());
         prepClinicDto.setRegimenId(clinic.getRegimenId());
-        if (clinic.getRegimenId() != 0L && clinic.getRegimen() != null) {
-            prepClinicDto.setRegimen(clinic.getRegimen().getRegimen());
-        }
         prepClinicDto.setUrinalysisResult(clinic.getUrinalysisResult());
         prepClinicDto.setCreatinineResult(clinic.getCreatinineResult());
         prepClinicDto.setReferred(clinic.getReferred());
@@ -340,20 +360,19 @@ public class PrepClinicService {
         prepClinicDto.setSyphilis(clinic.getSyphilis());
         prepClinicDto.setOtherTestsDone(clinic.getOtherTestsDone());
         prepClinicDto.setSyndromicStiScreening(clinic.getSyndromicStiScreening());
+        prepClinicDto.setSyndromicScreening(clinic.getSyndromicScreening());
         prepClinicDto.setRiskReductionServices(clinic.getRiskReductionServices());
         prepClinicDto.setNotedSideEffects(clinic.getNotedSideEffects());
         prepClinicDto.setHealthCareWorkerSignature(clinic.getHealthCareWorkerSignature());
         prepClinicDto.setDuration(clinic.getDuration());
-        prepClinicDto.setPrepGiven(clinic.getHivTestResult());
+        prepClinicDto.setPrepGiven(clinic.getPrepGiven());
         prepClinicDto.setOtherDrugs(clinic.getOtherDrugs());
-        prepClinicDto.setHivTestResult(clinic.getHivTestResult());
         prepClinicDto.setDateLiverFunctionTestResults(clinic.getDateLiverFunctionTestResults());
         prepClinicDto.setPrepType(clinic.getPrepType());
         prepClinicDto.setPopulationType(clinic.getPopulationType());
         prepClinicDto.setLiverFunctionTestResults(clinic.getLiverFunctionTestResults());
         prepClinicDto.setPrepNotedSideEffects(clinic.getPrepNotedSideEffects());
         prepClinicDto.setHistoryOfDrugToDrugInteraction(clinic.getHistoryOfDrugToDrugInteraction());
-        prepClinicDto.setHivTestResultDate(clinic.getHivTestResultDate());
         prepClinicDto.setMonthsOfRefill(clinic.getMonthsOfRefill());
         prepClinicDto.setHistoryOfDrugAllergies(clinic.getHistoryOfDrugAllergies());
         prepClinicDto.setDateLiverFunctionTestResults(clinic.getDateLiverFunctionTestResults());
@@ -365,6 +384,10 @@ public class PrepClinicService {
         prepClinicDto.setOtherRegimenId(clinic.getOtherRegimenId());
         prepClinicDto.setComment(clinic.getComment());
         prepClinicDto.setPreviousPrepStatus(clinic.getPreviousPrepStatus());
+        prepClinicDto.setWhyAdherenceLevelPoor(clinic.getWhyAdherenceLevelPoor());
+        prepClinicDto.setOtherReasonForPoorFairAdherence(clinic.getOtherReasonForPoorFairAdherence());
+        prepClinicDto.setOtherNotedSideEffects(clinic.getOtherNotedSideEffects());
+        prepClinicDto.setOtherSyndromicStiScreening(clinic.getOtherSyndromicStiScreening());
         return prepClinicDto;
     }
 
@@ -416,7 +439,6 @@ public class PrepClinicService {
             String personUuid,
             String visitType,
             String populationType,
-            String pregnant,
             String liverFunctionTestResults,
             String reasonForSwitch,
             LocalDate dateOfLiverFunctionTestResults
@@ -426,7 +448,6 @@ public class PrepClinicService {
                 personUuid,
                 visitType,
                 populationType,
-                pregnant,
                 liverFunctionTestResults,
                 reasonForSwitch,
                 dateOfLiverFunctionTestResults

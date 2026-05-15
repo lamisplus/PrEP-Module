@@ -16,6 +16,7 @@ public class CurrentUserOrganizationService {
         return userWithRoles.map (User::getCurrentOrganisationUnitId).orElse (null);
     }
 
+
     /*public String getCurrentUserOrganizationDatimId() {
         Optional<User> userWithRoles = userService.getUserWithRoles ();
 

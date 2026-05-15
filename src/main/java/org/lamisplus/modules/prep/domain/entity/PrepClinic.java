@@ -16,7 +16,7 @@ import org.hibernate.annotations.TypeDefs;
 import org.lamisplus.modules.base.domain.entities.Audit;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
-import org.lamisplus.modules.triage.domain.entity.VitalSign;
+// import org.lamisplus.modules.triage.domain.entity.VitalSign;  // Triage temporarily disabled — see PrepModule.java.
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -51,8 +51,8 @@ public class PrepClinic extends Audit implements Serializable {
     @Column(name = "height")
     private Double height;
 
-    @Column(name = "pregnant")
-    private String pregnant;
+    @Column(name = "hts_encounter_uuid")
+    private String htsEncounterUuid;
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     private String uuid;
@@ -97,9 +97,12 @@ public class PrepClinic extends Audit implements Serializable {
     @Column(name = "visit_type")
     private String visitType;
 
-    @OneToOne
-    @JoinColumn(name = "vital_sign_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
-    private VitalSign vitalSign;
+    // Triage VitalSign association temporarily disabled — see PrepModule.java.
+    // The plain `vital_sign_uuid` String column above is kept so any existing
+    // rows still load; only the Hibernate join to the triage entity is gone.
+    // @OneToOne
+    // @JoinColumn(name = "vital_sign_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+    // private VitalSign vitalSign;
 
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
@@ -108,10 +111,6 @@ public class PrepClinic extends Audit implements Serializable {
     @OneToOne
     @JoinColumn(name = "visit_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private Visit visit;
-
-    @ManyToOne
-    @JoinColumn(name = "regimen_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private PrepRegimen regimen;
 
     @Column(name = "next_appointment")
     private LocalDate nextAppointment;
@@ -124,11 +123,6 @@ public class PrepClinic extends Audit implements Serializable {
 
     @Column(name = "is_commencement")
     private Boolean isCommencement;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "extra", columnDefinition = "jsonb")
-    private Object extra;
 
     //For clinic
     @Column(name = "pulse")
@@ -186,10 +180,6 @@ public class PrepClinic extends Audit implements Serializable {
     @Column(name = "other_drugs")
     private String otherDrugs;
 
-    @Column(name = "hiv_test_result")
-    private String hivTestResult;
-    @Column(name = "hiv_test_result_date")
-    private LocalDate hivTestResultDate;
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "urinalysis", columnDefinition = "jsonb")
@@ -220,6 +210,9 @@ public class PrepClinic extends Audit implements Serializable {
     @Column(name = "syndromic_sti_screening", columnDefinition = "jsonb")
     private Object syndromicStiScreening;
 
+    @Column(name = "syndromic_screening")
+    private String syndromicScreening;
+
     @Column(name = "risk_reduction_services")
     private String riskReductionServices;
 
@@ -245,6 +238,15 @@ public class PrepClinic extends Audit implements Serializable {
     private String comment;
     @Column(name = "previous_prep_status")
     private String previousPrepStatus;
+
+    @Column(name = "why_adherence_level_poor")
+    private String whyAdherenceLevelPoor;
+    @Column(name = "other_reason_for_poor_fair_adherence")
+    private String otherReasonForPoorFairAdherence;
+    @Column(name = "other_noted_side_effects")
+    private String otherNotedSideEffects;
+    @Column(name = "other_syndromic_sti_screening")
+    private String otherSyndromicStiScreening;
 
     @PrePersist
     public void setFields() {

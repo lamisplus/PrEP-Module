@@ -7,13 +7,16 @@ import org.lamisplus.modules.prep.domain.dto.*;
 import org.lamisplus.modules.prep.domain.entity.PrepClient;
 import org.lamisplus.modules.prep.service.PatientActivityService;
 import org.lamisplus.modules.prep.service.PrepService;
+import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class PrepController {
@@ -36,6 +39,59 @@ public class PrepController {
         return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
     }
 
+    @GetMapping(PREP_URL_VERSION_ONE + "/persons/interrupted-prep-status")
+    @ApiOperation("Get enrolled Prep Persons with optimized api")
+    public ResponseEntity<PageDTO> getAllEnrolledPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,
+                                                         @RequestParam(required = false, defaultValue = "20") int pageSize,
+                                                         @RequestParam(required = false, defaultValue = "0") int pageNo) {
+        Page<PrepClient> page = prepService.findAllInterruptedPrepPersonPage(searchValue, pageNo, pageSize);
+        return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
+    }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/persons/not-enrolled")
+    @ApiOperation("Get enrolled Prep Persons with optimized api")
+    public ResponseEntity<PageDTO> getAllNotEnrolledPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,
+                                                            @RequestParam(required = false, defaultValue = "20") int pageSize,
+                                                            @RequestParam(required = false, defaultValue = "0") int pageNo) {
+        Page<PrepClient> page = prepService.findAllNotEnrolledPrepPersonPage(searchValue, pageNo, pageSize);
+        return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
+    }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/persons/enrolled")
+    @ApiOperation("Get enrolled PrEP Persons")
+    public ResponseEntity<PageDTO> getAllEnrolledPersons2(@RequestParam(required = false, defaultValue = "*") String searchValue,
+                                                          @RequestParam(required = false, defaultValue = "20") int pageSize,
+                                                          @RequestParam(required = false, defaultValue = "0") int pageNo) {
+        Page<PrepHtsPatientDto> page = prepService.findAllEnrolledPrepPersonPage(searchValue, pageNo, pageSize);
+        return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
+    }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/persons/pep-enrolled")
+    @ApiOperation("Get PEP enrolled Persons")
+    public ResponseEntity<PageDTO> getAllPepEnrolledPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,
+                                                            @RequestParam(required = false, defaultValue = "20") int pageSize,
+                                                            @RequestParam(required = false, defaultValue = "0") int pageNo) {
+        Page<PrepHtsPatientDto> page = prepService.findAllPepEnrolledPrepPersonPage(searchValue, pageNo, pageSize);
+        return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
+    }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/persons/hts")
+    @ApiOperation("Get HTS-encounter-driven Patient tab list (latest HTS result + client code)")
+    public ResponseEntity<PageDTO> getAllHtsEncounterPatients(@RequestParam(required = false, defaultValue = "*") String searchValue,
+                                                              @RequestParam(required = false, defaultValue = "20") int pageSize,
+                                                              @RequestParam(required = false, defaultValue = "0") int pageNo) {
+        Page<PrepHtsPatientDto> page = prepService.findAllHtsEncounterPatientPage(searchValue, pageNo, pageSize);
+        return new ResponseEntity<>(PaginationUtil.generatePagination(page, page.getContent()), HttpStatus.OK);
+    }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/hts-encounter/{uuid}")
+    @ApiOperation("Get a single hts_encounter by uuid — used by prep forms on edit/view to rehydrate read-only HTS fields")
+    public ResponseEntity<LatestHtsResultDto> getHtsEncounterByUuid(@PathVariable String uuid) {
+        LatestHtsResultDto dto = prepService.findHtsEncounterByUuid(uuid);
+        if (dto == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(dto);
+    }
+
     @GetMapping(PREP_URL_VERSION_ONE + "/only/persons")
     @ApiOperation("Get Only Prep Persons with optimized api")
     public ResponseEntity<PageDTO> getOnlyPrepPersons(@RequestParam(required = false, defaultValue = "*") String searchValue,
@@ -52,9 +108,9 @@ public class PrepController {
         return new ResponseEntity<>(prepService.saveEligibility(prepEligibilityRequestDto), HttpStatus.CREATED);
     }
 
-    @PostMapping(PREP_URL_VERSION_ONE + "/enrollment")
+    @PostMapping({PREP_URL_VERSION_ONE + "/enrollment", PREP_URL_VERSION_ONE + "/prophylaxis-initiation"})
     @ResponseStatus(HttpStatus.CREATED)
-    @ApiOperation("Save Prep Enrollment")
+    @ApiOperation("Save Prophylaxis Initiation")
     public ResponseEntity<PrepEnrollmentDto> saveEnrollment(@Valid @RequestBody PrepEnrollmentRequestDto prepEnrollmentRequestDto) {
         return new ResponseEntity<>(prepService.saveEnrollment(prepEnrollmentRequestDto), HttpStatus.CREATED);
     }
@@ -144,5 +200,24 @@ public class PrepController {
     @ApiOperation("Get Prep Enrollment not commenced by patient Id")
     public ResponseEntity<PrepEnrollmentDto> getOpenEnrollment(@PathVariable Long patientId) {
         return ResponseEntity.ok(prepService.getOpenEnrollment(patientId));
+    }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/initiation/latest/{patientId}")
+    @ApiOperation("Get latest PrEP/PEP initiation by patient Id and enrollment type")
+    public ResponseEntity<PrepEnrollmentDto> getLatestInitiation(
+            @PathVariable Long patientId,
+            @RequestParam(value = "enrollmentType", defaultValue = EnrollmentType.PREP) String enrollmentType) {
+        return ResponseEntity.ok(prepService.getLatestInitiation(patientId, enrollmentType));
+    }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/initiation/latest-uuid")
+    @ApiOperation("Get latest prophylaxis_initiation uuid by patient uuid and enrollment type")
+    public ResponseEntity<Map<String, String>> getLatestInitiationUuid(
+            @RequestParam("personUuid") String personUuid,
+            @RequestParam(value = "enrollmentType", defaultValue = EnrollmentType.PREP) String enrollmentType) {
+        String uuid = prepService.getLatestInitiationUuid(personUuid, enrollmentType);
+        Map<String, String> body = new HashMap<>();
+        body.put("prepEnrollmentUuid", uuid);
+        return ResponseEntity.ok(body);
     }
 }

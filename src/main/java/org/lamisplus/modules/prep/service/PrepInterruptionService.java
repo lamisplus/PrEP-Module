@@ -114,6 +114,12 @@ public class PrepInterruptionService {
         prepInterruption.setReasonStoppedOthers(interruptionRequestDto.getReasonStoppedOthers());
         prepInterruption.setReasonForPrepDiscontinuation(interruptionRequestDto.getReasonForPrepDiscontinuation());
 
+        prepInterruption.setWhy(interruptionRequestDto.getWhy());
+        prepInterruption.setPepCompletion(interruptionRequestDto.getPepCompletion());
+        prepInterruption.setFollowUpVisitDate(interruptionRequestDto.getFollowUpVisitDate());
+        prepInterruption.setHivResult(interruptionRequestDto.getHivResult());
+        prepInterruption.setEarlyDetectViralLoadResult(interruptionRequestDto.getEarlyDetectViralLoadResult());
+
         return prepInterruption;
     }
 
@@ -141,6 +147,12 @@ public class PrepInterruptionService {
 
         prepInterruption.setReasonStopped(interruptionDto.getReasonStopped());
         prepInterruption.setReasonStoppedOthers(interruptionDto.getReasonStoppedOthers());
+
+        prepInterruption.setWhy(interruptionDto.getWhy());
+        prepInterruption.setPepCompletion(interruptionDto.getPepCompletion());
+        prepInterruption.setFollowUpVisitDate(interruptionDto.getFollowUpVisitDate());
+        prepInterruption.setHivResult(interruptionDto.getHivResult());
+        prepInterruption.setEarlyDetectViralLoadResult(interruptionDto.getEarlyDetectViralLoadResult());
 
         return prepInterruption;
     }
@@ -170,6 +182,11 @@ public class PrepInterruptionService {
         prepInterruptionDto.setReasonStopped(prepInterruption.getReasonStopped());
         prepInterruptionDto.setReasonStoppedOthers(prepInterruption.getReasonStoppedOthers());
 
+        prepInterruptionDto.setWhy(prepInterruption.getWhy());
+        prepInterruptionDto.setPepCompletion(prepInterruption.getPepCompletion());
+        prepInterruptionDto.setFollowUpVisitDate(prepInterruption.getFollowUpVisitDate());
+        prepInterruptionDto.setHivResult(prepInterruption.getHivResult());
+        prepInterruptionDto.setEarlyDetectViralLoadResult(prepInterruption.getEarlyDetectViralLoadResult());
 
         return prepInterruptionDto;
     }

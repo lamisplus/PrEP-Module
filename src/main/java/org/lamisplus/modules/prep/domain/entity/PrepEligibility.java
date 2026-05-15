@@ -38,19 +38,11 @@ public class PrepEligibility extends Audit implements Serializable {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "unique_id")
-    private String uniqueId;
-
     @Column(name = "visit_date")
     private LocalDate visitDate;
 
     @Column(name = "score")
     private Integer score;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "hiv_risk", columnDefinition = "jsonb")
-    private Object hivRisk;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
@@ -98,17 +90,11 @@ public class PrepEligibility extends Audit implements Serializable {
     @Column(name = "sex_partner")
     private String sexPartner;
 
-    @Column(name = "counseling_type")
-    private String counselingType;
-
     @Column(name = "first_time_visit")
     private Boolean firstTimeVisit;
 
     @Column(name = "num_children_less_than_five")
     private Integer numChildrenLessThanFive;
-
-    @Column(name = "num_wives")
-    private Integer numWives;
 
     @Column(name = "target_group")
     private String targetGroup;
@@ -120,11 +106,6 @@ public class PrepEligibility extends Audit implements Serializable {
     @Column(name = "pregnancy_status")
     private String pregnancyStatus;
 
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "extra", columnDefinition = "jsonb")
-    private Object extra;
-
     @Column(name = "facility_id")
     private Long facilityId;
 
@@ -135,16 +116,36 @@ public class PrepEligibility extends Audit implements Serializable {
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
     private Person person;
-    @Column(name = "lft_conducted")
-    private String lftConducted;
     @Column(name = "reason_for_switch")
     private String reasonForSwitch;
-    @Column(name = "date_of_liver_function_test_results")
-    private LocalDate dateLiverFunctionTestResults;
+
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
-    @Column(name = "liver_function_test_results", columnDefinition = "jsonb", nullable = true)
-    private Object liverFunctionTestResults;
+    @Column(name = "consideration_for_injections", columnDefinition = "jsonb")
+    private Object considerationForInjections;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "reason_for_declining_prep", columnDefinition = "jsonb")
+    private Object reasonForDecliningPrep;
+
+    @Column(name = "unique_client_id")
+    private String uniqueClientId;
+
+    @Column(name = "client_hts_code")
+    private String clientHtsCode;
+
+    @Column(name = "referred_from")
+    private String referredFrom;
+
+    @Column(name = "setting")
+    private String setting;
+
+    @Column(name = "service_status")
+    private String serviceStatus;
+
+    @Column(name = "type_of_session")
+    private String typeOfSession;
 
     @PrePersist
     public void setFields() {

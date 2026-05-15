@@ -22,13 +22,11 @@ public class PrepClinicDto implements Serializable {
 
     private Double height;
 
-    private String pregnant;
+    private String htsEncounterUuid;
 
     private String prepEnrollmentUuid;
 
     private long regimenId;
-
-    private long regimenTypeId;
 
     private String urinalysisResult;
 
@@ -39,8 +37,6 @@ public class PrepClinicDto implements Serializable {
     private Long personId;
 
     private LocalDate nextAppointment;
-
-    private Object extra;
 
     //private String status;
 
@@ -74,6 +70,7 @@ public class PrepClinicDto implements Serializable {
     private Object otherTestsDone;
 
     private Object syndromicStiScreening;
+    private String syndromicScreening;
 
     private String riskReductionServices;
 
@@ -81,18 +78,14 @@ public class PrepClinicDto implements Serializable {
 
     private Integer duration;
 
-    private String regimen;
     private String otherPrepGiven;
     private String otherPrepType;
     private String otherRegimenId;
-    private int visitCount;
-
     private String prepGiven;
     private String prepDistributionSetting;
     private String familyPlanning;
     private LocalDate dateOfFamilyPlanning;
     private String otherDrugs;
-    private String hivTestResult;
     private String prepType;
     private String populationType;
     private String visitType;
@@ -105,9 +98,12 @@ public class PrepClinicDto implements Serializable {
 
     private String historyOfDrugToDrugInteraction;
     private String historyOfDrugAllergies;
-    private LocalDate hivTestResultDate;
     private Integer monthsOfRefill;
     private String comment;
     private String previousPrepStatus;
+    private String whyAdherenceLevelPoor;
+    private String otherReasonForPoorFairAdherence;
+    private String otherNotedSideEffects;
+    private String otherSyndromicStiScreening;
 }
 

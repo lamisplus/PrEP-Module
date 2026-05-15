@@ -29,4 +29,12 @@ public class PrepInterruptionDto implements Serializable {
     private String reasonStopped;
     private String reasonStoppedOthers;
     private String previousPrepStatus;
+    private String enrollmentType;
+    private String prepEnrollmentUuid;
+
+    private String why;
+    private String pepCompletion;
+    private LocalDate followUpVisitDate;
+    private String hivResult;
+    private String earlyDetectViralLoadResult;
 }
