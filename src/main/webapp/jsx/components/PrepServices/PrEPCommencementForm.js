@@ -231,10 +231,9 @@ const PrEPCommencementForm = props => {
     setErrors({ ...errors, [e.target.name]: "" });
     if (
       e.target.name === "height" &&
-      (e.target.value < 0.3 || e.target.value > 2.5)
+      (e.target.value < 30 || e.target.value > 250)
     ) {
-      const message =
-        "Height must be between 0.3 and 2.5 meters";
+      const message = "Height must be between 30 and 250 cm";
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: message });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: "" });
@@ -511,7 +510,7 @@ const PrEPCommencementForm = props => {
                       borderBottomLeftRadius: "0.25rem",
                     }}
                   >
-                    m
+                    cm
                   </InputGroupText>
                   <Input
                     type="number"
@@ -519,9 +518,9 @@ const PrEPCommencementForm = props => {
                     id="height"
                     onChange={handleInputChange}
                     value={objValues.height}
-                    min="0.3"
-                    max="2.5"
-                    step="0.01"
+                    min="30"
+                    max="250"
+                    step="1"
                     disabled={disabledField}
                     onKeyUp={handleInputValueCheckHeight}
                     style={{

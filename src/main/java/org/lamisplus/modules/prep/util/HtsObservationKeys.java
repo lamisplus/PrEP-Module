@@ -46,7 +46,8 @@ public final class HtsObservationKeys {
      * applies on the Patient tab:
      *   • RAPID_ANTIBODY    — accept a negative initial / confirmatory test OR a
      *                         reactive early-detect marker.
-     *   • HIV_EARLY_DETECT  — must have a reactive early-detect result AND a
+     *   • HIV_EARLY_DETECT  — must have a reactive early-detect re
+     * sult AND a
      *                         negative confirmatory. Antigen-only / antigen+
      *                         antibody markers further restrict the row to PEP.
      */

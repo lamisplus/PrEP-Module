@@ -7,6 +7,7 @@ import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
 import org.lamisplus.modules.prep.service.PatientActivityProvider;
+import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -27,8 +28,12 @@ public class PrepEnrollmentActivityProvider implements PatientActivityProvider {
 	
 	@NotNull
 	private PatientActivity buildPatientActivity(PrepPepInitiation prepEnrollment) {
+		// `type` is either the short legacy label ("PEP" / "PrEP") or the
+		// canonical codeset code (PREP_PEP_ENROLLMENT_TYPE_PEP / _PREP). Both
+		// must map to the same activity name on the History tab.
 		String type = prepEnrollment.getEnrollmentType();
-		String name = "PEP".equals(type) ? "PEP Initiation" : "PrEP Initiation";
+		boolean isPep = "PEP".equalsIgnoreCase(type) || EnrollmentType.isPep(type);
+		String name = isPep ? "PEP Initiation" : "PrEP Initiation";
 		assert prepEnrollment.getId() != null;
 		return new PatientActivity(prepEnrollment.getId(), name, prepEnrollment.getDateEnrolled(), "", "prep-pep-initiation");
 	}

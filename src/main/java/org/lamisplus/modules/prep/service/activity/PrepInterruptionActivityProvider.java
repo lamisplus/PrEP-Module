@@ -8,6 +8,7 @@ import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.prep.domain.entity.ProphylaxisInterruption;
 import org.lamisplus.modules.prep.repository.ProphylaxisInterruptionRepository;
 import org.lamisplus.modules.prep.service.PatientActivityProvider;
+import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -36,7 +37,11 @@ public class PrepInterruptionActivityProvider implements PatientActivityProvider
 			PrepPepInitiation initiation = interruption.getPrepPepInitiation();
 			type = initiation != null ? initiation.getEnrollmentType() : null;
 		}
-		if ("PEP".equals(type)) {
+		// `type` can be either the short label ("PEP" / "PrEP") from legacy
+		// records or the canonical codeset code (PREP_PEP_ENROLLMENT_TYPE_PEP
+		// / _PREP) saved by the current form. Route both through EnrollmentType
+		// so the activity label is always correct on the History tab.
+		if ("PEP".equalsIgnoreCase(type) || EnrollmentType.isPep(type)) {
 			name = "PEP Completion";
 		} else {
 			name = "PrEP Discontinuation/Interruption";

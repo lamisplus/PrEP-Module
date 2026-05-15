@@ -50,12 +50,22 @@ const POSITIVE_CODES = new Set([
   CONFIRMATORY_HIV_TEST_RESULT.POSITIVE,
 ]);
 
+// When typeOfHivTestDone on the HTS observation is this value, the HIV result
+// field on prep forms should reflect "early detect" instead of the
+// initial/confirmatory test result.
+const TYPE_HIV_EARLY_DETECT = "TYPE_OF_HIV_TEST_HIV_EARLY_DETECT";
+
 /**
  * Source HIV-result code → HIV_TEST_RESULT_*  (screening + initiation forms).
- * Accepts both STI_HIV_RESULT_* and HIV_CONFIRMATORY_TEST_RESULT_*. Returns
- * the input unchanged when nothing matches.
+ * Accepts both STI_HIV_RESULT_* and HIV_CONFIRMATORY_TEST_RESULT_*.
+ *
+ * When `testType === TYPE_OF_HIV_TEST_HIV_EARLY_DETECT`, the test was an
+ * early-detect run and the form's HIV-result field should auto-populate to
+ * "Early Detect" — overriding whatever initial/confirmatory codes were
+ * collected on the same encounter.
  */
-export const toHivTestResultCode = (sourceCode) => {
+export const toHivTestResultCode = (sourceCode, testType) => {
+  if (testType === TYPE_HIV_EARLY_DETECT) return HIV_TEST_RESULT.EARLY_DETECT;
   if (!sourceCode) return sourceCode;
   if (NEGATIVE_CODES.has(sourceCode)) return HIV_TEST_RESULT.NEGATIVE;
   if (POSITIVE_CODES.has(sourceCode)) return HIV_TEST_RESULT.POSITIVE;
@@ -64,10 +74,15 @@ export const toHivTestResultCode = (sourceCode) => {
 
 /**
  * Source HIV-result code → HTS_RESULT_HIV_*  (PrEP follow-up form).
- * Accepts both STI_HIV_RESULT_* and HIV_CONFIRMATORY_TEST_RESULT_*. Returns
- * the input unchanged when nothing matches.
+ * Accepts both STI_HIV_RESULT_* and HIV_CONFIRMATORY_TEST_RESULT_*.
+ *
+ * HTS_RESULT codeset has no early-detect entry — when `testType ===
+ * TYPE_OF_HIV_TEST_HIV_EARLY_DETECT` we leave the field blank so the user can
+ * pick the right option manually instead of pre-filling with a code that
+ * isn't in the dropdown.
  */
-export const toHtsResultCode = (sourceCode) => {
+export const toHtsResultCode = (sourceCode, testType) => {
+  if (testType === TYPE_HIV_EARLY_DETECT) return "";
   if (!sourceCode) return sourceCode;
   if (NEGATIVE_CODES.has(sourceCode)) return HTS_RESULT.NEGATIVE;
   if (POSITIVE_CODES.has(sourceCode)) return HTS_RESULT.POSITIVE;

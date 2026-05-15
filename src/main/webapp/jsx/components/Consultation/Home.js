@@ -373,7 +373,9 @@ const ClinicVisit = props => {
   const getHivResult = () => {
     if (!latestHts) return;
     setHivTestValue(
-      toHtsResultCode(htsObs.confirmatoryHivTest || htsObs.initialHivTest) || ""
+      toHtsResultCode(
+        htsObs.confirmatoryHivTest || htsObs.initialHivTest,
+        htsObs.typeOfHivTestDone) || ""
     );
     setHivTestResultDate(latestHts.dateOfVisit || "");
   };
@@ -565,10 +567,10 @@ const ClinicVisit = props => {
   };
 
   const handleInputValueCheckHeight = e => {
-    if (e.target.value < 0.3 || e.target.value > 2.5) {
+    if (e.target.value < 30 || e.target.value > 250) {
       setVitalClinicalSupport(prev => ({
         ...prev,
-        height: "Height must be between 0.3 and 2.5 meters",
+        height: "Height must be between 30 and 250 cm",
       }));
     } else {
       setVitalClinicalSupport(prev => ({ ...prev, height: "" }));
@@ -834,7 +836,9 @@ const ClinicVisit = props => {
     // Push the HIV test result through the codeset mapper so the dropdown's
     // selected option resolves correctly on edit/view too.
     setHivTestValue(
-      toHtsResultCode(htsObs.confirmatoryHivTest || htsObs.initialHivTest) || ""
+      toHtsResultCode(
+        htsObs.confirmatoryHivTest || htsObs.initialHivTest,
+        htsObs.typeOfHivTestDone) || ""
     );
     setHivTestResultDate(latestHts.dateOfVisit || "");
   }, [latestHts?.uuid]);
@@ -1399,7 +1403,7 @@ const ClinicVisit = props => {
                             addonType="append"
                             style={inputGroupLeftStyle}
                           >
-                            m
+                            cm
                           </InputGroupText>
                           <Input
                             type="number"
@@ -1409,9 +1413,9 @@ const ClinicVisit = props => {
                               handleChange(e);
                               handleInputValueCheckHeight(e);
                             }}
-                            min="0.3"
-                            max="2.5"
-                            step="0.01"
+                            min="30"
+                            max="250"
+                            step="1"
                             value={values.height}
                             style={{
                               ...inputGroupMiddleStyle,

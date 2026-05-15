@@ -194,7 +194,9 @@ const PrEPInitialVisitForm = props => {
       // HTS observation stores STI_HIV_RESULT_* codes; the initiation form's
       // dropdown is on HIV_TEST_RESULT_*, so translate.
       resultOfHivTest:
-        toHivTestResultCode(htsObs.confirmatoryHivTest || htsObs.initialHivTest)
+        toHivTestResultCode(
+          htsObs.confirmatoryHivTest || htsObs.initialHivTest,
+          htsObs.typeOfHivTestDone)
           || prev.resultOfHivTest,
       pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
     }));
@@ -314,11 +316,11 @@ const PrEPInitialVisitForm = props => {
   const handleInputValueCheckHeight = e => {
     if (
       e.target.value !== "" &&
-      (Number(e.target.value) > 2.5 || Number(e.target.value) < 0.3)
+      (Number(e.target.value) > 250 || Number(e.target.value) < 30)
     ) {
       setVitalClinicalSupport({
         ...vitalClinicalSupport,
-        height: "Height must be between 0.3 and 2.5 meters",
+        height: "Height must be between 30 and 250 cm",
       });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, height: "" });
@@ -945,7 +947,7 @@ const PrEPInitialVisitForm = props => {
                         borderBottomLeftRadius: "0.25rem",
                       }}
                     >
-                      m
+                      cm
                     </InputGroupText>
                     <Input
                       type="number"
@@ -953,9 +955,9 @@ const PrEPInitialVisitForm = props => {
                       id="height"
                       onChange={handleInputChange}
                       value={objValues.height}
-                      min="0.3"
-                      max="2.5"
-                      step="0.01"
+                      min="30"
+                      max="250"
+                      step="1"
                       disabled={disabledField}
                       onKeyUp={handleInputValueCheckHeight}
                       style={{

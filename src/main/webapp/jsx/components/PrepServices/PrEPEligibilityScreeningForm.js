@@ -288,7 +288,9 @@ const BasicInfo = props => {
       // HTS observation stores STI_HIV_RESULT_* codes; the screening form's
       // dropdown is on HIV_TEST_RESULT_*, so translate.
       hivTestResultAtvisit:
-        toHivTestResultCode(htsObs.confirmatoryHivTest || htsObs.initialHivTest)
+        toHivTestResultCode(
+          htsObs.confirmatoryHivTest || htsObs.initialHivTest,
+          htsObs.typeOfHivTestDone)
           || prev.hivTestResultAtvisit,
     }));
   }, [latestHts?.uuid]);
