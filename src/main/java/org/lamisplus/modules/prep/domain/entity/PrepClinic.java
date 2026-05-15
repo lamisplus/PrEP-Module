@@ -16,7 +16,7 @@ import org.hibernate.annotations.TypeDefs;
 import org.lamisplus.modules.base.domain.entities.Audit;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
-import org.lamisplus.modules.triage.domain.entity.VitalSign;
+// import org.lamisplus.modules.triage.domain.entity.VitalSign;  // Triage temporarily disabled — see PrepModule.java.
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -97,9 +97,12 @@ public class PrepClinic extends Audit implements Serializable {
     @Column(name = "visit_type")
     private String visitType;
 
-    @OneToOne
-    @JoinColumn(name = "vital_sign_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
-    private VitalSign vitalSign;
+    // Triage VitalSign association temporarily disabled — see PrepModule.java.
+    // The plain `vital_sign_uuid` String column above is kept so any existing
+    // rows still load; only the Hibernate join to the triage entity is gone.
+    // @OneToOne
+    // @JoinColumn(name = "vital_sign_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+    // private VitalSign vitalSign;
 
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", insertable = false, updatable = false)

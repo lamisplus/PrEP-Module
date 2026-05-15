@@ -213,11 +213,21 @@
             <version>1.0.0</version>
         </dependency>
 
+        <!-- Triage temporarily disabled — see PrepModule.java. Re-enable when
+             vital-sign capture is wired back in. The prep_clinic table still
+             carries `vital_sign_uuid` so existing rows load; we just no longer
+             join to triage's VitalSign entity. -->
+        <!--
         <dependency>
             <groupId>org.lamisplus.modules</groupId>
             <artifactId>triage</artifactId>
             <version>1.0.0</version>
         </dependency>
+        -->
+        <!-- Legacy DB schema declares a FK on triage_vital_sign(uuid). The
+             schema changeset is precondition-guarded so re-runs are no-ops;
+             nothing else in the runtime path requires the FK to resolve. -->
+
     </dependencies>
 
     <build>
