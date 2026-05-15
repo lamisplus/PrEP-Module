@@ -28,6 +28,12 @@ public class PrepHtsPatientDto {
     private String sendCabLaAlert;
     private String pregnancyStatusDisplay;
     private Boolean isInterrupted;
+    /**
+     * True when the linked HTS encounter restricts the patient to PEP only
+     * (early-detect test type + antigen-reactive marker). Drives the Patient
+     * tab "Enroll" modal to hide / disable the PrEP option.
+     */
+    private Boolean pepOnly;
 
     private String htsClientCode;
     private LatestHtsResultDto latestHtsResult;

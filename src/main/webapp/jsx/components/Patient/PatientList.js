@@ -232,10 +232,15 @@ const EnrollPatientButton = ({ row }) => {
   // PrEP minimum age is 15 — under-15 clients may only be enrolled into PEP.
   const ageNum = Number(row?.age);
   const prepBlockedByAge = Number.isFinite(ageNum) && ageNum < 15;
+  // Backend flag: latest HTS encounter is early-detect with an antigen-only
+  // or antigen + antibody reactive result. PrEP is contra-indicated; only
+  // PEP may be initiated for these clients.
+  const prepBlockedByEarlyDetect = !!row?.pepOnly;
 
   const handleEnroll = (screeningType) => {
     if (blockedArm) return; // hard-block; banner explains it
-    if (screeningType === ENROLLMENT_LABEL_PREP && prepBlockedByAge) return;
+    if (screeningType === ENROLLMENT_LABEL_PREP
+        && (prepBlockedByAge || prepBlockedByEarlyDetect)) return;
     setOpen(false);
     history.push({
       pathname: "/patient-dashboard",
@@ -381,8 +386,12 @@ const EnrollPatientButton = ({ row }) => {
               </div>
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
                 {ENTRY_POINTS.map((entry) => {
-                  const isPrepDisabled =
+                  const isPrepDisabledByAge =
                     entry.code === "PrEP" && prepBlockedByAge;
+                  const isPrepDisabledByEarlyDetect =
+                    entry.code === "PrEP" && prepBlockedByEarlyDetect;
+                  const isPrepDisabled =
+                    isPrepDisabledByAge || isPrepDisabledByEarlyDetect;
                   return (
                     <EntryPointCard
                       key={entry.code}
@@ -390,7 +399,9 @@ const EnrollPatientButton = ({ row }) => {
                       onSelect={handleEnroll}
                       disabled={isPrepDisabled}
                       disabledReason={
-                        isPrepDisabled
+                        isPrepDisabledByEarlyDetect
+                          ? "Latest HTS encounter indicates a reactive antigen result — only PEP can be initiated."
+                          : isPrepDisabledByAge
                           ? "Not available for clients under 15. Please use PEP."
                           : null
                       }

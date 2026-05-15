@@ -46,6 +46,16 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    CAST(hts.observation AS text) AS latestHtsObservation,\n" +
             "    hts.facility_id AS latestHtsFacilityId,\n" +
             "    preg_codeset.display AS pregnancyStatusDisplay,\n" +
+            // PEP-only flag: true when the early-detect result indicates acute
+            // infection (antigen reactive or antigen + antibody reactive) AND
+            // the test type is HIV early detect. Drives the frontend Enroll
+            // modal to hide the PrEP option for these patients.
+            "    CASE WHEN hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
+                    + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE_VALUE_HIV_EARLY_DETECT + "'\n" +
+            "         AND hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            "         THEN true ELSE false END AS pepOnly,\n" +
             "    CASE\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
             "        WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
@@ -139,25 +149,69 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "LEFT JOIN base_application_codeset preg_codeset\n" +
             "    ON preg_codeset.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n";
 
-    // Patient qualifies if ANY of the three is true:
-    //   1. confirmatoryHivTest = STI_HIV_RESULT_NEGATIVE
-    //   2. initialHivTest      = STI_HIV_RESULT_NEGATIVE
-    //   3. hivEarlyDetectResult IN ('Antigen Reactive',
-    //                               'Antigen + Antibody Reactive')
-    // i.e. a single negative test on either field, OR a reactive early-detect
-    // marker, is enough to include the row.
+    // Hard exclusion (highest precedence, AND-ed on top of the inclusion):
+    //   confirmatoryHivTest = STI_HIV_RESULT_POSITIVE  -> always exclude.
+    //
+    // NULL and empty-string both PASS this check — when the user records a
+    // negative initialHivTest they don't fill the confirmatory field at all,
+    // so observation->>'confirmatoryHivTest' comes back as NULL (key absent)
+    // or '' (key present but empty). Those rows are still candidates; only
+    // an explicit "STI_HIV_RESULT_POSITIVE" string disqualifies.
+    //
+    // Inclusion has two branches keyed on typeOfHivTestDone:
+    //   ── Branch A: TYPE_OF_HIV_TEST_RAPID_ANTIBODY (or unset / unknown) ──
+    //   Any one of:
+    //     1. confirmatoryHivTest = NEGATIVE
+    //     2. initialHivTest      = NEGATIVE
+    //     3. hivEarlyDetectResult IN (ANTIBODY_REACTIVE, ANTIGEN_REACTIVE,
+    //                                 ANTIGEN_+_ANTIBODY_REACTIVE)
+    //
+    //   ── Branch B: TYPE_OF_HIV_TEST_HIV_EARLY_DETECT ──
+    //   Must have hivEarlyDetectResult IN (ANTIBODY_REACTIVE, ANTIGEN_REACTIVE,
+    //   ANTIGEN_+_ANTIBODY_REACTIVE) AND confirmatoryHivTest = NEGATIVE.
+    //   When the early-detect result is antigen-only or antigen+antibody, the
+    //   row is still kept but the SELECT-side `pepOnly` flag tells the UI to
+    //   restrict enrollment to PEP only.
     String WHERE_FILTERS =
             "WHERE hts.archived = false\n" +
             "AND p.archived = CAST(?1 AS INTEGER)\n" +
             "AND hts.facility_id = ?2\n" +
+            // Hard exclusion: confirmed-positive is a permanent disqualifier.
+            // Reads as "confirmatoryHivTest is anything other than the literal
+            // POSITIVE code" — NULL and '' (both produced when the user didn't
+            // fill the field because initialHivTest was already negative)
+            // satisfy the check and the row stays.
+            "AND COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "', '') <> '"
+                    + HtsObservationKeys.HIV_RESULT_POSITIVE + "'\n" +
+            // Two-branch inclusion.
             "AND (\n" +
-            "     hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' = '"
+            // ── Branch A: rapid antibody (or unset) — OR of three positives ──
+            "  ( (hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' IS NULL\n" +
+            "      OR hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = ''\n" +
+            "      OR hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
+                    + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE_VALUE_RAPID_ANTIBODY + "')\n" +
+            "    AND (\n" +
+            "         hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' = '"
                     + HtsObservationKeys.HIV_RESULT_NEGATIVE + "'\n" +
-            "  OR hts.observation->>'" + HtsObservationKeys.KEY_INITIAL_HIV_TEST + "' = '"
+            "      OR hts.observation->>'" + HtsObservationKeys.KEY_INITIAL_HIV_TEST + "' = '"
                     + HtsObservationKeys.HIV_RESULT_NEGATIVE + "'\n" +
-            "  OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
+            "      OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIBODY_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            "    )\n" +
+            "  )\n" +
+            "  OR\n" +
+            // ── Branch B: early-detect — reactive marker + negative confirmatory ──
+            "  ( hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
+                    + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE_VALUE_HIV_EARLY_DETECT + "'\n" +
+            "    AND hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIBODY_REACTIVE + "', '"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            "    AND hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' = '"
+                    + HtsObservationKeys.HIV_RESULT_NEGATIVE + "'\n" +
+            "  )\n" +
             ")\n";
 
     String GROUP_BY =

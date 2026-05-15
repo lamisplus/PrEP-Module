@@ -14,15 +14,33 @@ public final class HtsObservationKeys {
     public static final String KEY_INITIAL_HIV_TEST = "initialHivTest";
     public static final String KEY_CONFIRMATORY_HIV_TEST = "confirmatoryHivTest";
     public static final String KEY_HIV_EARLY_DETECT_RESULT = "hivEarlyDetectResult";
+    public static final String KEY_TYPE_OF_HIV_TEST_DONE = "typeOfHivTestDone";
     public static final String KEY_PREGNANCY_STATUS = "pregnancyStatus";
 
     /** STI_HIV_RESULT codeset values — shared by both initialHivTest and confirmatoryHivTest. */
     public static final String HIV_RESULT_NEGATIVE = "STI_HIV_RESULT_NEGATIVE";
     public static final String HIV_RESULT_POSITIVE = "STI_HIV_RESULT_POSITIVE";
 
-    /** Early-detect results indicating acute infection (drive PrEP-side eligibility). */
-    public static final String EARLY_DETECT_ANTIGEN_REACTIVE = "HIV_EARLY_DETECT_RESULT_ANTIBODY_REACTIVE";
+    /**
+     * Early-detect result codes. ANTIBODY-only is a routine reactive result and
+     * still qualifies for PrEP; ANTIGEN-only and ANTIGEN+ANTIBODY indicate
+     * possible acute infection and restrict the patient to PEP only.
+     */
+    public static final String EARLY_DETECT_ANTIBODY_REACTIVE = "HIV_EARLY_DETECT_RESULT_ANTIBODY_REACTIVE";
+    public static final String EARLY_DETECT_ANTIGEN_REACTIVE = "HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE";
     public static final String EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE = "HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE";
+
+    /**
+     * Type-of-test codes for the HTS encounter. Drives which inclusion branch
+     * applies on the Patient tab:
+     *   • RAPID_ANTIBODY    — accept a negative initial / confirmatory test OR a
+     *                         reactive early-detect marker.
+     *   • HIV_EARLY_DETECT  — must have a reactive early-detect result AND a
+     *                         negative confirmatory. Antigen-only / antigen+
+     *                         antibody markers further restrict the row to PEP.
+     */
+    public static final String KEY_TYPE_OF_HIV_TEST_DONE_VALUE_RAPID_ANTIBODY = "TYPE_OF_HIV_TEST_RAPID_ANTIBODY";
+    public static final String KEY_TYPE_OF_HIV_TEST_DONE_VALUE_HIV_EARLY_DETECT = "TYPE_OF_HIV_TEST_HIV_EARLY_DETECT";
 
     private HtsObservationKeys() {}
 }

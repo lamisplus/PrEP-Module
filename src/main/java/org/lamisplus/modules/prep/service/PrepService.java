@@ -508,6 +508,7 @@ public class PrepService {
                 .sendCabLaAlert(row.getSendCabLaAlert())
                 .pregnancyStatusDisplay(row.getPregnancyStatusDisplay())
                 .isInterrupted(row.getIsInterrupted())
+                .pepOnly(row.getPepOnly())
                 .htsClientCode(row.getHtsClientCode())
                 .latestHtsResult(toLatestHtsResultDto(row))
                 .build();
