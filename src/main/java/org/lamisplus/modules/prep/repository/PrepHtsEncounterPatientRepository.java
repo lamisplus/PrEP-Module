@@ -182,7 +182,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             // fill the field because initialHivTest was already negative)
             // satisfy the check and the row stays.
             "AND COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "', '') <> '"
-                    + HtsObservationKeys.HIV_RESULT_POSITIVE + "'\n" +
+                    + HtsObservationKeys.CONFIRMATORY_HIV_TEST_POSITIVE + "'\n" +
             // Two-branch inclusion.
             "AND (\n" +
             // ── Branch A: rapid antibody (or unset) — OR of three positives ──
@@ -192,9 +192,9 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
                     + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE_VALUE_RAPID_ANTIBODY + "')\n" +
             "    AND (\n" +
             "         hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' = '"
-                    + HtsObservationKeys.HIV_RESULT_NEGATIVE + "'\n" +
+                    + HtsObservationKeys.CONFIRMATORY_HIV_TEST_NEGATIVE + "'\n" +
             "      OR hts.observation->>'" + HtsObservationKeys.KEY_INITIAL_HIV_TEST + "' = '"
-                    + HtsObservationKeys.HIV_RESULT_NEGATIVE + "'\n" +
+                    + HtsObservationKeys.INITIAL_HIV_TEST_NEGATIVE + "'\n" +
             "      OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
                     + HtsObservationKeys.EARLY_DETECT_ANTIBODY_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
@@ -210,7 +210,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
             "    AND hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' = '"
-                    + HtsObservationKeys.HIV_RESULT_NEGATIVE + "'\n" +
+                    + HtsObservationKeys.CONFIRMATORY_HIV_TEST_NEGATIVE + "'\n" +
             "  )\n" +
             ")\n";
 

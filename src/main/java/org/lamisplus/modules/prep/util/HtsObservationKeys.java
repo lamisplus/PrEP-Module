@@ -17,9 +17,20 @@ public final class HtsObservationKeys {
     public static final String KEY_TYPE_OF_HIV_TEST_DONE = "typeOfHivTestDone";
     public static final String KEY_PREGNANCY_STATUS = "pregnancyStatus";
 
-    /** STI_HIV_RESULT codeset values — shared by both initialHivTest and confirmatoryHivTest. */
-    public static final String HIV_RESULT_NEGATIVE = "STI_HIV_RESULT_NEGATIVE";
-    public static final String HIV_RESULT_POSITIVE = "STI_HIV_RESULT_POSITIVE";
+    /**
+     * STI_HIV_RESULT codeset values — used by {@link #KEY_INITIAL_HIV_TEST}.
+     * The HTS form saves the initial-test field with these codes.
+     */
+    public static final String INITIAL_HIV_TEST_NEGATIVE = "STI_HIV_RESULT_NEGATIVE";
+    public static final String INITIAL_HIV_TEST_POSITIVE = "STI_HIV_RESULT_POSITIVE";
+
+    /**
+     * HIV_CONFIRMATORY_TEST_RESULT codeset values — used by
+     * {@link #KEY_CONFIRMATORY_HIV_TEST}. The confirmatory-test field is on
+     * its own codeset (different from the initial-test STI_HIV_RESULT set).
+     */
+    public static final String CONFIRMATORY_HIV_TEST_NEGATIVE = "HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE";
+    public static final String CONFIRMATORY_HIV_TEST_POSITIVE = "HIV_CONFIRMATORY_TEST_RESULT_POSITIVE";
 
     /**
      * Early-detect result codes. ANTIBODY-only is a routine reactive result and
