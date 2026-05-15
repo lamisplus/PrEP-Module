@@ -626,7 +626,12 @@ const PrEPInitialVisitForm = props => {
                     name="hivTestingPoint"
                     id="hivTestingPoint"
                     onChange={handleInputChange}
-                    value={objValues.hivTestingPoint}
+                    // When isFromHts, render directly from HTS to bypass the
+                    // race where the edit-mode loader wipes formik state after
+                    // the HTS auto-pop ran.
+                    value={isFromHts
+                      ? (latestHts?.setting || "")
+                      : (objValues.hivTestingPoint || "")}
                     disabled={disabledField || isFromHts}
                     title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                     style={{
@@ -658,7 +663,11 @@ const PrEPInitialVisitForm = props => {
                     onKeyDown={e => e.preventDefault()}
                     name="dateOfHivTest"
                     id="dateOfHivTest"
-                    value={objValues.dateOfHivTest}
+                    // Read from HTS when present so the disabled field stays
+                    // populated even after a server-side load wipes objValues.
+                    value={isFromHts
+                      ? (latestHts?.dateOfVisit || "")
+                      : (objValues.dateOfHivTest || "")}
                     onChange={handleInputChange}
                     style={{
                       border: "1px solid #014D88",
@@ -686,7 +695,14 @@ const PrEPInitialVisitForm = props => {
                     name="resultOfHivTest"
                     id="resultOfHivTest"
                     onChange={handleInputChange}
-                    value={objValues.resultOfHivTest}
+                    // On the HTS path the result is mapped through the codeset
+                    // helper (STI/CONFIRMATORY -> HIV_TEST_RESULT, and
+                    // typeOfHivTestDone forces Early Detect when applicable).
+                    value={isFromHts
+                      ? (toHivTestResultCode(
+                          htsObs.confirmatoryHivTest || htsObs.initialHivTest,
+                          htsObs.typeOfHivTestDone) || "")
+                      : (objValues.resultOfHivTest || "")}
                     disabled={disabledField || isFromHts}
                     title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                     style={{
@@ -1007,7 +1023,12 @@ const PrEPInitialVisitForm = props => {
                       name="pregnancyStatus"
                       id="pregnancyStatus"
                       onChange={handleInputChange}
-                      value={objValues.pregnancyStatus}
+                      // Same pattern as the screening form: read directly from
+                      // HTS observation when read-only to avoid the
+                      // edit-mode-loader race.
+                      value={isFromHts
+                        ? (htsObs.pregnancyStatus || "")
+                        : (objValues.pregnancyStatus || "")}
                       disabled={disabledField || isFromHts}
                       title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                       style={{

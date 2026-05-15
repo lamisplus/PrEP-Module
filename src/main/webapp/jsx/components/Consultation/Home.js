@@ -1327,7 +1327,12 @@ const ClinicVisit = props => {
                             name="pregnant"
                             id="pregnant"
                             onChange={handleChange}
-                            value={values.pregnant}
+                            // Source from HTS directly when read-only so the
+                            // disabled field stays populated regardless of how
+                            // formik state was last updated.
+                            value={isFromHts
+                              ? (htsObs.pregnancyStatus || "")
+                              : (values.pregnant || "")}
                             disabled={disabledField || isFromHts}
                             title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                             style={{
@@ -1540,7 +1545,14 @@ const ClinicVisit = props => {
                           type="select"
                           name="hivTestResult"
                           id="hivTestResult"
-                          value={hivTestValue}
+                          // Read-only HTS path renders the mapped HTS code so
+                          // the disabled field stays in sync with the dropdown
+                          // options regardless of formik state timing.
+                          value={isFromHts
+                            ? (toHtsResultCode(
+                                htsObs.confirmatoryHivTest || htsObs.initialHivTest,
+                                htsObs.typeOfHivTestDone) || "")
+                            : (hivTestValue || "")}
                           style={{
                             ...inputStyle,
                             backgroundColor: isFromHts ? "#f1f3f5" : inputStyle?.backgroundColor,
