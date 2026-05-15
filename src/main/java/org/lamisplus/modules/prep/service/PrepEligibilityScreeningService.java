@@ -10,6 +10,7 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.prep.domain.dto.PrepEligibilityScreeningDto;
 import org.lamisplus.modules.prep.domain.dto.PrepEligibilityScreeningRequestDto;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.prep.domain.entity.PrepEligibilityScreening;
 import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.prep.repository.PrepEligibilityScreeningRepository;
@@ -46,8 +47,7 @@ public class PrepEligibilityScreeningService {
         prepEligibilityScreeningRepository
                 .findByVisitDateAndPersonUuidAndArchived(requestDto.getVisitDate(), person.getUuid(), false)
                 .ifPresent(existing -> {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT,
-                            "A screening record already exists for this visit date: " + requestDto.getVisitDate());
+                    throw PrepErrors.screeningAlreadyExists(requestDto.getVisitDate());
                 });
 
         entity = prepEligibilityScreeningRepository.save(entity);
@@ -62,7 +62,7 @@ public class PrepEligibilityScreeningService {
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .orElseThrow(() -> new EntityNotFoundException(PrepEligibilityScreening.class, "id", String.valueOf(id)));
         if (prepPepInitiationRepository.findByProphylaxisScreeningUuidAndArchived(entity.getUuid(), false).isPresent()) {
-            throw new RecordExistException(PrepPepInitiation.class, "PrepPepInitiation", "exist for eligibility");
+            throw PrepErrors.eligibilityHasDependentInitiation();
         }
         entity.setArchived(true);
         prepEligibilityScreeningRepository.save(entity);

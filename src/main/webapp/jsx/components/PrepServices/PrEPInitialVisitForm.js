@@ -24,6 +24,7 @@ import { useStyles } from "../../../hooks/styles/prepRegistration/useStyle";
 import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 import { fetchInitialVisitCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { fetchPrepRegimens, getPepRegimenOptions } from "../Consultation/codesets";
 
 // Map between the canonical PREP_PEP_ENROLLMENT_TYPE codeset codes and the short
@@ -395,8 +396,7 @@ const PrEPInitialVisitForm = props => {
           })
           .catch(error => {
             setSaving(false);
-            const msg = error?.response?.data?.message || error?.response?.data?.apierror?.message || "Something went wrong❌";
-            toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER });
+            toast.error(extractErrorMessage(error), { position: toast.POSITION.BOTTOM_CENTER });
           });
       } else {
         axios
@@ -419,8 +419,7 @@ const PrEPInitialVisitForm = props => {
           })
           .catch(error => {
             setSaving(false);
-            const msg = error?.response?.data?.message || error?.response?.data?.apierror?.message || "Something went wrong❌";
-            toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER });
+            toast.error(extractErrorMessage(error), { position: toast.POSITION.BOTTOM_CENTER });
           });
       }
     } else {

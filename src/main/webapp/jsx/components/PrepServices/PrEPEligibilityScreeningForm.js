@@ -15,6 +15,7 @@ import { token, url as baseUrl } from "../../../api";
 import "react-phone-input-2/lib/style.css";
 import { fetchEligibilityScreeningCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
@@ -573,25 +574,11 @@ const BasicInfo = props => {
     }
   };
 
-  // Robust error handler that surfaces backend messages (e.g. duplicate visit date)
+  // Display the backend's message verbatim — the server already returns a
+  // user-friendly string (e.g. "A PrEP/PEP eligibility screening has already
+  // been recorded for this client on 13 May 2026.") via PrepErrors.
   const handleSaveError = error => {
-    let message = "Something went wrong ❌ please try again";
-    const status = error?.response?.status;
-    const data = error?.response?.data;
-    if (data) {
-      if (data?.apierror?.message) message = data.apierror.message;
-      else if (data?.message) message = data.message;
-      else if (data?.error) message = data.error;
-      else if (typeof data === "string") message = data;
-    }
-    // Specific friendlier message when an eligibility already exists for the visit date
-    if (
-      status === 409 ||
-      (typeof message === "string" && /exist|already/i.test(message))
-    ) {
-      message = `An eligibility screening with the same visit date (${objValues.visitDate}) already exists for this client.`;
-    }
-    toast.error(message, { position: toast.POSITION.BOTTOM_CENTER });
+    toast.error(extractErrorMessage(error), { position: toast.POSITION.BOTTOM_CENTER });
   };
 
   const isFemale = () => {

@@ -7,6 +7,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
 import { fetchDiscontinuationCodesets } from "../../../apiCalls/hivPreventionCodesets";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { toEnrollmentTypeCode, ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
@@ -284,16 +285,11 @@ const PrEPDiscontinuationsInterruptions = props => {
   };
 
   const handleError = error => {
-    if (error.response && error.response.data) {
-      let errorMessage =
-        error.response.data.apierror &&
-        error.response.data.apierror.message !== ""
-          ? error.response.data.apierror.message
-          : "Something went wrong. Please try again...";
-      toast.error(errorMessage);
-    } else {
-      toast.error("Something went wrong. Please try again...");
-    }
+    // Routes every backend error through the shared extractor so users see
+    // descriptive messages (e.g. "A discontinuation / interruption has
+    // already been recorded for this client on 13 May 2026") instead of
+    // generic "Something went wrong".
+    toast.error(extractErrorMessage(error));
   };
 
   const today = moment(new Date()).format("YYYY-MM-DD");

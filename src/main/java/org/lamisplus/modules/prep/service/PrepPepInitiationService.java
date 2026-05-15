@@ -10,6 +10,7 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.prep.domain.dto.PrepPepInitiationDto;
 import org.lamisplus.modules.prep.domain.dto.PrepPepInitiationRequestDto;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.prep.domain.entity.PrepFollowupVisit;
 import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.prep.repository.PrepEligibilityScreeningRepository;
@@ -57,8 +58,7 @@ public class PrepPepInitiationService {
             prepPepInitiationRepository
                     .findByDateEnrolledAndPersonUuidAndArchived(requestDto.getDateEnrolled(), person.getUuid(), false)
                     .ifPresent(existing -> {
-                        throw new ResponseStatusException(HttpStatus.CONFLICT,
-                                "An initiation record already exists for this enrollment date: " + requestDto.getDateEnrolled());
+                        throw PrepErrors.initiationVisitAlreadyExists(requestDto.getDateEnrolled());
                     });
         }
 
@@ -71,7 +71,7 @@ public class PrepPepInitiationService {
         PrepPepInitiation entity = this.getByInitiationById(id);
 
         if (!prepFollowupVisitRepository.findAllByProphylaxisInitiationUuidAndArchived(entity.getUuid(), false).isEmpty()) {
-            throw new RecordExistException(PrepFollowupVisit.class, "Prep Followup Visit", "exist for enrollment");
+            throw PrepErrors.enrollmentHasDependentRecords("follow-up visit");
         }
 
         entity.setArchived(true);

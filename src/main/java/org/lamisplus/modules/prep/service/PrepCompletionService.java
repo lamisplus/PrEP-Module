@@ -10,6 +10,7 @@ import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.prep.domain.dto.PrepCompletionDto;
 import org.lamisplus.modules.prep.domain.dto.PrepCompletionRequestDto;
 import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.prep.domain.entity.ProphylaxisInterruption;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
 import org.lamisplus.modules.prep.repository.ProphylaxisInterruptionRepository;
@@ -44,8 +45,7 @@ public class PrepCompletionService {
         prophylaxisInterruptionRepository
                 .findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(requestDto.getInterruptionDate(), person.getUuid(), false)
                 .ifPresent(existing -> {
-                    throw new RecordExistException(ProphylaxisInterruption.class, "Interruption date",
-                            String.valueOf(requestDto.getInterruptionDate()));
+                    throw PrepErrors.interruptionAlreadyExists(requestDto.getInterruptionDate());
                 });
 
         // Resolve the matching prophylaxis_initiation (by enrollment type, latest first) and
@@ -64,7 +64,7 @@ public class PrepCompletionService {
                 PrepPepInitiation.class, "PersonUuid/EnrollmentType",
                 person.getUuid() + "/" + enrollmentType));
         if (!init.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(ProphylaxisInterruption.class, "Person not same enrolled", init.getUuid());
+            throw PrepErrors.personMismatch("initiation");
         }
         entity.setProphylaxisInitiationUuid(init.getUuid());
         init.setIsInterrupted(true);

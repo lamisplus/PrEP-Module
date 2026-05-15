@@ -10,6 +10,7 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.patient.repository.VisitRepository;
 import org.lamisplus.modules.patient.service.PersonService;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.patient.service.VisitService;
 import org.lamisplus.modules.prep.domain.dto.*;
 import org.lamisplus.modules.prep.domain.entity.*;
@@ -66,7 +67,7 @@ public class PrepEnrollmentService {
         PrepEnrollment prepEnrollment = this.getByEnrollmentById(id);
 
         if(!prepClinicRepository.findAllByPrepEnrollmentUuidAndArchived(prepEnrollment.getUuid(), UN_ARCHIVED).isEmpty()){
-            throw new RecordExistException(PrepClinic.class, "Prep Clinic", "exist for enrollment");
+            throw PrepErrors.enrollmentHasDependentRecords("clinic / follow-up visit");
         }
 
         prepEnrollment.setArchived(ARCHIVED);

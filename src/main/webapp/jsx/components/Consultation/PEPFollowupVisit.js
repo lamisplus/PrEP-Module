@@ -8,6 +8,7 @@ import {
   Input,
 } from "reactstrap";
 import { url as baseUrl, token } from "../../../api";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
@@ -399,20 +400,9 @@ const PEPFollowupVisit = props => {
 
   function handleError(error) {
     setSaving(false);
-    if (error.response && error.response.data) {
-      let errorMessage =
-        error.response.data.apierror &&
-        error.response.data.apierror.message !== ""
-          ? error.response.data.apierror.message
-          : "Something went wrong. Please try again";
-      toast.error(errorMessage, {
-        position: toast.POSITION.BOTTOM_CENTER,
-      });
-    } else {
-      toast.error("Something went wrong, please try again...", {
-        position: toast.POSITION.BOTTOM_CENTER,
-      });
-    }
+    toast.error(extractErrorMessage(error), {
+      position: toast.POSITION.BOTTOM_CENTER,
+    });
   }
 
   const handleFormSubmit = async values => {

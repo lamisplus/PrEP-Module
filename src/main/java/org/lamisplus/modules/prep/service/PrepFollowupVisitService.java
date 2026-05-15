@@ -10,6 +10,7 @@ import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.prep.domain.dto.PrepFollowupVisitDto;
 import org.lamisplus.modules.prep.domain.dto.PrepFollowupVisitRequestDto;
 import org.lamisplus.modules.prep.domain.dto.PrepPreviousVisitHtsRecord;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.prep.domain.entity.PrepFollowupVisit;
 import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.prep.repository.PrepFollowupVisitRepository;
@@ -59,7 +60,7 @@ public class PrepFollowupVisitService {
         requestDto.setProphylaxisInitiationUuid(enrollmentUuid);
 
         if (!initiation.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepFollowupVisit.class, "Person not same enrolled", enrollmentUuid);
+            throw PrepErrors.personMismatch("PrEP initiation");
         }
 
         PrepFollowupVisit entity = this.requestDtoToEntity(requestDto, person.getUuid());
@@ -87,7 +88,7 @@ public class PrepFollowupVisitService {
         requestDto.setProphylaxisInitiationUuid(enrollmentUuid);
 
         if (!initiation.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepFollowupVisit.class, "Person not same enrolled", enrollmentUuid);
+            throw PrepErrors.personMismatch("PrEP initiation");
         }
 
         PrepFollowupVisit entity = this.requestDtoToEntity(requestDto, person.getUuid());

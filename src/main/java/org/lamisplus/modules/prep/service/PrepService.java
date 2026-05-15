@@ -22,6 +22,7 @@ import org.lamisplus.modules.prep.repository.PrepHtsEncounterPatientRepository;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
 import org.lamisplus.modules.prep.repository.ProphylaxisInterruptionRepository;
 import org.lamisplus.modules.prep.util.EnrollmentType;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.prep.util.PrepRegimens;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -71,7 +72,7 @@ public class PrepService {
                 .findByVisitDateAndPersonUuidAndArchived(prepEligibilityRequestDto.getVisitDate(), person.getUuid(), false)
                 .ifPresent(prepEligibilityRec -> {
                     if (Boolean.FALSE.equals(prepEligibilityRec.getArchived())) {
-                        throw new RecordExistException(PrepEligibilityScreening.class, "Visit date", String.valueOf(prepEligibilityRequestDto.getVisitDate()));
+                        throw PrepErrors.screeningAlreadyExists(prepEligibilityRequestDto.getVisitDate());
                     }
                 });
 
@@ -94,11 +95,11 @@ public class PrepService {
         Person person = this.getPerson(prepEnrollmentRequestDto.getPersonId());
 
         if (this.prepPepInitiationRepository.findByProphylaxisScreeningUuidAndArchived(eligibilityUuid, false).isPresent()) {
-            throw new RecordExistException(PrepPepInitiation.class, "Eligibility Already taken for prep", eligibilityUuid);
+            throw PrepErrors.initiationAlreadyExistsForScreening();
         }
 
         if (!prepEligibility.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepPepInitiation.class, "Person not same for prepEligibilityUuid", eligibilityUuid);
+            throw PrepErrors.personMismatch("eligibility screening");
         }
 
         // Clinical guard: PrEP is only available to clients aged 15 and above. Below that age,
@@ -108,9 +109,7 @@ public class PrepService {
         if (EnrollmentType.isPrep(enrollmentType) && person.getDateOfBirth() != null) {
             int age = Period.between(person.getDateOfBirth(), LocalDate.now()).getYears();
             if (age < 15) {
-                throw new IllegalTypeException(PrepPepInitiation.class,
-                        "PrEP is not available for clients under 15 (only PEP is allowed). Patient age",
-                        String.valueOf(age));
+                throw PrepErrors.prepBelowMinimumAge(15);
             }
         }
 
@@ -123,8 +122,7 @@ public class PrepService {
         prepPepInitiationRepository
                 .findByDateEnrolledAndPersonUuidAndArchived(prepEnrollmentRequestDto.getDateEnrolled(),
                         person.getUuid(), false).ifPresent(prepEnroll -> {
-                    throw new RecordExistException(PrepPepInitiation.class, "Encounter date",
-                            String.valueOf(prepEnroll.getDateEnrolled()));
+                    throw PrepErrors.initiationVisitAlreadyExists(prepEnroll.getDateEnrolled());
                 });
 
         prepEnrollment = prepPepInitiationRepository.save(prepEnrollment);
@@ -147,7 +145,7 @@ public class PrepService {
                 .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "Enrollment", enrollmentUuid));
 
         if (!prepEnrollment.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepFollowupVisit.class, "Person not same enrolled", enrollmentUuid);
+            throw PrepErrors.personMismatch("enrollment");
         }
 
         PrepFollowupVisit prepClinic = this.clinicRequestDtoToClinic(commencementRequestDto, person.getUuid());
@@ -170,14 +168,14 @@ public class PrepService {
                 .orElseThrow(() -> new EntityNotFoundException(PrepPepInitiation.class, "Enrollment", enrollmentUuid));
 
         if (!prepEnrollment.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepFollowupVisit.class, "Person not same enrolled", enrollmentUuid);
+            throw PrepErrors.personMismatch("enrollment");
         }
 
         PrepFollowupVisit prepClinic = this.clinicRequestDtoToClinic(clinicRequestDto, person.getUuid());
         prepFollowupVisitRepository.findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(clinicRequestDto.getEncounterDate(), person.getUuid(), false, false)
                 .ifPresent(prepClinicRec -> {
                     if (Boolean.FALSE.equals(prepClinicRec.getArchived())) {
-                        throw new RecordExistException(PrepFollowupVisit.class, "Encounter date", String.valueOf(clinicRequestDto.getEncounterDate()));
+                        throw PrepErrors.clinicVisitAlreadyExists(clinicRequestDto.getEncounterDate());
                     }
                 });
 
@@ -205,7 +203,7 @@ public class PrepService {
                 .findFirstByInterruptionDateAndPersonUuidAndArchivedOrderByIdAsc(interruptionRequestDto.getInterruptionDate(), person.getUuid(), false)
                 .ifPresent(existing -> {
                     if (Boolean.FALSE.equals(existing.getArchived())) {
-                        throw new RecordExistException(ProphylaxisInterruption.class, "Encounter date", String.valueOf(interruptionRequestDto.getInterruptionDate()));
+                        throw PrepErrors.interruptionAlreadyExists(interruptionRequestDto.getInterruptionDate());
                     }
                 });
 
@@ -225,7 +223,7 @@ public class PrepService {
                 PrepPepInitiation.class, "PersonUuid/EnrollmentType",
                 person.getUuid() + "/" + enrollmentType));
         if (!init.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(ProphylaxisInterruption.class, "Person not same enrolled", init.getUuid());
+            throw PrepErrors.personMismatch("initiation");
         }
         interruption.setProphylaxisInitiationUuid(init.getUuid());
         init.setIsInterrupted(true);

@@ -6,6 +6,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import PerfectScrollbar from "react-perfect-scrollbar";
 //import { Link } from "react-router-dom";
 import axios from "axios";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { url as baseUrl, token } from "../../../api";
 import { ENROLLMENT_TYPE_PREP, ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
 //import { Alert } from "react-bootstrap";
@@ -222,16 +223,7 @@ const RecentHistory = props => {
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else if (row.path === "prep-followup-visit") {
       setSaving(true);
@@ -247,16 +239,7 @@ const RecentHistory = props => {
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else if (row.path === "prep-pep-initiation") {
       setSaving(true);
@@ -272,16 +255,7 @@ const RecentHistory = props => {
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else if (row.path === "pep-followup-visit") {
       setSaving(true);
@@ -297,16 +271,7 @@ const RecentHistory = props => {
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else if (row.path === "prep-commencement") {
       setSaving(true);
@@ -322,16 +287,7 @@ const RecentHistory = props => {
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else if (row.path === "prep-completion") {
       setSaving(true);
@@ -348,16 +304,7 @@ const RecentHistory = props => {
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else {
     }

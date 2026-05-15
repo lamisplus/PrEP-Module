@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import MaterialTable from "material-table";
 import axios from "axios";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { url as baseUrl } from "./../../../api";
 import { token as token } from "./../../../api";
 import { forwardRef } from "react";
@@ -220,16 +221,7 @@ const PatientnHistory = props => {
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else if (row.path === "prep-followup-visit") {
       setSaving(true);
@@ -246,16 +238,7 @@ const PatientnHistory = props => {
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else if (row.path === "prep-pep-initiation") {
       setSaving(true);
@@ -272,16 +255,7 @@ const PatientnHistory = props => {
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else if (row.path === "prep-commencement") {
       setSaving(true);
@@ -298,16 +272,7 @@ const PatientnHistory = props => {
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else if (row.path === "prep-completion") {
       setSaving(true);
@@ -324,16 +289,7 @@ const PatientnHistory = props => {
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else {
     }

@@ -7,6 +7,7 @@ import { forwardRef } from 'react';
 import 'semantic-ui-css/semantic.min.css';
 import "react-widgets/dist/css/react-widgets.css";
 import { toast } from "react-toastify";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowUpward from '@material-ui/icons/ArrowUpward';
@@ -136,13 +137,7 @@ const PatientnHistory = (props) => {
                 })
                 .catch((error) => {
                     setSaving(false)
-                    if (error.response && error.response.data) {
-                        let errorMessage = error.response.data.apierror && error.response.data.apierror.message !== "" ? error.response.data.apierror.message : "Something went wrong, please try again";
-                        toast.error(errorMessage);
-                    }
-                    else {
-                        toast.error("Something went wrong. Please try again...");
-                    }
+                    toast.error(extractErrorMessage(error));
                 });
         } else if (row.path === 'prep-clinic') {
             setSaving(true)
@@ -159,13 +154,7 @@ const PatientnHistory = (props) => {
                 })
                 .catch((error) => {
                     setSaving(false)
-                    if (error.response && error.response.data) {
-                        let errorMessage = error.response.data.apierror && error.response.data.apierror.message !== "" ? error.response.data.apierror.message : "Something went wrong, please try again";
-                        toast.error(errorMessage);
-                    }
-                    else {
-                        toast.error("Something went wrong. Please try again...");
-                    }
+                    toast.error(extractErrorMessage(error));
                 });
 
         } else if (row.path === 'prep-enrollment') {
@@ -183,13 +172,7 @@ const PatientnHistory = (props) => {
                 })
                 .catch((error) => {
                     setSaving(false)
-                    if (error.response && error.response.data) {
-                        let errorMessage = error.response.data.apierror && error.response.data.apierror.message !== "" ? error.response.data.apierror.message : "Something went wrong, please try again";
-                        toast.error(errorMessage);
-                    }
-                    else {
-                        toast.error("Something went wrong. Please try again...");
-                    }
+                    toast.error(extractErrorMessage(error));
                 });
 
         } else if (row.path === 'prep-enrollment2') {
@@ -206,13 +189,7 @@ const PatientnHistory = (props) => {
                 })
                 .catch((error) => {
                     setSaving(false)
-                    if (error.response && error.response.data) {
-                        let errorMessage = error.response.data.apierror && error.response.data.apierror.message !== "" ? error.response.data.apierror.message : "Something went wrong, please try again";
-                        toast.error(errorMessage);
-                    }
-                    else {
-                        toast.error("Something went wrong. Please try again...");
-                    }
+                    toast.error(extractErrorMessage(error));
                 });
 
         } else {

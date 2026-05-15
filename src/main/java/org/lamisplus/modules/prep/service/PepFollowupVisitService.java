@@ -13,6 +13,7 @@ import org.lamisplus.modules.prep.domain.entity.PepFollowupVisit;
 import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.prep.repository.PepFollowupVisitRepository;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.springframework.stereotype.Service;
 
 
@@ -51,14 +52,13 @@ public class PepFollowupVisitService {
         requestDto.setProphylaxisInitiationUuid(enrollmentUuid);
 
         if (!initiation.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PepFollowupVisit.class, "Person not same enrolled", enrollmentUuid);
+            throw PrepErrors.personMismatch("PEP initiation");
         }
 
         pepFollowupVisitRepository.findByEncounterDateAndPersonUuidAndArchived(
                 requestDto.getEncounterDate(), person.getUuid(), false)
                 .ifPresent(existing -> {
-                    throw new RecordExistException(PepFollowupVisit.class, "Encounter date",
-                            String.valueOf(requestDto.getEncounterDate()));
+                    throw PrepErrors.pepFollowupAlreadyExists(requestDto.getEncounterDate());
                 });
 
         PepFollowupVisit entity = requestDtoToEntity(requestDto, person.getUuid());

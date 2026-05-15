@@ -12,6 +12,7 @@ import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.patient.repository.VisitRepository;
 import org.lamisplus.modules.patient.service.PersonService;
 import org.lamisplus.modules.patient.service.VisitService;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.prep.domain.dto.PrepEligibilityDto;
 import org.lamisplus.modules.prep.domain.dto.PrepEligibilityRequestDto;
 import org.lamisplus.modules.prep.domain.entity.PrepEligibility;
@@ -66,7 +67,7 @@ public class PrepEligibilityService {
                 .findByVisitDateAndPersonUuidAndArchived(prepEligibilityRequestDto.getVisitDate(), person.getUuid(), 0)
                 .ifPresent(prepEligibilityRec -> {
                     if (prepEligibilityRec.getArchived() == 0) {
-                        throw new RecordExistException(PrepEligibility.class, "Visit date", String.valueOf(prepEligibilityRequestDto.getVisitDate()));
+                        throw PrepErrors.screeningAlreadyExists(prepEligibilityRequestDto.getVisitDate());
                     }
                 });
 
@@ -83,7 +84,7 @@ public class PrepEligibilityService {
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
                 .orElseThrow(() -> new EntityNotFoundException(PrepEligibility.class, "id", String.valueOf(id)));
         if (prepEnrollmentRepository.findByPrepEligibilityUuidAndArchived(prepEligibility.getUuid(), UN_ARCHIVED).isPresent()) {
-            throw new RecordExistException(PrepEnrollment.class, "PrepEnrollment", "exist for eligibility");
+            throw PrepErrors.eligibilityHasDependentInitiation();
         }
         prepEligibility.setArchived(ARCHIVED);
         prepEligibilityRepository.save(prepEligibility);

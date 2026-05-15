@@ -15,6 +15,7 @@ import SaveIcon from "@material-ui/icons/Save";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import { Spinner } from "reactstrap";
@@ -279,10 +280,7 @@ const PrEPCommencementForm = props => {
           })
           .catch(error => {
             setSaving(false);
-            let errorMessage =
-              error.response?.data?.apierror?.message ||
-              "Something went wrong, please try again";
-            toast.error(errorMessage, {
+            toast.error(extractErrorMessage(error), {
               position: toast.POSITION.BOTTOM_CENTER,
             });
           });
@@ -305,10 +303,7 @@ const PrEPCommencementForm = props => {
           })
           .catch(error => {
             setSaving(false);
-            let errorMessage =
-              error.response?.data?.apierror?.message ||
-              "Something went wrong, please try again";
-            toast.error(errorMessage, {
+            toast.error(extractErrorMessage(error), {
               position: toast.POSITION.BOTTOM_CENTER,
             });
           });

@@ -10,6 +10,7 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.patient.repository.VisitRepository;
 import org.lamisplus.modules.patient.service.PersonService;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.patient.service.VisitService;
 import org.lamisplus.modules.prep.domain.dto.PrepClinicDto;
 import org.lamisplus.modules.prep.domain.dto.PrepClinicRequestDto;
@@ -73,7 +74,7 @@ public class PrepClinicService {
                 .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", finalEnrollmentUuid));
 
         if (!prepEnrollment.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepClinic.class, "Person not same enrolled", finalEnrollmentUuid);
+            throw PrepErrors.personMismatch("enrollment");
         }
 
         PrepClinic prepClinic = this.clinicRequestDtoToClinic(commencementRequestDto, person.getUuid());
@@ -104,7 +105,7 @@ public class PrepClinicService {
                 .orElseThrow(() -> new EntityNotFoundException(PrepEnrollment.class, "Enrollment", finalEnrollmentUuid));
 
         if (!prepEnrollment.getPersonUuid().equals(person.getUuid())) {
-            throw new IllegalTypeException(PrepClinic.class, "Person not same enrolled", finalEnrollmentUuid);
+            throw PrepErrors.personMismatch("enrollment");
         }
 
         PrepClinic prepClinic = this.clinicRequestDtoToClinic(clinicRequestDto, person.getUuid());
