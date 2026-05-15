@@ -94,10 +94,6 @@ public class PrepService {
 
         Person person = this.getPerson(prepEnrollmentRequestDto.getPersonId());
 
-        if (this.prepPepInitiationRepository.findByProphylaxisScreeningUuidAndArchived(eligibilityUuid, false).isPresent()) {
-            throw PrepErrors.initiationAlreadyExistsForScreening();
-        }
-
         if (!prepEligibility.getPersonUuid().equals(person.getUuid())) {
             throw PrepErrors.personMismatch("eligibility screening");
         }
@@ -113,17 +109,35 @@ public class PrepService {
             }
         }
 
+        // Per-arm duplicate guard: a single eligibility screening can seed BOTH
+        // a PrEP and a PEP initiation (clients legitimately switch arms after
+        // re-screening). Only reject if an initiation of the SAME arm already
+        // exists for this screening.
+        if (enrollmentType != null && !enrollmentType.isEmpty()) {
+            if (this.prepPepInitiationRepository
+                    .findByProphylaxisScreeningUuidAndEnrollmentTypeIgnoreCaseAndArchived(
+                            eligibilityUuid, enrollmentType, false)
+                    .isPresent()) {
+                throw PrepErrors.initiationAlreadyExistsForScreening();
+            }
+        }
+
         prepEnrollment = this.enrollmentRequestDtoToEnrollment(prepEnrollmentRequestDto, prepEligibility.getPersonUuid());
 
         prepEnrollment.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());
 
-        //Check if client Enrollment on same date exist and throw an error
-        prepPepInitiationRepository
-                .findByDateEnrolledAndPersonUuidAndArchived(prepEnrollmentRequestDto.getDateEnrolled(),
-                        person.getUuid(), false).ifPresent(prepEnroll -> {
-                    throw PrepErrors.initiationVisitAlreadyExists(prepEnroll.getDateEnrolled());
-                });
+        // Same-date duplicate guard — arm-scoped so PEP and PrEP can both be
+        // initiated on the same calendar date.
+        if (enrollmentType != null && !enrollmentType.isEmpty()) {
+            prepPepInitiationRepository
+                    .findByDateEnrolledAndPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(
+                            prepEnrollmentRequestDto.getDateEnrolled(), person.getUuid(),
+                            enrollmentType, false)
+                    .ifPresent(prepEnroll -> {
+                        throw PrepErrors.initiationVisitAlreadyExists(prepEnroll.getDateEnrolled());
+                    });
+        }
 
         prepEnrollment = prepPepInitiationRepository.save(prepEnrollment);
         prepEnrollment.setPerson(prepEligibility.getPerson());

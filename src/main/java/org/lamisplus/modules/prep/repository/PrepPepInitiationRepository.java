@@ -21,6 +21,16 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     Optional<PrepPepInitiation> findByIdAndArchivedAndFacilityId(Long id, Boolean archived, Long facilityId);
     Optional<PrepPepInitiation> findByProphylaxisScreeningUuid(String prophylaxisScreeningUuid);
     Optional<PrepPepInitiation> findByProphylaxisScreeningUuidAndArchived(String prophylaxisScreeningUuid, Boolean archived);
+
+    /**
+     * Arm-scoped variant of the above. A single eligibility screening may
+     * legitimately seed both a PrEP and a PEP initiation (the client switches
+     * arms), so the duplicate-check on save must be per-enrollment-type.
+     * `enrollmentType` is matched case-insensitively to tolerate legacy short
+     * labels ("PrEP" / "PEP") and the canonical PREP_PEP_ENROLLMENT_TYPE_*.
+     */
+    Optional<PrepPepInitiation> findByProphylaxisScreeningUuidAndEnrollmentTypeIgnoreCaseAndArchived(
+            String prophylaxisScreeningUuid, String enrollmentType, Boolean archived);
     Optional<PrepPepInitiation> findByUuid(String uuid);
 
     @Query(value = "SELECT * FROM prophylaxis_initiation pe WHERE pe.person_uuid=?1 AND CAST(pe.archived AS BOOLEAN)=?2 AND " +
@@ -39,6 +49,13 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     List<PrepPepInitiation> findAllByPersonUuidAndFacilityIdAndArchived(String personUuid, Long facilityId, Boolean archived);
     Optional<PrepPepInitiation> findByDateEnrolledAndPersonUuid(LocalDate dateEnrolled, String personUuid);
     Optional<PrepPepInitiation> findByDateEnrolledAndPersonUuidAndArchived(LocalDate dateEnrolled, String personUuid, Boolean archived);
+
+    /**
+     * Arm-scoped variant — two initiations on the same day are legitimate when
+     * they live on different arms (e.g. a client switching from PEP to PrEP).
+     */
+    Optional<PrepPepInitiation> findByDateEnrolledAndPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(
+            LocalDate dateEnrolled, String personUuid, String enrollmentType, Boolean archived);
     Integer countAllByPersonUuid(String personUuid);
     Integer countAllByPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(String personUuid, String enrollmentType, Boolean archived);
     List<PrepPepInitiation> findAllByFacilityId(Long facilityId);
