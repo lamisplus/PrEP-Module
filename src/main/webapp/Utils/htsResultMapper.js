@@ -39,6 +39,11 @@ export const HTS_RESULT = {
   NOT_DONE: "HTS_RESULT_NOT_DONE",
 };
 
+export const PEP_HIV_STATUS = {
+  NEGATIVE: "PEP_HIV_STATUS_NEGATIVE",
+  POSITIVE: "PEP_HIV_STATUS_POSITIVE",
+};
+
 // Internal: collapse any known "negative" source code to a sentinel; ditto
 // "positive". Lets the two public mappers share one switch.
 const NEGATIVE_CODES = new Set([
@@ -86,5 +91,21 @@ export const toHtsResultCode = (sourceCode, testType) => {
   if (!sourceCode) return sourceCode;
   if (NEGATIVE_CODES.has(sourceCode)) return HTS_RESULT.NEGATIVE;
   if (POSITIVE_CODES.has(sourceCode)) return HTS_RESULT.POSITIVE;
+  return sourceCode;
+};
+
+/**
+ * Source HIV-result code → PEP_HIV_STATUS_*  (PEP follow-up visit form).
+ * Accepts both STI_HIV_RESULT_* and HIV_CONFIRMATORY_TEST_RESULT_*.
+ *
+ * The PEP codeset has no early-detect entry; when the test was an
+ * early-detect run we leave the field empty so the user picks manually
+ * rather than pre-filling with an option that isn't in the dropdown.
+ */
+export const toPepHivStatusCode = (sourceCode, testType) => {
+  if (testType === TYPE_HIV_EARLY_DETECT) return "";
+  if (!sourceCode) return sourceCode;
+  if (NEGATIVE_CODES.has(sourceCode)) return PEP_HIV_STATUS.NEGATIVE;
+  if (POSITIVE_CODES.has(sourceCode)) return PEP_HIV_STATUS.POSITIVE;
   return sourceCode;
 };

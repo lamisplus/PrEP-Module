@@ -10,6 +10,7 @@ import {
 import { url as baseUrl, token } from "../../../api";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
+import { toPepHivStatusCode } from "../../../Utils/htsResultMapper";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
 import AddIcon from "@mui/icons-material/Add";
@@ -111,6 +112,16 @@ const PEPFollowupVisit = props => {
   const [syndromicStiSelected, setSyndromicStiSelected] = useState([]);
   const [patientDto, setPatientDto] = useState();
 
+  // Pregnancy Status and HIV Status at Exposure are sourced from the latest
+  // hts_encounter linked to the patient's PEP initiation. `loadedHts` carries
+  // it on edit/view (the saved follow-up record links to the initiation, which
+  // carries the htsEncounterUuid); on create the Patient grid ships
+  // latestHtsResult directly on the row.
+  const [loadedHts, setLoadedHts] = useState(null);
+  const latestHts = props.patientObj?.latestHtsResult || loadedHts;
+  const htsObs = latestHts?.observation || {};
+  const isFromHts = !!latestHts;
+
   const [hivTestEntries, setHivTestEntries] = useState([]);
   const [hivTestInput, setHivTestInput] = useState({ test: "", result: "" });
   const [editingHivTestIndex, setEditingHivTestIndex] = useState(null);
@@ -147,25 +158,6 @@ const PEPFollowupVisit = props => {
         setPatientDto(response.data);
       })
       .catch(error => {});
-
-    // Auto-populate pregnancy status from latest eligibility screening for female patients
-    if (isFemale()) {
-      axios
-        .get(
-          `${baseUrl}prep-eligibility-screening/person/${personId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        )
-        .then(response => {
-          if (response.data && response.data.length > 0) {
-            const sorted = response.data.sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate));
-            const latestPregnancyStatus = sorted[0]?.pregnancyStatus;
-            if (latestPregnancyStatus && formikRef.current) {
-              formikRef.current.setFieldValue("pregnant", latestPregnancyStatus);
-            }
-          }
-        })
-        .catch(error => {});
-    }
   };
 
   const getPatientVisit = async () => {
@@ -332,6 +324,38 @@ const PEPFollowupVisit = props => {
       !["update", undefined].includes(props.activeContent.actionType)
     );
   }, [props.activeContent]);
+
+  // Pull the linked hts_encounter when the Patient grid didn't already ship one
+  // (i.e. edit/view path, where we resolve it through the latest PEP initiation
+  // returned by `getPatientDtoObj`). The auto-pop effect below then runs.
+  useEffect(() => {
+    const targetUuid = patientDto?.htsEncounterUuid;
+    if (!targetUuid) return;
+    if (props.patientObj?.latestHtsResult?.uuid === targetUuid) return;
+    if (loadedHts?.uuid === targetUuid) return;
+    axios
+      .get(`${baseUrl}prep/hts-encounter/${targetUuid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(resp => setLoadedHts(resp?.data || null))
+      .catch(() => setLoadedHts(null));
+  }, [patientDto?.htsEncounterUuid, props.patientObj?.latestHtsResult?.uuid]);
+
+  // Auto-populate read-only HTS-sourced fields (Pregnancy Status & HIV Status
+  // at Exposure) whenever the resolved hts_encounter changes.
+  useEffect(() => {
+    if (!isFromHts || !formikRef.current) return;
+    if (isFemale() && htsObs.pregnancyStatus) {
+      formikRef.current.setFieldValue("pregnant", htsObs.pregnancyStatus);
+    }
+    const hivStatus = toPepHivStatusCode(
+      htsObs.confirmatoryHivTest || htsObs.initialHivTest,
+      htsObs.typeOfHivTestDone
+    );
+    if (hivStatus) {
+      formikRef.current.setFieldValue("hivStatusAtExposure", hivStatus);
+    }
+  }, [latestHts?.uuid]);
 
   useEffect(() => {
     if (
@@ -706,7 +730,8 @@ const PEPFollowupVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* Pregnancy Status - female only */}
+                    {/* Pregnancy Status - female only. Sourced from the latest
+                        hts_encounter when available; otherwise editable. */}
                     {isFemale() && (
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
@@ -715,10 +740,15 @@ const PEPFollowupVisit = props => {
                             type="select"
                             name="pregnant"
                             id="pregnant"
-                            value={values.pregnant}
+                            value={isFromHts ? (htsObs.pregnancyStatus || "") : (values.pregnant || "")}
                             onChange={handleChange}
-                            disabled={disabledField}
-                            style={{ border: "1px solid #014D88", borderRadius: "0.2rem" }}
+                            disabled={disabledField || isFromHts}
+                            title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                              backgroundColor: isFromHts ? "#f1f3f5" : undefined,
+                            }}
                           >
                             <option value="">Select</option>
                             {(codeset?.PREGNANCY_STATUS || []).map(item => (
@@ -729,7 +759,8 @@ const PEPFollowupVisit = props => {
                       </div>
                     )}
 
-                    {/* 5. HIV Status at Exposure */}
+                    {/* 5. HIV Status at Exposure — sourced from the latest
+                        hts_encounter when available; otherwise editable. */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
@@ -741,9 +772,20 @@ const PEPFollowupVisit = props => {
                           name="hivStatusAtExposure"
                           id="hivStatusAtExposure"
                           onChange={handleChange}
-                          value={values.hivStatusAtExposure}
-                          style={inputStyle}
-                          disabled={disabledField}
+                          value={
+                            isFromHts
+                              ? (toPepHivStatusCode(
+                                  htsObs.confirmatoryHivTest || htsObs.initialHivTest,
+                                  htsObs.typeOfHivTestDone
+                                ) || "")
+                              : (values.hivStatusAtExposure || "")
+                          }
+                          style={{
+                            ...inputStyle,
+                            backgroundColor: isFromHts ? "#f1f3f5" : undefined,
+                          }}
+                          disabled={disabledField || isFromHts}
+                          title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                         >
                           <option value="">Select</option>
                           {codeset?.PEP_HIV_STATUS_AT_EXPOSURE?.map(value => (
