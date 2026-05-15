@@ -1021,7 +1021,12 @@ const BasicInfo = props => {
                       className="form-control"
                       name="pregnancyStatus"
                       id="pregnancyStatus"
-                      value={objValues.pregnancyStatus}
+                      // When isFromHts the field is read-only and its value is
+                      // the HTS observation directly. This avoids a race where
+                      // a server-side fetch (which no longer carries
+                      // pregnancyStatus) wipes the formik value after the HTS
+                      // auto-pop has set it.
+                      value={isFromHts ? (htsObs.pregnancyStatus || "") : (objValues.pregnancyStatus || "")}
                       onChange={handleInputChange}
                       style={{
                         border: "1px solid #014D88",

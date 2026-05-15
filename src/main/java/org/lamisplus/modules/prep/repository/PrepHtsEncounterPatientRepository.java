@@ -202,15 +202,19 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    )\n" +
             "  )\n" +
             "  OR\n" +
-            // ── Branch B: early-detect — reactive marker + negative confirmatory ──
+            // ── Branch B: early-detect — reactive marker, confirmatory not positive ──
+            // We only require a reactive early-detect marker here; the
+            // "confirmatory is not positive" guarantee is already enforced
+            // by the hard-exclusion clause above (COALESCE(…) <> POSITIVE).
+            // This lets empty / unset confirmatoryHivTest (the common case for
+            // early-detect patients — the form doesn't always capture it)
+            // still pass.
             "  ( hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
                     + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE_VALUE_HIV_EARLY_DETECT + "'\n" +
             "    AND hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
                     + HtsObservationKeys.EARLY_DETECT_ANTIBODY_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
-            "    AND hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' = '"
-                    + HtsObservationKeys.CONFIRMATORY_HIV_TEST_NEGATIVE + "'\n" +
             "  )\n" +
             ")\n";
 

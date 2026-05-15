@@ -25,7 +25,11 @@ import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 import { fetchInitialVisitCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
-import { fetchPrepRegimens, getPepRegimenOptions } from "../Consultation/codesets";
+import {
+  fetchPrepRegimens,
+  fetchPrepRegimenByType,
+  getPepRegimenOptions,
+} from "../Consultation/codesets";
 
 // Map between the canonical PREP_PEP_ENROLLMENT_TYPE codeset codes and the short
 // labels ("PrEP" / "PEP") that the rest of the form's UI logic compares against.
@@ -120,6 +124,22 @@ const PrEPInitialVisitForm = props => {
       setPrepRegimen(data);
     });
   }, []);
+
+  // Filter the regimen dropdown to match the chosen PrEP Type at Start.
+  //   PREP_TYPE_ORAL          -> TDF/FTC, TDF/3TC
+  //   PREP_TYPE_INJECTIBLES   -> Cabotegravir, Lenacapavir
+  //   PREP_TYPE_OTHERS / ED   -> all regimens
+  //   (no selection)          -> all regimens
+  useEffect(() => {
+    const prepType = objValues.prepTypeAtStart;
+    if (!prepType
+        || prepType === "PREP_TYPE_OTHERS"
+        || prepType === "PREP_TYPE_ED_PREP") {
+      fetchPrepRegimens().then(data => setPrepRegimen(data));
+      return;
+    }
+    fetchPrepRegimenByType(prepType).then(data => setPrepRegimen(data));
+  }, [objValues.prepTypeAtStart]);
 
   useEffect(() => {
     GetPatientDTOObj();
@@ -254,6 +274,13 @@ const PrEPInitialVisitForm = props => {
 
   const handleInputChange = e => {
     setErrors({ ...errors, [e.target.name]: "" });
+    // Switching prepTypeAtStart should clear the regimen — the filtered
+    // dropdown is about to change shape and the previous selection may no
+    // longer be one of the valid options for the new type.
+    if (e.target.name === "prepTypeAtStart") {
+      setObjValues({ ...objValues, prepTypeAtStart: e.target.value, prepRegimen: "" });
+      return;
+    }
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
   };
 

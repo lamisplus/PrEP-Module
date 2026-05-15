@@ -1,5 +1,6 @@
-// Maps HTS module canonical HIV result codes (STI_HIV_RESULT codeset) to the
-// codeset families used by the HIV Prevention forms. Two target families:
+// Maps HTS-source codes (STI_HIV_RESULT_* on `initialHivTest`,
+// HIV_CONFIRMATORY_TEST_RESULT_* on `confirmatoryHivTest`) to the codeset
+// families used by the HIV Prevention forms:
 //
 //   • HIV_TEST_RESULT_*  — used by the screening + initiation forms.
 //   • HTS_RESULT_HIV_*   — used by the PrEP follow-up visit form.
@@ -7,15 +8,22 @@
 // Keeping these mappings in one place means a future codeset rename touches a
 // single file, and the auto-pop logic on each form can stay terse.
 //
-// Reference (from base_application_codeset):
-//   STI_HIV_RESULT_NEGATIVE  → HIV_TEST_RESULT_NEGATIVE | HTS_RESULT_HIV_NEGATIVE
-//   STI_HIV_RESULT_POSITIVE  → HIV_TEST_RESULT_POSITIVE | HTS_RESULT_HIV_POSITIVE
-// If a value falls outside that set (e.g. empty string), the mapper returns the
-// raw value unchanged so callers can still use `|| prev.field` fallbacks.
+// Source codes recognised:
+//   STI_HIV_RESULT_NEGATIVE              ┐
+//   STI_HIV_RESULT_POSITIVE              │
+//   HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE ├─► HIV_TEST_RESULT_* | HTS_RESULT_*
+//   HIV_CONFIRMATORY_TEST_RESULT_POSITIVE ┘
+// Anything else (empty, NULL, unknown code) is returned unchanged so callers
+// can still use `|| prev.field` fallbacks.
 
 export const STI_HIV_RESULT = {
   NEGATIVE: "STI_HIV_RESULT_NEGATIVE",
   POSITIVE: "STI_HIV_RESULT_POSITIVE",
+};
+
+export const CONFIRMATORY_HIV_TEST_RESULT = {
+  NEGATIVE: "HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE",
+  POSITIVE: "HIV_CONFIRMATORY_TEST_RESULT_POSITIVE",
 };
 
 export const HIV_TEST_RESULT = {
@@ -31,34 +39,37 @@ export const HTS_RESULT = {
   NOT_DONE: "HTS_RESULT_NOT_DONE",
 };
 
+// Internal: collapse any known "negative" source code to a sentinel; ditto
+// "positive". Lets the two public mappers share one switch.
+const NEGATIVE_CODES = new Set([
+  STI_HIV_RESULT.NEGATIVE,
+  CONFIRMATORY_HIV_TEST_RESULT.NEGATIVE,
+]);
+const POSITIVE_CODES = new Set([
+  STI_HIV_RESULT.POSITIVE,
+  CONFIRMATORY_HIV_TEST_RESULT.POSITIVE,
+]);
+
 /**
- * STI_HIV_RESULT_* → HIV_TEST_RESULT_*  (used by screening + initiation forms).
- * Returns the input unchanged when it doesn't match a known STI code.
+ * Source HIV-result code → HIV_TEST_RESULT_*  (screening + initiation forms).
+ * Accepts both STI_HIV_RESULT_* and HIV_CONFIRMATORY_TEST_RESULT_*. Returns
+ * the input unchanged when nothing matches.
  */
-export const toHivTestResultCode = (stiCode) => {
-  if (!stiCode) return stiCode;
-  switch (stiCode) {
-    case STI_HIV_RESULT.NEGATIVE:
-      return HIV_TEST_RESULT.NEGATIVE;
-    case STI_HIV_RESULT.POSITIVE:
-      return HIV_TEST_RESULT.POSITIVE;
-    default:
-      return stiCode;
-  }
+export const toHivTestResultCode = (sourceCode) => {
+  if (!sourceCode) return sourceCode;
+  if (NEGATIVE_CODES.has(sourceCode)) return HIV_TEST_RESULT.NEGATIVE;
+  if (POSITIVE_CODES.has(sourceCode)) return HIV_TEST_RESULT.POSITIVE;
+  return sourceCode;
 };
 
 /**
- * STI_HIV_RESULT_* → HTS_RESULT_HIV_*  (used by the PrEP follow-up form).
- * Returns the input unchanged when it doesn't match a known STI code.
+ * Source HIV-result code → HTS_RESULT_HIV_*  (PrEP follow-up form).
+ * Accepts both STI_HIV_RESULT_* and HIV_CONFIRMATORY_TEST_RESULT_*. Returns
+ * the input unchanged when nothing matches.
  */
-export const toHtsResultCode = (stiCode) => {
-  if (!stiCode) return stiCode;
-  switch (stiCode) {
-    case STI_HIV_RESULT.NEGATIVE:
-      return HTS_RESULT.NEGATIVE;
-    case STI_HIV_RESULT.POSITIVE:
-      return HTS_RESULT.POSITIVE;
-    default:
-      return stiCode;
-  }
+export const toHtsResultCode = (sourceCode) => {
+  if (!sourceCode) return sourceCode;
+  if (NEGATIVE_CODES.has(sourceCode)) return HTS_RESULT.NEGATIVE;
+  if (POSITIVE_CODES.has(sourceCode)) return HTS_RESULT.POSITIVE;
+  return sourceCode;
 };
