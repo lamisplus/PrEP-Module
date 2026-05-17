@@ -267,6 +267,20 @@ const PrEPDiscontinuationsInterruptions = props => {
       toEnrollmentTypeCode(enrollmentType) || ENROLLMENT_TYPE_PREP;
     objValues.previousPrepStatus = props.patientObj?.prepStatus;
     objValues.enrollmentType = canonicalEnrollmentType;
+    // Mirror the type-specific date into interruptionDate so the dashboard's
+    // prepStatus SQL (which compares prepi.interruption_date to the latest
+    // follow-up encounter_date) flips immediately after save — without this,
+    // a "Default" record only sets dateDefaulted and the status stays stale.
+    if (!objValues.interruptionDate) {
+      objValues.interruptionDate =
+        objValues.dateDefaulted
+        || objValues.dateClientDied
+        || objValues.dateClientReferredOut
+        || objValues.dateSeroconverted
+        || objValues.dateOfDeath
+        || objValues.dateReferred
+        || "";
+    }
     setSaving(true);
 
     let resolvedEnrollmentUuid = null;
@@ -300,10 +314,10 @@ const PrEPDiscontinuationsInterruptions = props => {
             headers: { Authorization: `Bearer ${token}` },
           }
         )
-        .then(response => {
+        .then(async response => {
           setSaving(false);
           toast.success(`${enrollmentType === 'PEP' ? 'PEP completion' : 'PrEP discontinuation/interruption'} updated successfully!`);
-          props.PatientObject();
+          if (props.PatientObject) await props.PatientObject();
           props.setActiveContent({
             ...props.activeContent,
             route: "recent-history",
@@ -318,10 +332,10 @@ const PrEPDiscontinuationsInterruptions = props => {
         .post(`${baseUrl}prep/interruption`, objValues, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then(response => {
+        .then(async response => {
           setSaving(false);
           toast.success(`${enrollmentType === 'PEP' ? 'PEP completion' : 'PrEP discontinuation/interruption'} saved successfully!`);
-          props.PatientObject();
+          if (props.PatientObject) await props.PatientObject();
           props.setActiveContent({
             ...props.activeContent,
             route: "recent-history",

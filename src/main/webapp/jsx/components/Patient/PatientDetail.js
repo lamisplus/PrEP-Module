@@ -246,7 +246,11 @@ function PatientCard(props) {
   };
 
   async function PatientObject() {
-    axios
+    // Returns the axios promise so callers (form save handlers) can `await`
+    // it and ensure patientDetail is fresh before navigating away — without
+    // the await, the dashboard would render stale prepStatus right after
+    // a discontinuation save.
+    return axios
       .get(
         `${baseUrl}prep/persons/${
           patientObjLocation.personId || patientObjLocation.id

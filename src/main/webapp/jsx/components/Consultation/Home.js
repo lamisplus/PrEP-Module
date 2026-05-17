@@ -40,11 +40,28 @@ export const CleanupWrapper = ({ cleanup, children }) => {
 
 const prepTypesMappedToDuration = ["PREP_TYPE_INJECTIBLES", "PREP_TYPE_ORAL"];
 
+// CAB-LA refill codeset codes carry days in the suffix (30/60/90 days), but
+// the next-appointment math operates on months. Map every code to the months
+// it actually corresponds to so visit_date + months works out: 30d=1mo,
+// 60d=2mo, 90d=3mo. Keep the legacy days strings here too so historical rows
+// (where monthsOfRefill was persisted as "30"/"60"/"90") still resolve.
+const CAB_LA_REFILL_MONTHS = {
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": 1,
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": 2,
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90": 3,
+  "30": 1,
+  "60": 2,
+  "90": 3,
+};
+
+// Legacy reverse map (full code -> days string) — kept for the save path
+// because the backend column historically holds the days string.
 const durationMap = {
   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": "30",
   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": "60",
   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90": "90",
 };
+
 function getDuration(key) {
   if (durationMap[key]) {
     return durationMap[key];
@@ -59,6 +76,17 @@ function getDurationByValue(value) {
       return key;
     }
   }
+}
+
+// Months to add to the visit date for the next appointment. CAB-LA codes
+// (full codeset code OR legacy days string) resolve via the map above;
+// otherwise the value is a plain monthly count typed by the user on the
+// oral-PrEP path.
+function refillToMonths(value) {
+  if (value == null || value === "") return NaN;
+  if (CAB_LA_REFILL_MONTHS[value] != null) return CAB_LA_REFILL_MONTHS[value];
+  const n = Number(value);
+  return Number.isFinite(n) ? n : NaN;
 }
 
 // Long-acting injectable regimens. Used by DurationWrapper to switch the
@@ -1202,13 +1230,14 @@ const ClinicVisit = props => {
           handleSubmit,
           setFieldValue,
         }) => {
-          // Auto-calculate next appointment = Visit Date + Months of Refill
+          // Auto-calculate next appointment = Visit Date + Months of Refill.
+          // For CAB-LA the dropdown value is a days code (30/60/90) which maps
+          // to 1/2/3 months — adding it as months caused the "+30 months" bug.
           const autoCalcNextAppointment = () => {
             if (!["update", "view"].includes(props.activeContent.actionType)) {
-              const nextAppt = addMonthsToDate(
-                values.encounterDate,
-                parseInt(getDuration(values.monthsOfRefill))
-              );
+              const months = refillToMonths(values.monthsOfRefill);
+              if (!Number.isFinite(months)) return;
+              const nextAppt = addMonthsToDate(values.encounterDate, months);
               if (nextAppt && nextAppt !== values.nextAppointment) {
                 setTimeout(() => setFieldValue("nextAppointment", nextAppt), 0);
               }
@@ -1299,17 +1328,27 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* 3. Duration on PrEP (Months) */}
+                    {/* 3. Duration on PrEP (Months) — auto-calc from latest
+                        PrEP initiation date to the chosen Visit Date.
+                        Read-only; "0" means less than a month. */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Duration on PrEP (Months)</FormLabelName>
+                        <FormLabelName>
+                          Duration on PrEP (Months){" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
                         <Input
                           type="text"
                           name="durationOnPrep"
                           id="durationOnPrep"
-                          value={durationOnPrep !== "" ? durationOnPrep : ""}
+                          value={
+                            durationOnPrep !== "" && durationOnPrep !== null
+                              ? String(durationOnPrep)
+                              : ""
+                          }
                           style={inputStyle}
                           disabled
+                          title="Auto-calculated from the latest PrEP initiation date"
                         />
                       </FormGroup>
                     </div>
@@ -2006,7 +2045,12 @@ const ClinicVisit = props => {
                       </div>
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Result</FormLabelName>
+                          <FormLabelName>
+                            Result
+                            {urinalysisTest?.testDate && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
+                          </FormLabelName>
                           <Input
                             type="select"
                             name="result"
@@ -2023,6 +2067,11 @@ const ClinicVisit = props => {
                               </option>
                             ))}
                           </Input>
+                          {urinalysisTest?.testDate && !urinalysisTest?.result && (
+                            <span className={classes.error}>
+                              Result is required when a date has been selected
+                            </span>
+                          )}
                         </FormGroup>
                       </div>
                     </div>
@@ -2070,7 +2119,12 @@ const ClinicVisit = props => {
                       </div>
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Result</FormLabelName>
+                          <FormLabelName>
+                            Result
+                            {hepatitisTest?.testDate && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
+                          </FormLabelName>
                           <Input
                             type="select"
                             name="result"
@@ -2089,6 +2143,11 @@ const ClinicVisit = props => {
                               )
                             )}
                           </Input>
+                          {hepatitisTest?.testDate && !hepatitisTest?.result && (
+                            <span className={classes.error}>
+                              Result is required when a date has been selected
+                            </span>
+                          )}
                         </FormGroup>
                       </div>
                     </div>
@@ -2136,7 +2195,12 @@ const ClinicVisit = props => {
                       </div>
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Result</FormLabelName>
+                          <FormLabelName>
+                            Result
+                            {syphilisTest?.testDate && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
+                          </FormLabelName>
                           <Input
                             type="select"
                             name="result"
@@ -2153,6 +2217,11 @@ const ClinicVisit = props => {
                               </option>
                             ))}
                           </Input>
+                          {syphilisTest?.testDate && !syphilisTest?.result && (
+                            <span className={classes.error}>
+                              Result is required when a date has been selected
+                            </span>
+                          )}
                         </FormGroup>
                       </div>
                       {syphilisTest?.result === "Others" && (
@@ -2222,6 +2291,9 @@ const ClinicVisit = props => {
                         <FormGroup>
                           <FormLabelName>
                             Result
+                            {values?.dateLiverFunctionTestResults && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
                           </FormLabelName>
                           <LiverFunctionTest
                             objValues={values}
@@ -2232,6 +2304,13 @@ const ClinicVisit = props => {
                             disabledField={disabledField}
                             isAutoPop={false}
                           />
+                          {values?.dateLiverFunctionTestResults &&
+                            (!values?.liverFunctionTestResults ||
+                              values.liverFunctionTestResults.length === 0) && (
+                              <span className={classes.error}>
+                                Result is required when a date has been selected
+                              </span>
+                            )}
                         </FormGroup>
                       </div>
                     </div>
@@ -2300,7 +2379,12 @@ const ClinicVisit = props => {
                         </div>
                         <div className="mb-1 col-md-3">
                           <FormGroup>
-                            <FormLabelName>Result</FormLabelName>
+                            <FormLabelName>
+                              Result
+                              {otherTestInput?.testDate && (
+                                <span style={{ color: "red" }}> *</span>
+                              )}
+                            </FormLabelName>
                             <Input
                               type="text"
                               name="result"
@@ -2309,6 +2393,11 @@ const ClinicVisit = props => {
                               onChange={handleOtherTestInputChange}
                               style={inputStyle}
                             />
+                            {otherTestInput?.testDate && !otherTestInput?.result && (
+                              <span className={classes.error}>
+                                Result is required when a date has been selected
+                              </span>
+                            )}
                           </FormGroup>
                         </div>
                         <div className="mb-1 col-md-3 d-flex align-items-end">

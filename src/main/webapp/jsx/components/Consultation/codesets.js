@@ -411,11 +411,16 @@ export function getInterruptionTypeOptions() {
   ];
 }
 
+// Returns CAB-LA refill durations keyed by the canonical codeset code so the
+// dropdown value matches what's persisted on prep_followup_visit.months_of_refill
+// and view/edit autopopulates instead of going blank. `months` lets the
+// next-appointment math add the right number of months (30 days = 1 month,
+// 60 days = 2 months, 90 days = 3 months).
 export function fetchCabLaRefillDurations() {
   return Promise.resolve([
-    { code: "30", display: "30" },
-    { code: "60", display: "60" },
-    { code: "90", display: "90" },
+    { code: "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30", display: "1 month (30 days)", months: 1 },
+    { code: "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60", display: "2 months (60 days)", months: 2 },
+    { code: "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90", display: "3 months (90 days)", months: 3 },
   ]);
 }
 
