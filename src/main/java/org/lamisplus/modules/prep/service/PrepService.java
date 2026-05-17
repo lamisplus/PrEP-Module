@@ -728,6 +728,51 @@ public class PrepService {
             prepDtos.setCreatedBy(prepClient.getCreatedBy());
             //prepDtos.setPrepEligibilityCount(prepClient.getEligibilityCount());
         }
+
+        // If the patient's latest initiation is PEP, override prepStatus with the
+        // PEP-specific status — the SQL above queries `prep_followup_visit`, which
+        // is empty for a PEP-only patient and resolves to "Not Commenced". The
+        // PEP Patients grid uses a dedicated PEP query (`findPepEnrolled` →
+        // PEP_STATUS_CASE) so the dashboard would disagree with the grid. We
+        // mirror that logic here in Java:
+        //   1. Latest PEP completion row with pep_completion = 'YES_NO_YES' → 'Completed'
+        //   2. No PEP follow-up visit yet → 'Enrolled'
+        //   3. >= 29 days since the anchor (date_start_pep, or encounter_date as
+        //      fallback) of the latest PEP visit → 'Completed'; else 'Active'.
+        prepPepInitiationRepository
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PEP)
+                .ifPresent(latestPepInit -> {
+                    boolean explicitCompletion = prophylaxisInterruptionRepository
+                            .findAllByPersonUuidAndFacilityIdAndArchived(
+                                    person.getUuid(),
+                                    currentUserOrganizationService.getCurrentUserOrganization(),
+                                    false)
+                            .stream()
+                            .filter(i -> latestPepInit.getUuid()
+                                    .equals(i.getProphylaxisInitiationUuid()))
+                            .anyMatch(i -> "YES_NO_YES".equalsIgnoreCase(i.getPepCompletion()));
+                    if (explicitCompletion) {
+                        prepDtos.setPrepStatus("Completed");
+                        return;
+                    }
+                    LocalDate anchor = pepFollowupVisitRepository
+                            .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
+                                    person.getUuid(),
+                                    currentUserOrganizationService.getCurrentUserOrganization(),
+                                    false)
+                            .stream()
+                            .findFirst()
+                            .map(v -> v.getDateStartPep() != null
+                                    ? v.getDateStartPep() : v.getEncounterDate())
+                            .orElse(null);
+                    if (anchor == null) {
+                        prepDtos.setPrepStatus("Enrolled");
+                    } else {
+                        long days = java.time.temporal.ChronoUnit.DAYS.between(
+                                anchor, java.time.LocalDate.now());
+                        prepDtos.setPrepStatus(days >= 29 ? "Completed" : "Active");
+                    }
+                });
         // Compute previousProphylaxis by comparing latest PrEP and PEP followup visit dates
         LocalDate latestPrepVisit = prepFollowupVisitRepository
                 .findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(

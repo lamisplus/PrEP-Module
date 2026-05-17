@@ -2409,7 +2409,16 @@ const BasicInfo = props => {
                     className="form-control"
                     name="hivTestResultAtvisit"
                     id="hivTestResultAtvisit"
-                    value={drugHistory.hivTestResultAtvisit}
+                    // On the HTS path the field is read-only and the value
+                    // must come straight from the resolved hts_encounter —
+                    // the saved screening record deliberately drops this
+                    // field on submit (it's dereferenced via hts_encounter_uuid),
+                    // so reading from drugHistory state shows blank on view/edit.
+                    value={isFromHts
+                      ? (toHivTestResultCode(
+                          htsObs.confirmatoryHivTest || htsObs.initialHivTest,
+                          htsObs.typeOfHivTestDone) || drugHistory.hivTestResultAtvisit || "")
+                      : (drugHistory.hivTestResultAtvisit || "")}
                     onChange={handleInputChangeDrugHistory}
                     style={{
                       border: "1px solid #014D88",

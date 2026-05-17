@@ -390,7 +390,7 @@ const RecentHistory = props => {
                                             : "media me-2 media-success"
                                         }
                                       >
-                                        {ActivityName(data.name)}
+                                        {ActivityName(activity.name)}
                                       </div>
                                       <div key={1} className="media-body">
                                         <h5 className="mb-1">
@@ -554,7 +554,7 @@ const RecentHistory = props => {
                             </h4>
                             <h4 className="text-info ">
                               {summary
-                                ? summary?.regimen ||
+                                ? displayRegimen(summary?.regimen) ||
                                   displayRegimen(summary?.pepRegimen) ||
                                   displayRegimen(summary?.prepRegimen) ||
                                   "NIL"
