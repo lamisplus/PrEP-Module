@@ -1119,8 +1119,10 @@ const PrEPInitialVisitForm = props => {
                 </div>
               )}
 
-              {/* 17. PrEP Type at Start - hidden for PEP */}
-              {objValues.enrollmentType !== 'PEP' && (
+              {/* 17. PrEP/PEP Type at Start — shown for both arms. PrEP uses
+                  the PrEP_TYPE codeset (Oral/Injectibles/etc.); PEP has a
+                  small hardcoded list (Oral/Others) that the joint regimen
+                  list keys off when filtering the regimen dropdown. */}
               <>
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
@@ -1138,7 +1140,13 @@ const PrEPInitialVisitForm = props => {
                     }}
                   >
                     <option value="">Select</option>
-                    {(codeset?.PrEP_TYPE || []).map(item => (
+                    {(objValues.enrollmentType === 'PEP'
+                      ? [
+                          { code: "PEP_TYPE_ORAL", display: "Oral" },
+                          { code: "PEP_TYPE_OTHERS", display: "Others" },
+                        ]
+                      : (codeset?.PrEP_TYPE || [])
+                    ).map(item => (
                       <option key={item.code} value={item.code}>{item.display}</option>
                     ))}
                   </select>
@@ -1165,7 +1173,6 @@ const PrEPInitialVisitForm = props => {
                 </div>
               )}
               </>
-              )}
 
               {/* 18. PrEP Regimen */}
               <div className="form-group mb-3 col-md-4">

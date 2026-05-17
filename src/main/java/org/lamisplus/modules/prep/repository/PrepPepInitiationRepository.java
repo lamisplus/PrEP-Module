@@ -137,7 +137,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    CASE\n" +
             "        WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
-            "        WHEN prepi.interruption_date > prepc.encounter_date THEN COALESCE(bac.display, \n" +
+            "        WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display,\n" +
             "             CASE prepi.interruption_type \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' \n" +
@@ -271,7 +271,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    CASE\n" +
             "        WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
-            "        WHEN prepi.interruption_date > prepc.encounter_date THEN COALESCE(bac.display, \n" +
+            "        WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display,\n" +
             "             CASE prepi.interruption_type \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' \n" +
@@ -406,7 +406,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    CASE\n" +
             "        WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
-            "        WHEN prepi.interruption_date > prepc.encounter_date THEN COALESCE(bac.display, \n" +
+            "        WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display,\n" +
             "             CASE prepi.interruption_type \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' \n" +
@@ -529,7 +529,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "INITCAP(p.sex) as gender, p.date_of_birth as dateOfBirth,  " +
             "he.date_confirmed_hiv as dateConfirmedHiv,   CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,   " +
             "(CASE WHEN el_max.HIVResultAtVisit ILIKE '%Positive%'  " +
-            "THEN 'HIV Positive' WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display  " +
+            "THEN 'HIV Positive' WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN bac.display  " +
             "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' WHEN pet.person_uuid IS NULL  " +
             "THEN 'Not Enrolled' WHEN prepc.person_uuid IS NULL  " +
             "THEN 'Not Commenced' ELSE prepc.status END) prepStatus " +
@@ -600,7 +600,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    (CASE \n" +
             "        WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' \n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart' \n" +
-            "        WHEN prepi.interruption_date > prepc.encounter_date THEN COALESCE(bac.display, \n" +
+            "        WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display,\n" +
             "             CASE prepi.interruption_type \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' \n" +
@@ -667,23 +667,19 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    WHERE CAST(pc.archived AS BOOLEAN) = false \n" +
             "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status \n" +
             ") prepc ON prepc.person_uuid=p.uuid  \n" +
+            // Picks the latest interruption per person using DISTINCT ON +
+            // COALESCE over the type-specific date columns. The previous
+            // INNER JOIN approach silently dropped rows when MAX returned
+            // NULL or the date didn't round-trip cleanly through GROUP BY.
             "LEFT JOIN (\n" +
-            "    SELECT pi.id, pi.person_uuid, \n" +
-            // Use whichever date the type-specific form filled in — older
-            // records may only have `interruption_date`, newer Default rows
-            // populate `date_defaulted`, Dead rows `date_client_died`, etc.
+            "    SELECT DISTINCT ON (pi.person_uuid) pi.id, pi.person_uuid, \n" +
             "           COALESCE(pi.interruption_date, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted) AS interruption_date, \n" +
             "           pi.interruption_type \n" +
             "    FROM prophylaxis_interruptions pi \n" +
-            "    INNER JOIN (\n" +
-            "        SELECT DISTINCT pi.person_uuid, MAX(COALESCE(pi.interruption_date, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted)) AS interruption_date \n" +
-            "        FROM prophylaxis_interruptions pi \n" +
-            "        WHERE CAST(pi.archived AS BOOLEAN) = false \n" +
-            "        GROUP BY pi.person_uuid\n" +
-            "    ) pit ON pit.interruption_date = COALESCE(pi.interruption_date, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted) \n" +
-            "          AND pit.person_uuid = pi.person_uuid \n" +
             "    WHERE CAST(pi.archived AS BOOLEAN) = false \n" +
-            "    GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted \n" +
+            "    ORDER BY pi.person_uuid, \n" +
+            "             COALESCE(pi.interruption_date, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted) DESC NULLS LAST, \n" +
+            "             pi.id DESC \n" +
             ") prepi ON prepi.person_uuid = p.uuid \n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type \n" +
             "LEFT JOIN (\n" +
@@ -727,7 +723,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    CASE\n" +
             "        WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
-            "        WHEN prepi.interruption_date > prepc.encounter_date THEN COALESCE(bac.display, \n" +
+            "        WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display,\n" +
             "             CASE prepi.interruption_type \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' \n" +
@@ -875,7 +871,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        CASE\n" +
             "            WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "            WHEN prepc.previous_prep_status IN ('Stopped', 'Discontinued') THEN 'Restart'\n" +
-            "            WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
+            "            WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN bac.display\n" +
             "            WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "            WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "            WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -1008,7 +1004,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                CASE\n" +
             "                    WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "                    WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
-            "                    WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
+            "                    WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN bac.display\n" +
             "                    WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "                    WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "                    WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
@@ -1130,7 +1126,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             " CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,  " +
             "(CASE " +
             "WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
-            "WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
+            "WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN bac.display " +
             "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
             "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
             "WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' " +
@@ -1207,7 +1203,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    CASE\n" +
             "        WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
-            "        WHEN prepi.interruption_date > prepc.encounter_date THEN COALESCE(bac.display, \n" +
+            "        WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display,\n" +
             "             CASE prepi.interruption_type \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' \n" +
@@ -1342,7 +1338,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    CASE\n" +
             "        WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
-            "        WHEN prepi.interruption_date > prepc.encounter_date THEN COALESCE(bac.display, \n" +
+            "        WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display,\n" +
             "             CASE prepi.interruption_type \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' \n" +

@@ -58,7 +58,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "         THEN true ELSE false END AS pepOnly,\n" +
             "    CASE\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
-            "        WHEN prepi.interruption_date > prepc.encounter_date THEN COALESCE(bac.display, \n" +
+            "        WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display,\n" +
             "             CASE prepi.interruption_type \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' \n" +
@@ -147,19 +147,19 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             // the main CASE compares against the latest encounter date. This
             // is the same fix applied to findPersonPrepAndStatusByPatientUuid
             // so the Patient tab and dashboard agree.
+            // DISTINCT ON picks the latest interruption per person, COALESCE
+            // over the type-specific date columns. Simpler + avoids the
+            // INNER-JOIN-on-MAX trap where rows silently disappear if the
+            // GROUP BY fingerprint doesn't round-trip.
             "LEFT JOIN (\n" +
-            "    SELECT pi.id, pi.person_uuid, \n" +
+            "    SELECT DISTINCT ON (pi.person_uuid) pi.id, pi.person_uuid, \n" +
             "           COALESCE(pi.interruption_date, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted) AS interruption_date, \n" +
             "           pi.interruption_type\n" +
             "    FROM prophylaxis_interruptions pi\n" +
-            "    INNER JOIN (\n" +
-            "        SELECT DISTINCT pi.person_uuid, MAX(COALESCE(pi.interruption_date, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted)) AS interruption_date\n" +
-            "        FROM prophylaxis_interruptions pi\n" +
-            "        WHERE CAST(pi.archived AS BOOLEAN) = false\n" +
-            "        GROUP BY pi.person_uuid\n" +
-            "    ) pit ON pit.interruption_date = COALESCE(pi.interruption_date, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted) AND pit.person_uuid = pi.person_uuid\n" +
             "    WHERE CAST(pi.archived AS BOOLEAN) = false\n" +
-            "    GROUP BY pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted\n" +
+            "    ORDER BY pi.person_uuid,\n" +
+            "             COALESCE(pi.interruption_date, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted) DESC NULLS LAST,\n" +
+            "             pi.id DESC\n" +
             ") prepi ON prepi.person_uuid = p.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
             "LEFT JOIN base_application_codeset preg_codeset\n" +
