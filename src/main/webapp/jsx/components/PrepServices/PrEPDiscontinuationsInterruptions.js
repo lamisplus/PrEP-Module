@@ -281,6 +281,9 @@ const PrEPDiscontinuationsInterruptions = props => {
     // prepStatus SQL (which compares prepi.interruption_date to the latest
     // follow-up encounter_date) flips immediately after save — without this,
     // a "Default" record only sets dateDefaulted and the status stays stale.
+    // For PEP Completion the form doesn't ask for an interruptionDate at all,
+    // so fall back to followUpVisitDate; without a date we'd save NULL and
+    // the uniqueness check (date + person) collides with any prior NULL row.
     if (!objValues.interruptionDate) {
       objValues.interruptionDate =
         objValues.dateDefaulted
@@ -289,6 +292,7 @@ const PrEPDiscontinuationsInterruptions = props => {
         || objValues.dateSeroConverted
         || objValues.dateOfDeath
         || objValues.dateReferred
+        || objValues.followUpVisitDate
         || "";
     }
     setSaving(true);
