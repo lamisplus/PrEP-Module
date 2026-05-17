@@ -58,7 +58,15 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "         THEN true ELSE false END AS pepOnly,\n" +
             "    CASE\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
-            "        WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
+            "        WHEN prepi.interruption_date > prepc.encounter_date THEN COALESCE(bac.display, \n" +
+            "             CASE prepi.interruption_type \n" +
+            "               WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' \n" +
+            "               WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' \n" +
+            "               WHEN 'PREP_DISCONTINUATION_TYPE_DEAD' THEN 'Dead' \n" +
+            "               WHEN 'PREP_DISCONTINUATION_TYPE_REFERRED' THEN 'Referred' \n" +
+            "               WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' \n" +
+            "               ELSE prepi.interruption_type \n" +
+            "             END) \n" +
             "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +

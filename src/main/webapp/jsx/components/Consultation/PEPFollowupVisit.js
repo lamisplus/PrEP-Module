@@ -52,28 +52,38 @@ const inputGroupMiddleStyle = {
   borderRadius: "0rem",
 };
 
-const validationSchema = Yup.object().shape({
-  encounterDate: Yup.string().required("This field is required"),
-  modeOfExposure: Yup.string().required("This field is required"),
-  durationBeforePep: Yup.string().required("This field is required"),
-  systolic: Yup.string().required("This field is required"),
-  diastolic: Yup.string().required("This field is required"),
-  hivStatusAtExposure: Yup.string().required("This field is required"),
-  riskReductionServices: Yup.string().required("This field is required"),
-  adherenceLevel: Yup.string().required("This field is required"),
-  pepRegimen: Yup.string().required("This field is required"),
-  dateStartPep: Yup.string().required("This field is required"),
-  dateStopPep: Yup.string().required("This field is required"),
-  nextAppointment: Yup.string().required("This field is required"),
-  healthCareWorkerSignature: Yup.string().required("This field is required"),
-  whyAdherenceLevelPoor: Yup.string().when("adherenceLevel", {
-    is: val =>
-      val?.toUpperCase()?.includes("POOR") ||
-      val?.toUpperCase()?.includes("FAIR"),
-    then: schema => schema.required("This field is required"),
-    otherwise: schema => schema,
-  }),
-});
+// Builds the validation schema with the same set of fields as the rendered
+// form. `isFemalePatient` toggles Pregnancy Status; `isFromHts` skips
+// validating HTS-driven fields (HIV Status at Exposure, Pregnancy Status)
+// because they're read-only and sourced from the latest hts_encounter.
+const buildValidationSchema = (isFemalePatient, isFromHts) =>
+  Yup.object().shape({
+    encounterDate: Yup.string().required("This field is required"),
+    modeOfExposure: Yup.string().required("This field is required"),
+    durationBeforePep: Yup.string().required("This field is required"),
+    systolic: Yup.string().required("This field is required"),
+    diastolic: Yup.string().required("This field is required"),
+    pregnant: isFemalePatient && !isFromHts
+      ? Yup.string().required("This field is required")
+      : Yup.string(),
+    hivStatusAtExposure: isFromHts
+      ? Yup.string()
+      : Yup.string().required("This field is required"),
+    riskReductionServices: Yup.string().required("This field is required"),
+    adherenceLevel: Yup.string().required("This field is required"),
+    pepRegimen: Yup.string().required("This field is required"),
+    dateStartPep: Yup.string().required("This field is required"),
+    dateStopPep: Yup.string().required("This field is required"),
+    nextAppointment: Yup.string().required("This field is required"),
+    healthCareWorkerSignature: Yup.string().required("This field is required"),
+    whyAdherenceLevelPoor: Yup.string().when("adherenceLevel", {
+      is: val =>
+        val?.toUpperCase()?.includes("POOR") ||
+        val?.toUpperCase()?.includes("FAIR"),
+      then: schema => schema.required("This field is required"),
+      otherwise: schema => schema,
+    }),
+  });
 
 const INITIAL_VALUES = {
   encounterDate: "",
@@ -538,7 +548,7 @@ const PEPFollowupVisit = props => {
         innerRef={formikRef}
         initialValues={formInitialValues}
         enableReinitialize
-        validationSchema={validationSchema}
+        validationSchema={buildValidationSchema(isFemale(), isFromHts)}
         onSubmit={values => {
           handleFormSubmit(values);
         }}
@@ -745,7 +755,12 @@ const PEPFollowupVisit = props => {
                     {isFemale() && (
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Pregnancy Status</FormLabelName>
+                          <FormLabelName>
+                            Pregnancy Status
+                            {!isFromHts && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
+                          </FormLabelName>
                           <Input
                             type="select"
                             name="pregnant"
@@ -765,6 +780,11 @@ const PEPFollowupVisit = props => {
                               <option key={item.code} value={item.code}>{item.display}</option>
                             ))}
                           </Input>
+                          {getError("pregnant") && (
+                            <span className={classes.error}>
+                              {getError("pregnant")}
+                            </span>
+                          )}
                         </FormGroup>
                       </div>
                     )}

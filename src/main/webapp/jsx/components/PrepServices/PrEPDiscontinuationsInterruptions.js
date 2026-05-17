@@ -214,11 +214,11 @@ const PrEPDiscontinuationsInterruptions = props => {
         : "This field is required";
     }
 
-    // Dead fields
+    // Dead fields — `dateClientDied` is explicitly exempt from the required
+    // checklist (per the spec), so don't enforce it. Source/Cause stay
+    // required because they're the substantive fields for the Dead branch.
     if (showDeadFields) {
-      temp.dateClientDied = objValues.dateClientDied
-        ? ""
-        : "This field is required";
+      temp.dateClientDied = "";
       temp.sourceOfDeathInfo = objValues.sourceOfDeathInfo
         ? ""
         : "This field is required";
@@ -571,8 +571,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
                       <Label>
-                        Date Client Died{" "}
-                        <span style={{ color: "red" }}>*</span>
+                        Date Client Died
                       </Label>
                       <Input
                         type="date"

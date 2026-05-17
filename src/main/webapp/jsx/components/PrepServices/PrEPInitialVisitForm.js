@@ -562,7 +562,11 @@ const PrEPInitialVisitForm = props => {
                 {resolveTypeLabel(objValues.enrollmentType) || resolveTypeLabel(screeningType) || 'PrEP'} Initial Visit
               </div>
 
-              {/* 1. Unique ID — locked when client already has a prior initiation */}
+              {/* 1. Unique ID — always read-only on the initiation form. The
+                  value is assigned at screening time (uniqueClientId on the
+                  latest prophylaxis_screening) and the initiation form just
+                  surfaces it. We auto-populate from the open eligibility
+                  record in GetPatientDTOObj(), then lock to that value. */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label for="uniqueId">
@@ -575,10 +579,12 @@ const PrEPInitialVisitForm = props => {
                     id="uniqueId"
                     onChange={handleInputChange}
                     value={objValues.uniqueId}
-                    disabled={disabledField || hasExistingInitiation}
+                    disabled
+                    title="Sourced from the latest screening's Unique Client ID"
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
+                      backgroundColor: "#f1f3f5",
                     }}
                   />
                   {errors.uniqueId !== "" ? (

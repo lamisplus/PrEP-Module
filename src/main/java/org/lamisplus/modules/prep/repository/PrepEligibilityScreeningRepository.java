@@ -17,9 +17,12 @@ public interface PrepEligibilityScreeningRepository extends JpaRepository<PrepEl
     Integer countAllByPersonUuid(String personUuid);
     List<PrepEligibilityScreening> findAllByPersonAndArchived(Person person, Boolean archived);
 
+    // Returns the most recent (DESC) screening that has not yet been linked to
+    // an initiation — the initiation form uses this to pre-populate Unique ID
+    // (and other non-HTS fields) from the screening's uniqueClientId.
     @Query(value = "SELECT * FROM prophylaxis_screening pe WHERE pe.person_uuid=?1 AND CAST(pe.archived AS BOOLEAN)=?2 AND " +
             "pe.uuid NOT IN (SELECT prophylaxis_screening_uuid FROM prophylaxis_initiation peu WHERE peu.person_uuid=?1 " +
-            "AND CAST(peu.archived AS BOOLEAN)=?2 ) ORDER BY pe.visit_date ASC LIMIT 1", nativeQuery = true)
+            "AND CAST(peu.archived AS BOOLEAN)=?2 ) ORDER BY pe.visit_date DESC LIMIT 1", nativeQuery = true)
     PrepEligibilityScreening findByPersonUuidAndArchived(String personUuid, Boolean archived);
 
     Optional<PrepEligibilityScreening> findByVisitDateAndPersonUuidAndArchived(LocalDate visitDate, String personUuid, Boolean archived);
