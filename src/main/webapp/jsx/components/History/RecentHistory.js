@@ -17,32 +17,7 @@ import { toast } from "react-toastify";
 
 import { Button } from "semantic-ui-react";
 
-// Regimen codeset codes map to human-readable labels for the summary card.
-// Mirrors the PREP_REGIMEN / PEP_REGIMEN codesets so a saved code like
-// PREP_REGIMEN_CABOTEGRAVIR renders as "Cabotegravir" instead of the raw code.
-const REGIMEN_CODE_DISPLAY = {
-  PREP_REGIMEN_TDF_FTC: "TDF/FTC",
-  PREP_REGIMEN_TDF_3TC: "TDF/3TC",
-  PREP_REGIMEN_CABOTEGRAVIR: "Cabotegravir",
-  PREP_REGIMEN_LENACAPAVIR: "Lenacapavir",
-  PEP_REGIMEN_TDF_FTC: "TDF/FTC",
-  PEP_REGIMEN_TDF_3TC_DTG: "TDF/3TC/DTG",
-  PEP_REGIMEN_OTHERS: "Others",
-};
-// Legacy numeric ids (still stored on prophylaxis_initiation.prep_regimen
-// because the dropdown used to submit the row id). Without this fallback the
-// dashboard renders the raw number ("3") right after initiation.
-const REGIMEN_ID_DISPLAY = {
-  "1": "TDF/FTC",
-  "2": "TDF/3TC",
-  "3": "Cabotegravir",
-  "4": "Lenacapavir",
-};
-
-const displayRegimen = value =>
-  value
-    ? REGIMEN_CODE_DISPLAY[value] || REGIMEN_ID_DISPLAY[String(value)] || value
-    : value;
+import { displayRegimen } from "../../../Utils/regimenDisplay";
 
 const RecentHistory = props => {
   const [recentActivities, setRecentActivities] = useState([]);

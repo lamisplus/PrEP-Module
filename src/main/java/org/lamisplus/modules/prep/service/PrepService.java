@@ -704,17 +704,25 @@ public class PrepService {
                     });
         }
 
-        // isCurrentStatus* flags still come off the latest initiation — they
-        // drive the Patient List "Enroll" modal and the PrEP/PEP enrollment-tab
-        // SubMenu cross-arm lockouts.
+        // isCurrentStatus* flags drive the Patient List "Enroll" modal and the
+        // SubMenu cross-arm lockouts. Compute PER ARM: a patient is "active on
+        // PrEP" only when their LATEST PrEP initiation row has is_interrupted
+        // != true (same for PEP). Falling back to findTopByPersonUuidAndArchived
+        // returned the lowest-id row regardless of arm, so a Stopped PrEP
+        // patient with an older PEP row could still appear active on PrEP.
         prepPepInitiationRepository
-                .findTopByPersonUuidAndArchived(person.getUuid(), false)
-                .ifPresent(latest -> {
-                    Boolean interrupted = applyPepAutoExpiry(latest);
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PREP)
+                .ifPresent(latestPrep -> {
+                    Boolean interrupted = applyPepAutoExpiry(latestPrep);
                     boolean active = !Boolean.TRUE.equals(interrupted);
-                    String type = latest.getEnrollmentType();
-                    prepDtos.setIsCurrentStatusInterruptedPrep(active && EnrollmentType.isPrep(type));
-                    prepDtos.setIsCurrentStatusInterruptedPep(active && EnrollmentType.isPep(type));
+                    prepDtos.setIsCurrentStatusInterruptedPrep(active);
+                });
+        prepPepInitiationRepository
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PEP)
+                .ifPresent(latestPep -> {
+                    Boolean interrupted = applyPepAutoExpiry(latestPep);
+                    boolean active = !Boolean.TRUE.equals(interrupted);
+                    prepDtos.setIsCurrentStatusInterruptedPep(active);
                 });
         PrepClient prepClient = prepPepInitiationRepository
                 .findPersonPrepAndStatusByPatientUuid(false,

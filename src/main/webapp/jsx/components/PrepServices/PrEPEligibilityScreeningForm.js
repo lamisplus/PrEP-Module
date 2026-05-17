@@ -673,6 +673,32 @@ const BasicInfo = props => {
   useEffect(() => {
     getRecentActivities();
   }, []);
+
+  // Pre-populate Unique Client ID from the patient's latest screening record
+  // so a returning client doesn't have to type the same ID again. Skip when
+  // we're editing an existing record (the saved value loads via
+  // getPatientPrepEligibility) and when the user has already typed something.
+  useEffect(() => {
+    if (props.activeContent?.id) return;
+    const personId = props.patientObj?.personId || props.patientObj?.id;
+    if (!personId) return;
+    if (objValues.uniqueClientId) return;
+    axios
+      .get(`${baseUrl}prep-eligibility-screening/person/${personId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(resp => {
+        const latest = (resp?.data || [])
+          .filter(r => !r.archived && r.uniqueClientId)
+          .sort((a, b) => new Date(b.visitDate || 0) - new Date(a.visitDate || 0))[0];
+        if (latest?.uniqueClientId) {
+          setObjValues(prev =>
+            prev.uniqueClientId ? prev : { ...prev, uniqueClientId: latest.uniqueClientId }
+          );
+        }
+      })
+      .catch(() => {});
+  }, [props.patientObj?.personId, props.patientObj?.id, props.activeContent?.id]);
   useEffect(() => {
     if (isNo(drugHistory.hivTestedBefore)) {
       setDrugHistory(prevHistory => ({

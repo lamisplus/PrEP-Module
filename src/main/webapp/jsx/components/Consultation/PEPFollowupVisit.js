@@ -425,19 +425,28 @@ const PEPFollowupVisit = props => {
     if (nextAppt) setFieldValue("nextAppointment", nextAppt);
   };
 
+  // PEP schedule: next appointment = visit date + 28 days (the spec). The
+  // earlier "duration in months" math is left as a fallback but no longer
+  // overrides the 28-day default.
+  const addDaysIso = (encounterDate, days) => {
+    if (!encounterDate) return "";
+    const date = new Date(encounterDate);
+    if (isNaN(date.getTime())) return "";
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split("T")[0];
+  };
+
   const handleEncounterDateChangeForAppt = (e, setFieldValue, duration) => {
     const encounterDate = e.target.value;
     setFieldValue("encounterDate", encounterDate);
-    // Auto-populate Duration on PEP from latest initiation
+    // Duration on PEP — months elapsed since enrollment, read-only field.
     const computedDuration = calculateDurationOnPep(encounterDate);
     if (computedDuration !== "") {
       setFieldValue("duration", computedDuration);
-      const nextAppt = calculateNextAppointment(encounterDate, computedDuration);
-      if (nextAppt) setFieldValue("nextAppointment", nextAppt);
-    } else if (duration) {
-      const nextAppt = calculateNextAppointment(encounterDate, duration);
-      if (nextAppt) setFieldValue("nextAppointment", nextAppt);
     }
+    // Next Appointment is always visit + 28 days for PEP follow-ups.
+    const nextAppt = addDaysIso(encounterDate, 28);
+    if (nextAppt) setFieldValue("nextAppointment", nextAppt);
   };
 
   // ── Submit ──
@@ -507,6 +516,9 @@ const PEPFollowupVisit = props => {
         toast.success("PEP Follow-up visit updated successfully!", {
           position: toast.POSITION.BOTTOM_CENTER,
         });
+        // Refresh the dashboard's patientDetail so the STATUS chip reflects
+        // the saved visit immediately (was stale until next grid visit).
+        if (props.PatientObject) await props.PatientObject();
         props.setActiveContent({
           ...props.activeContent,
           route: "pep-followup",
@@ -525,6 +537,7 @@ const PEPFollowupVisit = props => {
         toast.success("PEP Follow-up visit saved successfully!", {
           position: toast.POSITION.BOTTOM_CENTER,
         });
+        if (props.PatientObject) await props.PatientObject();
         props.setActiveContent({
           ...props.activeContent,
           route: "pep-followup",

@@ -263,12 +263,15 @@ function PatientCard(props) {
       setSessionStage("initiation");
     }
   };
-  const onInitiationSaved = () => {
-    PatientObject();
+  const onInitiationSaved = async () => {
     setHasOpenScreening(false);
     if (freshWorkflow && sessionStage === "initiation") {
       setSessionStage("all");
     }
+    // Await so the freshly-saved initiation is reflected in patientDetail
+    // before the dashboard re-renders the STATUS line. Without await, the
+    // chip can stay on the pre-save status until the next manual refresh.
+    await PatientObject();
   };
 
   async function PatientObject() {

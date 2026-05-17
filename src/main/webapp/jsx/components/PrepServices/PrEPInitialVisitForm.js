@@ -28,7 +28,7 @@ import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import {
   fetchPrepRegimens,
   fetchPrepRegimenByType,
-  getPepRegimenOptions,
+  fetchPepRegimens,
 } from "../Consultation/codesets";
 
 // Map between the canonical PREP_PEP_ENROLLMENT_TYPE codeset codes and the short
@@ -112,6 +112,7 @@ const PrEPInitialVisitForm = props => {
   // Locks the Unique ID field so all initiations for the same client share one ID.
   const [hasExistingInitiation, setHasExistingInitiation] = useState(false);
   const [prepRegimen, setPrepRegimen] = useState([]);
+  const [pepRegimenOptions, setPepRegimenOptions] = useState([]);
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     bodyWeight: "",
     height: "",
@@ -129,6 +130,9 @@ const PrEPInitialVisitForm = props => {
   useEffect(() => {
     fetchPrepRegimens().then(data => {
       setPrepRegimen(data);
+    });
+    fetchPepRegimens().then(data => {
+      setPepRegimenOptions(data);
     });
   }, []);
 
@@ -461,10 +465,10 @@ const PrEPInitialVisitForm = props => {
             objValues,
             { headers: { Authorization: `Bearer ${token}` } }
           )
-          .then(response => {
+          .then(async response => {
             setSaving(false);
             props.patientObj.prepCount = "1";
-            props.PatientObject();
+            if (props.PatientObject) await props.PatientObject();
             toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} initiation saved successfully!✔`, {
               position: toast.POSITION.BOTTOM_CENTER,
             });
@@ -1192,11 +1196,11 @@ const PrEPInitialVisitForm = props => {
                   >
                     <option value="">Select</option>
                     {objValues.enrollmentType === 'PEP'
-                      ? getPepRegimenOptions().map(r => (
+                      ? pepRegimenOptions.map(r => (
                           <option key={r.value} value={r.value}>{r.label}</option>
                         ))
                       : prepRegimen.map(value => (
-                          <option key={value.id} value={value.id}>
+                          <option key={value.code || value.id} value={value.code || value.id}>
                             {value.regimen}
                           </option>
                         ))}

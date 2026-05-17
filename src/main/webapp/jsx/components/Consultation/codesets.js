@@ -10,6 +10,9 @@
  * Regimen  items use { id, regimen, code }   to match the API contract.
  */
 
+import axios from "axios";
+import { token, url as baseUrl } from "../../../api";
+
 // ---------------------------------------------------------------------------
 // Codeset helpers  (sync – kept for any code that still calls them directly)
 // ---------------------------------------------------------------------------
@@ -225,12 +228,23 @@ export function getPepHivStatusAtExposureOptions() {
   ];
 }
 
+// Synchronous variant — kept for callers (like fetchAllCodesets toApiShape)
+// that need data immediately on first render. Live PEP regimens from the API
+// are fetched via fetchPepRegimens() below.
 export function getPepRegimenOptions() {
-  // Sourced from the unified ALL_REGIMENS list (PEP + PrEP joint codeset).
-  // Falls back to legacy codes so historical records keep rendering correctly.
   return ALL_REGIMENS
     .filter(r => r.enrollmentType === "PEP")
     .map(r => ({ value: r.code, label: r.regimen }));
+}
+
+/**
+ * Live PEP regimens preferring the PEP_REGIMEN codeset, falling back to the
+ * hardcoded PEP subset of ALL_REGIMENS. Shape mirrors getPepRegimenOptions().
+ */
+export async function fetchPepRegimens() {
+  const live = await fetchRegimenCodesetGroup("PEP_REGIMEN");
+  if (live) return live.map(r => ({ value: r.code, label: r.regimen }));
+  return getPepRegimenOptions();
 }
 
 export function getPepFollowupHivTestResultOptions() {
@@ -371,31 +385,65 @@ function stripInternal(list) {
   return list.map(({ types, enrollmentType, ...rest }) => rest);
 }
 
-/**
- * Replaces: GET /prep-regimen
- * Returns the PrEP subset of the joint regimen list (PEP regimens live in
- * getPepRegimenOptions). Shape matches the legacy API.
- * @returns {Promise<Array<{id: number, regimen: string, code: string}>>}
- */
-export function fetchPrepRegimens() {
-  return Promise.resolve(
-    stripInternal(ALL_REGIMENS.filter(r => r.enrollmentType === "PrEP"))
-  );
+// ---------------------------------------------------------------------------
+// Live regimen fetching from the application-codesets API
+// ---------------------------------------------------------------------------
+//
+// fetchPrepRegimens / fetchPrepRegimenByType / getPepRegimenOptions all hit
+// the codesets API (PREP_REGIMEN, PEP_REGIMEN) when available, falling back
+// to the hardcoded ALL_REGIMENS list above when the API errors out or returns
+// nothing. The "Injectibles vs Orals" filter is derived from the canonical
+// code (Cabotegravir/Lenacapavir → injectibles), since the codeset itself
+// doesn't expose that classification.
+
+const INJECTIBLE_CODE_FRAGMENTS = ["CABOTEGRAVIR", "LENACAPAVIR"];
+
+function isInjectibleCode(code) {
+  if (!code) return false;
+  const upper = String(code).toUpperCase();
+  return INJECTIBLE_CODE_FRAGMENTS.some(frag => upper.includes(frag));
+}
+
+function typesForCode(code) {
+  return isInjectibleCode(code) ? ["PREP_TYPE_INJECTIBLES"] : ["PREP_TYPE_ORAL"];
+}
+
+async function fetchRegimenCodesetGroup(group) {
+  try {
+    const res = await axios.get(
+      `${baseUrl}application-codesets/v2/codeSets?codes=${encodeURIComponent(group)}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const rows = res?.data?.[group];
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    return rows.map(r => ({
+      id: r.id,
+      regimen: r.display,
+      code: r.code,
+      types: typesForCode(r.code),
+    }));
+  } catch (_err) {
+    return null;
+  }
 }
 
 /**
- * Replaces: GET /prep-regimen/prepType?prepType={prepType}
- * Filters the PrEP subset by oral vs injectible (PEP regimens are excluded —
- * the form already picks PEP regimens from getPepRegimenOptions when the
- * enrollment is PEP).
- * @param {string} prepType
- * @returns {Promise<Array<{id: number, regimen: string, code: string}>>}
+ * Returns PrEP regimens, preferring the live PREP_REGIMEN codeset and
+ * falling back to the hardcoded list above when the API is unreachable.
+ * Shape: { id, regimen, code }.
  */
-export function fetchPrepRegimenByType(prepType) {
-  const filtered = ALL_REGIMENS.filter(
-    r => r.enrollmentType === "PrEP" && r.types.includes(prepType)
-  );
-  return Promise.resolve(stripInternal(filtered));
+export async function fetchPrepRegimens() {
+  const live = await fetchRegimenCodesetGroup("PREP_REGIMEN");
+  if (live) return stripInternal(live);
+  return stripInternal(ALL_REGIMENS.filter(r => r.enrollmentType === "PrEP"));
+}
+
+/**
+ * Live-filtered PrEP regimens by PrEP type (oral vs injectibles).
+ */
+export async function fetchPrepRegimenByType(prepType) {
+  const all = await fetchPrepRegimens();
+  return all.filter(r => (r.types || typesForCode(r.code)).includes(prepType));
 }
 
 /**

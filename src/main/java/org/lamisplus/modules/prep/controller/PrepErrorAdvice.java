@@ -1,7 +1,9 @@
-package org.lamisplus.modules.prep.config;
+package org.lamisplus.modules.prep.controller;
 
+import org.lamisplus.modules.base.controller.apierror.RecordExistException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -40,5 +42,23 @@ public class PrepErrorAdvice {
         body.put("message", reason != null && !reason.isEmpty()
                 ? reason : ex.getStatus().getReasonPhrase());
         return ResponseEntity.status(ex.getStatus()).body(body);
+    }
+
+    /**
+     * Safety net for any code path that still throws the framework's
+     * {@link RecordExistException} directly (which produces the unfriendly
+     * "ClassName already exist {field=value}" message). Rewrites the body
+     * to a generic but humane message rather than letting Spring's default
+     * "Conflict" through.
+     */
+    @ExceptionHandler(RecordExistException.class)
+    public ResponseEntity<Map<String, Object>> handleRecordExist(RecordExistException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", Instant.now().toString());
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", HttpStatus.CONFLICT.getReasonPhrase());
+        body.put("message", "A record already exists for the selected date. "
+                + "Please update the existing record or pick a different date.");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 }
