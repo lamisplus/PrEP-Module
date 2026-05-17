@@ -170,6 +170,7 @@ const CheckedInPatients = props => {
                       width: "100%",
                       color: "#fff",
                       fontWeight: "bolder",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Patient Dashboard
@@ -200,6 +201,7 @@ const CheckedInPatients = props => {
                       width: "100%",
                       color: "#fff",
                       fontWeight: "bolder",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Patient Dashboard
@@ -230,6 +232,7 @@ const CheckedInPatients = props => {
                       width: "100%",
                       color: "#fff",
                       fontWeight: "bolder",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Enroll patient

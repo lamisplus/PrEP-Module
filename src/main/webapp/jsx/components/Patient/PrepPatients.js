@@ -138,9 +138,9 @@ const Patients = (props) => {
                                                 }}
                                                 
                                             >
-                                                <ButtonGroup variant="contained" 
+                                                <ButtonGroup variant="contained"
                                                     aria-label="split button"
-                                                    style={{backgroundColor:'rgb(153, 46, 98)', height:'30px',width:'215px'}}
+                                                    style={{backgroundColor:'rgb(153, 46, 98)', height:'30px', whiteSpace:'nowrap'}}
                                                     size="large"
                                                 >
                                                 <Button
@@ -157,9 +157,9 @@ const Patients = (props) => {
                                                     <MdDashboard />
                                                 </Button>
                                                 <Button
-                                                style={{backgroundColor:'rgb(153, 46, 98)'}}
+                                                style={{backgroundColor:'rgb(153, 46, 98)', whiteSpace:'nowrap'}}
                                                 >
-                                                    <span style={{fontSize:'12px', color:'#fff', fontWeight:'bolder'}}>Patient Dashboard</span>
+                                                    <span style={{fontSize:'12px', color:'#fff', fontWeight:'bolder', whiteSpace:'nowrap'}}>Patient Dashboard</span>
                                                 </Button>
                                                 
                                                 </ButtonGroup>

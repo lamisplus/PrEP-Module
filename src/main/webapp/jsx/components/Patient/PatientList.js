@@ -295,6 +295,7 @@ const EnrollPatientButton = ({ row }) => {
             display: "inline-flex",
             alignItems: "center",
             padding: "0 1rem",
+            whiteSpace: "nowrap",
           }}
         >
           Enroll Patient
