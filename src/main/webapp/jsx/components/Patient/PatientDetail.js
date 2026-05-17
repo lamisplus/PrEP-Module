@@ -5,6 +5,11 @@ import { Link } from "react-router-dom";
 import "semantic-ui-css/semantic.min.css";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import Dialog from "@material-ui/core/Dialog";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogActions from "@material-ui/core/DialogActions";
+import MuiButton from "@material-ui/core/Button";
 import PatientCardDetail from "./PatientCard";
 import { useHistory } from "react-router-dom";
 import SubMenu from "./SubMenu";
@@ -100,6 +105,12 @@ function PatientCard(props) {
   // can still expose the Initiation step from that pending screening.
   const [hasOpenScreening, setHasOpenScreening] = useState(false);
 
+  // One-shot modal shown on dashboard entry when the patient is currently
+  // active on the OTHER arm — surfaces the lockout instead of relying on
+  // the muted notice inside the SubMenu strip.
+  const [otherArmModalOpen, setOtherArmModalOpen] = useState(false);
+  const [otherArmModalShownFor, setOtherArmModalShownFor] = useState(null);
+
   const { userPermissions } = useAuth();
 
   useEffect(() => {
@@ -114,6 +125,30 @@ function PatientCard(props) {
     }
   }, [patientDetail]);
 
+  // Show the cross-arm lockout modal once per patient+arm. Triggers as soon as
+  // patientDetail and screeningType are both available and the patient is
+  // currently on the opposite arm.
+  useEffect(() => {
+    if (!patientDetail || !screeningType) return;
+    const personId = patientObjLocation?.personId || patientObjLocation?.id;
+    if (!personId) return;
+    const isActivePrep = !!patientDetail.isCurrentStatusInterruptedPrep;
+    const isActivePep = !!patientDetail.isCurrentStatusInterruptedPep;
+    const blockedByOtherArm =
+      (screeningType === "PrEP" && isActivePep) ||
+      (screeningType === "PEP" && isActivePrep);
+    const key = `${personId}:${screeningType}`;
+    if (blockedByOtherArm && otherArmModalShownFor !== key) {
+      setOtherArmModalOpen(true);
+      setOtherArmModalShownFor(key);
+    }
+  }, [patientDetail, screeningType, patientObjLocation?.personId, patientObjLocation?.id, otherArmModalShownFor]);
+
+  const activeOtherArmLabel =
+    patientDetail?.isCurrentStatusInterruptedPrep ? "PrEP" :
+    patientDetail?.isCurrentStatusInterruptedPep ? "PEP" : "";
+  const requestedArmLabel = screeningType === "PEP" ? "PEP" : "PrEP";
+
   // After tab-switch + return: resume the workflow if the *open* (not-yet-completed)
   // record matches the enrollment type the user just selected on the Patient List.
   // Switching from PrEP → PEP must restart at screening (not jump to a stale PrEP initiation).
@@ -126,9 +161,23 @@ function PatientCard(props) {
     if (!personId) return;
     let cancelled = false;
 
+    // Normalize either short labels ("PrEP"/"PEP") or canonical codeset codes
+    // (e.g. "PREP_PEP_ENROLLMENT_TYPE_PREP") to a single short token so we can
+    // safely compare what's on the backend record against the user's currently
+    // selected arm. Without this, a screening saved with `category =
+    // PREP_PEP_ENROLLMENT_TYPE_PREP` would never match `screeningType = "PrEP"`
+    // and the user is bounced back to re-screen.
+    const normalizeArm = (value) => {
+      if (!value) return "";
+      const v = String(value).toUpperCase();
+      if (v.includes("PEP") && !v.includes("PREP")) return "PEP";
+      if (v.includes("PREP")) return "PREP";
+      if (v === "PEP" || v === "PREP") return v;
+      return v;
+    };
     const matches = (recordType, target) => {
       if (!recordType || !target) return false;
-      return recordType.toLowerCase() === target.toLowerCase();
+      return normalizeArm(recordType) === normalizeArm(target);
     };
 
     (async () => {
@@ -214,6 +263,45 @@ function PatientCard(props) {
 
   return (
     <div className={classes.root}>
+      <Dialog
+        open={otherArmModalOpen}
+        onClose={() => setOtherArmModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ style: { borderRadius: "0.5rem" } }}
+      >
+        <DialogTitle
+          disableTypography
+          style={{
+            background: "#b91c1c",
+            color: "#fff",
+            padding: "0.75rem 1rem",
+          }}
+        >
+          <span style={{ fontSize: "1rem", fontWeight: 600 }}>
+            {requestedArmLabel} services unavailable
+          </span>
+        </DialogTitle>
+        <DialogContent style={{ padding: "1.25rem", fontSize: "0.95rem" }}>
+          {requestedArmLabel} services are not available for this patient because
+          they are currently receiving {activeOtherArmLabel} service. Discontinue
+          the active {activeOtherArmLabel} enrollment before starting any
+          {" "}{requestedArmLabel} form.
+        </DialogContent>
+        <DialogActions style={{ padding: "0.5rem 1rem" }}>
+          <MuiButton
+            onClick={() => setOtherArmModalOpen(false)}
+            variant="contained"
+            style={{
+              backgroundColor: "rgb(153, 46, 98)",
+              color: "#fff",
+              textTransform: "uppercase",
+            }}
+          >
+            Okay
+          </MuiButton>
+        </DialogActions>
+      </Dialog>
       <div
         className="row page-titles mx-0"
         style={{ marginTop: "0px", marginBottom: "-10px" }}

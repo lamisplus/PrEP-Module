@@ -172,7 +172,8 @@ const NotEnrolledPatients = props => {
                               aria-haspopup="menu"
                               style={{
                                 backgroundColor: "rgb(153, 46, 98)",
-                                margin: "auto",
+                                borderRight: "0.0625rem solid rgba(255,255,255,0.4)",
+                                borderRadius: 0,
                               }}
                             >
                               <MdDashboard />

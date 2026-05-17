@@ -217,9 +217,33 @@ export async function fetchFollowupVisitCodesets() {
 //            HIV_TEST_RESULT, EARLY_DETECT_VIRAL_LOAD_RESULT
 // ---------------------------------------------------------------------------
 
+// Fallback PREP_DISCONTINUATION_TYPE entries we hardcode so the form keeps
+// working before the new server-side codeset entries are seeded. We only
+// inject codes that the API didn't already return, so the API stays the
+// source of truth once Dead/Referred/Seroconverted are added there.
+const FALLBACK_DISCONTINUATION_TYPES = [
+  { code: "PREP_DISCONTINUATION_TYPE_DEAD",          display: "Dead" },
+  { code: "PREP_DISCONTINUATION_TYPE_REFERRED",      display: "Referred" },
+  { code: "PREP_DISCONTINUATION_TYPE_SEROCONVERTED", display: "Seroconverted" },
+];
+
+function withFallbackDiscontinuationTypes(data) {
+  const existing = Array.isArray(data?.PREP_DISCONTINUATION_TYPE)
+    ? data.PREP_DISCONTINUATION_TYPE : [];
+  const existingCodes = new Set(existing.map(e => e?.code));
+  const merged = [...existing];
+  let nextId = (existing.reduce((max, e) => Math.max(max, Number(e.id) || 0), 0)) + 1;
+  for (const fb of FALLBACK_DISCONTINUATION_TYPES) {
+    if (!existingCodes.has(fb.code)) {
+      merged.push({ id: nextId++, code: fb.code, display: fb.display });
+    }
+  }
+  return { ...(data || {}), PREP_DISCONTINUATION_TYPE: merged };
+}
+
 export async function fetchDiscontinuationCodesets() {
   try {
-    return await callApi([
+    const data = await callApi([
       "PREP_DISCONTINUATION_TYPE",
       "PREP_DISCONTINUATION_REASON",
       "HIV_TEST_RESULT",
@@ -229,8 +253,9 @@ export async function fetchDiscontinuationCodesets() {
       // strings without resorting to fuzzy ILIKE.
       "YES_NO",
     ]);
+    return withFallbackDiscontinuationTypes(data);
   } catch (_err) {
-    return hardcodedFallback();
+    return withFallbackDiscontinuationTypes(await hardcodedFallback());
   }
 }
 

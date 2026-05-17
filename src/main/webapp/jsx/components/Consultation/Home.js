@@ -1438,7 +1438,7 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* 5c. BMI */}
+                    {/* 5c. BMI — height in cm; BMI = weight(kg) / height(m)^2 */}
                     {values.weight && values.height && (
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
@@ -1446,8 +1446,8 @@ const ClinicVisit = props => {
                           <Input
                             type="text"
                             value={(
-                              values.weight /
-                              values.height ** 2
+                              Number(values.weight) /
+                              ((Number(values.height) / 100) ** 2)
                             ).toFixed(2)}
                             style={inputStyle}
                             disabled

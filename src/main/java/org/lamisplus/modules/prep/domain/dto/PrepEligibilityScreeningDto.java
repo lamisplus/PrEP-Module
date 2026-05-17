@@ -36,6 +36,8 @@ public class PrepEligibilityScreeningDto implements Serializable {
     private String visitType;
     private String uniqueClientId;
     private String htsEncounterUuid;
+    private String clientHtsCode;
+    private String pregnancyStatus;
     private String referredFrom;
     private String setting;
     private String serviceStatus;

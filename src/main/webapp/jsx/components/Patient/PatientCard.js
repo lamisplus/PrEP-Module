@@ -225,8 +225,8 @@ function PatientCard(props) {
                           <Typography variant="caption">
                             <Label color={"teal"} size={"mini"}>
                               STATUS :{" "}
-                              {patientObj?.prepStatus ||
-                                patientDetail?.prepStatus}
+                              {patientDetail?.prepStatus ||
+                                patientObj?.prepStatus}
                             </Label>
                           </Typography>
                         </div>

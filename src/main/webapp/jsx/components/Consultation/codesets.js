@@ -226,10 +226,11 @@ export function getPepHivStatusAtExposureOptions() {
 }
 
 export function getPepRegimenOptions() {
-  return [
-    { value: "PEP_REGIMEN_TDF_3TC_DTG", label: "TDF/3TC/DTG" },
-    { value: "PEP_REGIMEN_OTHERS", label: "Others" },
-  ];
+  // Sourced from the unified ALL_REGIMENS list (PEP + PrEP joint codeset).
+  // Falls back to legacy codes so historical records keep rendering correctly.
+  return ALL_REGIMENS
+    .filter(r => r.enrollmentType === "PEP")
+    .map(r => ({ value: r.code, label: r.regimen }));
 }
 
 export function getPepFollowupHivTestResultOptions() {
@@ -349,41 +350,52 @@ export function fetchAllCodesets() {
 }
 
 /**
- * Master regimen list backed by the PREP_REGIMEN codeset.
- * The `id` values feed the regimenId form field; `code` is the canonical
- * codeset code that gets persisted. `types` drives the per-PrEP-Type filter
- * (see fetchPrepRegimenByType).
+ * Master regimen list backed by the PREP_REGIMEN + PEP_REGIMEN codesets,
+ * joined into a single source of truth so callers don't have to reconcile
+ * two lists. The `id` values feed the regimenId form field; `code` is the
+ * canonical codeset code that gets persisted. `enrollmentType` lets callers
+ * pick the right subset for PrEP or PEP; `types` drives the per-PrEP-Type
+ * filter (see fetchPrepRegimenByType — oral vs injectible).
  */
 const ALL_REGIMENS = [
-  { id: 1, regimen: "TDF/FTC",      code: "PREP_REGIMEN_TDF_FTC",      types: ["PREP_TYPE_ORAL"] },
-  { id: 2, regimen: "TDF/3TC",      code: "PREP_REGIMEN_TDF_3TC",      types: ["PREP_TYPE_ORAL"] },
-  { id: 3, regimen: "Cabotegravir", code: "PREP_REGIMEN_CABOTEGRAVIR", types: ["PREP_TYPE_INJECTIBLES"] },
-  { id: 4, regimen: "Lenacapavir",  code: "PREP_REGIMEN_LENACAPAVIR",  types: ["PREP_TYPE_INJECTIBLES"] },
+  { id: 1, regimen: "TDF/FTC",      code: "PREP_REGIMEN_TDF_FTC",      enrollmentType: "PrEP", types: ["PREP_TYPE_ORAL"] },
+  { id: 2, regimen: "TDF/3TC",      code: "PREP_REGIMEN_TDF_3TC",      enrollmentType: "PrEP", types: ["PREP_TYPE_ORAL"] },
+  { id: 3, regimen: "Cabotegravir", code: "PREP_REGIMEN_CABOTEGRAVIR", enrollmentType: "PrEP", types: ["PREP_TYPE_INJECTIBLES"] },
+  { id: 4, regimen: "Lenacapavir",  code: "PREP_REGIMEN_LENACAPAVIR",  enrollmentType: "PrEP", types: ["PREP_TYPE_INJECTIBLES"] },
+  // PEP regimens. Joint into the same list so the master is single-source.
+  { id: 5, regimen: "TDF/FTC",      code: "PEP_REGIMEN_TDF_FTC",       enrollmentType: "PEP",  types: [] },
 ];
 
-/** Strip the internal `types` key before returning to callers. */
-function stripTypes(list) {
-  return list.map(({ types, ...rest }) => rest);
+/** Strip the internal `types`/`enrollmentType` keys before returning to callers. */
+function stripInternal(list) {
+  return list.map(({ types, enrollmentType, ...rest }) => rest);
 }
 
 /**
  * Replaces: GET /prep-regimen
- * Returns an array of { id, regimen, code } matching the API shape.
+ * Returns the PrEP subset of the joint regimen list (PEP regimens live in
+ * getPepRegimenOptions). Shape matches the legacy API.
  * @returns {Promise<Array<{id: number, regimen: string, code: string}>>}
  */
 export function fetchPrepRegimens() {
-  return Promise.resolve(stripTypes(ALL_REGIMENS));
+  return Promise.resolve(
+    stripInternal(ALL_REGIMENS.filter(r => r.enrollmentType === "PrEP"))
+  );
 }
 
 /**
  * Replaces: GET /prep-regimen/prepType?prepType={prepType}
- * Filters regimens by PrEP type.
+ * Filters the PrEP subset by oral vs injectible (PEP regimens are excluded —
+ * the form already picks PEP regimens from getPepRegimenOptions when the
+ * enrollment is PEP).
  * @param {string} prepType
  * @returns {Promise<Array<{id: number, regimen: string, code: string}>>}
  */
 export function fetchPrepRegimenByType(prepType) {
-  const filtered = ALL_REGIMENS.filter(r => r.types.includes(prepType));
-  return Promise.resolve(stripTypes(filtered));
+  const filtered = ALL_REGIMENS.filter(
+    r => r.enrollmentType === "PrEP" && r.types.includes(prepType)
+  );
+  return Promise.resolve(stripInternal(filtered));
 }
 
 /**

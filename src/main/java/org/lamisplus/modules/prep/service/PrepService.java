@@ -675,6 +675,34 @@ public class PrepService {
                         prepDtos.setCurrentRegimen(PrepRegimens.displayById(regimenId));
                     }
                 });
+        // If no follow-up exists yet (right after initiation), fall back to the
+        // latest initiation's prep_regimen so the dashboard never surfaces a
+        // raw numeric id. The form historically stored the numeric row id; we
+        // also handle the case where future writes use the codeset code.
+        if (prepDtos.getCurrentRegimen() == null) {
+            prepPepInitiationRepository
+                    .findTopByPersonUuidAndArchived(person.getUuid(), false)
+                    .ifPresent(latestInit -> {
+                        String raw = latestInit.getPrepRegimen();
+                        if (raw == null || raw.isEmpty()) {
+                            return;
+                        }
+                        String display = PrepRegimens.displayByCode(raw);
+                        // displayByCode returns the original string when the
+                        // code isn't mapped; treat that as a numeric-id legacy
+                        // value and re-resolve via displayById.
+                        if (display == null || display.equals(raw)) {
+                            try {
+                                display = PrepRegimens.displayById(Long.parseLong(raw));
+                            } catch (NumberFormatException ignored) {
+                                display = null;
+                            }
+                        }
+                        if (display != null) {
+                            prepDtos.setCurrentRegimen(display);
+                        }
+                    });
+        }
 
         // isCurrentStatus* flags still come off the latest initiation — they
         // drive the Patient List "Enroll" modal and the PrEP/PEP enrollment-tab

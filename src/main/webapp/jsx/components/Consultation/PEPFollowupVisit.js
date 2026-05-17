@@ -10,7 +10,7 @@ import {
 import { url as baseUrl, token } from "../../../api";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
-import { toPepHivStatusCode } from "../../../Utils/htsResultMapper";
+import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
 import AddIcon from "@mui/icons-material/Add";
@@ -326,10 +326,13 @@ const PEPFollowupVisit = props => {
   }, [props.activeContent]);
 
   // Pull the linked hts_encounter when the Patient grid didn't already ship one
-  // (i.e. edit/view path, where we resolve it through the latest PEP initiation
-  // returned by `getPatientDtoObj`). The auto-pop effect below then runs.
+  // (i.e. edit/view path). Prefer the htsEncounterUuid stored on THIS follow-up
+  // record so view/update shows exactly what was captured at the time; fall
+  // back to the latest PEP initiation's htsEncounterUuid only if the record
+  // doesn't carry one (older rows).
   useEffect(() => {
-    const targetUuid = patientDto?.htsEncounterUuid;
+    const recordHtsUuid = formInitialValues?.htsEncounterUuid;
+    const targetUuid = recordHtsUuid || patientDto?.htsEncounterUuid;
     if (!targetUuid) return;
     if (props.patientObj?.latestHtsResult?.uuid === targetUuid) return;
     if (loadedHts?.uuid === targetUuid) return;
@@ -339,7 +342,11 @@ const PEPFollowupVisit = props => {
       })
       .then(resp => setLoadedHts(resp?.data || null))
       .catch(() => setLoadedHts(null));
-  }, [patientDto?.htsEncounterUuid, props.patientObj?.latestHtsResult?.uuid]);
+  }, [
+    formInitialValues?.htsEncounterUuid,
+    patientDto?.htsEncounterUuid,
+    props.patientObj?.latestHtsResult?.uuid,
+  ]);
 
   // Auto-populate read-only HTS-sourced fields (Pregnancy Status & HIV Status
   // at Exposure) whenever the resolved hts_encounter changes.
@@ -348,7 +355,10 @@ const PEPFollowupVisit = props => {
     if (isFemale() && htsObs.pregnancyStatus) {
       formikRef.current.setFieldValue("pregnant", htsObs.pregnancyStatus);
     }
-    const hivStatus = toPepHivStatusCode(
+    // Use the canonical HIV_TEST_RESULT codeset so PEP records autopop
+    // consistently with the screening + initiation forms (covers Early Detect
+    // too, which the PEP-only codeset didn't have).
+    const hivStatus = toHivTestResultCode(
       htsObs.confirmatoryHivTest || htsObs.initialHivTest,
       htsObs.typeOfHivTestDone
     );
@@ -774,7 +784,7 @@ const PEPFollowupVisit = props => {
                           onChange={handleChange}
                           value={
                             isFromHts
-                              ? (toPepHivStatusCode(
+                              ? (toHivTestResultCode(
                                   htsObs.confirmatoryHivTest || htsObs.initialHivTest,
                                   htsObs.typeOfHivTestDone
                                 ) || "")
@@ -788,8 +798,8 @@ const PEPFollowupVisit = props => {
                           title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                         >
                           <option value="">Select</option>
-                          {codeset?.PEP_HIV_STATUS_AT_EXPOSURE?.map(value => (
-                            <option key={value.id} value={value.code}>
+                          {(codeset?.HIV_TEST_RESULT || []).map(value => (
+                            <option key={value.id || value.code} value={value.code}>
                               {value.display}
                             </option>
                           ))}

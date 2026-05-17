@@ -548,8 +548,8 @@ const PrEPCommencementForm = props => {
                   <Input
                     type="text"
                     value={(
-                      objValues.weight /
-                      objValues.height ** 2
+                      Number(objValues.weight) /
+                      ((Number(objValues.height) / 100) ** 2)
                     ).toFixed(2)}
                     style={{
                       border: "1px solid #014D88",

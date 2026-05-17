@@ -52,6 +52,13 @@ const PrEPInitialVisitForm = props => {
   const classes = useStyles();
   // Get screeningType passed from Patient Tab via activeContent
   const screeningType = props.activeContent?.screeningType || '';
+  // Effective enrollment type label used in headers and toasts. Prefer the
+  // loaded record's enrollmentType (after normalization) over the nav hint
+  // so view/update never shows the joint "PrEP/PEP" label.
+  const resolveTypeLabel = (val) => {
+    const normalized = fromEnrollmentTypeCode(val) || val;
+    return normalized === 'PEP' ? 'PEP' : normalized === 'PrEP' ? 'PrEP' : '';
+  };
   const [objValues, setObjValues] = useState({
     dateEnrolled: "",
     dateReferred: "",
@@ -267,7 +274,14 @@ const PrEPInitialVisitForm = props => {
         }
       )
       .then(response => {
-        setObjValues(response.data.find(x => x.id === id));
+        const rec = response.data.find(x => x.id === id);
+        if (rec) {
+          setObjValues({
+            ...rec,
+            enrollmentType:
+              fromEnrollmentTypeCode(rec.enrollmentType) || rec.enrollmentType,
+          });
+        }
       })
       .catch(error => {
         //console.log(error);
@@ -376,6 +390,42 @@ const PrEPInitialVisitForm = props => {
     ) {
       temp.dateOfHivTest = "Date of HIV Test must be on or before Date Enrolled";
     }
+    // Additional required fields per spec.
+    temp.dateOfInitialAdherenceCounseling = objValues.dateOfInitialAdherenceCounseling
+      ? "" : "This field is required";
+    temp.datePrepStarted = objValues.datePrepStarted
+      ? "" : "This field is required";
+    // PrEP/PEP type at start: same JSX field today, label changes per arm.
+    temp.prepTypeAtStart = objValues.prepTypeAtStart
+      ? "" : "This field is required";
+    temp.prepRegimen = objValues.prepRegimen
+      ? "" : "This field is required";
+    // Pregnancy only applies to female patients; HTS may pre-populate it.
+    const isFemale =
+      props.patientObj?.gender?.toLowerCase() === "female" ||
+      props.patientObj?.sex?.toLowerCase() === "female";
+    if (isFemale) {
+      const pregVal = isFromHts
+        ? (htsObs.pregnancyStatus || objValues.pregnancyStatus)
+        : objValues.pregnancyStatus;
+      temp.pregnancyStatus = pregVal ? "" : "This field is required";
+    }
+    temp.historyOfDrugAllergies = objValues.historyOfDrugAllergies
+      ? "" : "This field is required";
+    temp.weight = objValues.weight ? "" : "This field is required";
+    temp.height = objValues.height ? "" : "This field is required";
+    // BMI is derived from weight + height; require both as a proxy.
+    if (!objValues.weight || !objValues.height) {
+      temp.bmi = "Weight and height are required to compute BMI";
+    } else {
+      temp.bmi = "";
+    }
+    temp.urinalysisResult = objValues.urinalysisResult
+      ? "" : "This field is required";
+    // liverFunctionTestResults is an array; require at least one entry.
+    const lft = objValues.liverFunctionTestResults;
+    const hasLft = Array.isArray(lft) ? lft.length > 0 : !!lft;
+    temp.liverFunctionTestResults = hasLft ? "" : "This field is required";
     setErrors({ ...temp });
     return Object.values(temp).every(x => x === "");
   };
@@ -464,6 +514,19 @@ const PrEPInitialVisitForm = props => {
         supporterRelationshipType: "Supporter Relationship",
         supporterPhone: "Supporter Phone",
         dateReferred: "Date Referred",
+        dateOfInitialAdherenceCounseling: "Date of Initial Adherence Counseling",
+        datePrepStarted: "Date Started",
+        prepTypeAtStart:
+          objValues.enrollmentType === "PEP"
+            ? "PEP Type at Start" : "PrEP Type at Start",
+        prepRegimen: "Regimen",
+        pregnancyStatus: "Pregnant",
+        historyOfDrugAllergies: "History of Drug Allergies",
+        weight: "Body Weight",
+        height: "Height",
+        bmi: "BMI",
+        urinalysisResult: "Urinalysis Result",
+        liverFunctionTestResults: "Liver Function Test",
       };
       const missing = Object.keys(errors)
         .filter(k => errors[k])
@@ -482,7 +545,7 @@ const PrEPInitialVisitForm = props => {
         <CardBody>
           <form>
             <div className="row">
-              <h2>{screeningType === 'PEP' ? 'PEP' : screeningType === 'PrEP' ? 'PrEP' : 'PrEP/PEP'} Initiation</h2>
+              <h2>{resolveTypeLabel(objValues.enrollmentType) || resolveTypeLabel(screeningType) || 'PrEP'} Initiation</h2>
 
               {/* Section A Header */}
               <div
@@ -496,7 +559,7 @@ const PrEPInitialVisitForm = props => {
                   marginBottom: "1rem",
                 }}
               >
-                {screeningType === 'PEP' ? 'PEP' : screeningType === 'PrEP' ? 'PrEP' : 'PrEP/PEP'} Initial Visit
+                {resolveTypeLabel(objValues.enrollmentType) || resolveTypeLabel(screeningType) || 'PrEP'} Initial Visit
               </div>
 
               {/* 1. Unique ID — locked when client already has a prior initiation */}
@@ -856,13 +919,13 @@ const PrEPInitialVisitForm = props => {
                   marginBottom: "1rem",
                 }}
               >
-                {`${objValues.enrollmentType === 'PEP' ? 'PEP' : objValues.enrollmentType === 'PrEP' ? 'PrEP' : 'PrEP/PEP'} Initiation`}
+                {`${resolveTypeLabel(objValues.enrollmentType) || resolveTypeLabel(screeningType) || 'PrEP'} Initiation`}
               </div>
 
               {/* 12. Date of Initial Adherence Counseling */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Date of Initial Adherence Counseling</Label>
+                  <Label>Date of Initial Adherence Counseling <span style={{ color: "red" }}> *</span></Label>
                   <input
                     type="date"
                     className="form-control"
@@ -884,7 +947,7 @@ const PrEPInitialVisitForm = props => {
               {/* 13. Date PrEP started */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Date Started</Label>
+                  <Label>Date Started <span style={{ color: "red" }}> *</span></Label>
                   <input
                     type="date"
                     className="form-control"
@@ -906,7 +969,7 @@ const PrEPInitialVisitForm = props => {
               {/* 14. Weight */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Body Weight</Label>
+                  <Label>Body Weight <span style={{ color: "red" }}> *</span></Label>
                   <InputGroup>
                     <Input
                       type="number"
@@ -950,7 +1013,7 @@ const PrEPInitialVisitForm = props => {
               {/* 15. Height */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Height</Label>
+                  <Label>Height <span style={{ color: "red" }}> *</span></Label>
                   <InputGroup>
                     <InputGroupText
                       addonType="append"
@@ -992,16 +1055,17 @@ const PrEPInitialVisitForm = props => {
                 </FormGroup>
               </div>
 
-              {/* BMI Display */}
+              {/* BMI Display — height is captured in cm; BMI = weight(kg) / height(m)^2 */}
               {objValues.weight && objValues.height && (
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>
-                    <Label>BMI</Label>
+                    <Label>BMI <span style={{ color: "red" }}> *</span></Label>
                     <Input
                       type="text"
-                      value={(objValues.weight / objValues.height ** 2).toFixed(
-                        2
-                      )}
+                      value={(
+                        Number(objValues.weight) /
+                        ((Number(objValues.height) / 100) ** 2)
+                      ).toFixed(2)}
                       style={{
                         border: "1px solid #014D88",
                         borderRadius: "0.25rem",
@@ -1017,7 +1081,7 @@ const PrEPInitialVisitForm = props => {
                 props.patientObj?.sex?.toLowerCase() === "female") && (
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>
-                    <Label>Pregnant</Label>
+                    <Label>Pregnant <span style={{ color: "red" }}> *</span></Label>
                     <select
                       className="form-control"
                       name="pregnancyStatus"
@@ -1054,7 +1118,7 @@ const PrEPInitialVisitForm = props => {
               <>
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>PrEP Type at Start</Label>
+                  <Label>{objValues.enrollmentType === 'PEP' ? 'PEP' : 'PrEP'} Type at Start <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="prepTypeAtStart"
@@ -1100,7 +1164,7 @@ const PrEPInitialVisitForm = props => {
               {/* 18. PrEP Regimen */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Regimen</Label>
+                  <Label>Regimen <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="prepRegimen"
@@ -1151,7 +1215,7 @@ const PrEPInitialVisitForm = props => {
               {/* 19. History of Drug Allergies */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>History of Drug Allergies</Label>
+                  <Label>History of Drug Allergies <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="historyOfDrugAllergies"
@@ -1200,7 +1264,7 @@ const PrEPInitialVisitForm = props => {
               {/* 21. Urinalysis Result */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Urinalysis Result</Label>
+                  <Label>Urinalysis Result <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="urinalysisResult"
@@ -1226,7 +1290,7 @@ const PrEPInitialVisitForm = props => {
               {/* 22. Liver Function Test (DualListBox) */}
               <div className="form-group mb-3 col-md-12">
                 <FormGroup>
-                  <Label>Liver Function Test</Label>
+                  <Label>Liver Function Test <span style={{ color: "red" }}> *</span></Label>
                   <LiverFunctionTest
                     objValues={objValues}
                     handleInputChange={handleLftInputChange}
