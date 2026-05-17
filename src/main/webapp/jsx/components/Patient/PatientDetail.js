@@ -162,17 +162,17 @@ function PatientCard(props) {
     let cancelled = false;
 
     // Normalize either short labels ("PrEP"/"PEP") or canonical codeset codes
-    // (e.g. "PREP_PEP_ENROLLMENT_TYPE_PREP") to a single short token so we can
-    // safely compare what's on the backend record against the user's currently
-    // selected arm. Without this, a screening saved with `category =
-    // PREP_PEP_ENROLLMENT_TYPE_PREP` would never match `screeningType = "PrEP"`
-    // and the user is bounced back to re-screen.
+    // (PREP_PEP_ENROLLMENT_TYPE_PEP / _PREP) to a single short token. Both
+    // canonical codes contain "PEP" AND "PREP" as substrings, so naive
+    // includes() checks misclassify PEP records as PrEP. Check the suffix
+    // instead — that's the actual disambiguator. Without this fix, a saved
+    // PEP screening would look like a "PrEP" record on return and bounce
+    // the user back to the screening form to redo it.
     const normalizeArm = (value) => {
       if (!value) return "";
-      const v = String(value).toUpperCase();
-      if (v.includes("PEP") && !v.includes("PREP")) return "PEP";
-      if (v.includes("PREP")) return "PREP";
-      if (v === "PEP" || v === "PREP") return v;
+      const v = String(value).toUpperCase().trim();
+      if (v === "PEP" || v.endsWith("_PEP")) return "PEP";
+      if (v === "PREP" || v.endsWith("_PREP")) return "PREP";
       return v;
     };
     const matches = (recordType, target) => {
@@ -182,31 +182,57 @@ function PatientCard(props) {
 
     (async () => {
       try {
-        // Open initiation = a saved initiation that is not stopped/dead. If its enrollment type
-        // matches the type the user just selected, the workflow is past initiation → show the
-        // full menu. Otherwise (or if missing) fall through to the screening check.
-        const enrollmentResp = await axios.get(
-          `${baseUrl}prep/enrollment/open/patients/${personId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const openInitiationType = enrollmentResp?.data?.enrollmentType;
+        // Type-filtered lookup: we need the latest screening AND initiation of
+        // the SELECTED arm (PEP vs PrEP), not the latest of any type. The
+        // "open" endpoints return whichever is latest by date, which is wrong
+        // when the patient has activity on both arms.
+        //
+        // 1) Pull all initiations for this person, keep the ones whose
+        //    enrollment type matches the selected arm, pick the most recent.
+        //    If that initiation exists AND isn't archived/stopped, the
+        //    workflow is past initiation → show the full menu.
+        // 2) Otherwise pull all screenings and find the latest of the matching
+        //    arm that hasn't yet been linked to an initiation. That's the
+        //    "open screening" — surface the Initiation menu item.
+        const target = normalizeArm(screeningType);
+
+        const sortByDateDesc = (arr, key) =>
+          [...(arr || [])].sort((a, b) => {
+            const da = a?.[key] ? new Date(a[key]).getTime() : 0;
+            const db = b?.[key] ? new Date(b[key]).getTime() : 0;
+            return db - da;
+          });
+
+        const initsResp = await axios
+          .get(`${baseUrl}prep-pep-initiation/person/${personId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .catch(() => ({ data: [] }));
         if (cancelled) return;
-        if (matches(openInitiationType, screeningType)) {
+        const initsOfArm = (initsResp?.data || []).filter(
+          row => !row.archived && normalizeArm(row.enrollmentType) === target
+        );
+        if (initsOfArm.length > 0) {
+          // Workflow is past initiation for this arm.
           setHasOpenScreening(false);
           if (freshWorkflow) setSessionStage("all");
           return;
         }
 
-        // Open screening = a screening saved but with no initiation yet. If its category matches
-        // the selected type, advance to the initiation step. Otherwise restart at screening so a
-        // user switching from PrEP → PEP gets a PEP screening, not a stale PrEP initiation.
-        const eligibilityResp = await axios.get(
-          `${baseUrl}prep/eligibility/open/patients/${personId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const openScreeningCategory = eligibilityResp?.data?.category;
+        const screeningsResp = await axios
+          .get(`${baseUrl}prep-eligibility-screening/person/${personId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .catch(() => ({ data: [] }));
         if (cancelled) return;
-        if (matches(openScreeningCategory, screeningType)) {
+        const screeningsOfArm = sortByDateDesc(
+          (screeningsResp?.data || []).filter(
+            row => !row.archived && normalizeArm(row.category) === target
+          ),
+          "visitDate"
+        );
+        // The latest screening of this arm exists → expose Initiation entry.
+        if (screeningsOfArm.length > 0) {
           setHasOpenScreening(true);
           if (freshWorkflow) setSessionStage("initiation");
           return;
