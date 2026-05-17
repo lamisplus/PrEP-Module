@@ -15,7 +15,6 @@ public class PrepCompletionDto implements Serializable {
     private String interruptionType;
     private LocalDate interruptionDate;
     private LocalDate dateDefaulted;
-    private LocalDate dateSeroconverted;
     private LocalDate dateClientDied;
     private String causeOfDeath;
     private String sourceOfDeathInfo;

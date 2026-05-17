@@ -32,7 +32,7 @@ const PrEPDiscontinuationsInterruptions = props => {
     dateDefaulted: "",        // Date Defaulted (Default)
     dateOfDeath: "",          // Date of Death (Dead) — paired with dateClientDied below
     dateReferred: "",         // Date Referred (Referred) — paired with dateClientReferredOut below
-    dateSeroconverted: "",    // Date Seroconverted (Seroconverted)
+    dateSeroConverted: "",    // Date Seroconverted (Seroconverted)
     why: "",
     dateRestartPlacedBackMedication: "",
     pepCompletion: "",
@@ -158,7 +158,7 @@ const PrEPDiscontinuationsInterruptions = props => {
         dateDefaulted: "",
         dateOfDeath: "",
         dateReferred: "",
-        dateSeroconverted: "",
+        dateSeroConverted: "",
         why: "",
         dateRestartPlacedBackMedication: "",
         dateClientDied: "",
@@ -209,7 +209,7 @@ const PrEPDiscontinuationsInterruptions = props => {
 
     // Seroconverted fields
     if (showSeroconvertedFields) {
-      temp.dateSeroconverted = objValues.dateSeroconverted
+      temp.dateSeroConverted = objValues.dateSeroConverted
         ? ""
         : "This field is required";
     }
@@ -276,7 +276,7 @@ const PrEPDiscontinuationsInterruptions = props => {
         objValues.dateDefaulted
         || objValues.dateClientDied
         || objValues.dateClientReferredOut
-        || objValues.dateSeroconverted
+        || objValues.dateSeroConverted
         || objValues.dateOfDeath
         || objValues.dateReferred
         || "";
@@ -547,18 +547,18 @@ const PrEPDiscontinuationsInterruptions = props => {
                     </Label>
                     <Input
                       type="date"
-                      name="dateSeroconverted"
-                      id="dateSeroconverted"
+                      name="dateSeroConverted"
+                      id="dateSeroConverted"
                       onKeyDown={e => e.preventDefault()}
                       min={minDate}
                       max={today}
                       onChange={handleInputChange}
-                      value={objValues.dateSeroconverted}
+                      value={objValues.dateSeroConverted}
                       disabled={disabledField}
                     />
-                    {errors.dateSeroconverted !== "" ? (
+                    {errors.dateSeroConverted !== "" ? (
                       <span className={classes.error}>
-                        {errors.dateSeroconverted}
+                        {errors.dateSeroConverted}
                       </span>
                     ) : ""}
                   </FormGroup>
