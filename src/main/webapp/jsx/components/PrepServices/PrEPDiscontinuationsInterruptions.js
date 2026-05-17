@@ -104,9 +104,19 @@ const PrEPDiscontinuationsInterruptions = props => {
       )
       .then(response => {
         setPatientDto(response.data);
-        // Only override enrollmentType from patientDto if no route-based type was provided
+        // Only override enrollmentType from patientDto if no route-based type was provided.
+        // Normalize the canonical code to a short label (PrEP/PEP) the rest of
+        // the component compares against — same caveat as the load path:
+        // both canonical codes contain "PEP" as a substring, so suffix-check.
         if (!screeningTypeFromRoute && response.data?.enrollmentType) {
-          setEnrollmentType(response.data.enrollmentType);
+          const raw = String(response.data.enrollmentType).toUpperCase().trim();
+          if (raw === "PEP" || raw.endsWith("_PEP")) {
+            setEnrollmentType("PEP");
+          } else if (raw === "PREP" || raw.endsWith("_PREP")) {
+            setEnrollmentType("PrEP");
+          } else {
+            setEnrollmentType(response.data.enrollmentType);
+          }
         }
       })
       .catch(error => {
@@ -127,15 +137,15 @@ const PrEPDiscontinuationsInterruptions = props => {
         setObjValues(prev => ({ ...prev, ...data }));
         // Normalize the canonical enrollment type into the short label this
         // component compares against (drives isPEP / showFollowUpVisitDate /
-        // hivResult / pepCompletion visibility). Without this, a PEP
-        // completion record arrives with enrollmentType =
-        // PREP_PEP_ENROLLMENT_TYPE_PEP and the PEP-only block stays hidden.
+        // hivResult / pepCompletion visibility). Both canonical codes
+        // (PREP_PEP_ENROLLMENT_TYPE_PEP and ..._PREP) contain "PEP" and
+        // "PREP" as substrings, so check the suffix instead.
         const raw = data.enrollmentType;
         if (raw) {
-          const upper = String(raw).toUpperCase();
-          if (upper.includes("PEP") && !upper.includes("PREP")) {
+          const upper = String(raw).toUpperCase().trim();
+          if (upper === "PEP" || upper.endsWith("_PEP")) {
             setEnrollmentType("PEP");
-          } else if (upper.includes("PREP")) {
+          } else if (upper === "PREP" || upper.endsWith("_PREP")) {
             setEnrollmentType("PrEP");
           }
         }
