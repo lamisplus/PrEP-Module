@@ -471,8 +471,11 @@ const BasicInfo = props => {
       : "This field is required";
     temp.sexPartner = objValues.sexPartner ? "" : "This field is required";
     if (isFemale()) {
-      // Pregnancy status comes from HTS observation when available.
-      temp.pregnancyStatus = isFromHts || objValues.pregnancyStatus
+      // Pregnancy status: prefer the HTS observation when it's set;
+      // otherwise fall back to whatever the user picked on the form.
+      const effectivePregnancy =
+        (isFromHts && htsObs.pregnancyStatus) || objValues.pregnancyStatus;
+      temp.pregnancyStatus = effectivePregnancy
         ? ""
         : "This field is required";
     }
@@ -593,7 +596,42 @@ const BasicInfo = props => {
       }
     } else {
       setSaving(false);
-      toast.error("All field are required ⚠", {
+      // Build a specific list of missing fields from the errors map so the
+      // user knows exactly what to fix instead of hunting through the form.
+      const fieldLabels = {
+        visitDate: "Date of Visit",
+        uniqueClientId: "Unique Client ID",
+        clientHtsCode: "Client HTS Code",
+        referredFrom: "Referred From",
+        visitType: "Visit Type",
+        reasonForSwitch: "Reason for Switch",
+        setting: "Setting",
+        populationType: "Population Type",
+        serviceStatus: "Service Status",
+        sexPartner: "Sex Partner",
+        pregnancyStatus: "Pregnancy Status",
+        hivTestResultAtvisit: "HIV Test Result at Visit",
+        "drugHistory.cocaine": "Cocaine",
+        "drugHistory.heroine": "Heroine",
+        "drugHistory.marijuana": "Marijuana",
+        "drugHistory.amphetamine": "Amphetamine",
+        "drugHistory.codeineSyrup": "Codeine/Syrup",
+        "drugHistory.useDrugSexualPerformance":
+          "Have you used drugs to enhance sexual performance?",
+        "drugHistory.recommendHivRetest": "Recommended for HIV Retest?",
+        "drugHistory.clinicalSetting":
+          "Tested in other clinical settings such as STI clinic",
+        "drugHistory.reportHivRisk": "Report ongoing HIV risk behaviors?",
+        "drugHistory.hivExposure":
+          "Report a specific HIV exposure within the last 3 months?",
+      };
+      const missing = Object.keys(errors)
+        .filter(k => errors[k])
+        .map(k => fieldLabels[k] || k);
+      const message = missing.length > 0
+        ? `Please fix: ${missing.join(", ")}`
+        : "Please complete all required fields";
+      toast.error(message, {
         position: toast.POSITION.BOTTOM_CENTER,
       });
     }
@@ -1075,15 +1113,29 @@ const BasicInfo = props => {
                       // a server-side fetch (which no longer carries
                       // pregnancyStatus) wipes the formik value after the HTS
                       // auto-pop has set it.
-                      value={isFromHts ? (htsObs.pregnancyStatus || "") : (objValues.pregnancyStatus || "")}
+                      value={
+                        isFromHts && htsObs.pregnancyStatus
+                          ? htsObs.pregnancyStatus
+                          : (objValues.pregnancyStatus || "")
+                      }
                       onChange={handleInputChange}
                       style={{
                         border: "1px solid #014D88",
                         borderRadius: "0.2rem",
-                        backgroundColor: isFromHts ? "#f1f3f5" : undefined,
+                        // Only grey out when HTS actually provided the value.
+                        // If HTS has no pregnancyStatus, leave the field
+                        // editable so the user can supply it.
+                        backgroundColor:
+                          isFromHts && htsObs.pregnancyStatus ? "#f1f3f5" : undefined,
                       }}
-                      disabled={disabledField || isFromHts}
-                      title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
+                      disabled={
+                        disabledField || (isFromHts && !!htsObs.pregnancyStatus)
+                      }
+                      title={
+                        isFromHts && htsObs.pregnancyStatus
+                          ? "Sourced from latest HTS encounter"
+                          : undefined
+                      }
                     >
                       <option value={""}>Select</option>
                       {(codeset?.PREGNANCY_STATUS || []).map(item => (
