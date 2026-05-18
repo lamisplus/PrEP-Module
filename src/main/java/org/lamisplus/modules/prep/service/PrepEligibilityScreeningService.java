@@ -107,6 +107,8 @@ public class PrepEligibilityScreeningService {
         e.setScore(dto.getScore());
         e.setStiScreening(dto.getStiScreening());
         e.setDrugUseHistory(dto.getDrugUseHistory());
+        e.setHivTesting(dto.getHivTesting());
+        e.setUseDrugSexualPerformance(dto.getUseDrugSexualPerformance());
         e.setPersonalHivRiskAssessment(dto.getPersonalHivRiskAssessment());
         e.setSexPartnerRisk(dto.getSexPartnerRisk());
         e.setSexPartner(dto.getSexPartner());
@@ -143,6 +145,8 @@ public class PrepEligibilityScreeningService {
         e.setScore(dto.getScore());
         e.setStiScreening(dto.getStiScreening());
         e.setDrugUseHistory(dto.getDrugUseHistory());
+        e.setHivTesting(dto.getHivTesting());
+        e.setUseDrugSexualPerformance(dto.getUseDrugSexualPerformance());
         e.setPersonalHivRiskAssessment(dto.getPersonalHivRiskAssessment());
         e.setSexPartnerRisk(dto.getSexPartnerRisk());
         e.setSexPartner(dto.getSexPartner());
@@ -179,6 +183,8 @@ public class PrepEligibilityScreeningService {
         dto.setPersonUuid(e.getPersonUuid());
         dto.setStiScreening(e.getStiScreening());
         dto.setDrugUseHistory(e.getDrugUseHistory());
+        dto.setHivTesting(e.getHivTesting());
+        dto.setUseDrugSexualPerformance(e.getUseDrugSexualPerformance());
         dto.setPersonalHivRiskAssessment(e.getPersonalHivRiskAssessment());
         dto.setSexPartnerRisk(e.getSexPartnerRisk());
         dto.setSexPartner(e.getSexPartner());

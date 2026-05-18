@@ -42,6 +42,65 @@ export const DateInputWrapper = ({ children }) => {
 // Treat both as equivalent so screening scoring keeps working.
 const isYes = v => v === true || v === "true" || v === "YES_NO_YES";
 const isNo = v => v === false || v === "false" || v === "YES_NO_NO";
+
+// Drug Use History — canonical drug list + route-of-administration options.
+// drug_use_history JSONB now stores an array of { drug, routesOfAdministration[] }.
+const STANDARD_DRUGS = [
+  { code: "cocaine", label: "Cocaine" },
+  { code: "heroine", label: "Heroine" },
+  { code: "marijuana", label: "Marijuana" },
+  { code: "amphetamine", label: "Amphetamine" },
+  { code: "codeineSyrup", label: "Codeine/Syrup" },
+];
+const ROUTES_OF_ADMINISTRATION = ["Sniff", "Snort", "Smoke", "Inject", "Other"];
+
+// Legacy drug_use_history records were a flat object mixing drug Yes/No flags,
+// route Yes/No flags, useDrugSexualPerformance, and HIV testing fields. Convert
+// to the new array shape so view/edit doesn't break for old saved records.
+const normalizeLegacyDrugUseHistory = (legacy) => {
+  if (Array.isArray(legacy)) return legacy;
+  if (!legacy || typeof legacy !== "object") return [];
+  const routes = ["Sniff", "Snort", "Smoke", "Inject"].filter(r =>
+    isYes(legacy[r]) || isYes(legacy[r.toLowerCase()])
+  );
+  const list = [];
+  STANDARD_DRUGS.forEach(({ code, label }) => {
+    if (isYes(legacy[code])) {
+      list.push({ drug: label, routesOfAdministration: [...routes] });
+    }
+  });
+  if (legacy.othersSpecify) {
+    list.push({ drug: legacy.othersSpecify, routesOfAdministration: [...routes] });
+  }
+  return list;
+};
+
+const extractLegacyHivTesting = (legacyDrugHistory, existingHivTesting) => {
+  if (existingHivTesting && typeof existingHivTesting === "object"
+      && Object.keys(existingHivTesting).length) {
+    return { ...existingHivTesting };
+  }
+  if (!legacyDrugHistory || typeof legacyDrugHistory !== "object") {
+    return {
+      hivTestedBefore: "",
+      lastTest: "",
+      recommendHivRetest: "",
+      clinicalSetting: "",
+      hivTestResultAtvisit: "",
+      reportHivRisk: "",
+      hivExposure: "",
+    };
+  }
+  return {
+    hivTestedBefore: legacyDrugHistory.hivTestedBefore || "",
+    lastTest: legacyDrugHistory.lastTest || "",
+    recommendHivRetest: legacyDrugHistory.recommendHivRetest || "",
+    clinicalSetting: legacyDrugHistory.clinicalSetting || "",
+    hivTestResultAtvisit: legacyDrugHistory.hivTestResultAtvisit || "",
+    reportHivRisk: legacyDrugHistory.reportHivRisk || "",
+    hivExposure: legacyDrugHistory.hivExposure || "",
+  };
+};
 export const LiverFunctionTest = ({
   objValues,
   handleInputChange,
@@ -102,7 +161,9 @@ const BasicInfo = props => {
     htsEncounterUuid: "",
     counselingType: "",
     category: screeningType,
-    drugUseHistory: {},
+    drugUseHistory: [],
+    hivTesting: {},
+    useDrugSexualPerformance: "",
     firstTimeVisit: true,
     numChildrenLessThanFive: "",
     personId: "",
@@ -171,26 +232,25 @@ const BasicInfo = props => {
     genitalScore: "",
   });
 
-  const [drugHistory, setDrugHistory] = useState({
-    useAnyOfTheseDrugs: "",
-    cocaine: "",
-    heroine: "",
-    marijuana: "",
-    amphetamine: "",
-    codeineSyrup: "",
-    othersSpecify: "",
-    inject: "",
-    sniff: "",
-    smoke: "",
-    Snort: "",
-    useDrugSexualPerformance: "",
+  // drug_use_history is now an array of { drug, routesOfAdministration[] }.
+  // Selecting a drug adds it to the array; checking a route toggles it inside
+  // that drug's routesOfAdministration list. Empty array means "no drug use".
+  const [drugUseHistory, setDrugUseHistory] = useState([]);
+  const [customDrugInput, setCustomDrugInput] = useState("");
+  const [showCustomDrugInput, setShowCustomDrugInput] = useState(false);
+
+  // HIV Testing subsection — persisted to its own hiv_testing JSONB column
+  // (previously these fields shared drug_use_history). hivTestResultAtvisit
+  // is sourced from the linked hts_encounter when present and stripped on
+  // submit so we never store it twice.
+  const [hivTesting, setHivTesting] = useState({
     hivTestedBefore: "",
+    lastTest: "",
     recommendHivRetest: "",
     clinicalSetting: "",
+    hivTestResultAtvisit: "",
     reportHivRisk: "",
     hivExposure: "",
-    hivTestResultAtvisit: "",
-    lastTest: "",
   });
   const [assessmentForPepIndication, setAssessmentForPepIndication] = useState({
     unprotectedSexWithHivPositiveOrUnknownStatusLast72Hours: "",
@@ -283,7 +343,7 @@ const BasicInfo = props => {
       htsEncounterUuid: prev.htsEncounterUuid || latestHts.uuid || "",
       pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
     }));
-    setDrugHistory(prev => ({
+    setHivTesting(prev => ({
       ...prev,
       // HTS observation stores STI_HIV_RESULT_* codes; the screening form's
       // dropdown is on HIV_TEST_RESULT_*, so translate.
@@ -306,6 +366,8 @@ const BasicInfo = props => {
           sexPartnerRisk,
           stiScreening,
           drugUseHistory,
+          hivTesting,
+          useDrugSexualPerformance,
           assessmentForPepIndication,
           assessmentForAcuteHivInfection,
           servicesReceivedByClient,
@@ -313,11 +375,24 @@ const BasicInfo = props => {
           considerationForInjections,
           reasonForDecliningPrep,
         } = response.data;
-        setObjValues(response.data);
+        // Legacy fallback: useDrugSexualPerformance used to live inside the
+        // drug_use_history JSONB. Promote it to the top-level state if the
+        // record predates the column split.
+        const promotedUseDrugSexualPerformance =
+          useDrugSexualPerformance
+          || (drugUseHistory && typeof drugUseHistory === "object" && !Array.isArray(drugUseHistory)
+                ? drugUseHistory.useDrugSexualPerformance
+                : "")
+          || "";
+        setObjValues({
+          ...response.data,
+          useDrugSexualPerformance: promotedUseDrugSexualPerformance,
+        });
         setRiskAssessment(personalHivRiskAssessment);
         setRiskAssessmentPartner(sexPartnerRisk);
         setStiScreening(stiScreening);
-        setDrugHistory(drugUseHistory);
+        setDrugUseHistory(normalizeLegacyDrugUseHistory(drugUseHistory));
+        setHivTesting(extractLegacyHivTesting(drugUseHistory, hivTesting));
         setAssessmentForPepIndication(assessmentForPepIndication);
         setAssessmentForAcuteHivInfection(assessmentForAcuteHivInfection);
         setServicesReceivedByClient(servicesReceivedByClient);
@@ -363,12 +438,53 @@ const BasicInfo = props => {
   const actualStiTrue = Object.values(stiScreening);
   const stiCount = actualStiTrue.filter(isYes);
 
-  const handleInputChangeDrugHistory = e => {
-    setErrors({ ...temp, [e.target.name]: "" });
-    if (isYes(drugHistory.hivTestedBefore)) {
-      setDrugHistory({ ...drugHistory, lastTest: "" });
+  const toggleDrug = drugLabel => {
+    setErrors({ ...temp, drugUseHistory: "" });
+    setDrugUseHistory(prev => {
+      const exists = prev.find(d => d.drug === drugLabel);
+      if (exists) return prev.filter(d => d.drug !== drugLabel);
+      return [...prev, { drug: drugLabel, routesOfAdministration: [] }];
+    });
+  };
+
+  const toggleRoute = (drugLabel, route) => {
+    setDrugUseHistory(prev => prev.map(d => {
+      if (d.drug !== drugLabel) return d;
+      const routes = d.routesOfAdministration || [];
+      return {
+        ...d,
+        routesOfAdministration: routes.includes(route)
+          ? routes.filter(r => r !== route)
+          : [...routes, route],
+      };
+    }));
+  };
+
+  const removeDrug = drugLabel => {
+    setDrugUseHistory(prev => prev.filter(d => d.drug !== drugLabel));
+  };
+
+  const addCustomDrug = () => {
+    const name = customDrugInput.trim();
+    if (!name) return;
+    const taken = drugUseHistory.some(d => d.drug.toLowerCase() === name.toLowerCase());
+    if (!taken) {
+      setDrugUseHistory(prev => [...prev, { drug: name, routesOfAdministration: [] }]);
     }
-    setDrugHistory({ ...drugHistory, [e.target.name]: e.target.value });
+    setCustomDrugInput("");
+    setShowCustomDrugInput(false);
+  };
+
+  const handleInputChangeHivTesting = e => {
+    setErrors({ ...temp, [`hivTesting.${e.target.name}`]: "" });
+    setHivTesting(prev => {
+      const next = { ...prev, [e.target.name]: e.target.value };
+      // Skip-logic: answering "No" to "tested before" wipes the lastTest date.
+      if (e.target.name === "hivTestedBefore" && isNo(e.target.value)) {
+        next.lastTest = "";
+      }
+      return next;
+    });
   };
 
   const handleInputChangeAssessmentForPepIndication = e => {
@@ -480,29 +596,24 @@ const BasicInfo = props => {
         : "This field is required";
     }
     // HIV Test Result at Visit comes from HTS observation when available.
-    temp.hivTestResultAtvisit = isFromHts || drugHistory.hivTestResultAtvisit
+    temp.hivTestResultAtvisit = isFromHts || hivTesting.hivTestResultAtvisit
       ? ""
       : "This field is required";
-    // Drug-history fields are compulsory — the user can't submit until every
-    // drug-history question has an answer. Errors are namespaced under
-    // drugHistory.* so existing UI error rendering can target them
-    // individually.
-    // Only fields actually rendered in the JSX appear here; "useAnyOfTheseDrugs"
-    // and "hivTestedBefore" live in state but have no input today, so requiring
-    // them would permanently block submission.
+    // useDrugSexualPerformance is its own standalone column now — it's no
+    // longer gated by drug selection, so always required regardless of
+    // whether any drug was checked.
+    temp.useDrugSexualPerformance = objValues.useDrugSexualPerformance
+      ? ""
+      : "This field is required";
+    // HIV Testing subsection — required fields are namespaced under
+    // hivTesting.* so existing UI error rendering can target them individually.
     [
-      "cocaine",
-      "heroine",
-      "marijuana",
-      "amphetamine",
-      "codeineSyrup",
-      "useDrugSexualPerformance",
       "recommendHivRetest",
       "clinicalSetting",
       "reportHivRisk",
       "hivExposure",
     ].forEach(field => {
-      temp[`drugHistory.${field}`] = drugHistory[field]
+      temp[`hivTesting.${field}`] = hivTesting[field]
         ? ""
         : "This field is required";
     });
@@ -516,12 +627,16 @@ const BasicInfo = props => {
 
     if (validate()) {
       setSaving(true);
-      // When the HIV test result is sourced from the latest hts_encounter, do
-      // NOT echo it back into drug_use_history JSONB — the canonical source is
-      // the linked hts_encounter_uuid. Keeps the table free of redundant fields.
-      const drugUseHistoryToSave = { ...drugHistory };
-      if (isFromHts) delete drugUseHistoryToSave.hivTestResultAtvisit;
-      objValues.drugUseHistory = drugUseHistoryToSave;
+      // drug_use_history is now an array of { drug, routesOfAdministration[] }
+      // and contains nothing else — useDrugSexualPerformance and the HIV
+      // testing fields live in their own columns now.
+      objValues.drugUseHistory = drugUseHistory;
+      // hiv_testing is its own JSONB. When the HIV test result is sourced
+      // from the latest hts_encounter, drop hivTestResultAtvisit so we never
+      // store it twice (the linked hts_encounter_uuid is the canonical source).
+      const hivTestingToSave = { ...hivTesting };
+      if (isFromHts) delete hivTestingToSave.hivTestResultAtvisit;
+      objValues.hivTesting = hivTestingToSave;
       objValues.personalHivRiskAssessment = riskAssessment;
       objValues.sexPartnerRisk = riskAssessmentPartner;
       objValues.stiScreening = stiScreening;
@@ -554,9 +669,9 @@ const BasicInfo = props => {
             props.patientObj.eligibilityCount = 1;
             patientObj.eligibilityCount = 1;
             props.patientObj.hivresultAtVisit =
-              drugHistory.hivTestResultAtvisit;
+              hivTesting.hivTestResultAtvisit;
             props.patientObj.hivresultAtVisit =
-              drugHistory.hivTestResultAtvisit;
+              hivTesting.hivTestResultAtvisit;
             toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} eligibility screening updated successfully! ✔`, {
               position: toast.POSITION.BOTTOM_CENTER,
             });
@@ -579,7 +694,7 @@ const BasicInfo = props => {
             setSaving(false);
             props.patientObj.eligibilityCount = 1;
             props.patientObj.hivresultAtVisit =
-              drugHistory.hivTestResultAtvisit;
+              hivTesting.hivTestResultAtvisit;
             toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} eligibility screening saved successfully! ✔`, {
               position: toast.POSITION.BOTTOM_CENTER,
             });
@@ -611,18 +726,13 @@ const BasicInfo = props => {
         sexPartner: "Sex Partner",
         pregnancyStatus: "Pregnancy Status",
         hivTestResultAtvisit: "HIV Test Result at Visit",
-        "drugHistory.cocaine": "Cocaine",
-        "drugHistory.heroine": "Heroine",
-        "drugHistory.marijuana": "Marijuana",
-        "drugHistory.amphetamine": "Amphetamine",
-        "drugHistory.codeineSyrup": "Codeine/Syrup",
-        "drugHistory.useDrugSexualPerformance":
+        useDrugSexualPerformance:
           "Have you used drugs to enhance sexual performance?",
-        "drugHistory.recommendHivRetest": "Recommended for HIV Retest?",
-        "drugHistory.clinicalSetting":
+        "hivTesting.recommendHivRetest": "Recommended for HIV Retest?",
+        "hivTesting.clinicalSetting":
           "Tested in other clinical settings such as STI clinic",
-        "drugHistory.reportHivRisk": "Report ongoing HIV risk behaviors?",
-        "drugHistory.hivExposure":
+        "hivTesting.reportHivRisk": "Report ongoing HIV risk behaviors?",
+        "hivTesting.hivExposure":
           "Report a specific HIV exposure within the last 3 months?",
       };
       const missing = Object.keys(errors)
@@ -682,7 +792,7 @@ const BasicInfo = props => {
   // it back; the eligibility-pass flag is derived separately.
   const getPrepEligibilityScore = () => {
     var score = 0;
-    score += drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") ? 1 : 0;
+    score += hivTesting.hivTestResultAtvisit?.toLowerCase().includes("negative") ? 1 : 0;
     score += riskCount.length >= 1 ? 1 : 0;
     score += isYes(assessmentForPrepEligibility?.noSignsAndSymptomsOfAcuteHivInfection) ? 1 : 0;
     score += isYes(assessmentForPrepEligibility?.noIndicationForPep) ? 1 : 0;
@@ -738,13 +848,13 @@ const BasicInfo = props => {
       .catch(() => {});
   }, [props.patientObj?.personId, props.patientObj?.id, props.activeContent?.id]);
   useEffect(() => {
-    if (isNo(drugHistory.hivTestedBefore)) {
-      setDrugHistory(prevHistory => ({
-        ...prevHistory,
+    if (isNo(hivTesting.hivTestedBefore)) {
+      setHivTesting(prev => ({
+        ...prev,
         lastTest: "",
       }));
     }
-  }, [drugHistory.hivTestedBefore]);
+  }, [hivTesting.hivTestedBefore]);
 
   return (
     <>
@@ -1554,255 +1664,184 @@ const BasicInfo = props => {
                   marginBottom: "0.5rem",
                 }}
               >
-                Do you use any of these drugs/substances?
+                Do you use any of these drugs/substances? Check each drug used, then check the route(s) of administration.
               </h5>
 
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Cocaine <span style={{ color: "red" }}> *</span></Label>
-                  <select
-                    className="form-control"
-                    name="cocaine"
-                    id="cocaine"
-                    value={drugHistory.cocaine}
-                    onChange={handleInputChangeDrugHistory}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
+              {(() => {
+                const renderedRows = STANDARD_DRUGS.map(({ code, label }) => ({
+                  key: code, label, isCustom: false,
+                }));
+                const customRows = drugUseHistory
+                  .filter(d => !STANDARD_DRUGS.some(s => s.label === d.drug))
+                  .map(d => ({ key: `custom-${d.drug}`, label: d.drug, isCustom: true }));
+                const allRows = [...renderedRows, ...customRows];
+                return allRows.map(({ key, label, isCustom }) => {
+                  const entry = drugUseHistory.find(d => d.drug === label);
+                  const checked = !!entry;
+                  return (
+                    <div
+                      key={key}
+                      className="col-md-12"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        padding: "0.5rem 1rem",
+                        borderBottom: "1px solid #e9ecef",
+                        gap: "0.75rem",
+                      }}
+                    >
+                      <label
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                          minWidth: "180px",
+                          marginBottom: 0,
+                          cursor: disabledField ? "default" : "pointer",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          disabled={disabledField}
+                          onChange={() => toggleDrug(label)}
+                          style={{ width: "18px", height: "18px" }}
+                        />
+                        <span>{label}</span>
+                      </label>
+                      {checked && (
+                        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                          {ROUTES_OF_ADMINISTRATION.map(route => {
+                            const routeChecked = (entry.routesOfAdministration || []).includes(route);
+                            return (
+                              <label
+                                key={route}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "0.35rem",
+                                  marginBottom: 0,
+                                  cursor: disabledField ? "default" : "pointer",
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={routeChecked}
+                                  disabled={disabledField}
+                                  onChange={() => toggleRoute(label, route)}
+                                  style={{
+                                    width: "16px",
+                                    height: "16px",
+                                    borderRadius: "50%",
+                                    appearance: "none",
+                                    WebkitAppearance: "none",
+                                    border: "1px solid #adb5bd",
+                                    backgroundColor: routeChecked ? "#014D88" : "#fff",
+                                    boxShadow: routeChecked ? "inset 0 0 0 3px #fff" : "none",
+                                  }}
+                                />
+                                <span style={{ fontSize: "0.9rem" }}>{route}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {isCustom && checked && !disabledField && (
+                        <button
+                          type="button"
+                          onClick={() => removeDrug(label)}
+                          style={{
+                            marginLeft: "auto",
+                            background: "transparent",
+                            color: "#dc3545",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "0.85rem",
+                          }}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
+
+              <div className="col-md-12" style={{ padding: "0.75rem 1rem" }}>
+                {!showCustomDrugInput ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomDrugInput(true)}
                     disabled={disabledField}
+                    style={{
+                      backgroundColor: "#014D88",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "0.25rem",
+                      padding: "0.45rem 0.9rem",
+                      cursor: disabledField ? "not-allowed" : "pointer",
+                      fontSize: "0.9rem",
+                    }}
                   >
-                    <option value={""}>Select</option>
-                    {(codeset?.YES_NO || []).map(item => (
-                      <option key={item.code} value={item.code}>{item.display}</option>
-                    ))}
-                  </select>
-                </FormGroup>
+                    + Add Other Drugs
+                  </button>
+                ) : (
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+                    <input
+                      type="text"
+                      placeholder="Enter drug name"
+                      value={customDrugInput}
+                      onChange={e => setCustomDrugInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addCustomDrug();
+                        }
+                      }}
+                      autoFocus
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                        padding: "0.4rem 0.6rem",
+                        minWidth: "220px",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomDrug}
+                      style={{
+                        backgroundColor: "#014D88",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "0.25rem",
+                        padding: "0.4rem 0.9rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setCustomDrugInput(""); setShowCustomDrugInput(false); }}
+                      style={{
+                        backgroundColor: "transparent",
+                        color: "#6c757d",
+                        border: "1px solid #6c757d",
+                        borderRadius: "0.25rem",
+                        padding: "0.4rem 0.9rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Heroine <span style={{ color: "red" }}> *</span></Label>
-                  <select
-                    className="form-control"
-                    name="heroine"
-                    id="heroine"
-                    value={drugHistory.heroine}
-                    onChange={handleInputChangeDrugHistory}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    {(codeset?.YES_NO || []).map(item => (
-                      <option key={item.code} value={item.code}>{item.display}</option>
-                    ))}
-                  </select>
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Marijuana <span style={{ color: "red" }}> *</span></Label>
-                  <select
-                    className="form-control"
-                    name="marijuana"
-                    id="marijuana"
-                    value={drugHistory.marijuana}
-                    onChange={handleInputChangeDrugHistory}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    {(codeset?.YES_NO || []).map(item => (
-                      <option key={item.code} value={item.code}>{item.display}</option>
-                    ))}
-                  </select>
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Amphetamine <span style={{ color: "red" }}> *</span></Label>
-                  <select
-                    className="form-control"
-                    name="amphetamine"
-                    id="amphetamine"
-                    value={drugHistory.amphetamine}
-                    onChange={handleInputChangeDrugHistory}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    {(codeset?.YES_NO || []).map(item => (
-                      <option key={item.code} value={item.code}>{item.display}</option>
-                    ))}
-                  </select>
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Codeine/syrup <span style={{ color: "red" }}> *</span></Label>
-                  <select
-                    className="form-control"
-                    name="codeineSyrup"
-                    id="codeineSyrup"
-                    value={drugHistory.codeineSyrup}
-                    onChange={handleInputChangeDrugHistory}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    {(codeset?.YES_NO || []).map(item => (
-                      <option key={item.code} value={item.code}>{item.display}</option>
-                    ))}
-                  </select>
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Others(Specify)</Label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="othersSpecify"
-                    id="othersSpecify"
-                    value={drugHistory.othersSpecify}
-                    onChange={handleInputChangeDrugHistory}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  />
-                </FormGroup>
-              </div>
-
-              {(isYes(drugHistory.cocaine) ||
-                isYes(drugHistory.heroine) ||
-                isYes(drugHistory.marijuana) ||
-                isYes(drugHistory.amphetamine) ||
-                isYes(drugHistory.codeineSyrup) ||
-                drugHistory.othersSpecify) && (
-                <>
-              <h5
-                style={{
-                  width: "100%",
-                  paddingLeft: "0.5rem",
-                  marginTop: "1rem",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                Do you use any of these drugs/substances_Route of
-                Administration?
-              </h5>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Inject</Label>
-                  <select
-                    className="form-control"
-                    name="inject"
-                    id="inject"
-                    value={drugHistory.inject}
-                    onChange={handleInputChangeDrugHistory}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    {(codeset?.YES_NO || []).map(item => (
-                      <option key={item.code} value={item.code}>{item.display}</option>
-                    ))}
-                  </select>
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Sniff</Label>
-                  <select
-                    className="form-control"
-                    name="sniff"
-                    id="sniff"
-                    value={drugHistory.sniff}
-                    onChange={handleInputChangeDrugHistory}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    {(codeset?.YES_NO || []).map(item => (
-                      <option key={item.code} value={item.code}>{item.display}</option>
-                    ))}
-                  </select>
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Snort</Label>
-                  <select
-                    className="form-control"
-                    name="Snort"
-                    id="Snort"
-                    value={drugHistory.Snort}
-                    onChange={handleInputChangeDrugHistory}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    {(codeset?.YES_NO || []).map(item => (
-                      <option key={item.code} value={item.code}>{item.display}</option>
-                    ))}
-                  </select>
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
-                <FormGroup>
-                  <Label>Smoke</Label>
-                  <select
-                    className="form-control"
-                    name="smoke"
-                    id="smoke"
-                    value={drugHistory.smoke}
-                    onChange={handleInputChangeDrugHistory}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.2rem",
-                    }}
-                    disabled={disabledField}
-                  >
-                    <option value={""}>Select</option>
-                    {(codeset?.YES_NO || []).map(item => (
-                      <option key={item.code} value={item.code}>{item.display}</option>
-                    ))}
-                  </select>
-                </FormGroup>
-              </div>
-
-              <div className="form-group col-md-4 p-3">
+              {/* useDrugSexualPerformance is its own column now — no longer
+                  gated by drug selection, so it always renders. */}
+              <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>
                     Have you used drugs to enhance sexual performance? <span style={{ color: "red" }}> *</span>
@@ -1811,8 +1850,11 @@ const BasicInfo = props => {
                     className="form-control"
                     name="useDrugSexualPerformance"
                     id="useDrugSexualPerformance"
-                    value={drugHistory.useDrugSexualPerformance}
-                    onChange={handleInputChangeDrugHistory}
+                    value={objValues.useDrugSexualPerformance || ""}
+                    onChange={e => {
+                      setErrors({ ...temp, useDrugSexualPerformance: "" });
+                      setObjValues({ ...objValues, useDrugSexualPerformance: e.target.value });
+                    }}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
@@ -1824,13 +1866,14 @@ const BasicInfo = props => {
                       <option key={item.code} value={item.code}>{item.display}</option>
                     ))}
                   </select>
+                  {errors.useDrugSexualPerformance ? (
+                    <span className={classes.error}>{errors.useDrugSexualPerformance}</span>
+                  ) : ""}
                 </FormGroup>
               </div>
-                </>
-              )}
 
               <Message warning style={{ width: "100%" }}>
-                <b>Score: {[drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].filter(isYes).length}</b>
+                <b>Score: {drugUseHistory.length}</b>
               </Message>
 
               <hr />
@@ -2413,8 +2456,8 @@ const BasicInfo = props => {
                     className="form-control"
                     name="lastTest"
                     id="lastTest"
-                    value={drugHistory.lastTest}
-                    onChange={handleInputChangeDrugHistory}
+                    value={hivTesting.lastTest}
+                    onChange={handleInputChangeHivTesting}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
@@ -2436,8 +2479,8 @@ const BasicInfo = props => {
                     className="form-control"
                     name="recommendHivRetest"
                     id="recommendHivRetest"
-                    value={drugHistory.recommendHivRetest}
-                    onChange={handleInputChangeDrugHistory}
+                    value={hivTesting.recommendHivRetest}
+                    onChange={handleInputChangeHivTesting}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
@@ -2461,8 +2504,8 @@ const BasicInfo = props => {
                     className="form-control"
                     name="clinicalSetting"
                     id="clinicalSetting"
-                    value={drugHistory.clinicalSetting}
-                    onChange={handleInputChangeDrugHistory}
+                    value={hivTesting.clinicalSetting}
+                    onChange={handleInputChangeHivTesting}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
@@ -2491,13 +2534,13 @@ const BasicInfo = props => {
                     // must come straight from the resolved hts_encounter —
                     // the saved screening record deliberately drops this
                     // field on submit (it's dereferenced via hts_encounter_uuid),
-                    // so reading from drugHistory state shows blank on view/edit.
+                    // so reading from hivTesting state shows blank on view/edit.
                     value={isFromHts
                       ? (toHivTestResultCode(
                           htsObs.confirmatoryHivTest || htsObs.initialHivTest,
-                          htsObs.typeOfHivTestDone) || drugHistory.hivTestResultAtvisit || "")
-                      : (drugHistory.hivTestResultAtvisit || "")}
-                    onChange={handleInputChangeDrugHistory}
+                          htsObs.typeOfHivTestDone) || hivTesting.hivTestResultAtvisit || "")
+                      : (hivTesting.hivTestResultAtvisit || "")}
+                    onChange={handleInputChangeHivTesting}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
@@ -2528,8 +2571,8 @@ const BasicInfo = props => {
                     className="form-control"
                     name="reportHivRisk"
                     id="reportHivRisk"
-                    value={drugHistory.reportHivRisk}
-                    onChange={handleInputChangeDrugHistory}
+                    value={hivTesting.reportHivRisk}
+                    onChange={handleInputChangeHivTesting}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
@@ -2553,8 +2596,8 @@ const BasicInfo = props => {
                     className="form-control"
                     name="hivExposure"
                     id="hivExposure"
-                    value={drugHistory.hivExposure}
-                    onChange={handleInputChangeDrugHistory}
+                    value={hivTesting.hivExposure}
+                    onChange={handleInputChangeHivTesting}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
@@ -2572,29 +2615,29 @@ const BasicInfo = props => {
               <Message warning>
                 <h4>HIV Testing Summary</h4>
                 <b>{`HIV Test Result at Visit: ${
-                  codeset?.HIV_TEST_RESULT?.find(item => item.code === drugHistory.hivTestResultAtvisit)?.display
-                  || drugHistory.hivTestResultAtvisit
+                  codeset?.HIV_TEST_RESULT?.find(item => item.code === hivTesting.hivTestResultAtvisit)?.display
+                  || hivTesting.hivTestResultAtvisit
                   || "Not provided"
                 }`}</b>
                 <br />
                 <b>{`Ongoing HIV risk behaviors: ${
-                  isYes(drugHistory.reportHivRisk)
+                  isYes(hivTesting.reportHivRisk)
                     ? "Yes"
-                    : isNo(drugHistory.reportHivRisk)
+                    : isNo(hivTesting.reportHivRisk)
                       ? "No"
                       : "Not provided"
                 }`}</b>
                 <br />
                 <b>{`HIV exposure in last 3 months: ${
-                  isYes(drugHistory.hivExposure)
+                  isYes(hivTesting.hivExposure)
                     ? "Yes"
-                    : isNo(drugHistory.hivExposure)
+                    : isNo(hivTesting.hivExposure)
                       ? "No"
                       : "Not provided"
                 }`}</b>
               </Message>
 
-              {drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") &&
+              {hivTesting.hivTestResultAtvisit?.toLowerCase().includes("negative") &&
                 (isYes(assessmentForAcuteHivInfection?.acuteHivSymptomsLasttwoWeeks) ||
                   isYes(assessmentForAcuteHivInfection?.unprotectedAnalOrVaginalOrSharedNeedlesLast28Days)) && (
                   <div style={{ backgroundColor: "rgba(220,53,69,0.1)", border: "1px solid #dc3545", borderRadius: "0.28571429rem", padding: "0.75rem 1rem", marginTop: "0.5rem", marginBottom: "0.5rem", color: "#dc3545", fontSize: "0.9rem", width: "100%" }}>
@@ -2623,9 +2666,9 @@ const BasicInfo = props => {
               {(() => {
                 const sexPartnerRiskBinary = sexPartRiskCount.length >= 1 ? 1 : 0;
                 const personalHivRiskBinary = riskCount.length >= 1 ? 1 : 0;
-                const drugUseBinary = [drugHistory.cocaine, drugHistory.heroine, drugHistory.marijuana, drugHistory.amphetamine, drugHistory.codeineSyrup].some(isYes) ? 1 : 0;
+                const drugUseBinary = drugUseHistory.length > 0 ? 1 : 0;
                 const acuteHivBinary = Object.values(assessmentForAcuteHivInfection).some(isYes) ? 1 : 0;
-                const hivNegativeBinary = drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") ? 1 : 0;
+                const hivNegativeBinary = hivTesting.hivTestResultAtvisit?.toLowerCase().includes("negative") ? 1 : 0;
                 const binaryScore = sexPartnerRiskBinary + personalHivRiskBinary + drugUseBinary + acuteHivBinary + hivNegativeBinary;
                 return (
                   <div style={{ width: "100%" }}>

@@ -110,6 +110,14 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
+    @Column(name = "hiv_testing", columnDefinition = "jsonb")
+    private Object hivTesting;
+
+    @Column(name = "use_drug_sexual_performance")
+    private String useDrugSexualPerformance;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "personal_hiv_risk_assessment", columnDefinition = "jsonb")
     private Object personalHivRiskAssessment;
 

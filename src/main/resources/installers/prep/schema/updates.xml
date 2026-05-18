@@ -886,4 +886,25 @@
         </sql>
     </changeSet>
 
+    <!-- Splits the legacy drug_use_history JSONB on prophylaxis_screening into
+         three distinct buckets so each subsection owns its own field:
+           * drug_use_history JSONB stays, but is repurposed to hold an array
+             of { drug, routesOfAdministration[] } entries only.
+           * hiv_testing JSONB (new) holds the HIV Testing subsection fields
+             (hivTestedBefore, lastTest, recommendHivRetest, clinicalSetting,
+             hivTestResultAtvisit, reportHivRisk, hivExposure).
+           * use_drug_sexual_performance VARCHAR (new) is a standalone field
+             that is no longer gated by drug-selection skip logic.
+         All three are idempotent (ADD COLUMN IF NOT EXISTS) so safe to re-run.
+         The old JSONB column is preserved on existing rows so view/edit can
+         still rehydrate legacy records via a frontend compatibility shim. -->
+    <changeSet failOnError="false" author="Gamaliel" id="18-05-2026-split-drug-use-history">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS hiv_testing JSONB;
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS use_drug_sexual_performance VARCHAR(255);
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
