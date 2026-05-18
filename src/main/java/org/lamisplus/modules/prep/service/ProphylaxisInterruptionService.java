@@ -83,6 +83,7 @@ public class ProphylaxisInterruptionService {
         e.setProphylaxisInitiationUuid(dto.getProphylaxisInitiationUuid());
         e.setInterruptionType(dto.getInterruptionType());
         e.setInterruptionDate(dto.getInterruptionDate());
+        e.setDateDefaulted(dto.getDateDefaulted());
         e.setInterruptionReason(dto.getInterruptionReason());
         e.setDateClientDied(dto.getDateClientDied());
         e.setCauseOfDeath(dto.getCauseOfDeath());
@@ -112,6 +113,7 @@ public class ProphylaxisInterruptionService {
         e.setProphylaxisInitiationUuid(dto.getProphylaxisInitiationUuid());
         e.setInterruptionType(dto.getInterruptionType());
         e.setInterruptionDate(dto.getInterruptionDate());
+        e.setDateDefaulted(dto.getDateDefaulted());
         e.setInterruptionReason(dto.getInterruptionReason());
         e.setDateClientDied(dto.getDateClientDied());
         e.setCauseOfDeath(dto.getCauseOfDeath());
@@ -143,6 +145,7 @@ public class ProphylaxisInterruptionService {
                 .prophylaxisInitiationUuid(e.getProphylaxisInitiationUuid())
                 .interruptionType(e.getInterruptionType())
                 .interruptionDate(e.getInterruptionDate())
+                .dateDefaulted(e.getDateDefaulted())
                 .interruptionReason(e.getInterruptionReason())
                 .dateClientDied(e.getDateClientDied())
                 .causeOfDeath(e.getCauseOfDeath())

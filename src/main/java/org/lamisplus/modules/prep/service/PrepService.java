@@ -675,18 +675,54 @@ public class PrepService {
                         prepDtos.setCurrentRegimen(PrepRegimens.displayById(regimenId));
                     }
                 });
+        // If no follow-up exists yet (right after initiation), fall back to the
+        // latest initiation's prep_regimen so the dashboard never surfaces a
+        // raw numeric id. The form historically stored the numeric row id; we
+        // also handle the case where future writes use the codeset code.
+        if (prepDtos.getCurrentRegimen() == null) {
+            prepPepInitiationRepository
+                    .findTopByPersonUuidAndArchived(person.getUuid(), false)
+                    .ifPresent(latestInit -> {
+                        String raw = latestInit.getPrepRegimen();
+                        if (raw == null || raw.isEmpty()) {
+                            return;
+                        }
+                        String display = PrepRegimens.displayByCode(raw);
+                        // displayByCode returns the original string when the
+                        // code isn't mapped; treat that as a numeric-id legacy
+                        // value and re-resolve via displayById.
+                        if (display == null || display.equals(raw)) {
+                            try {
+                                display = PrepRegimens.displayById(Long.parseLong(raw));
+                            } catch (NumberFormatException ignored) {
+                                display = null;
+                            }
+                        }
+                        if (display != null) {
+                            prepDtos.setCurrentRegimen(display);
+                        }
+                    });
+        }
 
-        // isCurrentStatus* flags still come off the latest initiation — they
-        // drive the Patient List "Enroll" modal and the PrEP/PEP enrollment-tab
-        // SubMenu cross-arm lockouts.
+        // isCurrentStatus* flags drive the Patient List "Enroll" modal and the
+        // SubMenu cross-arm lockouts. Compute PER ARM: a patient is "active on
+        // PrEP" only when their LATEST PrEP initiation row has is_interrupted
+        // != true (same for PEP). Falling back to findTopByPersonUuidAndArchived
+        // returned the lowest-id row regardless of arm, so a Stopped PrEP
+        // patient with an older PEP row could still appear active on PrEP.
         prepPepInitiationRepository
-                .findTopByPersonUuidAndArchived(person.getUuid(), false)
-                .ifPresent(latest -> {
-                    Boolean interrupted = applyPepAutoExpiry(latest);
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PREP)
+                .ifPresent(latestPrep -> {
+                    Boolean interrupted = applyPepAutoExpiry(latestPrep);
                     boolean active = !Boolean.TRUE.equals(interrupted);
-                    String type = latest.getEnrollmentType();
-                    prepDtos.setIsCurrentStatusInterruptedPrep(active && EnrollmentType.isPrep(type));
-                    prepDtos.setIsCurrentStatusInterruptedPep(active && EnrollmentType.isPep(type));
+                    prepDtos.setIsCurrentStatusInterruptedPrep(active);
+                });
+        prepPepInitiationRepository
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PEP)
+                .ifPresent(latestPep -> {
+                    Boolean interrupted = applyPepAutoExpiry(latestPep);
+                    boolean active = !Boolean.TRUE.equals(interrupted);
+                    prepDtos.setIsCurrentStatusInterruptedPep(active);
                 });
         PrepClient prepClient = prepPepInitiationRepository
                 .findPersonPrepAndStatusByPatientUuid(false,
@@ -700,6 +736,51 @@ public class PrepService {
             prepDtos.setCreatedBy(prepClient.getCreatedBy());
             //prepDtos.setPrepEligibilityCount(prepClient.getEligibilityCount());
         }
+
+        // If the patient's latest initiation is PEP, override prepStatus with the
+        // PEP-specific status — the SQL above queries `prep_followup_visit`, which
+        // is empty for a PEP-only patient and resolves to "Not Commenced". The
+        // PEP Patients grid uses a dedicated PEP query (`findPepEnrolled` →
+        // PEP_STATUS_CASE) so the dashboard would disagree with the grid. We
+        // mirror that logic here in Java:
+        //   1. Latest PEP completion row with pep_completion = 'YES_NO_YES' → 'Completed'
+        //   2. No PEP follow-up visit yet → 'Enrolled'
+        //   3. >= 29 days since the anchor (date_start_pep, or encounter_date as
+        //      fallback) of the latest PEP visit → 'Completed'; else 'Active'.
+        prepPepInitiationRepository
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PEP)
+                .ifPresent(latestPepInit -> {
+                    boolean explicitCompletion = prophylaxisInterruptionRepository
+                            .findAllByPersonUuidAndFacilityIdAndArchived(
+                                    person.getUuid(),
+                                    currentUserOrganizationService.getCurrentUserOrganization(),
+                                    false)
+                            .stream()
+                            .filter(i -> latestPepInit.getUuid()
+                                    .equals(i.getProphylaxisInitiationUuid()))
+                            .anyMatch(i -> "YES_NO_YES".equalsIgnoreCase(i.getPepCompletion()));
+                    if (explicitCompletion) {
+                        prepDtos.setPrepStatus("Completed");
+                        return;
+                    }
+                    LocalDate anchor = pepFollowupVisitRepository
+                            .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
+                                    person.getUuid(),
+                                    currentUserOrganizationService.getCurrentUserOrganization(),
+                                    false)
+                            .stream()
+                            .findFirst()
+                            .map(v -> v.getDateStartPep() != null
+                                    ? v.getDateStartPep() : v.getEncounterDate())
+                            .orElse(null);
+                    if (anchor == null) {
+                        prepDtos.setPrepStatus("Enrolled");
+                    } else {
+                        long days = java.time.temporal.ChronoUnit.DAYS.between(
+                                anchor, java.time.LocalDate.now());
+                        prepDtos.setPrepStatus(days >= 29 ? "Completed" : "Active");
+                    }
+                });
         // Compute previousProphylaxis by comparing latest PrEP and PEP followup visit dates
         LocalDate latestPrepVisit = prepFollowupVisitRepository
                 .findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(

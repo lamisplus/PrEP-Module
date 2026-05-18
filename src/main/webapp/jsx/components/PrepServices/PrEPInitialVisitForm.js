@@ -28,7 +28,7 @@ import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import {
   fetchPrepRegimens,
   fetchPrepRegimenByType,
-  getPepRegimenOptions,
+  fetchPepRegimens,
 } from "../Consultation/codesets";
 
 // Map between the canonical PREP_PEP_ENROLLMENT_TYPE codeset codes and the short
@@ -52,6 +52,13 @@ const PrEPInitialVisitForm = props => {
   const classes = useStyles();
   // Get screeningType passed from Patient Tab via activeContent
   const screeningType = props.activeContent?.screeningType || '';
+  // Effective enrollment type label used in headers and toasts. Prefer the
+  // loaded record's enrollmentType (after normalization) over the nav hint
+  // so view/update never shows the joint "PrEP/PEP" label.
+  const resolveTypeLabel = (val) => {
+    const normalized = fromEnrollmentTypeCode(val) || val;
+    return normalized === 'PEP' ? 'PEP' : normalized === 'PrEP' ? 'PrEP' : '';
+  };
   const [objValues, setObjValues] = useState({
     dateEnrolled: "",
     dateReferred: "",
@@ -105,6 +112,7 @@ const PrEPInitialVisitForm = props => {
   // Locks the Unique ID field so all initiations for the same client share one ID.
   const [hasExistingInitiation, setHasExistingInitiation] = useState(false);
   const [prepRegimen, setPrepRegimen] = useState([]);
+  const [pepRegimenOptions, setPepRegimenOptions] = useState([]);
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
     bodyWeight: "",
     height: "",
@@ -122,6 +130,9 @@ const PrEPInitialVisitForm = props => {
   useEffect(() => {
     fetchPrepRegimens().then(data => {
       setPrepRegimen(data);
+    });
+    fetchPepRegimens().then(data => {
+      setPepRegimenOptions(data);
     });
   }, []);
 
@@ -267,7 +278,14 @@ const PrEPInitialVisitForm = props => {
         }
       )
       .then(response => {
-        setObjValues(response.data.find(x => x.id === id));
+        const rec = response.data.find(x => x.id === id);
+        if (rec) {
+          setObjValues({
+            ...rec,
+            enrollmentType:
+              fromEnrollmentTypeCode(rec.enrollmentType) || rec.enrollmentType,
+          });
+        }
       })
       .catch(error => {
         //console.log(error);
@@ -376,6 +394,42 @@ const PrEPInitialVisitForm = props => {
     ) {
       temp.dateOfHivTest = "Date of HIV Test must be on or before Date Enrolled";
     }
+    // Additional required fields per spec.
+    temp.dateOfInitialAdherenceCounseling = objValues.dateOfInitialAdherenceCounseling
+      ? "" : "This field is required";
+    temp.datePrepStarted = objValues.datePrepStarted
+      ? "" : "This field is required";
+    // PrEP/PEP type at start: same JSX field today, label changes per arm.
+    temp.prepTypeAtStart = objValues.prepTypeAtStart
+      ? "" : "This field is required";
+    temp.prepRegimen = objValues.prepRegimen
+      ? "" : "This field is required";
+    // Pregnancy only applies to female patients; HTS may pre-populate it.
+    const isFemale =
+      props.patientObj?.gender?.toLowerCase() === "female" ||
+      props.patientObj?.sex?.toLowerCase() === "female";
+    if (isFemale) {
+      const pregVal = isFromHts
+        ? (htsObs.pregnancyStatus || objValues.pregnancyStatus)
+        : objValues.pregnancyStatus;
+      temp.pregnancyStatus = pregVal ? "" : "This field is required";
+    }
+    temp.historyOfDrugAllergies = objValues.historyOfDrugAllergies
+      ? "" : "This field is required";
+    temp.weight = objValues.weight ? "" : "This field is required";
+    temp.height = objValues.height ? "" : "This field is required";
+    // BMI is derived from weight + height; require both as a proxy.
+    if (!objValues.weight || !objValues.height) {
+      temp.bmi = "Weight and height are required to compute BMI";
+    } else {
+      temp.bmi = "";
+    }
+    temp.urinalysisResult = objValues.urinalysisResult
+      ? "" : "This field is required";
+    // liverFunctionTestResults is an array; require at least one entry.
+    const lft = objValues.liverFunctionTestResults;
+    const hasLft = Array.isArray(lft) ? lft.length > 0 : !!lft;
+    temp.liverFunctionTestResults = hasLft ? "" : "This field is required";
     setErrors({ ...temp });
     return Object.values(temp).every(x => x === "");
   };
@@ -411,10 +465,10 @@ const PrEPInitialVisitForm = props => {
             objValues,
             { headers: { Authorization: `Bearer ${token}` } }
           )
-          .then(response => {
+          .then(async response => {
             setSaving(false);
             props.patientObj.prepCount = "1";
-            props.PatientObject();
+            if (props.PatientObject) await props.PatientObject();
             toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} initiation saved successfully!✔`, {
               position: toast.POSITION.BOTTOM_CENTER,
             });
@@ -464,6 +518,19 @@ const PrEPInitialVisitForm = props => {
         supporterRelationshipType: "Supporter Relationship",
         supporterPhone: "Supporter Phone",
         dateReferred: "Date Referred",
+        dateOfInitialAdherenceCounseling: "Date of Initial Adherence Counseling",
+        datePrepStarted: "Date Started",
+        prepTypeAtStart:
+          objValues.enrollmentType === "PEP"
+            ? "PEP Type at Start" : "PrEP Type at Start",
+        prepRegimen: "Regimen",
+        pregnancyStatus: "Pregnant",
+        historyOfDrugAllergies: "History of Drug Allergies",
+        weight: "Body Weight",
+        height: "Height",
+        bmi: "BMI",
+        urinalysisResult: "Urinalysis Result",
+        liverFunctionTestResults: "Liver Function Test",
       };
       const missing = Object.keys(errors)
         .filter(k => errors[k])
@@ -482,7 +549,7 @@ const PrEPInitialVisitForm = props => {
         <CardBody>
           <form>
             <div className="row">
-              <h2>{screeningType === 'PEP' ? 'PEP' : screeningType === 'PrEP' ? 'PrEP' : 'PrEP/PEP'} Initiation</h2>
+              <h2>{resolveTypeLabel(objValues.enrollmentType) || resolveTypeLabel(screeningType) || 'PrEP'} Initiation</h2>
 
               {/* Section A Header */}
               <div
@@ -496,10 +563,14 @@ const PrEPInitialVisitForm = props => {
                   marginBottom: "1rem",
                 }}
               >
-                {screeningType === 'PEP' ? 'PEP' : screeningType === 'PrEP' ? 'PrEP' : 'PrEP/PEP'} Initial Visit
+                {resolveTypeLabel(objValues.enrollmentType) || resolveTypeLabel(screeningType) || 'PrEP'} Initial Visit
               </div>
 
-              {/* 1. Unique ID — locked when client already has a prior initiation */}
+              {/* 1. Unique ID — always read-only on the initiation form. The
+                  value is assigned at screening time (uniqueClientId on the
+                  latest prophylaxis_screening) and the initiation form just
+                  surfaces it. We auto-populate from the open eligibility
+                  record in GetPatientDTOObj(), then lock to that value. */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label for="uniqueId">
@@ -512,10 +583,12 @@ const PrEPInitialVisitForm = props => {
                     id="uniqueId"
                     onChange={handleInputChange}
                     value={objValues.uniqueId}
-                    disabled={disabledField || hasExistingInitiation}
+                    disabled
+                    title="Sourced from the latest screening's Unique Client ID"
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
+                      backgroundColor: "#f1f3f5",
                     }}
                   />
                   {errors.uniqueId !== "" ? (
@@ -856,13 +929,13 @@ const PrEPInitialVisitForm = props => {
                   marginBottom: "1rem",
                 }}
               >
-                {`${objValues.enrollmentType === 'PEP' ? 'PEP' : objValues.enrollmentType === 'PrEP' ? 'PrEP' : 'PrEP/PEP'} Initiation`}
+                {`${resolveTypeLabel(objValues.enrollmentType) || resolveTypeLabel(screeningType) || 'PrEP'} Initiation`}
               </div>
 
               {/* 12. Date of Initial Adherence Counseling */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Date of Initial Adherence Counseling</Label>
+                  <Label>Date of Initial Adherence Counseling <span style={{ color: "red" }}> *</span></Label>
                   <input
                     type="date"
                     className="form-control"
@@ -884,7 +957,7 @@ const PrEPInitialVisitForm = props => {
               {/* 13. Date PrEP started */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Date Started</Label>
+                  <Label>Date Started <span style={{ color: "red" }}> *</span></Label>
                   <input
                     type="date"
                     className="form-control"
@@ -906,7 +979,7 @@ const PrEPInitialVisitForm = props => {
               {/* 14. Weight */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Body Weight</Label>
+                  <Label>Body Weight <span style={{ color: "red" }}> *</span></Label>
                   <InputGroup>
                     <Input
                       type="number"
@@ -950,7 +1023,7 @@ const PrEPInitialVisitForm = props => {
               {/* 15. Height */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Height</Label>
+                  <Label>Height <span style={{ color: "red" }}> *</span></Label>
                   <InputGroup>
                     <InputGroupText
                       addonType="append"
@@ -992,16 +1065,17 @@ const PrEPInitialVisitForm = props => {
                 </FormGroup>
               </div>
 
-              {/* BMI Display */}
+              {/* BMI Display — height is captured in cm; BMI = weight(kg) / height(m)^2 */}
               {objValues.weight && objValues.height && (
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>
-                    <Label>BMI</Label>
+                    <Label>BMI <span style={{ color: "red" }}> *</span></Label>
                     <Input
                       type="text"
-                      value={(objValues.weight / objValues.height ** 2).toFixed(
-                        2
-                      )}
+                      value={(
+                        Number(objValues.weight) /
+                        ((Number(objValues.height) / 100) ** 2)
+                      ).toFixed(2)}
                       style={{
                         border: "1px solid #014D88",
                         borderRadius: "0.25rem",
@@ -1017,7 +1091,7 @@ const PrEPInitialVisitForm = props => {
                 props.patientObj?.sex?.toLowerCase() === "female") && (
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>
-                    <Label>Pregnant</Label>
+                    <Label>Pregnant <span style={{ color: "red" }}> *</span></Label>
                     <select
                       className="form-control"
                       name="pregnancyStatus"
@@ -1049,12 +1123,14 @@ const PrEPInitialVisitForm = props => {
                 </div>
               )}
 
-              {/* 17. PrEP Type at Start - hidden for PEP */}
-              {objValues.enrollmentType !== 'PEP' && (
+              {/* 17. PrEP/PEP Type at Start — shown for both arms. PrEP uses
+                  the PrEP_TYPE codeset (Oral/Injectibles/etc.); PEP has a
+                  small hardcoded list (Oral/Others) that the joint regimen
+                  list keys off when filtering the regimen dropdown. */}
               <>
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>PrEP Type at Start</Label>
+                  <Label>{objValues.enrollmentType === 'PEP' ? 'PEP' : 'PrEP'} Type at Start <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="prepTypeAtStart"
@@ -1068,7 +1144,13 @@ const PrEPInitialVisitForm = props => {
                     }}
                   >
                     <option value="">Select</option>
-                    {(codeset?.PrEP_TYPE || []).map(item => (
+                    {(objValues.enrollmentType === 'PEP'
+                      ? [
+                          { code: "PEP_TYPE_ORAL", display: "Oral" },
+                          { code: "PEP_TYPE_OTHERS", display: "Others" },
+                        ]
+                      : (codeset?.PrEP_TYPE || [])
+                    ).map(item => (
                       <option key={item.code} value={item.code}>{item.display}</option>
                     ))}
                   </select>
@@ -1095,12 +1177,11 @@ const PrEPInitialVisitForm = props => {
                 </div>
               )}
               </>
-              )}
 
               {/* 18. PrEP Regimen */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Regimen</Label>
+                  <Label>Regimen <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="prepRegimen"
@@ -1115,11 +1196,11 @@ const PrEPInitialVisitForm = props => {
                   >
                     <option value="">Select</option>
                     {objValues.enrollmentType === 'PEP'
-                      ? getPepRegimenOptions().map(r => (
+                      ? pepRegimenOptions.map(r => (
                           <option key={r.value} value={r.value}>{r.label}</option>
                         ))
                       : prepRegimen.map(value => (
-                          <option key={value.id} value={value.id}>
+                          <option key={value.code || value.id} value={value.code || value.id}>
                             {value.regimen}
                           </option>
                         ))}
@@ -1151,7 +1232,7 @@ const PrEPInitialVisitForm = props => {
               {/* 19. History of Drug Allergies */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>History of Drug Allergies</Label>
+                  <Label>History of Drug Allergies <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="historyOfDrugAllergies"
@@ -1200,7 +1281,7 @@ const PrEPInitialVisitForm = props => {
               {/* 21. Urinalysis Result */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Urinalysis Result</Label>
+                  <Label>Urinalysis Result <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="urinalysisResult"
@@ -1226,7 +1307,7 @@ const PrEPInitialVisitForm = props => {
               {/* 22. Liver Function Test (DualListBox) */}
               <div className="form-group mb-3 col-md-12">
                 <FormGroup>
-                  <Label>Liver Function Test</Label>
+                  <Label>Liver Function Test <span style={{ color: "red" }}> *</span></Label>
                   <LiverFunctionTest
                     objValues={objValues}
                     handleInputChange={handleLftInputChange}

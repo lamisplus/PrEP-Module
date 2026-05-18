@@ -10,7 +10,7 @@ import {
 import { url as baseUrl, token } from "../../../api";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
-import { toPepHivStatusCode } from "../../../Utils/htsResultMapper";
+import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
 import AddIcon from "@mui/icons-material/Add";
@@ -52,28 +52,38 @@ const inputGroupMiddleStyle = {
   borderRadius: "0rem",
 };
 
-const validationSchema = Yup.object().shape({
-  encounterDate: Yup.string().required("This field is required"),
-  modeOfExposure: Yup.string().required("This field is required"),
-  durationBeforePep: Yup.string().required("This field is required"),
-  systolic: Yup.string().required("This field is required"),
-  diastolic: Yup.string().required("This field is required"),
-  hivStatusAtExposure: Yup.string().required("This field is required"),
-  riskReductionServices: Yup.string().required("This field is required"),
-  adherenceLevel: Yup.string().required("This field is required"),
-  pepRegimen: Yup.string().required("This field is required"),
-  dateStartPep: Yup.string().required("This field is required"),
-  dateStopPep: Yup.string().required("This field is required"),
-  nextAppointment: Yup.string().required("This field is required"),
-  healthCareWorkerSignature: Yup.string().required("This field is required"),
-  whyAdherenceLevelPoor: Yup.string().when("adherenceLevel", {
-    is: val =>
-      val?.toUpperCase()?.includes("POOR") ||
-      val?.toUpperCase()?.includes("FAIR"),
-    then: schema => schema.required("This field is required"),
-    otherwise: schema => schema,
-  }),
-});
+// Builds the validation schema with the same set of fields as the rendered
+// form. `isFemalePatient` toggles Pregnancy Status; `isFromHts` skips
+// validating HTS-driven fields (HIV Status at Exposure, Pregnancy Status)
+// because they're read-only and sourced from the latest hts_encounter.
+const buildValidationSchema = (isFemalePatient, isFromHts) =>
+  Yup.object().shape({
+    encounterDate: Yup.string().required("This field is required"),
+    modeOfExposure: Yup.string().required("This field is required"),
+    durationBeforePep: Yup.string().required("This field is required"),
+    systolic: Yup.string().required("This field is required"),
+    diastolic: Yup.string().required("This field is required"),
+    pregnant: isFemalePatient && !isFromHts
+      ? Yup.string().required("This field is required")
+      : Yup.string(),
+    hivStatusAtExposure: isFromHts
+      ? Yup.string()
+      : Yup.string().required("This field is required"),
+    riskReductionServices: Yup.string().required("This field is required"),
+    adherenceLevel: Yup.string().required("This field is required"),
+    pepRegimen: Yup.string().required("This field is required"),
+    dateStartPep: Yup.string().required("This field is required"),
+    dateStopPep: Yup.string().required("This field is required"),
+    nextAppointment: Yup.string().required("This field is required"),
+    healthCareWorkerSignature: Yup.string().required("This field is required"),
+    whyAdherenceLevelPoor: Yup.string().when("adherenceLevel", {
+      is: val =>
+        val?.toUpperCase()?.includes("POOR") ||
+        val?.toUpperCase()?.includes("FAIR"),
+      then: schema => schema.required("This field is required"),
+      otherwise: schema => schema,
+    }),
+  });
 
 const INITIAL_VALUES = {
   encounterDate: "",
@@ -326,10 +336,13 @@ const PEPFollowupVisit = props => {
   }, [props.activeContent]);
 
   // Pull the linked hts_encounter when the Patient grid didn't already ship one
-  // (i.e. edit/view path, where we resolve it through the latest PEP initiation
-  // returned by `getPatientDtoObj`). The auto-pop effect below then runs.
+  // (i.e. edit/view path). Prefer the htsEncounterUuid stored on THIS follow-up
+  // record so view/update shows exactly what was captured at the time; fall
+  // back to the latest PEP initiation's htsEncounterUuid only if the record
+  // doesn't carry one (older rows).
   useEffect(() => {
-    const targetUuid = patientDto?.htsEncounterUuid;
+    const recordHtsUuid = formInitialValues?.htsEncounterUuid;
+    const targetUuid = recordHtsUuid || patientDto?.htsEncounterUuid;
     if (!targetUuid) return;
     if (props.patientObj?.latestHtsResult?.uuid === targetUuid) return;
     if (loadedHts?.uuid === targetUuid) return;
@@ -339,7 +352,11 @@ const PEPFollowupVisit = props => {
       })
       .then(resp => setLoadedHts(resp?.data || null))
       .catch(() => setLoadedHts(null));
-  }, [patientDto?.htsEncounterUuid, props.patientObj?.latestHtsResult?.uuid]);
+  }, [
+    formInitialValues?.htsEncounterUuid,
+    patientDto?.htsEncounterUuid,
+    props.patientObj?.latestHtsResult?.uuid,
+  ]);
 
   // Auto-populate read-only HTS-sourced fields (Pregnancy Status & HIV Status
   // at Exposure) whenever the resolved hts_encounter changes.
@@ -348,7 +365,10 @@ const PEPFollowupVisit = props => {
     if (isFemale() && htsObs.pregnancyStatus) {
       formikRef.current.setFieldValue("pregnant", htsObs.pregnancyStatus);
     }
-    const hivStatus = toPepHivStatusCode(
+    // Use the canonical HIV_TEST_RESULT codeset so PEP records autopop
+    // consistently with the screening + initiation forms (covers Early Detect
+    // too, which the PEP-only codeset didn't have).
+    const hivStatus = toHivTestResultCode(
       htsObs.confirmatoryHivTest || htsObs.initialHivTest,
       htsObs.typeOfHivTestDone
     );
@@ -405,19 +425,28 @@ const PEPFollowupVisit = props => {
     if (nextAppt) setFieldValue("nextAppointment", nextAppt);
   };
 
+  // PEP schedule: next appointment = visit date + 28 days (the spec). The
+  // earlier "duration in months" math is left as a fallback but no longer
+  // overrides the 28-day default.
+  const addDaysIso = (encounterDate, days) => {
+    if (!encounterDate) return "";
+    const date = new Date(encounterDate);
+    if (isNaN(date.getTime())) return "";
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split("T")[0];
+  };
+
   const handleEncounterDateChangeForAppt = (e, setFieldValue, duration) => {
     const encounterDate = e.target.value;
     setFieldValue("encounterDate", encounterDate);
-    // Auto-populate Duration on PEP from latest initiation
+    // Duration on PEP — months elapsed since enrollment, read-only field.
     const computedDuration = calculateDurationOnPep(encounterDate);
     if (computedDuration !== "") {
       setFieldValue("duration", computedDuration);
-      const nextAppt = calculateNextAppointment(encounterDate, computedDuration);
-      if (nextAppt) setFieldValue("nextAppointment", nextAppt);
-    } else if (duration) {
-      const nextAppt = calculateNextAppointment(encounterDate, duration);
-      if (nextAppt) setFieldValue("nextAppointment", nextAppt);
     }
+    // Next Appointment is always visit + 28 days for PEP follow-ups.
+    const nextAppt = addDaysIso(encounterDate, 28);
+    if (nextAppt) setFieldValue("nextAppointment", nextAppt);
   };
 
   // ── Submit ──
@@ -487,6 +516,9 @@ const PEPFollowupVisit = props => {
         toast.success("PEP Follow-up visit updated successfully!", {
           position: toast.POSITION.BOTTOM_CENTER,
         });
+        // Refresh the dashboard's patientDetail so the STATUS chip reflects
+        // the saved visit immediately (was stale until next grid visit).
+        if (props.PatientObject) await props.PatientObject();
         props.setActiveContent({
           ...props.activeContent,
           route: "pep-followup",
@@ -505,6 +537,7 @@ const PEPFollowupVisit = props => {
         toast.success("PEP Follow-up visit saved successfully!", {
           position: toast.POSITION.BOTTOM_CENTER,
         });
+        if (props.PatientObject) await props.PatientObject();
         props.setActiveContent({
           ...props.activeContent,
           route: "pep-followup",
@@ -528,7 +561,7 @@ const PEPFollowupVisit = props => {
         innerRef={formikRef}
         initialValues={formInitialValues}
         enableReinitialize
-        validationSchema={validationSchema}
+        validationSchema={buildValidationSchema(isFemale(), isFromHts)}
         onSubmit={values => {
           handleFormSubmit(values);
         }}
@@ -735,7 +768,12 @@ const PEPFollowupVisit = props => {
                     {isFemale() && (
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Pregnancy Status</FormLabelName>
+                          <FormLabelName>
+                            Pregnancy Status
+                            {!isFromHts && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
+                          </FormLabelName>
                           <Input
                             type="select"
                             name="pregnant"
@@ -755,6 +793,11 @@ const PEPFollowupVisit = props => {
                               <option key={item.code} value={item.code}>{item.display}</option>
                             ))}
                           </Input>
+                          {getError("pregnant") && (
+                            <span className={classes.error}>
+                              {getError("pregnant")}
+                            </span>
+                          )}
                         </FormGroup>
                       </div>
                     )}
@@ -774,7 +817,7 @@ const PEPFollowupVisit = props => {
                           onChange={handleChange}
                           value={
                             isFromHts
-                              ? (toPepHivStatusCode(
+                              ? (toHivTestResultCode(
                                   htsObs.confirmatoryHivTest || htsObs.initialHivTest,
                                   htsObs.typeOfHivTestDone
                                 ) || "")
@@ -788,8 +831,8 @@ const PEPFollowupVisit = props => {
                           title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
                         >
                           <option value="">Select</option>
-                          {codeset?.PEP_HIV_STATUS_AT_EXPOSURE?.map(value => (
-                            <option key={value.id} value={value.code}>
+                          {(codeset?.HIV_TEST_RESULT || []).map(value => (
+                            <option key={value.id || value.code} value={value.code}>
                               {value.display}
                             </option>
                           ))}

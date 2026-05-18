@@ -33,6 +33,7 @@ import "@reach/menu-button/styles.css";
 import { Modal } from "react-bootstrap";
 import { Dropdown, Button, Menu, Icon } from 'semantic-ui-react'
 import { getPepRegimenOptions } from './codesets'
+import { displayRegimen } from "../../../Utils/regimenDisplay";
 
 
 const tableIcons = {
@@ -218,9 +219,10 @@ const PatientnHistory = (props) => {
                 isLoading={props.loading}
                 data={props.recentActivities && props.recentActivities.map((row) => ({
                     date: row.encounterDate,
-                    regimen: row.pepRegimen
-                      ? (getPepRegimenOptions().find(o => o.value === row.pepRegimen) || {}).label || row.pepRegimen
-                      : row.regimen,
+                    // Always run the stored value (codeset code OR legacy id)
+                    // through displayRegimen so the grid never surfaces a raw
+                    // PEP_REGIMEN_TDF_3TC_DTG or "3" to the user.
+                    regimen: displayRegimen(row.pepRegimen) || displayRegimen(row.regimen) || "",
                     nextAppointment: row.nextAppointment,
                     actions:
 

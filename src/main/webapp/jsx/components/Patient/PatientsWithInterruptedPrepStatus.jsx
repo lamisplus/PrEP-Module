@@ -161,7 +161,7 @@ const PatientsWithInterruptedPrepStatus = props => {
                             style={{
                               backgroundColor: "rgb(153, 46, 98)",
                               height: "30px",
-                              width: "215px",
+                              whiteSpace: "nowrap",
                             }}
                             size="large"
                           >
@@ -172,19 +172,24 @@ const PatientsWithInterruptedPrepStatus = props => {
                               aria-haspopup="menu"
                               style={{
                                 backgroundColor: "rgb(153, 46, 98)",
-                                margin: "auto",
+                                borderRight: "0.0625rem solid rgba(255,255,255,0.4)",
+                                borderRadius: 0,
                               }}
                             >
                               <MdDashboard />
                             </Button>
                             <Button
-                              style={{ backgroundColor: "rgb(153, 46, 98)" }}
+                              style={{
+                                backgroundColor: "rgb(153, 46, 98)",
+                                whiteSpace: "nowrap",
+                              }}
                             >
                               <span
                                 style={{
                                   fontSize: "12px",
                                   color: "#fff",
                                   fontWeight: "bolder",
+                                  whiteSpace: "nowrap",
                                 }}
                               >
                                 Patient Dashboard

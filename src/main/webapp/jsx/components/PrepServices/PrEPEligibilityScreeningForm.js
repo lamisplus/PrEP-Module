@@ -480,6 +480,29 @@ const BasicInfo = props => {
     temp.hivTestResultAtvisit = isFromHts || drugHistory.hivTestResultAtvisit
       ? ""
       : "This field is required";
+    // Drug-history fields are compulsory — the user can't submit until every
+    // drug-history question has an answer. Errors are namespaced under
+    // drugHistory.* so existing UI error rendering can target them
+    // individually.
+    // Only fields actually rendered in the JSX appear here; "useAnyOfTheseDrugs"
+    // and "hivTestedBefore" live in state but have no input today, so requiring
+    // them would permanently block submission.
+    [
+      "cocaine",
+      "heroine",
+      "marijuana",
+      "amphetamine",
+      "codeineSyrup",
+      "useDrugSexualPerformance",
+      "recommendHivRetest",
+      "clinicalSetting",
+      "reportHivRisk",
+      "hivExposure",
+    ].forEach(field => {
+      temp[`drugHistory.${field}`] = drugHistory[field]
+        ? ""
+        : "This field is required";
+    });
     setErrors({ ...temp });
 
     return Object.values(temp).every(x => x === "");
@@ -616,6 +639,9 @@ const BasicInfo = props => {
     }
   };
 
+  // Aggregate score the form computes from the eligibility questions. We
+  // persist this raw sum on prophylaxis_screening.score so reports can read
+  // it back; the eligibility-pass flag is derived separately.
   const getPrepEligibilityScore = () => {
     var score = 0;
     score += drugHistory.hivTestResultAtvisit?.toLowerCase().includes("negative") ? 1 : 0;
@@ -625,12 +651,7 @@ const BasicInfo = props => {
     if (is30AndAbove()) {
       score += isYes(assessmentForPrepEligibility?.hasNoProteinuria) ? 1 : 0;
     }
-
-    if (is30AndAbove()) {
-      return score >= 5 ? 1 : 0;
-    } else {
-      return score >= 4 ? 1 : 0;
-    }
+    return score;
   };
 
   const getRecentActivities = () => {
@@ -652,6 +673,32 @@ const BasicInfo = props => {
   useEffect(() => {
     getRecentActivities();
   }, []);
+
+  // Pre-populate Unique Client ID from the patient's latest screening record
+  // so a returning client doesn't have to type the same ID again. Skip when
+  // we're editing an existing record (the saved value loads via
+  // getPatientPrepEligibility) and when the user has already typed something.
+  useEffect(() => {
+    if (props.activeContent?.id) return;
+    const personId = props.patientObj?.personId || props.patientObj?.id;
+    if (!personId) return;
+    if (objValues.uniqueClientId) return;
+    axios
+      .get(`${baseUrl}prep-eligibility-screening/person/${personId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(resp => {
+        const latest = (resp?.data || [])
+          .filter(r => !r.archived && r.uniqueClientId)
+          .sort((a, b) => new Date(b.visitDate || 0) - new Date(a.visitDate || 0))[0];
+        if (latest?.uniqueClientId) {
+          setObjValues(prev =>
+            prev.uniqueClientId ? prev : { ...prev, uniqueClientId: latest.uniqueClientId }
+          );
+        }
+      })
+      .catch(() => {});
+  }, [props.patientObj?.personId, props.patientObj?.id, props.activeContent?.id]);
   useEffect(() => {
     if (isNo(drugHistory.hivTestedBefore)) {
       setDrugHistory(prevHistory => ({
@@ -1460,7 +1507,7 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Cocaine</Label>
+                  <Label>Cocaine <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="cocaine"
@@ -1483,7 +1530,7 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Heroine</Label>
+                  <Label>Heroine <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="heroine"
@@ -1506,7 +1553,7 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Marijuana</Label>
+                  <Label>Marijuana <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="marijuana"
@@ -1529,7 +1576,7 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Amphetamine</Label>
+                  <Label>Amphetamine <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="amphetamine"
@@ -1552,7 +1599,7 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Codeine/syrup</Label>
+                  <Label>Codeine/syrup <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="codeineSyrup"
@@ -1706,7 +1753,7 @@ const BasicInfo = props => {
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
                   <Label>
-                    Have you used drugs to enhance sexual performance?
+                    Have you used drugs to enhance sexual performance? <span style={{ color: "red" }}> *</span>
                   </Label>
                   <select
                     className="form-control"
@@ -2332,7 +2379,7 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Recommended for HIV Retest?</Label>
+                  <Label>Recommended for HIV Retest? <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="recommendHivRetest"
@@ -2356,7 +2403,7 @@ const BasicInfo = props => {
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
                   <Label>
-                    Tested in other clinical settings such as STI clinic
+                    Tested in other clinical settings such as STI clinic <span style={{ color: "red" }}> *</span>
                   </Label>
                   <select
                     className="form-control"
@@ -2388,7 +2435,16 @@ const BasicInfo = props => {
                     className="form-control"
                     name="hivTestResultAtvisit"
                     id="hivTestResultAtvisit"
-                    value={drugHistory.hivTestResultAtvisit}
+                    // On the HTS path the field is read-only and the value
+                    // must come straight from the resolved hts_encounter —
+                    // the saved screening record deliberately drops this
+                    // field on submit (it's dereferenced via hts_encounter_uuid),
+                    // so reading from drugHistory state shows blank on view/edit.
+                    value={isFromHts
+                      ? (toHivTestResultCode(
+                          htsObs.confirmatoryHivTest || htsObs.initialHivTest,
+                          htsObs.typeOfHivTestDone) || drugHistory.hivTestResultAtvisit || "")
+                      : (drugHistory.hivTestResultAtvisit || "")}
                     onChange={handleInputChangeDrugHistory}
                     style={{
                       border: "1px solid #014D88",
@@ -2415,7 +2471,7 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Report ongoing HIV risk behaviors?</Label>
+                  <Label>Report ongoing HIV risk behaviors? <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="reportHivRisk"
@@ -2439,7 +2495,7 @@ const BasicInfo = props => {
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
                   <Label>
-                    Report a specific HIV exposure within the last 3 months?
+                    Report a specific HIV exposure within the last 3 months? <span style={{ color: "red" }}> *</span>
                   </Label>
                   <select
                     className="form-control"

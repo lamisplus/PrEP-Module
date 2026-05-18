@@ -18,6 +18,7 @@ public class ProphylaxisInterruptionDto implements Serializable {
     private String prophylaxisInitiationUuid;
     private String interruptionType;
     private LocalDate interruptionDate;
+    private LocalDate dateDefaulted;
     private String interruptionReason;
     private LocalDate dateClientDied;
     private String causeOfDeath;

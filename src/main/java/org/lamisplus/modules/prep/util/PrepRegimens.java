@@ -31,6 +31,7 @@ public final class PrepRegimens {
         byCode.put("PREP_REGIMEN_TDF_3TC", "TDF/3TC");
         byCode.put("PREP_REGIMEN_CABOTEGRAVIR", "Cabotegravir");
         byCode.put("PREP_REGIMEN_LENACAPAVIR", "Lenacapavir");
+        byCode.put("PEP_REGIMEN_TDF_FTC", "TDF/FTC");
         byCode.put("PEP_REGIMEN_TDF_3TC_DTG", "TDF/3TC/DTG");
         byCode.put("PEP_REGIMEN_OTHERS", "Others");
         BY_CODE = Collections.unmodifiableMap(byCode);

@@ -128,6 +128,7 @@ public class PrepCompletionService {
         e.setInterruptionType(dto.getInterruptionType());
         e.setPreviousPrepStatus(dto.getPreviousPrepStatus());
         e.setInterruptionDate(dto.getInterruptionDate());
+        e.setDateDefaulted(dto.getDateDefaulted());
         e.setInterruptionReason(dto.getInterruptionReason());
         e.setDateClientDied(dto.getDateClientDied());
         e.setCauseOfDeath(dto.getCauseOfDeath());
@@ -158,6 +159,7 @@ public class PrepCompletionService {
         e.setInterruptionType(dto.getInterruptionType());
         e.setPreviousPrepStatus(dto.getPreviousPrepStatus());
         e.setInterruptionDate(dto.getInterruptionDate());
+        e.setDateDefaulted(dto.getDateDefaulted());
         e.setInterruptionReason(dto.getInterruptionReason());
         e.setDateClientDied(dto.getDateClientDied());
         e.setCauseOfDeath(dto.getCauseOfDeath());
@@ -187,6 +189,7 @@ public class PrepCompletionService {
         dto.setInterruptionType(e.getInterruptionType());
         dto.setPreviousPrepStatus(e.getPreviousPrepStatus());
         dto.setInterruptionDate(e.getInterruptionDate());
+        dto.setDateDefaulted(e.getDateDefaulted());
         dto.setInterruptionReason(e.getInterruptionReason());
         dto.setDateClientDied(e.getDateClientDied());
         dto.setCauseOfDeath(e.getCauseOfDeath());

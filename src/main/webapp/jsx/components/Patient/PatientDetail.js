@@ -5,6 +5,11 @@ import { Link } from "react-router-dom";
 import "semantic-ui-css/semantic.min.css";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import Dialog from "@material-ui/core/Dialog";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogActions from "@material-ui/core/DialogActions";
+import MuiButton from "@material-ui/core/Button";
 import PatientCardDetail from "./PatientCard";
 import { useHistory } from "react-router-dom";
 import SubMenu from "./SubMenu";
@@ -100,6 +105,12 @@ function PatientCard(props) {
   // can still expose the Initiation step from that pending screening.
   const [hasOpenScreening, setHasOpenScreening] = useState(false);
 
+  // One-shot modal shown on dashboard entry when the patient is currently
+  // active on the OTHER arm — surfaces the lockout instead of relying on
+  // the muted notice inside the SubMenu strip.
+  const [otherArmModalOpen, setOtherArmModalOpen] = useState(false);
+  const [otherArmModalShownFor, setOtherArmModalShownFor] = useState(null);
+
   const { userPermissions } = useAuth();
 
   useEffect(() => {
@@ -114,6 +125,30 @@ function PatientCard(props) {
     }
   }, [patientDetail]);
 
+  // Show the cross-arm lockout modal once per patient+arm. Triggers as soon as
+  // patientDetail and screeningType are both available and the patient is
+  // currently on the opposite arm.
+  useEffect(() => {
+    if (!patientDetail || !screeningType) return;
+    const personId = patientObjLocation?.personId || patientObjLocation?.id;
+    if (!personId) return;
+    const isActivePrep = !!patientDetail.isCurrentStatusInterruptedPrep;
+    const isActivePep = !!patientDetail.isCurrentStatusInterruptedPep;
+    const blockedByOtherArm =
+      (screeningType === "PrEP" && isActivePep) ||
+      (screeningType === "PEP" && isActivePrep);
+    const key = `${personId}:${screeningType}`;
+    if (blockedByOtherArm && otherArmModalShownFor !== key) {
+      setOtherArmModalOpen(true);
+      setOtherArmModalShownFor(key);
+    }
+  }, [patientDetail, screeningType, patientObjLocation?.personId, patientObjLocation?.id, otherArmModalShownFor]);
+
+  const activeOtherArmLabel =
+    patientDetail?.isCurrentStatusInterruptedPrep ? "PrEP" :
+    patientDetail?.isCurrentStatusInterruptedPep ? "PEP" : "";
+  const requestedArmLabel = screeningType === "PEP" ? "PEP" : "PrEP";
+
   // After tab-switch + return: resume the workflow if the *open* (not-yet-completed)
   // record matches the enrollment type the user just selected on the Patient List.
   // Switching from PrEP → PEP must restart at screening (not jump to a stale PrEP initiation).
@@ -126,38 +161,78 @@ function PatientCard(props) {
     if (!personId) return;
     let cancelled = false;
 
+    // Normalize either short labels ("PrEP"/"PEP") or canonical codeset codes
+    // (PREP_PEP_ENROLLMENT_TYPE_PEP / _PREP) to a single short token. Both
+    // canonical codes contain "PEP" AND "PREP" as substrings, so naive
+    // includes() checks misclassify PEP records as PrEP. Check the suffix
+    // instead — that's the actual disambiguator. Without this fix, a saved
+    // PEP screening would look like a "PrEP" record on return and bounce
+    // the user back to the screening form to redo it.
+    const normalizeArm = (value) => {
+      if (!value) return "";
+      const v = String(value).toUpperCase().trim();
+      if (v === "PEP" || v.endsWith("_PEP")) return "PEP";
+      if (v === "PREP" || v.endsWith("_PREP")) return "PREP";
+      return v;
+    };
     const matches = (recordType, target) => {
       if (!recordType || !target) return false;
-      return recordType.toLowerCase() === target.toLowerCase();
+      return normalizeArm(recordType) === normalizeArm(target);
     };
 
     (async () => {
       try {
-        // Open initiation = a saved initiation that is not stopped/dead. If its enrollment type
-        // matches the type the user just selected, the workflow is past initiation → show the
-        // full menu. Otherwise (or if missing) fall through to the screening check.
-        const enrollmentResp = await axios.get(
-          `${baseUrl}prep/enrollment/open/patients/${personId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const openInitiationType = enrollmentResp?.data?.enrollmentType;
+        // Type-filtered lookup: we need the latest screening AND initiation of
+        // the SELECTED arm (PEP vs PrEP), not the latest of any type. The
+        // "open" endpoints return whichever is latest by date, which is wrong
+        // when the patient has activity on both arms.
+        //
+        // 1) Pull all initiations for this person, keep the ones whose
+        //    enrollment type matches the selected arm, pick the most recent.
+        //    If that initiation exists AND isn't archived/stopped, the
+        //    workflow is past initiation → show the full menu.
+        // 2) Otherwise pull all screenings and find the latest of the matching
+        //    arm that hasn't yet been linked to an initiation. That's the
+        //    "open screening" — surface the Initiation menu item.
+        const target = normalizeArm(screeningType);
+
+        const sortByDateDesc = (arr, key) =>
+          [...(arr || [])].sort((a, b) => {
+            const da = a?.[key] ? new Date(a[key]).getTime() : 0;
+            const db = b?.[key] ? new Date(b[key]).getTime() : 0;
+            return db - da;
+          });
+
+        const initsResp = await axios
+          .get(`${baseUrl}prep-pep-initiation/person/${personId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .catch(() => ({ data: [] }));
         if (cancelled) return;
-        if (matches(openInitiationType, screeningType)) {
+        const initsOfArm = (initsResp?.data || []).filter(
+          row => !row.archived && normalizeArm(row.enrollmentType) === target
+        );
+        if (initsOfArm.length > 0) {
+          // Workflow is past initiation for this arm.
           setHasOpenScreening(false);
           if (freshWorkflow) setSessionStage("all");
           return;
         }
 
-        // Open screening = a screening saved but with no initiation yet. If its category matches
-        // the selected type, advance to the initiation step. Otherwise restart at screening so a
-        // user switching from PrEP → PEP gets a PEP screening, not a stale PrEP initiation.
-        const eligibilityResp = await axios.get(
-          `${baseUrl}prep/eligibility/open/patients/${personId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const openScreeningCategory = eligibilityResp?.data?.category;
+        const screeningsResp = await axios
+          .get(`${baseUrl}prep-eligibility-screening/person/${personId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .catch(() => ({ data: [] }));
         if (cancelled) return;
-        if (matches(openScreeningCategory, screeningType)) {
+        const screeningsOfArm = sortByDateDesc(
+          (screeningsResp?.data || []).filter(
+            row => !row.archived && normalizeArm(row.category) === target
+          ),
+          "visitDate"
+        );
+        // The latest screening of this arm exists → expose Initiation entry.
+        if (screeningsOfArm.length > 0) {
           setHasOpenScreening(true);
           if (freshWorkflow) setSessionStage("initiation");
           return;
@@ -188,16 +263,23 @@ function PatientCard(props) {
       setSessionStage("initiation");
     }
   };
-  const onInitiationSaved = () => {
-    PatientObject();
+  const onInitiationSaved = async () => {
     setHasOpenScreening(false);
     if (freshWorkflow && sessionStage === "initiation") {
       setSessionStage("all");
     }
+    // Await so the freshly-saved initiation is reflected in patientDetail
+    // before the dashboard re-renders the STATUS line. Without await, the
+    // chip can stay on the pre-save status until the next manual refresh.
+    await PatientObject();
   };
 
   async function PatientObject() {
-    axios
+    // Returns the axios promise so callers (form save handlers) can `await`
+    // it and ensure patientDetail is fresh before navigating away — without
+    // the await, the dashboard would render stale prepStatus right after
+    // a discontinuation save.
+    return axios
       .get(
         `${baseUrl}prep/persons/${
           patientObjLocation.personId || patientObjLocation.id
@@ -214,6 +296,45 @@ function PatientCard(props) {
 
   return (
     <div className={classes.root}>
+      <Dialog
+        open={otherArmModalOpen}
+        onClose={() => setOtherArmModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ style: { borderRadius: "0.5rem" } }}
+      >
+        <DialogTitle
+          disableTypography
+          style={{
+            background: "#b91c1c",
+            color: "#fff",
+            padding: "0.75rem 1rem",
+          }}
+        >
+          <span style={{ fontSize: "1rem", fontWeight: 600 }}>
+            {requestedArmLabel} services unavailable
+          </span>
+        </DialogTitle>
+        <DialogContent style={{ padding: "1.25rem", fontSize: "0.95rem" }}>
+          {requestedArmLabel} services are not available for this patient because
+          they are currently receiving {activeOtherArmLabel} service. Discontinue
+          the active {activeOtherArmLabel} enrollment before starting any
+          {" "}{requestedArmLabel} form.
+        </DialogContent>
+        <DialogActions style={{ padding: "0.5rem 1rem" }}>
+          <MuiButton
+            onClick={() => setOtherArmModalOpen(false)}
+            variant="contained"
+            style={{
+              backgroundColor: "rgb(153, 46, 98)",
+              color: "#fff",
+              textTransform: "uppercase",
+            }}
+          >
+            Okay
+          </MuiButton>
+        </DialogActions>
+      </Dialog>
       <div
         className="row page-titles mx-0"
         style={{ marginTop: "0px", marginBottom: "-10px" }}

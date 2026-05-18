@@ -860,4 +860,30 @@
         </sql>
     </changeSet>
 
+    <!-- Adds client_hts_code and pregnancy_status to prophylaxis_screening so
+         the eligibility screening form can persist the HTS-side identifiers
+         (currently saving as null on the backend even though the frontend
+         collects them). Idempotent; safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="add-client-hts-code-and-pregnancy-to-prophylaxis-screening">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS client_hts_code  VARCHAR(64);
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS pregnancy_status VARCHAR(64);
+        </sql>
+    </changeSet>
+
+    <!-- Adds date_defaulted to prophylaxis_interruptions so the
+         discontinuations/interruptions form can record the date a client
+         defaulted (separate from interruption_date, which is reserved for
+         the "Stopped" interruption type). Other dates already exist:
+         date_client_died (Dead), date_client_referred_out (Referred),
+         date_sero_converted (Seroconverted). Idempotent; safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="add-date-defaulted-to-prophylaxis-interruptions">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_interruptions
+                ADD COLUMN IF NOT EXISTS date_defaulted DATE;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

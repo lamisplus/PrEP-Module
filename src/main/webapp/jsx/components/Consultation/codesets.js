@@ -10,6 +10,9 @@
  * Regimen  items use { id, regimen, code }   to match the API contract.
  */
 
+import axios from "axios";
+import { token, url as baseUrl } from "../../../api";
+
 // ---------------------------------------------------------------------------
 // Codeset helpers  (sync – kept for any code that still calls them directly)
 // ---------------------------------------------------------------------------
@@ -225,11 +228,23 @@ export function getPepHivStatusAtExposureOptions() {
   ];
 }
 
+// Synchronous variant — kept for callers (like fetchAllCodesets toApiShape)
+// that need data immediately on first render. Live PEP regimens from the API
+// are fetched via fetchPepRegimens() below.
 export function getPepRegimenOptions() {
-  return [
-    { value: "PEP_REGIMEN_TDF_3TC_DTG", label: "TDF/3TC/DTG" },
-    { value: "PEP_REGIMEN_OTHERS", label: "Others" },
-  ];
+  return ALL_REGIMENS
+    .filter(r => r.enrollmentType === "PEP")
+    .map(r => ({ value: r.code, label: r.regimen }));
+}
+
+/**
+ * Live PEP regimens preferring the PEP_REGIMEN codeset, falling back to the
+ * hardcoded PEP subset of ALL_REGIMENS. Shape mirrors getPepRegimenOptions().
+ */
+export async function fetchPepRegimens() {
+  const live = await fetchRegimenCodesetGroup("PEP_REGIMEN");
+  if (live) return live.map(r => ({ value: r.code, label: r.regimen }));
+  return getPepRegimenOptions();
 }
 
 export function getPepFollowupHivTestResultOptions() {
@@ -349,41 +364,86 @@ export function fetchAllCodesets() {
 }
 
 /**
- * Master regimen list backed by the PREP_REGIMEN codeset.
- * The `id` values feed the regimenId form field; `code` is the canonical
- * codeset code that gets persisted. `types` drives the per-PrEP-Type filter
- * (see fetchPrepRegimenByType).
+ * Master regimen list backed by the PREP_REGIMEN + PEP_REGIMEN codesets,
+ * joined into a single source of truth so callers don't have to reconcile
+ * two lists. The `id` values feed the regimenId form field; `code` is the
+ * canonical codeset code that gets persisted. `enrollmentType` lets callers
+ * pick the right subset for PrEP or PEP; `types` drives the per-PrEP-Type
+ * filter (see fetchPrepRegimenByType — oral vs injectible).
  */
 const ALL_REGIMENS = [
-  { id: 1, regimen: "TDF/FTC",      code: "PREP_REGIMEN_TDF_FTC",      types: ["PREP_TYPE_ORAL"] },
-  { id: 2, regimen: "TDF/3TC",      code: "PREP_REGIMEN_TDF_3TC",      types: ["PREP_TYPE_ORAL"] },
-  { id: 3, regimen: "Cabotegravir", code: "PREP_REGIMEN_CABOTEGRAVIR", types: ["PREP_TYPE_INJECTIBLES"] },
-  { id: 4, regimen: "Lenacapavir",  code: "PREP_REGIMEN_LENACAPAVIR",  types: ["PREP_TYPE_INJECTIBLES"] },
+  { id: 1, regimen: "TDF/FTC",      code: "PREP_REGIMEN_TDF_FTC",      enrollmentType: "PrEP", types: ["PREP_TYPE_ORAL"] },
+  { id: 2, regimen: "TDF/3TC",      code: "PREP_REGIMEN_TDF_3TC",      enrollmentType: "PrEP", types: ["PREP_TYPE_ORAL"] },
+  { id: 3, regimen: "Cabotegravir", code: "PREP_REGIMEN_CABOTEGRAVIR", enrollmentType: "PrEP", types: ["PREP_TYPE_INJECTIBLES"] },
+  { id: 4, regimen: "Lenacapavir",  code: "PREP_REGIMEN_LENACAPAVIR",  enrollmentType: "PrEP", types: ["PREP_TYPE_INJECTIBLES"] },
+  // PEP regimens. Joint into the same list so the master is single-source.
+  { id: 5, regimen: "TDF/FTC",      code: "PEP_REGIMEN_TDF_FTC",       enrollmentType: "PEP",  types: [] },
 ];
 
-/** Strip the internal `types` key before returning to callers. */
-function stripTypes(list) {
-  return list.map(({ types, ...rest }) => rest);
+/** Strip the internal `types`/`enrollmentType` keys before returning to callers. */
+function stripInternal(list) {
+  return list.map(({ types, enrollmentType, ...rest }) => rest);
+}
+
+// ---------------------------------------------------------------------------
+// Live regimen fetching from the application-codesets API
+// ---------------------------------------------------------------------------
+//
+// fetchPrepRegimens / fetchPrepRegimenByType / getPepRegimenOptions all hit
+// the codesets API (PREP_REGIMEN, PEP_REGIMEN) when available, falling back
+// to the hardcoded ALL_REGIMENS list above when the API errors out or returns
+// nothing. The "Injectibles vs Orals" filter is derived from the canonical
+// code (Cabotegravir/Lenacapavir → injectibles), since the codeset itself
+// doesn't expose that classification.
+
+const INJECTIBLE_CODE_FRAGMENTS = ["CABOTEGRAVIR", "LENACAPAVIR"];
+
+function isInjectibleCode(code) {
+  if (!code) return false;
+  const upper = String(code).toUpperCase();
+  return INJECTIBLE_CODE_FRAGMENTS.some(frag => upper.includes(frag));
+}
+
+function typesForCode(code) {
+  return isInjectibleCode(code) ? ["PREP_TYPE_INJECTIBLES"] : ["PREP_TYPE_ORAL"];
+}
+
+async function fetchRegimenCodesetGroup(group) {
+  try {
+    const res = await axios.get(
+      `${baseUrl}application-codesets/v2/codeSets?codes=${encodeURIComponent(group)}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const rows = res?.data?.[group];
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    return rows.map(r => ({
+      id: r.id,
+      regimen: r.display,
+      code: r.code,
+      types: typesForCode(r.code),
+    }));
+  } catch (_err) {
+    return null;
+  }
 }
 
 /**
- * Replaces: GET /prep-regimen
- * Returns an array of { id, regimen, code } matching the API shape.
- * @returns {Promise<Array<{id: number, regimen: string, code: string}>>}
+ * Returns PrEP regimens, preferring the live PREP_REGIMEN codeset and
+ * falling back to the hardcoded list above when the API is unreachable.
+ * Shape: { id, regimen, code }.
  */
-export function fetchPrepRegimens() {
-  return Promise.resolve(stripTypes(ALL_REGIMENS));
+export async function fetchPrepRegimens() {
+  const live = await fetchRegimenCodesetGroup("PREP_REGIMEN");
+  if (live) return stripInternal(live);
+  return stripInternal(ALL_REGIMENS.filter(r => r.enrollmentType === "PrEP"));
 }
 
 /**
- * Replaces: GET /prep-regimen/prepType?prepType={prepType}
- * Filters regimens by PrEP type.
- * @param {string} prepType
- * @returns {Promise<Array<{id: number, regimen: string, code: string}>>}
+ * Live-filtered PrEP regimens by PrEP type (oral vs injectibles).
  */
-export function fetchPrepRegimenByType(prepType) {
-  const filtered = ALL_REGIMENS.filter(r => r.types.includes(prepType));
-  return Promise.resolve(stripTypes(filtered));
+export async function fetchPrepRegimenByType(prepType) {
+  const all = await fetchPrepRegimens();
+  return all.filter(r => (r.types || typesForCode(r.code)).includes(prepType));
 }
 
 /**
@@ -399,11 +459,16 @@ export function getInterruptionTypeOptions() {
   ];
 }
 
+// Returns CAB-LA refill durations keyed by the canonical codeset code so the
+// dropdown value matches what's persisted on prep_followup_visit.months_of_refill
+// and view/edit autopopulates instead of going blank. `months` lets the
+// next-appointment math add the right number of months (30 days = 1 month,
+// 60 days = 2 months, 90 days = 3 months).
 export function fetchCabLaRefillDurations() {
   return Promise.resolve([
-    { code: "30", display: "30" },
-    { code: "60", display: "60" },
-    { code: "90", display: "90" },
+    { code: "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30", display: "1 month (30 days)", months: 1 },
+    { code: "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60", display: "2 months (60 days)", months: 2 },
+    { code: "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90", display: "3 months (90 days)", months: 3 },
   ]);
 }
 

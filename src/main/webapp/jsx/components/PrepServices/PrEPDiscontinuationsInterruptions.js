@@ -25,7 +25,14 @@ const PrEPDiscontinuationsInterruptions = props => {
   );
   const [objValues, setObjValues] = useState({
     interruptionType: "",
-    interruptionDate: "",
+    // Distinct date fields per interruption type. interruptionDate (Date
+    // Stopped) is kept for backward compatibility but only used when the
+    // selected type is "Stopped"; the rest map 1:1 to new columns.
+    interruptionDate: "",     // Date Stopped (Stopped)
+    dateDefaulted: "",        // Date Defaulted (Default)
+    dateOfDeath: "",          // Date of Death (Dead) — paired with dateClientDied below
+    dateReferred: "",         // Date Referred (Referred) — paired with dateClientReferredOut below
+    dateSeroConverted: "",    // Date Seroconverted (Seroconverted)
     why: "",
     dateRestartPlacedBackMedication: "",
     pepCompletion: "",
@@ -52,9 +59,16 @@ const PrEPDiscontinuationsInterruptions = props => {
   const isDefault = objValues.interruptionType?.toLowerCase().includes("default");
   const isDead = objValues.interruptionType?.toLowerCase().includes("dead");
   const isReferred = objValues.interruptionType?.toLowerCase().includes("referred");
-  const showStoppedDefaultFields = isStopped || isDefault;
+  const isSeroconverted = objValues.interruptionType
+    ?.toLowerCase().includes("seroconvert");
+  // Each interruption type now has its own date input; the legacy
+  // "showStoppedDefaultFields" lumping is gone so Default no longer reuses
+  // the Date Stopped label.
+  const showStoppedFields = isStopped;
+  const showDefaultFields = isDefault;
   const showDeadFields = isDead;
   const showReferredFields = isReferred;
+  const showSeroconvertedFields = isSeroconverted;
   // pepCompletion is persisted as a YES_NO codeset code (YES_NO_YES /
   // YES_NO_NO) so the backend PEP-tab query can match exact codes.
   const showFollowUpVisitDate = objValues.pepCompletion === "YES_NO_YES";
@@ -90,9 +104,19 @@ const PrEPDiscontinuationsInterruptions = props => {
       )
       .then(response => {
         setPatientDto(response.data);
-        // Only override enrollmentType from patientDto if no route-based type was provided
+        // Only override enrollmentType from patientDto if no route-based type was provided.
+        // Normalize the canonical code to a short label (PrEP/PEP) the rest of
+        // the component compares against — same caveat as the load path:
+        // both canonical codes contain "PEP" as a substring, so suffix-check.
         if (!screeningTypeFromRoute && response.data?.enrollmentType) {
-          setEnrollmentType(response.data.enrollmentType);
+          const raw = String(response.data.enrollmentType).toUpperCase().trim();
+          if (raw === "PEP" || raw.endsWith("_PEP")) {
+            setEnrollmentType("PEP");
+          } else if (raw === "PREP" || raw.endsWith("_PREP")) {
+            setEnrollmentType("PrEP");
+          } else {
+            setEnrollmentType(response.data.enrollmentType);
+          }
         }
       })
       .catch(error => {
@@ -107,7 +131,24 @@ const PrEPDiscontinuationsInterruptions = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        setObjValues(response.data);
+        const data = response.data || {};
+        // Preserve existing keys (e.g. personId default) and merge in the
+        // loaded record so view/update renders every entered value.
+        setObjValues(prev => ({ ...prev, ...data }));
+        // Normalize the canonical enrollment type into the short label this
+        // component compares against (drives isPEP / showFollowUpVisitDate /
+        // hivResult / pepCompletion visibility). Both canonical codes
+        // (PREP_PEP_ENROLLMENT_TYPE_PEP and ..._PREP) contain "PEP" and
+        // "PREP" as substrings, so check the suffix instead.
+        const raw = data.enrollmentType;
+        if (raw) {
+          const upper = String(raw).toUpperCase().trim();
+          if (upper === "PEP" || upper.endsWith("_PEP")) {
+            setEnrollmentType("PEP");
+          } else if (upper === "PREP" || upper.endsWith("_PREP")) {
+            setEnrollmentType("PrEP");
+          }
+        }
       })
       .catch(error => {
         //console.log(error);
@@ -124,6 +165,10 @@ const PrEPDiscontinuationsInterruptions = props => {
         ...prev,
         [name]: value,
         interruptionDate: "",
+        dateDefaulted: "",
+        dateOfDeath: "",
+        dateReferred: "",
+        dateSeroConverted: "",
         why: "",
         dateRestartPlacedBackMedication: "",
         dateClientDied: "",
@@ -156,19 +201,34 @@ const PrEPDiscontinuationsInterruptions = props => {
         : "This field is required";
     }
 
-    // Stopped/Default fields
-    if (showStoppedDefaultFields) {
+    // Stopped fields
+    if (showStoppedFields) {
       temp.interruptionDate = objValues.interruptionDate
         ? ""
         : "This field is required";
       temp.why = objValues.why ? "" : "This field is required";
     }
 
-    // Dead fields
-    if (showDeadFields) {
-      temp.dateClientDied = objValues.dateClientDied
+    // Default fields — independent of Stopped: distinct date column.
+    if (showDefaultFields) {
+      temp.dateDefaulted = objValues.dateDefaulted
         ? ""
         : "This field is required";
+      temp.why = objValues.why ? "" : "This field is required";
+    }
+
+    // Seroconverted fields
+    if (showSeroconvertedFields) {
+      temp.dateSeroConverted = objValues.dateSeroConverted
+        ? ""
+        : "This field is required";
+    }
+
+    // Dead fields — `dateClientDied` is explicitly exempt from the required
+    // checklist (per the spec), so don't enforce it. Source/Cause stay
+    // required because they're the substantive fields for the Dead branch.
+    if (showDeadFields) {
+      temp.dateClientDied = "";
       temp.sourceOfDeathInfo = objValues.sourceOfDeathInfo
         ? ""
         : "This field is required";
@@ -217,6 +277,24 @@ const PrEPDiscontinuationsInterruptions = props => {
       toEnrollmentTypeCode(enrollmentType) || ENROLLMENT_TYPE_PREP;
     objValues.previousPrepStatus = props.patientObj?.prepStatus;
     objValues.enrollmentType = canonicalEnrollmentType;
+    // Mirror the type-specific date into interruptionDate so the dashboard's
+    // prepStatus SQL (which compares prepi.interruption_date to the latest
+    // follow-up encounter_date) flips immediately after save — without this,
+    // a "Default" record only sets dateDefaulted and the status stays stale.
+    // For PEP Completion the form doesn't ask for an interruptionDate at all,
+    // so fall back to followUpVisitDate; without a date we'd save NULL and
+    // the uniqueness check (date + person) collides with any prior NULL row.
+    if (!objValues.interruptionDate) {
+      objValues.interruptionDate =
+        objValues.dateDefaulted
+        || objValues.dateClientDied
+        || objValues.dateClientReferredOut
+        || objValues.dateSeroConverted
+        || objValues.dateOfDeath
+        || objValues.dateReferred
+        || objValues.followUpVisitDate
+        || "";
+    }
     setSaving(true);
 
     let resolvedEnrollmentUuid = null;
@@ -250,10 +328,10 @@ const PrEPDiscontinuationsInterruptions = props => {
             headers: { Authorization: `Bearer ${token}` },
           }
         )
-        .then(response => {
+        .then(async response => {
           setSaving(false);
           toast.success(`${enrollmentType === 'PEP' ? 'PEP completion' : 'PrEP discontinuation/interruption'} updated successfully!`);
-          props.PatientObject();
+          if (props.PatientObject) await props.PatientObject();
           props.setActiveContent({
             ...props.activeContent,
             route: "recent-history",
@@ -268,10 +346,10 @@ const PrEPDiscontinuationsInterruptions = props => {
         .post(`${baseUrl}prep/interruption`, objValues, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then(response => {
+        .then(async response => {
           setSaving(false);
           toast.success(`${enrollmentType === 'PEP' ? 'PEP completion' : 'PrEP discontinuation/interruption'} saved successfully!`);
-          props.PatientObject();
+          if (props.PatientObject) await props.PatientObject();
           props.setActiveContent({
             ...props.activeContent,
             route: "recent-history",
@@ -340,8 +418,8 @@ const PrEPDiscontinuationsInterruptions = props => {
                 </div>
               )}
 
-              {/* Stopped/Default fields: Date Stopped, Why, Date of Restart */}
-              {showStoppedDefaultFields && (
+              {/* Stopped fields: Date Stopped, Why, Date of Restart (PEP) */}
+              {showStoppedFields && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
@@ -419,14 +497,95 @@ const PrEPDiscontinuationsInterruptions = props => {
                 </>
               )}
 
+              {/* Default fields: Date Defaulted + Why. Distinct from Stopped
+                  so the date column stores the defaulted-on date, not the
+                  stopped-on date. */}
+              {showDefaultFields && (
+                <>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Date Defaulted <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="date"
+                        name="dateDefaulted"
+                        id="dateDefaulted"
+                        onKeyDown={e => e.preventDefault()}
+                        min={minDate}
+                        max={today}
+                        onChange={handleInputChange}
+                        value={objValues.dateDefaulted}
+                        disabled={disabledField}
+                      />
+                      {errors.dateDefaulted !== "" ? (
+                        <span className={classes.error}>
+                          {errors.dateDefaulted}
+                        </span>
+                      ) : ""}
+                    </FormGroup>
+                  </div>
+
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Why <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="select"
+                        name="why"
+                        id="why"
+                        onChange={handleInputChange}
+                        value={objValues.why}
+                        disabled={disabledField}
+                      >
+                        <option value="">Select</option>
+                        {(codeset?.PREP_DISCONTINUATION_REASON || []).map(item => (
+                          <option key={item.code} value={item.code}>{item.display}</option>
+                        ))}
+                      </Input>
+                      {errors.why !== "" ? (
+                        <span className={classes.error}>{errors.why}</span>
+                      ) : ""}
+                    </FormGroup>
+                  </div>
+                </>
+              )}
+
+              {/* Seroconverted: just the date the client seroconverted. */}
+              {showSeroconvertedFields && (
+                <div className="form-group mb-3 col-md-6">
+                  <FormGroup>
+                    <Label>
+                      Date Seroconverted <span style={{ color: "red" }}>*</span>
+                    </Label>
+                    <Input
+                      type="date"
+                      name="dateSeroConverted"
+                      id="dateSeroConverted"
+                      onKeyDown={e => e.preventDefault()}
+                      min={minDate}
+                      max={today}
+                      onChange={handleInputChange}
+                      value={objValues.dateSeroConverted}
+                      disabled={disabledField}
+                    />
+                    {errors.dateSeroConverted !== "" ? (
+                      <span className={classes.error}>
+                        {errors.dateSeroConverted}
+                      </span>
+                    ) : ""}
+                  </FormGroup>
+                </div>
+              )}
+
               {/* Dead fields: Date Client Died, Source of Death Information */}
               {showDeadFields && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
                       <Label>
-                        Date Client Died{" "}
-                        <span style={{ color: "red" }}>*</span>
+                        Date Client Died
                       </Label>
                       <Input
                         type="date"

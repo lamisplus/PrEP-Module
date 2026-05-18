@@ -154,6 +154,8 @@ const CheckedInPatients = props => {
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
+                      borderRight: "0.0625rem solid rgba(255,255,255,0.4)",
+                      borderRadius: 0,
                     }}
                   >
                     <Dashboard
@@ -168,6 +170,7 @@ const CheckedInPatients = props => {
                       width: "100%",
                       color: "#fff",
                       fontWeight: "bolder",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Patient Dashboard
@@ -182,6 +185,8 @@ const CheckedInPatients = props => {
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
+                      borderRight: "0.0625rem solid rgba(255,255,255,0.4)",
+                      borderRadius: 0,
                     }}
                   >
                     <Dashboard
@@ -196,6 +201,7 @@ const CheckedInPatients = props => {
                       width: "100%",
                       color: "#fff",
                       fontWeight: "bolder",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Patient Dashboard
@@ -210,6 +216,8 @@ const CheckedInPatients = props => {
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
+                      borderRight: "0.0625rem solid rgba(255,255,255,0.4)",
+                      borderRadius: 0,
                     }}
                   >
                     <TiArrowForward
@@ -224,6 +232,7 @@ const CheckedInPatients = props => {
                       width: "100%",
                       color: "#fff",
                       fontWeight: "bolder",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Enroll patient

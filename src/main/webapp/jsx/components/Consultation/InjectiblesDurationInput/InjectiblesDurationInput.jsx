@@ -35,7 +35,7 @@ const InjectiblesDurationInput = ({
         >
           <option value={''}>Select Duration</option>
           {durationOfRefillOptions.map(({ display, code }) => (
-            <option key={code} value={code}>{`${display} days`}</option>
+            <option key={code} value={code}>{display}</option>
           ))}
         </Input>
       </div>

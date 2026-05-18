@@ -45,6 +45,15 @@ public class ProphylaxisInterruption extends Audit implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate interruptionDate;
 
+    /**
+     * Date the client defaulted on prophylaxis. Distinct from interruption_date
+     * (Date Stopped) — the latter is reserved for the "Stopped" interruption
+     * type so reports don't conflate the two events.
+     */
+    @Column(name = "date_defaulted")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate dateDefaulted;
+
     @Column(name = "interruption_reason")
     private String interruptionReason;
 
