@@ -52,7 +52,7 @@ const STANDARD_DRUGS = [
   { code: "amphetamine", label: "Amphetamine" },
   { code: "codeineSyrup", label: "Codeine/Syrup" },
 ];
-const ROUTES_OF_ADMINISTRATION = ["Sniff", "Snort", "Smoke", "Inject", "Other"];
+const ROUTES_OF_ADMINISTRATION = ["Sniff", "Snort", "Smoke", "Inject"];
 
 // Legacy drug_use_history records were a flat object mixing drug Yes/No flags,
 // route Yes/No flags, useDrugSexualPerformance, and HIV testing fields. Convert
