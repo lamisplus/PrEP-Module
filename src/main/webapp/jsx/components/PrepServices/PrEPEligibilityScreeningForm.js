@@ -448,6 +448,7 @@ const BasicInfo = props => {
   };
 
   const toggleRoute = (drugLabel, route) => {
+    setErrors({ ...temp, drugUseHistory: "" });
     setDrugUseHistory(prev => prev.map(d => {
       if (d.drug !== drugLabel) return d;
       const routes = d.routesOfAdministration || [];
@@ -605,6 +606,13 @@ const BasicInfo = props => {
     temp.useDrugSexualPerformance = objValues.useDrugSexualPerformance
       ? ""
       : "This field is required";
+    // Every checked drug must have at least one route of administration.
+    const drugsMissingRoute = drugUseHistory
+      .filter(d => !(d.routesOfAdministration && d.routesOfAdministration.length))
+      .map(d => d.drug);
+    temp.drugUseHistory = drugsMissingRoute.length
+      ? `Select route of administration for: ${drugsMissingRoute.join(", ")}`
+      : "";
     // HIV Testing subsection — required fields are namespaced under
     // hivTesting.* so existing UI error rendering can target them individually.
     [
@@ -728,6 +736,7 @@ const BasicInfo = props => {
         hivTestResultAtvisit: "HIV Test Result at Visit",
         useDrugSexualPerformance:
           "Have you used drugs to enhance sexual performance?",
+        drugUseHistory: "Drug Use History — route of administration",
         "hivTesting.recommendHivRetest": "Recommended for HIV Retest?",
         "hivTesting.clinicalSetting":
           "Tested in other clinical settings such as STI clinic",
@@ -1767,6 +1776,15 @@ const BasicInfo = props => {
                   );
                 });
               })()}
+
+              {errors.drugUseHistory ? (
+                <div
+                  className="col-md-12"
+                  style={{ padding: "0.5rem 1rem 0" }}
+                >
+                  <span className={classes.error}>{errors.drugUseHistory}</span>
+                </div>
+              ) : ""}
 
               <div className="col-md-12" style={{ padding: "0.75rem 1rem" }}>
                 {!showCustomDrugInput ? (
