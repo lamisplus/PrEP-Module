@@ -1673,7 +1673,7 @@ const BasicInfo = props => {
                   marginBottom: "0.5rem",
                 }}
               >
-                Do you use any of these drugs/substances? Check each drug used, then check the route(s) of administration.
+                Do you use any of these drugs/substances? Check each drug used, then check the route(s) of administration <span style={{ color: "red" }}>*</span>.
               </h5>
 
               {(() => {
@@ -1687,6 +1687,7 @@ const BasicInfo = props => {
                 return allRows.map(({ key, label, isCustom }) => {
                   const entry = drugUseHistory.find(d => d.drug === label);
                   const checked = !!entry;
+                  const missingRoute = checked && !(entry.routesOfAdministration && entry.routesOfAdministration.length);
                   return (
                     <div
                       key={key}
@@ -1720,40 +1721,50 @@ const BasicInfo = props => {
                         <span>{label}</span>
                       </label>
                       {checked && (
-                        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                          {ROUTES_OF_ADMINISTRATION.map(route => {
-                            const routeChecked = (entry.routesOfAdministration || []).includes(route);
-                            return (
-                              <label
-                                key={route}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "0.35rem",
-                                  marginBottom: 0,
-                                  cursor: disabledField ? "default" : "pointer",
-                                }}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={routeChecked}
-                                  disabled={disabledField}
-                                  onChange={() => toggleRoute(label, route)}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+                            <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>
+                              Route of Administration <span style={{ color: "red" }}>*</span>
+                            </span>
+                            {ROUTES_OF_ADMINISTRATION.map(route => {
+                              const routeChecked = (entry.routesOfAdministration || []).includes(route);
+                              return (
+                                <label
+                                  key={route}
                                   style={{
-                                    width: "16px",
-                                    height: "16px",
-                                    borderRadius: "50%",
-                                    appearance: "none",
-                                    WebkitAppearance: "none",
-                                    border: "1px solid #adb5bd",
-                                    backgroundColor: routeChecked ? "#014D88" : "#fff",
-                                    boxShadow: routeChecked ? "inset 0 0 0 3px #fff" : "none",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.35rem",
+                                    marginBottom: 0,
+                                    cursor: disabledField ? "default" : "pointer",
                                   }}
-                                />
-                                <span style={{ fontSize: "0.9rem" }}>{route}</span>
-                              </label>
-                            );
-                          })}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={routeChecked}
+                                    disabled={disabledField}
+                                    onChange={() => toggleRoute(label, route)}
+                                    style={{
+                                      width: "16px",
+                                      height: "16px",
+                                      borderRadius: "50%",
+                                      appearance: "none",
+                                      WebkitAppearance: "none",
+                                      border: `1px solid ${missingRoute ? "#dc3545" : "#adb5bd"}`,
+                                      backgroundColor: routeChecked ? "#014D88" : "#fff",
+                                      boxShadow: routeChecked ? "inset 0 0 0 3px #fff" : "none",
+                                    }}
+                                  />
+                                  <span style={{ fontSize: "0.9rem" }}>{route}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                          {missingRoute && (
+                            <span style={{ color: "#dc3545", fontSize: "0.8rem" }}>
+                              Please select at least one route of administration
+                            </span>
+                          )}
                         </div>
                       )}
                       {isCustom && checked && !disabledField && (
