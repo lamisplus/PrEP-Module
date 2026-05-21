@@ -76,7 +76,6 @@ public class PrepClinicRequestDto implements Serializable {
 
     private String riskReductionServices;
 
-    private String notedSideEffects;
     private Object prepNotedSideEffects;
     private String healthCareWorkerSignature;
 
