@@ -329,6 +329,18 @@ export function fetchAllCodesets() {
       { value: "PrEP_ENTRY_POINT_TRANSFER_IN", label: "Transfer In" },
     ]),
     // Codesets used by Eligibility Screening form
+    // Drives the "Referred From" / entry-point select. Offline fallback only —
+    // when the codeset API is reachable, the seeded PREP_SOURCE_REFERRAL group
+    // is the source of truth. Codes here MUST match the seeded codeset so a
+    // value picked offline still resolves to a label later.
+    PREP_SOURCE_REFERRAL: toApiShape([
+      { value: "PREP_SOURCE_REFERRAL_COMMUNITY", label: "Community" },
+      { value: "PREP_SOURCE_REFERRAL_FACILITY", label: "Facility" },
+      { value: "PREP_SOURCE_REFERRAL_OUTREACH", label: "Outreach" },
+      { value: "PREP_SOURCE_REFERRAL_INDEX_TESTING", label: "Index Testing" },
+      { value: "PREP_SOURCE_REFERRAL_SELF_REFERRAL", label: "Self Referral" },
+      { value: "PREP_SOURCE_REFERRAL_OTHER", label: "Other" },
+    ]),
     COUNSELING_TYPE: toApiShape([
       { value: "COUNSELING_TYPE_PRE_TEST", label: "Pre-test counselling" },
       { value: "COUNSELING_TYPE_POST_TEST", label: "Post-test counselling" },

@@ -953,7 +953,7 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value="">Select</option>
-                    {(codeset?.SOURCE_REFERRAL_LIP || []).map(item => (
+                    {(codeset?.PREP_SOURCE_REFERRAL || []).map(item => (
                       <option key={item.code} value={item.code}>{item.display}</option>
                     ))}
                   </select>

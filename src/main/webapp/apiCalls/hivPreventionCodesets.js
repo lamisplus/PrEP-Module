@@ -65,7 +65,7 @@ function pruneEmpty(obj) {
 // Eligibility Screening form
 // API codes: PrEP_VISIT_TYPE, POPULATION_TYPE, COUNSELING_TYPE,
 //            REASON_PREP_DECLINED, PREP_SETTINGS (→ settingOptions),
-//            SOURCE_REFERRAL_LIP (drives the "Referred From" / entry-point
+//            PREP_SOURCE_REFERRAL (drives the "Referred From" / entry-point
 //            select).
 // ---------------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ export async function fetchEligibilityScreeningCodesets() {
       "PREGNANCY_STATUS",
       "TIME_LAST_NEGATIVE_TEST_RESULT",
       "HIV_TEST_RESULT",
-      "SOURCE_REFERRAL_LIP",
+      "PREP_SOURCE_REFERRAL",
       "SEX",
       "YES_NO",
     ]);
