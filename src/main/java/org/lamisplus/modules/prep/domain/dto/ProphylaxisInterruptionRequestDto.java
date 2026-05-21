@@ -30,9 +30,10 @@ public class ProphylaxisInterruptionRequestDto implements Serializable {
     private String reasonForPrepDiscontinuation;
     private String previousPrepStatus;
     private String previousPepStatus;
+    private String enrollmentType;
     private String why;
     private String pepCompletion;
     private LocalDate followUpVisitDate;
-    private String hivResult;
+    private String htsEncounterUuid;
     private String earlyDetectViralLoadResult;
 }

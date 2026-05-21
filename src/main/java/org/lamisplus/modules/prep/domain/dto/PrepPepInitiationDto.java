@@ -23,13 +23,11 @@ public class PrepPepInitiationDto implements Serializable {
     private String supporterRelationshipType;
     private String supporterPhone;
     private boolean isCommenced;
-    private String status;
     private String htsEncounterUuid;
     private String enrollmentType;
     private String populationType;
     private Double weight;
     private Double height;
-    private String breastFeeding;
     private String historyOfDrugAllergies;
     private String historyOfDrugToDrugInteraction;
     private String urinalysisResult;

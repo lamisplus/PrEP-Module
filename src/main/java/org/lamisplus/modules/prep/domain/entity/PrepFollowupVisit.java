@@ -105,27 +105,6 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "duration")
     private Integer duration;
 
-    @Column(name = "date_prep_start")
-    private LocalDate datePrepStart;
-
-    @Column(name = "date_prep_given")
-    private LocalDate datePrepGiven;
-
-    @Column(name = "prep_given")
-    private String prepGiven;
-
-    @Column(name = "other_prep_given")
-    private String otherPrepGiven;
-
-    @Column(name = "other_prep_type")
-    private String otherPrepType;
-
-    @Column(name = "was_prep_administered")
-    private String wasPrepAdministered;
-
-    @Column(name = "prep_distribution_setting")
-    private String prepDistributionSetting;
-
     @Column(name = "months_of_refill")
     private Integer monthsOfRefill;
 
@@ -141,9 +120,6 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "other_reason_for_poor_fair_adherence")
     private String otherReasonForPoorFairAdherence;
 
-    @Column(name = "date_initial_adherence_counseling")
-    private LocalDate dateInitialAdherenceCounseling;
-
     @Column(name = "sti_screening")
     private Boolean stiScreening;
 
@@ -152,17 +128,11 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "syndromic_sti_screening", columnDefinition = "jsonb")
     private Object syndromicStiScreening;
 
-    @Column(name = "syndromic_screening")
-    private String syndromicScreening;
-
     @Column(name = "other_syndromic_sti_screening")
     private String otherSyndromicStiScreening;
 
     @Column(name = "risk_reduction_services")
     private String riskReductionServices;
-
-    @Column(name = "noted_side_effects")
-    private String notedSideEffects;
 
     @Column(name = "other_noted_side_effects")
     private String otherNotedSideEffects;
@@ -176,17 +146,6 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "urinalysis", columnDefinition = "jsonb")
     private Object urinalysis;
-
-    @Column(name = "urinalysis_result")
-    private String urinalysisResult;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "creatinine", columnDefinition = "jsonb")
-    private Object creatinine;
-
-    @Column(name = "creatinine_result")
-    private String creatinineResult;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
@@ -203,46 +162,14 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "other_tests_done", columnDefinition = "jsonb")
     private Object otherTestsDone;
 
-    @Column(name = "date_of_liver_function_test_results")
-    private LocalDate dateLiverFunctionTestResults;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "liver_function_test_results", columnDefinition = "jsonb")
-    private Object liverFunctionTestResults;
-
-    @Column(name = "family_planning")
-    private String familyPlanning;
-
-    @Column(name = "date_of_family_planning")
-    private LocalDate dateOfFamilyPlanning;
-
     @Column(name = "other_drugs")
     private String otherDrugs;
-
-    @Column(name = "history_of_drug_to_drug_interaction")
-    private String historyOfDrugToDrugInteraction;
-
-    @Column(name = "history_of_drug_allergies")
-    private String historyOfDrugAllergies;
 
     @Column(name = "health_care_worker_signature")
     private String healthCareWorkerSignature;
 
-    @Column(name = "comment")
-    private String comment;
-
     @Column(name = "previous_prep_status")
     private String previousPrepStatus;
-
-    @Column(name = "why")
-    private Boolean why;
-
-    @Column(name = "referred")
-    private Boolean referred;
-
-    @Column(name = "date_referred")
-    private LocalDate dateReferred;
 
     @Column(name = "archived")
     private Boolean archived = false;

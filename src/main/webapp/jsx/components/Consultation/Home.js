@@ -21,7 +21,6 @@ import Divider from "@mui/material/Divider";
 import { TiTrash } from "react-icons/ti";
 import DualListBox from "react-dual-listbox";
 import "react-dual-listbox/lib/react-dual-listbox.css";
-import { LiverFunctionTest } from "../PrepServices/PrEPEligibilityScreeningForm";
 import DurationWrapper from "./DurationWrapper/DurationWrapper";
 import { useStyles } from "../../../hooks/styles/prepVisit/useStyle";
 import { Formik } from "formik";
@@ -156,65 +155,42 @@ const buildValidationSchema = (isFemalePatient, isFromHts) =>
 
 const INITIAL_VALUES = {
   adherenceLevel: "",
-  dateInitialAdherenceCounseling: "",
-  datePrepGiven: "",
-  datePrepStart: "",
-  dateReferre: "",
   diastolic: "",
   encounterDate: "",
   height: "",
   hepatitis: {},
   nextAppointment: "",
   prepNotedSideEffects: [],
-  notedSideEffects: "",
-  wasPrepAdministered: "",
   otherTestsDone: [],
   personId: "",
   pregnant: "",
   htsEncounterUuid: "",
   prepEnrollmentUuid: "",
   pulse: "",
-  referred: "",
   regimenId: "",
   otherRegimenId: "",
-  otherPrepGiven: "",
   respiratoryRate: "",
   riskReductionServices: "",
   healthCareWorkerSignature: "",
   stiScreening: "",
   syndromicStiScreening: null,
-  syndromicScreening: "",
   syphilis: {},
   systolic: "",
   temperature: "",
   urinalysis: {},
-  creatinine: {},
-  urinalysisResult: "",
-  creatinineResult: "",
   weight: "",
-  why: "",
   otherDrugs: "",
   otherDrugsPrescribed: "",
   hasOtherDrugs: "",
-  prepGiven: "",
-  hivTestResult: "",
-  hivTestResultDate: "",
   prepType: "",
-  otherPrepType: "",
   populationType: "",
-  prepDistributionSetting: "",
-  familyPlanning: "",
-  dateOfFamilyPlanning: "",
   monthsOfRefill: "",
   visitType: "",
   reasonForSwitch: "",
-  dateLiverFunctionTestResults: "",
-  liverFunctionTestResults: [],
   whyAdherenceLevelPoor: "",
   otherReasonForPoorFairAdherence: "",
   otherSyndromicStiScreening: "",
   otherNotedSideEffects: "",
-  comment: "",
   duration: "",
 };
 
@@ -228,7 +204,6 @@ const ClinicVisit = props => {
   const [codeset, setCodeset] = useState({});
   const [latestFromEligibility, setLatestFromEligibility] = useState(null);
   const [hivTestValue, setHivTestValue] = useState("");
-  const [hivTestResultDate, setHivTestResultDate] = useState("");
 
   // The Patient tab now ships the latest HTS encounter with each row. When
   // present, Pregnancy Status / HTS Result are sourced from it (not collected
@@ -293,7 +268,6 @@ const ClinicVisit = props => {
   });
   const [editingOtherTestIndex, setEditingOtherTestIndex] = useState(null);
   const [showOtherTests, setShowOtherTests] = useState(false);
-  const [liverFunctionTestEnabled, setLiverFunctionTestEnabled] = useState(false);
 
   const [formInitialValues, setFormInitialValues] = useState({
     ...INITIAL_VALUES,
@@ -405,7 +379,6 @@ const ClinicVisit = props => {
         htsObs.confirmatoryHivTest || htsObs.initialHivTest,
         htsObs.typeOfHivTestDone) || ""
     );
-    setHivTestResultDate(latestHts.dateOfVisit || "");
   };
 
   const getPatientDtoObj = () => {
@@ -655,10 +628,6 @@ const ClinicVisit = props => {
     }
   };
 
-  const handleCheckBoxLiverFunctionTest = () => {
-    setLiverFunctionTestEnabled(prev => !prev);
-  };
-
   const otherTestIdCounter = useRef(0);
 
   const handleCheckBoxOtherTest = () => {
@@ -783,15 +752,6 @@ const ClinicVisit = props => {
     ]);
   };
 
-  // ── Liver Function Test handler ──
-
-  const handleLftInputChange = event => {
-    const { name, value } = event.target;
-    if (formikRef.current) {
-      formikRef.current.setFieldValue(name, value);
-    }
-  };
-
   // ── Codeset fetch ──
 
   useEffect(() => {
@@ -868,7 +828,6 @@ const ClinicVisit = props => {
         htsObs.confirmatoryHivTest || htsObs.initialHivTest,
         htsObs.typeOfHivTestDone) || ""
     );
-    setHivTestResultDate(latestHts.dateOfVisit || "");
   }, [latestHts?.uuid]);
 
   useEffect(() => {
@@ -914,8 +873,6 @@ const ClinicVisit = props => {
       formikRef.current.setFieldValue("populationType", "");
       formikRef.current.setFieldValue("visitType", "");
       formikRef.current.setFieldValue("pregnant", "");
-      formikRef.current.setFieldValue("liverFunctionTestResults", []);
-      formikRef.current.setFieldValue("dateLiverFunctionTestResults", "");
     }
   }, [eligibilityVisitDateSync]);
 
@@ -940,25 +897,6 @@ const ClinicVisit = props => {
       // pregnant + HTS Result correctly. The legacy
       // `latestFromEligibility.pregnancyStatus` field no longer exists on
       // prophylaxis_screening, so this block stops writing pregnant directly.
-    }
-  }, [latestFromEligibility, eligibilityVisitDateSync]);
-
-  useEffect(() => {
-    if (eligibilityVisitDateSync && latestFromEligibility && formikRef.current) {
-      formikRef.current.setFieldValue(
-        "liverFunctionTestResults",
-        latestFromEligibility.liverFunctionTestResults
-      );
-      formikRef.current.setFieldValue(
-        "dateLiverFunctionTestResults",
-        latestFromEligibility.dateLiverFunctionTestResults || ""
-      );
-      if (
-        latestFromEligibility.liverFunctionTestResults?.length > 0 ||
-        latestFromEligibility.dateLiverFunctionTestResults
-      ) {
-        setLiverFunctionTestEnabled(true);
-      }
     }
   }, [latestFromEligibility, eligibilityVisitDateSync]);
 
@@ -1090,13 +1028,6 @@ const ClinicVisit = props => {
     if (syphilisTest?.testDate && !syphilisTest.result) {
       manualErrors.push("Syphilis Result is required");
     }
-    if (
-      values?.dateLiverFunctionTestResults &&
-      (!values?.liverFunctionTestResults ||
-        values.liverFunctionTestResults.length === 0)
-    ) {
-      manualErrors.push("Liver Function Test Result is required");
-    }
     otherTest.forEach((t, idx) => {
       if (t?.testDate && !t.result) {
         manualErrors.push(`Other Test #${idx + 1}: Result is required`);
@@ -1114,14 +1045,11 @@ const ClinicVisit = props => {
     const payload = { ...values };
     payload.duration = getDuration(payload.monthsOfRefill);
     payload.monthsOfRefill = getDuration(payload.monthsOfRefill);
-    // On the HTS path we persist only `htsEncounterUuid`; the backend no longer stores
-    // hiv_test_result / hiv_test_result_date / pregnant on prep_followup_visit
-    // (everything is dereferenced via hts_encounter at read time).
+    // The backend no longer stores hiv_test_result / hiv_test_result_date /
+    // pregnant on prep_followup_visit — they are dereferenced via
+    // hts_encounter at read time. We persist only `htsEncounterUuid`.
     if (isFromHts) {
       payload.htsEncounterUuid = latestHts.uuid;
-    } else {
-      payload.hivTestResultDate = hivTestResultDate;
-      payload.hivTestResult = hivTestValue;
     }
     payload.syphilis = syphilisTest;
     payload.hepatitis = hepatitisTest;
@@ -1152,7 +1080,6 @@ const ClinicVisit = props => {
     payload.prepEnrollmentUuid = resolvedEnrollmentUuid;
     payload.prepNotedSideEffects = notedSideEffects;
     payload.syndromicStiScreening = syndromicStiSelected;
-    payload.notedSideEffects = "";
     payload.previousPrepStatus = props.patientObj?.prepStatus;
     // Derive stiScreening from syndromicStiScreening for API compatibility
     payload.stiScreening = syndromicStiSelected.length > 0 ? "true" : "false";
@@ -1834,25 +1761,6 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* 13b. PrEP Type - Other specify */}
-                    {values.prepType === "PREP_TYPE_OTHERS" && (
-                      <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                          <FormLabelName>Specify Other PrEP Type</FormLabelName>
-                          <Input
-                            type="text"
-                            name="otherPrepType"
-                            id="otherPrepType"
-                            value={values.otherPrepType}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            disabled={disabledField}
-                            placeholder="Specify..."
-                          />
-                        </FormGroup>
-                      </div>
-                    )}
-
                     {/* 14. Prep Regimen */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
@@ -2242,77 +2150,6 @@ const ClinicVisit = props => {
                           </FormGroup>
                         </div>
                       )}
-                    </div>
-                  )}
-
-                  {/* ── Result of Liver Function Test ── */}
-                  <Label
-                    as="a"
-                    color="olive"
-                    style={{ width: "106%", height: "35px" }}
-                    ribbon
-                  >
-                    <h4 style={{ color: "#fff" }}>
-                      <input
-                        type="checkbox"
-                        name="liverFunctionTest"
-                        value="Yes"
-                        onChange={handleCheckBoxLiverFunctionTest}
-                        checked={liverFunctionTestEnabled}
-                        disabled={disabledField}
-                      />{" "}
-                      Result of Liver Function Test
-                    </h4>
-                  </Label>
-                  <br />
-                  <br />
-                  {liverFunctionTestEnabled && (
-                    <div className="row">
-                      <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                          <FormLabelName>
-                            Date of Liver Function Test
-                          </FormLabelName>
-                          <Input
-                            className="form-control"
-                            type="date"
-                            onKeyDown={e => e.preventDefault()}
-                            name="dateLiverFunctionTestResults"
-                            id="dateLiverFunctionTestResults"
-                            max={moment(new Date()).format("YYYY-MM-DD")}
-                            value={values.dateLiverFunctionTestResults}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            disabled={disabledField}
-                          />
-                        </FormGroup>
-                      </div>
-                      <div className="form-group mb-3 col-md-12">
-                        <FormGroup>
-                          <FormLabelName>
-                            Result
-                            {values?.dateLiverFunctionTestResults && (
-                              <span style={{ color: "red" }}> *</span>
-                            )}
-                          </FormLabelName>
-                          <LiverFunctionTest
-                            objValues={values}
-                            handleInputChange={handleLftInputChange}
-                            liverFunctionTestResult={
-                              codeset?.LIVER_FUNCTION_TEST_RESULT
-                            }
-                            disabledField={disabledField}
-                            isAutoPop={false}
-                          />
-                          {values?.dateLiverFunctionTestResults &&
-                            (!values?.liverFunctionTestResults ||
-                              values.liverFunctionTestResults.length === 0) && (
-                              <span className={classes.error}>
-                                Result is required when a date has been selected
-                              </span>
-                            )}
-                        </FormGroup>
-                      </div>
                     </div>
                   )}
 

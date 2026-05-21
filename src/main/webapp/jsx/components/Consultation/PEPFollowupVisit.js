@@ -93,7 +93,6 @@ const INITIAL_VALUES = {
   diastolic: "",
   hivStatusAtExposure: "",
   pepNotedSideEffects: [],
-  otherNotedSideEffects: "",
   syndromicStiScreening: "",
   syndromicScreening: "",
   otherSyndromicStiScreening: "",
@@ -102,7 +101,6 @@ const INITIAL_VALUES = {
   whyAdherenceLevelPoor: "",
   otherReasonForPoorFairAdherence: "",
   pepRegimen: "",
-  otherPepRegimen: "",
   dateStartPep: "",
   dateStopPep: "",
   duration: "",
@@ -481,6 +479,11 @@ const PEPFollowupVisit = props => {
     payload.syndromicStiScreening = syndromicStiSelected;
     payload.followupHivTestResults = hivTestEntries;
     payload.enrollmentType = ENROLLMENT_TYPE_PEP;
+    // Persist the link to the patient's HTS encounter; HIV result and
+    // pregnancy status are dereferenced from hts_encounter at read time.
+    if (isFromHts && latestHts?.uuid) {
+      payload.htsEncounterUuid = latestHts.uuid;
+    }
 
     let resolvedEnrollmentUuid = patientDto?.uuid;
     if (!resolvedEnrollmentUuid) {
@@ -863,27 +866,6 @@ const PEPFollowupVisit = props => {
                       </div>
                     )}
 
-                    {/* 6b. Noted Side Effects - Other specify */}
-                    {notedSideEffects?.includes("PREP_SIDE_EFFECTS_OTHER") && (
-                      <div className="mb-3 col-md-6">
-                        <FormGroup>
-                          <FormLabelName>
-                            Specify Other Side Effect
-                          </FormLabelName>
-                          <Input
-                            type="text"
-                            name="otherNotedSideEffects"
-                            id="otherNotedSideEffects"
-                            value={values.otherNotedSideEffects}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            disabled={disabledField}
-                            placeholder="Specify..."
-                          />
-                        </FormGroup>
-                      </div>
-                    )}
-
                     {/* 7. Syndromic STI Screening (multiselect) */}
                     {codeset?.SYNDROMIC_STI_SCREENING && (
                       <div className="mb-3 col-md-12">
@@ -1073,27 +1055,6 @@ const PEPFollowupVisit = props => {
                         )}
                       </FormGroup>
                     </div>
-
-                    {/* 10b. PEP Regimen - Other specify */}
-                    {values.pepRegimen === "PEP_REGIMEN_OTHERS" && (
-                      <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                          <FormLabelName>
-                            Specify Other PEP Regimen
-                          </FormLabelName>
-                          <Input
-                            type="text"
-                            name="otherPepRegimen"
-                            id="otherPepRegimen"
-                            value={values.otherPepRegimen}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            disabled={disabledField}
-                            placeholder="Specify..."
-                          />
-                        </FormGroup>
-                      </div>
-                    )}
 
                     {/* 11. Date of start of PEP */}
                     <div className="form-group mb-3 col-md-6">

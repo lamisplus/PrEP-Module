@@ -74,22 +74,6 @@ public interface PrepFollowupVisitRepository extends JpaRepository<PrepFollowupV
             "WHERE pc2.person_uuid = ?1 AND pc2.is_commencement = false)", nativeQuery = true)
     int updateLastEncounterPrevStatusByPersonUuid(String personUuid, String previousStatus);
 
-    @Modifying
-    @Transactional
-    @Query(value =
-            "WITH target AS (SELECT id FROM prep_followup_visit " +
-                    "WHERE encounter_date = ?1 AND is_commencement = false AND person_uuid = ?2 " +
-                    "ORDER BY id ASC LIMIT 1) " +
-                    "UPDATE prep_followup_visit " +
-                    "SET visit_type = ?3, population_type = ?4, pregnant = ?5, " +
-                    "liver_function_test_results = CAST(?6 AS jsonb), " +
-                    "reason_for_switch = ?7, date_of_liver_function_test_results = ?8 " +
-                    "WHERE id = (SELECT id FROM target)", nativeQuery = true)
-    int updateFirstPrepFollowupVisitMatchViaCte(
-            LocalDate encounterDate, String personUuid, String visitType,
-            String populationType, String pregnant, String liverFunctionTestResults,
-            String reasonForSwitch, LocalDate dateOfLiverFunctionTestResults);
-
     List<PrepFollowupVisit> findAllByFacilityId(Long facilityId);
 
     @Query(value = "SELECT * FROM prep_followup_visit WHERE date_modified > ?1 AND facility_id=?2", nativeQuery = true)

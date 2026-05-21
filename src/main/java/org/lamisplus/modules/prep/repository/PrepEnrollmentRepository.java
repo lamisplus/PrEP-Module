@@ -112,7 +112,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "        WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
             "        WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -238,7 +237,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "        WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
             "        WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -365,7 +363,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "        WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
             "        WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -480,7 +477,7 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "he.date_confirmed_hiv as dateConfirmedHiv,   CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,   " +
             "(CASE WHEN el_max.HIVResultAtVisit ILIKE '%Positive%'  " +
             "THEN 'HIV Positive' WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display  " +
-            "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' WHEN pet.person_uuid IS NULL  " +
+            "WHEN pet.person_uuid IS NULL  " +
             "THEN 'Not Enrolled' WHEN prepc.person_uuid IS NULL  " +
             "THEN 'Not Commenced' ELSE prepc.status END) prepStatus  " +
             "FROM patient_person p   LEFT JOIN (SELECT COUNT(el.person_uuid) as eligibility_count,  " +
@@ -541,7 +538,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "    (CASE \n" +
             "        WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' \n" +
             "        WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display \n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' \n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' \n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' \n" +
             "        ELSE prepc.status \n" +
@@ -626,7 +622,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "        WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
             "        WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -766,7 +761,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "            WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "            WHEN prepc.previous_prep_status IN ('Stopped', 'Discontinued') THEN 'Restart'\n" +
             "            WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
-            "            WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "            WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "            WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
             "            WHEN prepi.interruption_type = 'PREP_STATUS_SEROCONVERTED' THEN 'Seroconverted'\n" +
@@ -899,7 +893,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "                    WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "                    WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
             "                    WHEN prepi.interruption_date > prepc.encounter_date THEN bac.display\n" +
-            "                    WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "                    WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "                    WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "                    WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -1021,7 +1014,6 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "(CASE " +
             "WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
             "WHEN prepi.interruption_date  > prepc.encounter_date THEN bac.display " +
-            "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
             "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
             "WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' " +
             "ELSE prepc.status END) prepStatus" +

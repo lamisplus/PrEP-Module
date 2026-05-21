@@ -67,7 +67,6 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "               WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' \n" +
             "               ELSE prepi.interruption_type \n" +
             "             END) \n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +

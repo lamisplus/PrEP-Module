@@ -110,8 +110,13 @@ public class ProphylaxisInterruption extends Audit implements Serializable {
     @Column(name = "follow_up_visit_date")
     private LocalDate followUpVisitDate;
 
-    @Column(name = "hiv_result")
-    private String hivResult;
+    /**
+     * FK to the {@code hts_encounter} row the discontinuation/interruption is
+     * linked to. HIV result (and any other HTS-derived fields) are resolved
+     * via this uuid at read time instead of being denormalised onto this row.
+     */
+    @Column(name = "hts_encounter_uuid")
+    private String htsEncounterUuid;
 
     @Column(name = "early_detect_viral_load_result")
     private String earlyDetectViralLoadResult;

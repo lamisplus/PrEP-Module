@@ -56,12 +56,6 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
     @Column(name = "hts_encounter_uuid")
     private String htsEncounterUuid;
 
-    @Column(name = "client_hts_code")
-    private String clientHtsCode;
-
-    @Column(name = "pregnancy_status")
-    private String pregnancyStatus;
-
     @Column(name = "target_group")
     private String targetGroup;
 

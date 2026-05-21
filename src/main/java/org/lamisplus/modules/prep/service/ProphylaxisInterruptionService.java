@@ -98,10 +98,11 @@ public class ProphylaxisInterruptionService {
         e.setReasonForPrepDiscontinuation(dto.getReasonForPrepDiscontinuation());
         e.setPreviousPrepStatus(dto.getPreviousPrepStatus());
         e.setPreviousPepStatus(dto.getPreviousPepStatus());
+        e.setEnrollmentType(dto.getEnrollmentType());
         e.setWhy(dto.getWhy());
         e.setPepCompletion(dto.getPepCompletion());
         e.setFollowUpVisitDate(dto.getFollowUpVisitDate());
-        e.setHivResult(dto.getHivResult());
+        e.setHtsEncounterUuid(dto.getHtsEncounterUuid());
         e.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
         return e;
     }
@@ -128,10 +129,11 @@ public class ProphylaxisInterruptionService {
         e.setReasonForPrepDiscontinuation(dto.getReasonForPrepDiscontinuation());
         e.setPreviousPrepStatus(dto.getPreviousPrepStatus());
         e.setPreviousPepStatus(dto.getPreviousPepStatus());
+        e.setEnrollmentType(dto.getEnrollmentType());
         e.setWhy(dto.getWhy());
         e.setPepCompletion(dto.getPepCompletion());
         e.setFollowUpVisitDate(dto.getFollowUpVisitDate());
-        e.setHivResult(dto.getHivResult());
+        e.setHtsEncounterUuid(dto.getHtsEncounterUuid());
         e.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
         return e;
     }
@@ -160,10 +162,11 @@ public class ProphylaxisInterruptionService {
                 .reasonForPrepDiscontinuation(e.getReasonForPrepDiscontinuation())
                 .previousPrepStatus(e.getPreviousPrepStatus())
                 .previousPepStatus(e.getPreviousPepStatus())
+                .enrollmentType(e.getEnrollmentType())
                 .why(e.getWhy())
                 .pepCompletion(e.getPepCompletion())
                 .followUpVisitDate(e.getFollowUpVisitDate())
-                .hivResult(e.getHivResult())
+                .htsEncounterUuid(e.getHtsEncounterUuid())
                 .earlyDetectViralLoadResult(e.getEarlyDetectViralLoadResult())
                 .build();
     }

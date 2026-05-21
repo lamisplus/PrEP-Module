@@ -74,7 +74,6 @@ const PrEPCommencementForm = props => {
     referred: "",
     datereferred: "",
     nextAppointment: "",
-    pregnant: "",
     prepEnrollmentUuid: "",
     duration: "",
     prepDistributionSetting: "",
@@ -187,10 +186,6 @@ const PrEPCommencementForm = props => {
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
   };
 
-  const isFemalePatient =
-    (props.patientObj.gender?.toLowerCase() === "female" ||
-      props.patientObj.sex?.toLowerCase() === "female");
-
   const validate = () => {
     let temp = { ...errors };
     temp.dateInitialAdherenceCounseling =
@@ -217,12 +212,6 @@ const PrEPCommencementForm = props => {
       objValues.liverFunctionTestResults.length > 0
         ? ""
         : "This field is required";
-    if (isFemalePatient) {
-      temp.pregnant = objValues.pregnant ? "" : "This field is required";
-      temp.breastFeeding = objValues.breastFeeding
-        ? ""
-        : "This field is required";
-    }
     setErrors({ ...temp });
     return Object.values(temp).every(x => x === "");
   };
@@ -560,66 +549,9 @@ const PrEPCommencementForm = props => {
                 </FormGroup>
               )}
             </div>
-            {(props.patientObj.gender?.toLowerCase() === "female" ||
-              props.patientObj.sex?.toLowerCase()) === "female" && (
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>Pregnant <span style={{ color: "red" }}>*</span></Label>
-                  <Input
-                    type="select"
-                    name="pregnant"
-                    id="pregnant"
-                    onChange={handleInputChange}
-                    value={objValues.pregnant}
-                    disabled={disabledField}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.25rem",
-                    }}
-                  >
-                    <option value="">Select</option>
-                    {(codeset?.YES_NO || []).map(value => (
-                      <option key={value.code} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                  {errors.pregnant && (
-                    <span className={classes.error}>{errors.pregnant}</span>
-                  )}
-                </FormGroup>
-              </div>
-            )}
-            {(props.patientObj.gender?.toLowerCase() === "female" ||
-              props.patientObj.sex?.toLowerCase()) === "female" && (
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>Breastfeeding <span style={{ color: "red" }}>*</span></Label>
-                  <Input
-                    type="select"
-                    name="breastFeeding"
-                    id="breastFeeding"
-                    onChange={handleInputChange}
-                    value={objValues.breastFeeding}
-                    disabled={disabledField}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.25rem",
-                    }}
-                  >
-                    <option value="">Select</option>
-                    {(codeset?.YES_NO || []).map(value => (
-                      <option key={value.code} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                  {errors.breastFeeding && (
-                    <span className={classes.error}>{errors.breastFeeding}</span>
-                  )}
-                </FormGroup>
-              </div>
-            )}
+            {/* Pregnancy / Breastfeeding are no longer captured on the initiation
+                form; both are resolved from the linked hts_encounter (via
+                hts_encounter_uuid) at display time. */}
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
                 <Label>History of drug Allergies <span style={{ color: "red" }}>*</span></Label>

@@ -57,11 +57,16 @@ public class PepFollowupVisit extends Audit implements Serializable {
     @Column(name = "encounter_date")
     private LocalDate encounterDate;
 
-    @Column(name = "visit_type")
-    private String visitType;
-
     @Column(name = "is_commencement")
     private Boolean isCommencement;
+
+    /**
+     * FK to the patient's matching {@code hts_encounter} row. HTS-derived fields
+     * (HIV result, pregnancy status, etc.) are resolved through this link
+     * instead of denormalised onto the followup row.
+     */
+    @Column(name = "hts_encounter_uuid")
+    private String htsEncounterUuid;
 
     @Column(name = "next_appointment")
     private LocalDate nextAppointment;
@@ -86,9 +91,6 @@ public class PepFollowupVisit extends Audit implements Serializable {
 
     @Column(name = "diastolic")
     private Double diastolic;
-
-    @Column(name = "pregnant")
-    private String pregnant;
 
     @Column(name = "population_type")
     private String populationType;
@@ -141,12 +143,6 @@ public class PepFollowupVisit extends Audit implements Serializable {
     @Column(name = "date_initial_adherence_counseling")
     private LocalDate dateInitialAdherenceCounseling;
 
-    @Column(name = "hiv_test_result")
-    private String hivTestResult;
-
-    @Column(name = "hiv_test_result_date")
-    private LocalDate hivTestResultDate;
-
     @Column(name = "sti_screening")
     private Boolean stiScreening;
 
@@ -164,17 +160,6 @@ public class PepFollowupVisit extends Audit implements Serializable {
     @Column(name = "risk_reduction_services")
     private String riskReductionServices;
 
-    @Column(name = "noted_side_effects")
-    private String notedSideEffects;
-
-    @Column(name = "other_noted_side_effects")
-    private String otherNotedSideEffects;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "prep_noted_side_effects", columnDefinition = "jsonb")
-    private Object prepNotedSideEffects;
-
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "pep_noted_side_effects", columnDefinition = "jsonb")
@@ -185,72 +170,11 @@ public class PepFollowupVisit extends Audit implements Serializable {
     @Column(name = "urinalysis", columnDefinition = "jsonb")
     private Object urinalysis;
 
-    @Column(name = "urinalysis_result")
-    private String urinalysisResult;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "creatinine", columnDefinition = "jsonb")
-    private Object creatinine;
-
-    @Column(name = "creatinine_result")
-    private String creatinineResult;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "hepatitis", columnDefinition = "jsonb")
-    private Object hepatitis;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "syphilis", columnDefinition = "jsonb")
-    private Object syphilis;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "other_tests_done", columnDefinition = "jsonb")
-    private Object otherTestsDone;
-
-    @Column(name = "date_of_liver_function_test_results")
-    private LocalDate dateLiverFunctionTestResults;
-
-    @Type(type = "jsonb")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "liver_function_test_results", columnDefinition = "jsonb")
-    private Object liverFunctionTestResults;
-
-    @Column(name = "family_planning")
-    private String familyPlanning;
-
-    @Column(name = "date_of_family_planning")
-    private LocalDate dateOfFamilyPlanning;
-
-    @Column(name = "other_drugs")
-    private String otherDrugs;
-
-    @Column(name = "history_of_drug_to_drug_interaction")
-    private String historyOfDrugToDrugInteraction;
-
-    @Column(name = "history_of_drug_allergies")
-    private String historyOfDrugAllergies;
-
     @Column(name = "health_care_worker_signature")
     private String healthCareWorkerSignature;
 
-    @Column(name = "comment")
-    private String comment;
-
     @Column(name = "previous_prep_status")
     private String previousPrepStatus;
-
-    @Column(name = "why")
-    private Boolean why;
-
-    @Column(name = "referred")
-    private Boolean referred;
-
-    @Column(name = "date_referred")
-    private LocalDate dateReferred;
 
     // PEP-specific fields
     @Column(name = "mode_of_exposure")
@@ -264,9 +188,6 @@ public class PepFollowupVisit extends Audit implements Serializable {
 
     @Column(name = "pep_regimen")
     private String pepRegimen;
-
-    @Column(name = "other_pep_regimen")
-    private String otherPepRegimen;
 
     @Column(name = "date_start_pep")
     private LocalDate dateStartPep;

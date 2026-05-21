@@ -54,9 +54,6 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @Column(name = "unique_id")
     private String uniqueId;
 
-    @Column(name = "status")
-    private String status;
-
     @Column(name = "enrollment_type")
     private String enrollmentType;
 
@@ -86,9 +83,6 @@ public class PrepPepInitiation extends Audit implements Serializable {
 
     @Column(name = "height")
     private Double height;
-
-    @Column(name = "breast_feeding")
-    private String breastFeeding;
 
     @Column(name = "history_of_drug_allergies")
     private String historyOfDrugAllergies;

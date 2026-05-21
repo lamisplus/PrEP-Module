@@ -24,7 +24,6 @@ public class PrepPepInitiationRequestDto implements Serializable {
     private String populationType;
     private Double weight;
     private Double height;
-    private String breastFeeding;
     private String historyOfDrugAllergies;
     private String historyOfDrugToDrugInteraction;
     private String urinalysisResult;

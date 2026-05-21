@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 
+/** See {@link PrepClinicDto} — kept fat to keep the legacy PrepClinicService path compiling. */
 @Builder(toBuilder = true)
 @Getter
 @Setter
@@ -111,4 +112,3 @@ public class PrepClinicRequestDto implements Serializable {
     private String otherNotedSideEffects;
     private String otherSyndromicStiScreening;
 }
-

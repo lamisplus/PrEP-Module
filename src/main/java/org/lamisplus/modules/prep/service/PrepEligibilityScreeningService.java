@@ -127,8 +127,6 @@ public class PrepEligibilityScreeningService {
         e.setVisitDate(dto.getVisitDate());
         e.setUniqueClientId(dto.getUniqueClientId());
         e.setHtsEncounterUuid(dto.getHtsEncounterUuid());
-        e.setClientHtsCode(dto.getClientHtsCode());
-        e.setPregnancyStatus(dto.getPregnancyStatus());
         e.setReferredFrom(dto.getReferredFrom());
         e.setSetting(dto.getSetting());
         e.setServiceStatus(dto.getServiceStatus());
@@ -165,8 +163,6 @@ public class PrepEligibilityScreeningService {
         e.setVisitDate(dto.getVisitDate());
         e.setUniqueClientId(dto.getUniqueClientId());
         e.setHtsEncounterUuid(dto.getHtsEncounterUuid());
-        e.setClientHtsCode(dto.getClientHtsCode());
-        e.setPregnancyStatus(dto.getPregnancyStatus());
         e.setReferredFrom(dto.getReferredFrom());
         e.setSetting(dto.getSetting());
         e.setServiceStatus(dto.getServiceStatus());
@@ -204,8 +200,6 @@ public class PrepEligibilityScreeningService {
         dto.setVisitDate(e.getVisitDate());
         dto.setUniqueClientId(e.getUniqueClientId());
         dto.setHtsEncounterUuid(e.getHtsEncounterUuid());
-        dto.setClientHtsCode(e.getClientHtsCode());
-        dto.setPregnancyStatus(e.getPregnancyStatus());
         dto.setReferredFrom(e.getReferredFrom());
         dto.setSetting(e.getSetting());
         dto.setServiceStatus(e.getServiceStatus());

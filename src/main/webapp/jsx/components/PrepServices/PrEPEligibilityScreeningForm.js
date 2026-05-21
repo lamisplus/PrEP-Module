@@ -564,11 +564,6 @@ const BasicInfo = props => {
     temp.uniqueClientId = objValues.uniqueClientId
       ? ""
       : "This field is required";
-    // clientHtsCode is auto-populated from latestHtsResult.clientCode when an HTS
-    // encounter is present; only require it on legacy paths without one.
-    temp.clientHtsCode = isFromHts || objValues.clientHtsCode
-      ? ""
-      : "This field is required";
     temp.referredFrom = objValues.referredFrom ? "" : "This field is required";
     temp.visitType = objValues.visitType ? "" : "This field is required";
     // Skip-logic: Reason for Switch is required only when Visit Type = Method Switch
@@ -587,15 +582,6 @@ const BasicInfo = props => {
       ? ""
       : "This field is required";
     temp.sexPartner = objValues.sexPartner ? "" : "This field is required";
-    if (isFemale()) {
-      // Pregnancy status: prefer the HTS observation when it's set;
-      // otherwise fall back to whatever the user picked on the form.
-      const effectivePregnancy =
-        (isFromHts && htsObs.pregnancyStatus) || objValues.pregnancyStatus;
-      temp.pregnancyStatus = effectivePregnancy
-        ? ""
-        : "This field is required";
-    }
     // HIV Test Result at Visit comes from HTS observation when available.
     temp.hivTestResultAtvisit = isFromHts || hivTesting.hivTestResultAtvisit
       ? ""
@@ -967,7 +953,7 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value="">Select</option>
-                    {(codeset?.SOURCE_REFERRAL || []).map(item => (
+                    {(codeset?.PREP_ENTRY_POINT_COMMUNITY || []).map(item => (
                       <option key={item.code} value={item.code}>{item.display}</option>
                     ))}
                   </select>
