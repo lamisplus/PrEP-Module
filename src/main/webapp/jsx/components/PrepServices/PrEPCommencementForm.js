@@ -122,6 +122,18 @@ const PrEPCommencementForm = props => {
       });
   };
 
+  // Legacy rows saved `regimenId` as the codeset row id (e.g. "2172"); new
+  // ones persist the canonical code. Translate id → code on load so the
+  // dropdown autopopulates instead of going blank on view/edit.
+  const normalizeRegimenIdToCode = (value, list) => {
+    if (value == null || value === "") return "";
+    const key = String(value);
+    const byCode = (list || []).find(r => r.code === key);
+    if (byCode) return byCode.code;
+    const byId = (list || []).find(r => String(r.id) === key);
+    return byId?.code || key;
+  };
+
   const getPatientCommencement = id => {
     axios
       .get(
@@ -132,10 +144,22 @@ const PrEPCommencementForm = props => {
           headers: { Authorization: `Bearer ${token}` },
         }
       )
-      .then(response => {
+      .then(async response => {
         let data = response.data.find(x => x.id === id);
+        let regimenList =
+          (prepRegimen && prepRegimen.length > 0 && prepRegimen) ||
+          (availableRegimens && availableRegimens.length > 0 && availableRegimens) ||
+          null;
+        if (!regimenList) {
+          try {
+            regimenList = await fetchPrepRegimens();
+          } catch (_) {
+            regimenList = [];
+          }
+        }
         data = {
           ...data,
+          regimenId: normalizeRegimenIdToCode(data?.regimenId, regimenList),
           monthsOfRefill:
             getDurationByValue(data?.monthsOfRefill) || data?.monthsOfRefill,
         };
@@ -361,8 +385,11 @@ const PrEPCommencementForm = props => {
 
   const isSelectedRegimenCabLa = useCallback(() => {
     if (!objValues?.regimenId) return false;
+    const key = objValues.regimenId.toString();
+    // New records persist the canonical code; older rows may still carry the
+    // codeset row id, so match either shape.
     const selected = (prepRegimen || availableRegimens || []).find(
-      r => r.id?.toString() === objValues.regimenId.toString()
+      r => r.code === key || r.id?.toString() === key
     );
     return LONG_ACTING_INJECTABLE_CODES.includes(selected?.code);
   }, [objValues, prepRegimen, availableRegimens]);
@@ -776,7 +803,7 @@ const PrEPCommencementForm = props => {
                 >
                   <option value="">Select</option>
                   {prepRegimen.map(value => (
-                    <option key={value.id} value={value.id}>
+                    <option key={value.code || value.id} value={value.code}>
                       {value.regimen}
                     </option>
                   ))}

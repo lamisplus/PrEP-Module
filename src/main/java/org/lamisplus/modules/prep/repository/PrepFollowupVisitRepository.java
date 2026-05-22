@@ -27,18 +27,22 @@ public interface PrepFollowupVisitRepository extends JpaRepository<PrepFollowupV
     Optional<PrepFollowupVisit> findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(LocalDate encounterDate, String uuid, Boolean isCommencement, Boolean archived);
     Optional<PrepFollowupVisit> findByUuid(String uuid);
 
+    // CAB-LA eligibility: a patient becomes injectable-eligible after they
+    // have had an initiation visit on the long-acting injectable regimen.
+    // Compare on the canonical codes (Cabotegravir / Lenacapavir) since
+    // `regimen_id` is now a varchar holding the codeset code, not a numeric id.
     @Query(value = "SELECT enableCab FROM (" +
             "SELECT person_uuid, p.id, regimen_id, next_appointment, encounter_date, " +
             "CASE " +
-            "WHEN (?2 - encounter_date) >= 23 AND pc.regimen_id = 2 AND pc.visit_type = 'PREP_VISIT_TYPE_INITIATION' THEN true " +
-            "WHEN (?2 - encounter_date) >= 53 AND pc.regimen_id = 2 AND pc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' THEN true " +
+            "WHEN (?2 - encounter_date) >= 23 AND pc.regimen_id IN ('PREP_REGIMEN_CABOTEGRAVIR','PREP_REGIMEN_LENACAPAVIR') AND pc.visit_type = 'PREP_VISIT_TYPE_INITIATION' THEN true " +
+            "WHEN (?2 - encounter_date) >= 53 AND pc.regimen_id IN ('PREP_REGIMEN_CABOTEGRAVIR','PREP_REGIMEN_LENACAPAVIR') AND pc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' THEN true " +
             "ELSE false END AS enableCab, " +
             "ROW_NUMBER() OVER (PARTITION BY person_uuid ORDER BY next_appointment DESC) AS rowNums " +
             "FROM prep_followup_visit pc " +
             "JOIN patient_person p ON p.uuid = pc.person_uuid " +
             "WHERE CAST(pc.archived AS BOOLEAN)=false AND p.archived=0 " +
             "AND is_commencement = false " +
-            "AND regimen_id = 2 " +
+            "AND regimen_id IN ('PREP_REGIMEN_CABOTEGRAVIR','PREP_REGIMEN_LENACAPAVIR') " +
             ") sub " +
             "WHERE id = ?1 AND rowNums = 1", nativeQuery = true)
     Boolean checkEnableCabaL(Long id, LocalDate currentVisitDate);

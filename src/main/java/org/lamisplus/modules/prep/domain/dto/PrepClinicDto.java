@@ -36,7 +36,7 @@ public class PrepClinicDto implements Serializable {
 
     private String prepEnrollmentUuid;
 
-    private long regimenId;
+    private String regimenId;
 
     private String urinalysisResult;
 

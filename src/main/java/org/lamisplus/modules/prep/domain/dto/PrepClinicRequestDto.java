@@ -30,7 +30,7 @@ public class PrepClinicRequestDto implements Serializable {
     private String enrollmentType;
 
     //@NotNull(message = "regimenId is mandatory")
-    private long regimenId;
+    private String regimenId;
 
     //private long regimenTypeId;
 

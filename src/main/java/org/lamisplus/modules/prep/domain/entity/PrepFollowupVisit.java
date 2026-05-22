@@ -97,7 +97,7 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     private String prepType;
 
     @Column(name = "regimen_id")
-    private Long regimenId;
+    private String regimenId;
 
     @Column(name = "other_regimen_id")
     private String otherRegimenId;

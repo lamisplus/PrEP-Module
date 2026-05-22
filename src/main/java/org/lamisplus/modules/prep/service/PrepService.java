@@ -669,10 +669,24 @@ public class PrepService {
                 .stream()
                 .findFirst()
                 .ifPresent(latestVisit -> {
-                    Long regimenId = latestVisit.getRegimenId();
-                    if (regimenId != null && regimenId != 0L) {
-                        prepDtos.setCurrentRegimen(PrepRegimens.displayById(regimenId));
+                    String regimenId = latestVisit.getRegimenId();
+                    if (regimenId == null || regimenId.isEmpty()) {
+                        return;
                     }
+                    // After the bigint→varchar migration, regimen_id holds the
+                    // canonical codeset code (e.g. PREP_REGIMEN_TDF_FTC).
+                    // Legacy rows that survived the migration as a stringified
+                    // numeric id (no matching codeset row) fall through to
+                    // displayById so they still render a friendly name.
+                    String display = PrepRegimens.displayByCode(regimenId);
+                    if (display == null || display.equals(regimenId)) {
+                        try {
+                            display = PrepRegimens.displayById(Long.parseLong(regimenId));
+                        } catch (NumberFormatException ignored) {
+                            display = regimenId;
+                        }
+                    }
+                    prepDtos.setCurrentRegimen(display);
                 });
         // If no follow-up exists yet (right after initiation), fall back to the
         // latest initiation's prep_regimen so the dashboard never surfaces a

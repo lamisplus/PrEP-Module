@@ -68,7 +68,7 @@ public class PrepClinic extends Audit implements Serializable {
     private LocalDate datePrepStart;
 
     @Column(name = "regimen_id")
-    private long regimenId;
+    private String regimenId;
 
     @Column(name = "archived")
     private Integer archived;

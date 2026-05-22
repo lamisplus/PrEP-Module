@@ -343,8 +343,21 @@ const ClinicVisit = props => {
       setSyphilisTest(data?.syphilis || { syphilisTest: "No", testDate: "", result: "", others: "" });
       setHepatitisTest(data?.hepatitis || { hepatitisTest: "No", testDate: "", result: "" });
       setIsCabLaEligible(true);
+      // Pull the live regimen list so a legacy `regimenId` saved as the
+      // codeset row id can be converted to its canonical code before binding
+      // to the dropdown (otherwise the field renders empty on view/edit).
+      let regimenList = prepRegimen;
+      if (!regimenList || regimenList.length === 0) {
+        try {
+          regimenList = await fetchPrepRegimens();
+          setprepRegimen(regimenList);
+        } catch (_) {
+          regimenList = [];
+        }
+      }
       data = {
         ...data,
+        regimenId: normalizeRegimenIdToCode(data?.regimenId, regimenList),
         monthsOfRefill: getDurationByValue(data.monthsOfRefill) || data?.monthsOfRefill,
         duration: getDurationByValue(data.monthsOfRefill) || data?.duration,
         hasOtherDrugs: data.otherDrugs ? "true" : "",
@@ -523,8 +536,27 @@ const ClinicVisit = props => {
     return `${year}-${m}-${d}`;
   }
 
+  // Filter by canonical code (the value persisted on the form). Legacy rows
+  // may still carry the codeset row id — `lastRegimenId` is matched against
+  // both shapes so a "method switch" hides the previous regimen either way.
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
-    codeSet?.filter(regimen => regimen.id !== lastRegimenId);
+    codeSet?.filter(regimen => {
+      if (lastRegimenId == null || lastRegimenId === "") return true;
+      const key = String(lastRegimenId);
+      return regimen.code !== key && String(regimen.id) !== key;
+    });
+
+  // Form field `regimenId` now holds the canonical PREP_REGIMEN code. Older
+  // records saved the codeset row id (e.g. "2172") — resolve those to the
+  // matching code so the dropdown still autopopulates on view/edit.
+  const normalizeRegimenIdToCode = (value, list) => {
+    if (value == null || value === "") return "";
+    const key = String(value);
+    const byCode = (list || []).find(r => r.code === key);
+    if (byCode) return byCode.code;
+    const byId = (list || []).find(r => String(r.id) === key);
+    return byId?.code || key;
+  };
 
   const getOptions = (otherPrepTypeVal) => {
     switch (otherPrepTypeVal) {
@@ -547,8 +579,11 @@ const ClinicVisit = props => {
   const isSelectedRegimenCabLa = useCallback(
     (regimenIdVal) => {
       if (regimenIdVal === undefined || regimenIdVal === null || regimenIdVal === "") return false;
+      const key = regimenIdVal.toString();
+      // `regimenIdVal` is now the canonical code on new records; older rows
+      // may still hold the codeset row id — match both.
       const selected = (prepRegimen || []).find(
-        r => r.id?.toString() === regimenIdVal.toString()
+        r => r.code === key || r.id?.toString() === key
       );
       return LONG_ACTING_INJECTABLE_CODES.includes(selected?.code);
     },
@@ -1792,7 +1827,7 @@ const ClinicVisit = props => {
                             props.activeContent.actionType
                           )
                             ? prepRegimen?.map(value => (
-                                <option key={value.id} value={value.id}>
+                                <option key={value.code || value.id} value={value.code}>
                                   {value.regimen}
                                 </option>
                               ))
@@ -1802,12 +1837,12 @@ const ClinicVisit = props => {
                                 prepRegimen,
                                 props.recentActivities?.[0]?.regimenId
                               )?.map(value => (
-                                <option key={value.id} value={value.id}>
+                                <option key={value.code || value.id} value={value.code}>
                                   {value.regimen}
                                 </option>
                               ))
                             : prepRegimen?.map(value => (
-                                <option key={value.id} value={value.id}>
+                                <option key={value.code || value.id} value={value.code}>
                                   {value.regimen}
                                 </option>
                               ))}

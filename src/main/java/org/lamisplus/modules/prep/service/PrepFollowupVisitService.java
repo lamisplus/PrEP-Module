@@ -297,8 +297,22 @@ public class PrepFollowupVisitService {
         dto.setVisitType(entity.getVisitType());
         dto.setProphylaxisInitiationUuid(entity.getProphylaxisInitiationUuid());
         dto.setRegimenId(entity.getRegimenId());
-        if (entity.getRegimenId() != null && entity.getRegimenId() != 0L) {
-            dto.setRegimen(PrepRegimens.displayById(entity.getRegimenId()));
+        // regimen_id is now a varchar holding the codeset code; resolve via
+        // displayByCode first and fall back to displayById for any legacy
+        // rows that survived migration as a stringified numeric id.
+        String rawRegimen = entity.getRegimenId();
+        if (rawRegimen != null && !rawRegimen.isEmpty()) {
+            String display = PrepRegimens.displayByCode(rawRegimen);
+            if (display == null || display.equals(rawRegimen)) {
+                try {
+                    display = PrepRegimens.displayById(Long.parseLong(rawRegimen));
+                } catch (NumberFormatException ignored) {
+                    display = null;
+                }
+            }
+            if (display != null) {
+                dto.setRegimen(display);
+            }
         }
         dto.setNextAppointment(entity.getNextAppointment());
         dto.setIsCommencement(entity.getIsCommencement());

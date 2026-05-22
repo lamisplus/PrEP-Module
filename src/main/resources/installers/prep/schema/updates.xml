@@ -1143,4 +1143,83 @@
         </sql>
     </changeSet>
 
+    <!-- 22-05-2026 Convert regimen_id from BIGINT to VARCHAR(255) on the three
+         tables that hold a selected PrEP/PEP regimen: prep_clinic,
+         prep_followup_visit, pep_followup_visit. Background: the regimen
+         dropdown was persisting the codeset's row id (long) instead of the
+         canonical codeset code (string). The frontend was switched to send
+         the code; this changeset aligns the column type and backfills
+         existing rows so legacy ids stop surfacing as raw numbers on the
+         History grid / dashboard summary.
+
+         Migration rules per row:
+           - NULL / 0       -> NULL
+           - id 1..4        -> canonical hardcoded code (PrepRegimens table)
+           - any other id   -> code looked up from base_application_codeset
+                               (filtered to PREP_REGIMEN / PEP_REGIMEN groups)
+           - unresolved id  -> kept as the stringified id (so no data is lost;
+                               displayRegimen on the FE renders it via the
+                               live codeset map at runtime)
+
+         Each statement is idempotent (column-type / column-exists guards),
+         so re-running is a no-op on installs that already migrated. -->
+    <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-regimen-id-to-varchar">
+        <sql>
+            DO $$
+            DECLARE
+                tbls text[] := ARRAY[
+                    'prep_clinic',
+                    'prep_followup_visit',
+                    'pep_followup_visit'
+                ];
+                t text;
+            BEGIN
+                FOREACH t IN ARRAY tbls LOOP
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = t
+                          AND column_name = 'regimen_id'
+                          AND data_type IN ('bigint','integer','smallint','numeric')
+                    ) THEN
+                        -- Cast to text first so the USING expression has a
+                        -- string source; then backfill the canonical code
+                        -- where possible.
+                        EXECUTE format(
+                            'ALTER TABLE %I ALTER COLUMN regimen_id TYPE VARCHAR(255) USING regimen_id::text',
+                            t
+                        );
+
+                        -- NULL out the placeholder 0s that the primitive
+                        -- `long` default produced on prep_clinic before
+                        -- the entity was changed to a String.
+                        EXECUTE format(
+                            'UPDATE %I SET regimen_id = NULL WHERE regimen_id = ''0''',
+                            t
+                        );
+
+                        -- Map legacy 1..4 ids to their canonical PREP codes.
+                        EXECUTE format('UPDATE %I SET regimen_id = ''PREP_REGIMEN_TDF_FTC''      WHERE regimen_id = ''1''', t);
+                        EXECUTE format('UPDATE %I SET regimen_id = ''PREP_REGIMEN_TDF_3TC''      WHERE regimen_id = ''2''', t);
+                        EXECUTE format('UPDATE %I SET regimen_id = ''PREP_REGIMEN_CABOTEGRAVIR'' WHERE regimen_id = ''3''', t);
+                        EXECUTE format('UPDATE %I SET regimen_id = ''PREP_REGIMEN_LENACAPAVIR''  WHERE regimen_id = ''4''', t);
+
+                        -- For any remaining numeric value, look up the code
+                        -- from base_application_codeset (only PREP_REGIMEN /
+                        -- PEP_REGIMEN groups, so we don't accidentally pick
+                        -- up an id from a sibling codeset).
+                        EXECUTE format(
+                            'UPDATE %I tgt
+                                SET regimen_id = bac.code
+                              FROM base_application_codeset bac
+                              WHERE tgt.regimen_id ~ ''^[0-9]+$''
+                                AND bac.id::text = tgt.regimen_id
+                                AND bac.codeset_group IN (''PREP_REGIMEN'',''PEP_REGIMEN'')',
+                            t
+                        );
+                    END IF;
+                END LOOP;
+            END $$;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

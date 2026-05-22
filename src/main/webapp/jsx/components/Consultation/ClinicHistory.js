@@ -34,6 +34,7 @@ import { Modal } from "react-bootstrap";
 import { Dropdown, Button, Menu, Icon } from 'semantic-ui-react'
 import { getPepRegimenOptions, fetchPrepRegimens } from './codesets'
 import { displayRegimen } from "../../../Utils/regimenDisplay";
+import useRegimenLookup from "../../../hooks/useRegimenLookup";
 
 
 const tableIcons = {
@@ -106,20 +107,10 @@ const PatientnHistory = (props) => {
     const [saving, setSaving] = useState(false)
     const [open, setOpen] = React.useState(false)
     const [record, setRecord] = useState(null)
-    // Follow-up rows store regimen_id as a PREP_REGIMEN codeset id. The DTO's
-    // `regimen` display only resolves for the legacy ids 1-4, so resolve the
-    // id against the live regimen codeset here for the History grid.
-    const [regimenById, setRegimenById] = useState({})
-
-    useEffect(() => {
-        fetchPrepRegimens()
-            .then(list => {
-                const map = {};
-                (list || []).forEach(r => { map[String(r.id)] = r.regimen; });
-                setRegimenById(map);
-            })
-            .catch(() => {});
-    }, []);
+    // Live PREP_REGIMEN + PEP_REGIMEN codesets keyed by row id, so legacy
+    // rows that stored `regimenId` as the codeset id (e.g. "2172") still
+    // resolve to the display name in the History grid.
+    const { idMap: regimenById } = useRegimenLookup();
 
     const toggle = () => setOpen(prev => !prev);
     useEffect(() => {
@@ -235,17 +226,15 @@ const PatientnHistory = (props) => {
                     date: row.encounterDate,
                     // Resolve regimen for display. Priority:
                     //  1. PEP regimen code (row.pepRegimen) → displayRegimen()
-                    //  2. Backend-resolved regimen display (row.regimen) →
+                    //  2. Backend-resolved regimen display (row.regimen) —
                     //     present only for legacy ids 1–4 today.
-                    //  3. Look up the codeset row id (row.regimenId) in the
-                    //     live PREP_REGIMEN codeset map. This is what fills
-                    //     the column for follow-ups created against the new
-                    //     codeset ids (5+), which the backend doesn't yet
-                    //     resolve to a display name.
+                    //  3. row.regimenId — the canonical code on new records,
+                    //     or the codeset row id on legacy rows. displayRegimen
+                    //     with the live id-map fallback handles both shapes.
                     regimen:
-                        displayRegimen(row.pepRegimen)
-                        || displayRegimen(row.regimen)
-                        || regimenById[String(row.regimenId)]
+                        displayRegimen(row.pepRegimen, regimenById)
+                        || displayRegimen(row.regimen, regimenById)
+                        || displayRegimen(row.regimenId, regimenById)
                         || "",
                     nextAppointment: row.nextAppointment,
                     actions:

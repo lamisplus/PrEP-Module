@@ -17,7 +17,7 @@ public class PepFollowupVisitDto implements Serializable {
     private Double height;
     private String htsEncounterUuid;
     private String prophylaxisInitiationUuid;
-    private Long regimenId;
+    private String regimenId;
     private Long personId;
     private LocalDate nextAppointment;
     private LocalDate encounterDate;

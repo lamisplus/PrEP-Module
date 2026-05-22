@@ -18,6 +18,7 @@ import { toast } from "react-toastify";
 import { Button } from "semantic-ui-react";
 
 import { displayRegimen } from "../../../Utils/regimenDisplay";
+import useRegimenLookup from "../../../hooks/useRegimenLookup";
 
 const RecentHistory = props => {
   const [recentActivities, setRecentActivities] = useState([]);
@@ -29,6 +30,11 @@ const RecentHistory = props => {
   const toggle = () => setOpen(!open);
   const [activeAccordionHeaderShadow, setActiveAccordionHeaderShadow] =
     useState(0);
+  // Live PREP_REGIMEN + PEP_REGIMEN codesets keyed by row id, so the
+  // Current Regimen chip renders the display name regardless of whether
+  // the value persisted on the record is the canonical code or a legacy
+  // codeset row id.
+  const { idMap: regimenById } = useRegimenLookup();
 
   useEffect(() => {
     Summary();
@@ -529,9 +535,10 @@ const RecentHistory = props => {
                             </h4>
                             <h4 className="text-info ">
                               {summary
-                                ? displayRegimen(summary?.regimen) ||
-                                  displayRegimen(summary?.pepRegimen) ||
-                                  displayRegimen(summary?.prepRegimen) ||
+                                ? displayRegimen(summary?.regimen, regimenById) ||
+                                  displayRegimen(summary?.pepRegimen, regimenById) ||
+                                  displayRegimen(summary?.prepRegimen, regimenById) ||
+                                  displayRegimen(summary?.regimenId, regimenById) ||
                                   "NIL"
                                 : "NIL"}
                             </h4>
