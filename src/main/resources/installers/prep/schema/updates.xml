@@ -1098,6 +1098,125 @@
         </sql>
     </changeSet>
 
+    <!-- 23-05-2026 archived column type backfill — RE-DO.
+
+         The 22-05-2026 changeset above used failOnError="false" + a DO block,
+         which on some installs caused the EXECUTE format(...) chain to fail
+         silently. Liquibase marked the changeset as ran in databasechangelog
+         but the columns stayed `integer`, breaking the JPA entities that map
+         them as Boolean.
+
+         These per-table changesets do the same conversion the safe way:
+           - new ids, so Liquibase runs them again on every install
+           - failOnError defaults to true, so any DB error surfaces in logs
+           - a preCondition with onFail="MARK_RAN" gates execution: ALTER
+             runs only when the column is still numeric. Already-boolean
+             columns are skipped (no-op on fresh installs, idempotent on
+             re-run).
+           - straight DDL/DML, no DO/EXECUTE nested-quoting risk.
+
+         Pattern per table:
+           1. DROP DEFAULT  (integer's `0` cannot auto-cast to boolean)
+           2. ALTER TYPE    USING (COALESCE(archived, 0) &lt;&gt; 0)
+           3. SET DEFAULT false
+           4. NULL → false   (defensive — should be unreachable post-cast)
+           5. SET NOT NULL -->
+
+    <!-- prophylaxis_screening -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-screening">
+        <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_screening.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prophylaxis_screening'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prophylaxis_screening SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- prophylaxis_initiation -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-initiation">
+        <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_initiation.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prophylaxis_initiation'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prophylaxis_initiation SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- prophylaxis_interruptions -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-interruptions">
+        <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_interruptions.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prophylaxis_interruptions'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prophylaxis_interruptions SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- prep_followup_visit -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prep-followup">
+        <preConditions onFail="MARK_RAN" onFailMessage="prep_followup_visit.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prep_followup_visit'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prep_followup_visit SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- pep_followup_visit -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-pep-followup">
+        <preConditions onFail="MARK_RAN" onFailMessage="pep_followup_visit.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'pep_followup_visit'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived SET DEFAULT false;
+            UPDATE pep_followup_visit SET archived = false WHERE archived IS NULL;
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
     <!-- 22-05-2026 missing-column backfill.
 
          Same root cause as the archived backfill above: is_interrupted and
@@ -1143,82 +1262,137 @@
         </sql>
     </changeSet>
 
-    <!-- 22-05-2026 Convert regimen_id from BIGINT to VARCHAR(255) on the three
+    <!-- 23-05-2026 Convert regimen_id from BIGINT to VARCHAR(255) on the three
          tables that hold a selected PrEP/PEP regimen: prep_clinic,
          prep_followup_visit, pep_followup_visit. Background: the regimen
          dropdown was persisting the codeset's row id (long) instead of the
          canonical codeset code (string). The frontend was switched to send
-         the code; this changeset aligns the column type and backfills
+         the code; these changesets align the column type and backfill
          existing rows so legacy ids stop surfacing as raw numbers on the
          History grid / dashboard summary.
 
-         Migration rules per row:
-           - NULL / 0       -> NULL
-           - id 1..4        -> canonical hardcoded code (PrepRegimens table)
-           - any other id   -> code looked up from base_application_codeset
-                               (filtered to PREP_REGIMEN / PEP_REGIMEN groups)
-           - unresolved id  -> kept as the stringified id (so no data is lost;
-                               displayRegimen on the FE renders it via the
-                               live codeset map at runtime)
+         Per table we run two changesets:
+           a) ALTER COLUMN TYPE VARCHAR(255) — gated by a precondition that
+              checks the current data_type is still numeric. If the column is
+              already varchar the precondition marks the changeset as ran and
+              we skip the ALTER (so re-runs are no-ops).
+           b) Backfill — maps legacy ids to canonical codes:
+                NULL / "0"       -> NULL
+                "1"..."4"        -> hardcoded PREP code (PrepRegimens table)
+                any other digits -> code looked up from base_application_codeset
+                                    (filtered to PREP_REGIMEN / PEP_REGIMEN)
+                unresolved value -> kept as-is; displayRegimen on the FE
+                                    still renders something readable via the
+                                    live codeset map at runtime.
 
-         Each statement is idempotent (column-type / column-exists guards),
-         so re-running is a no-op on installs that already migrated. -->
-    <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-regimen-id-to-varchar">
+         Each statement uses failOnError=true (the default) so any DB-side
+         failure surfaces in startup logs instead of getting swallowed. -->
+
+    <!-- prep_clinic: ALTER TYPE -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-prep-clinic-type">
+        <preConditions onFail="MARK_RAN" onFailMessage="prep_clinic.regimen_id is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prep_clinic'
+                  AND column_name = 'regimen_id'
+                  AND data_type IN ('bigint','integer','smallint','numeric')
+            </sqlCheck>
+        </preConditions>
         <sql>
-            DO $$
-            DECLARE
-                tbls text[] := ARRAY[
-                    'prep_clinic',
-                    'prep_followup_visit',
-                    'pep_followup_visit'
-                ];
-                t text;
-            BEGIN
-                FOREACH t IN ARRAY tbls LOOP
-                    IF EXISTS (
-                        SELECT 1 FROM information_schema.columns
-                        WHERE table_name = t
-                          AND column_name = 'regimen_id'
-                          AND data_type IN ('bigint','integer','smallint','numeric')
-                    ) THEN
-                        -- Cast to text first so the USING expression has a
-                        -- string source; then backfill the canonical code
-                        -- where possible.
-                        EXECUTE format(
-                            'ALTER TABLE %I ALTER COLUMN regimen_id TYPE VARCHAR(255) USING regimen_id::text',
-                            t
-                        );
+            ALTER TABLE prep_clinic
+                ALTER COLUMN regimen_id DROP DEFAULT;
+            ALTER TABLE prep_clinic
+                ALTER COLUMN regimen_id TYPE VARCHAR(255)
+                USING regimen_id::text;
+        </sql>
+    </changeSet>
 
-                        -- NULL out the placeholder 0s that the primitive
-                        -- `long` default produced on prep_clinic before
-                        -- the entity was changed to a String.
-                        EXECUTE format(
-                            'UPDATE %I SET regimen_id = NULL WHERE regimen_id = ''0''',
-                            t
-                        );
+    <!-- prep_clinic: backfill -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-prep-clinic">
+        <sql>
+            UPDATE prep_clinic SET regimen_id = NULL                        WHERE regimen_id = '0';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_TDF_3TC'      WHERE regimen_id = '2';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_CABOTEGRAVIR' WHERE regimen_id = '3';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_LENACAPAVIR'  WHERE regimen_id = '4';
+            UPDATE prep_clinic tgt
+                SET regimen_id = bac.code
+              FROM base_application_codeset bac
+              WHERE tgt.regimen_id ~ '^[0-9]+$'
+                AND bac.id::text = tgt.regimen_id
+                AND bac.codeset_group IN ('PREP_REGIMEN','PEP_REGIMEN');
+        </sql>
+    </changeSet>
 
-                        -- Map legacy 1..4 ids to their canonical PREP codes.
-                        EXECUTE format('UPDATE %I SET regimen_id = ''PREP_REGIMEN_TDF_FTC''      WHERE regimen_id = ''1''', t);
-                        EXECUTE format('UPDATE %I SET regimen_id = ''PREP_REGIMEN_TDF_3TC''      WHERE regimen_id = ''2''', t);
-                        EXECUTE format('UPDATE %I SET regimen_id = ''PREP_REGIMEN_CABOTEGRAVIR'' WHERE regimen_id = ''3''', t);
-                        EXECUTE format('UPDATE %I SET regimen_id = ''PREP_REGIMEN_LENACAPAVIR''  WHERE regimen_id = ''4''', t);
+    <!-- prep_followup_visit: ALTER TYPE -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-prep-followup-type">
+        <preConditions onFail="MARK_RAN" onFailMessage="prep_followup_visit.regimen_id is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prep_followup_visit'
+                  AND column_name = 'regimen_id'
+                  AND data_type IN ('bigint','integer','smallint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_followup_visit
+                ALTER COLUMN regimen_id DROP DEFAULT;
+            ALTER TABLE prep_followup_visit
+                ALTER COLUMN regimen_id TYPE VARCHAR(255)
+                USING regimen_id::text;
+        </sql>
+    </changeSet>
 
-                        -- For any remaining numeric value, look up the code
-                        -- from base_application_codeset (only PREP_REGIMEN /
-                        -- PEP_REGIMEN groups, so we don't accidentally pick
-                        -- up an id from a sibling codeset).
-                        EXECUTE format(
-                            'UPDATE %I tgt
-                                SET regimen_id = bac.code
-                              FROM base_application_codeset bac
-                              WHERE tgt.regimen_id ~ ''^[0-9]+$''
-                                AND bac.id::text = tgt.regimen_id
-                                AND bac.codeset_group IN (''PREP_REGIMEN'',''PEP_REGIMEN'')',
-                            t
-                        );
-                    END IF;
-                END LOOP;
-            END $$;
+    <!-- prep_followup_visit: backfill -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-prep-followup">
+        <sql>
+            UPDATE prep_followup_visit SET regimen_id = NULL                        WHERE regimen_id = '0';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_3TC'      WHERE regimen_id = '2';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_CABOTEGRAVIR' WHERE regimen_id = '3';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_LENACAPAVIR'  WHERE regimen_id = '4';
+            UPDATE prep_followup_visit tgt
+                SET regimen_id = bac.code
+              FROM base_application_codeset bac
+              WHERE tgt.regimen_id ~ '^[0-9]+$'
+                AND bac.id::text = tgt.regimen_id
+                AND bac.codeset_group IN ('PREP_REGIMEN','PEP_REGIMEN');
+        </sql>
+    </changeSet>
+
+    <!-- pep_followup_visit: ALTER TYPE -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-pep-followup-type">
+        <preConditions onFail="MARK_RAN" onFailMessage="pep_followup_visit.regimen_id is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'pep_followup_visit'
+                  AND column_name = 'regimen_id'
+                  AND data_type IN ('bigint','integer','smallint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE pep_followup_visit
+                ALTER COLUMN regimen_id DROP DEFAULT;
+            ALTER TABLE pep_followup_visit
+                ALTER COLUMN regimen_id TYPE VARCHAR(255)
+                USING regimen_id::text;
+        </sql>
+    </changeSet>
+
+    <!-- pep_followup_visit: backfill -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-pep-followup">
+        <sql>
+            UPDATE pep_followup_visit SET regimen_id = NULL                        WHERE regimen_id = '0';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_3TC'      WHERE regimen_id = '2';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_CABOTEGRAVIR' WHERE regimen_id = '3';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_LENACAPAVIR'  WHERE regimen_id = '4';
+            UPDATE pep_followup_visit tgt
+                SET regimen_id = bac.code
+              FROM base_application_codeset bac
+              WHERE tgt.regimen_id ~ '^[0-9]+$'
+                AND bac.id::text = tgt.regimen_id
+                AND bac.codeset_group IN ('PREP_REGIMEN','PEP_REGIMEN');
         </sql>
     </changeSet>
 
