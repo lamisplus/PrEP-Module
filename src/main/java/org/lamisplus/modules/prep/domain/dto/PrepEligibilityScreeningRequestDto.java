@@ -40,4 +40,5 @@ public class PrepEligibilityScreeningRequestDto implements Serializable {
     private String serviceStatus;
     private String typeOfSession;
     private String category;
+    private String receivedPrepFirstTimeThisYear;
 }

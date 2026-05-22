@@ -769,8 +769,13 @@
         </sql>
     </changeSet>
 
-    <!-- is_interrupted, breast_feeding and prophylaxis_initiation_uuid columns are
-         declared inline on the CREATE TABLE changesets above; no ALTER required. -->
+    <!-- is_interrupted and prophylaxis_initiation_uuid are declared inline on the
+         CREATE TABLE changesets above, but those changesets are precondition /
+         IF NOT EXISTS guarded — so on installs that created the tables before
+         these columns were added inline, the inline declaration never applies.
+         The 22-05-2026-missing-column-backfill changeset at the end of this
+         file ALTERs them in idempotently. -->
+
 
     <!-- Adds the hts_encounter_uuid link column to the four prep tables that now
          dereference an hts_encounter (uuid) instead of denormalising HTS fields
@@ -1042,6 +1047,87 @@
             ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS hiv_test_result;
             ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS hiv_test_result_date;
             ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS visit_type;
+        </sql>
+    </changeSet>
+
+    <!-- 22-05-2026 archived column type backfill.
+
+         Root cause: the five new tables (prophylaxis_screening,
+         prophylaxis_initiation, prophylaxis_interruptions, prep_followup_visit,
+         pep_followup_visit) were first shipped with `archived INTEGER NOT NULL
+         DEFAULT 0`. A later commit edited those same CREATE TABLE changesets to
+         `archived BOOLEAN` and stamped them validCheckSum=ANY — but Liquibase
+         keys a changeset by id+author+file, not content, so the edited body
+         never re-runs on installs that booted before the edit. Those
+         environments still have `archived integer`, while the JPA entities map
+         it as Boolean, producing `operator does not exist: integer = boolean`.
+
+         This changeset has a NEW id, so it runs once on every environment. The
+         plpgsql block converts `archived` to boolean only where it is still a
+         numeric type, so it is a no-op on fresh installs (already boolean) and
+         idempotent on re-run. The integer default must be dropped before the
+         type change (0 cannot auto-cast to boolean) and re-added afterwards. -->
+    <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-archived-column-type-backfill">
+        <sql splitStatements="false">
+            DO $$
+            DECLARE
+                t   text;
+                tbls text[] := ARRAY[
+                    'prophylaxis_screening',
+                    'prophylaxis_initiation',
+                    'prophylaxis_interruptions',
+                    'prep_followup_visit',
+                    'pep_followup_visit'
+                ];
+            BEGIN
+                FOREACH t IN ARRAY tbls LOOP
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = t
+                          AND column_name = 'archived'
+                          AND data_type IN ('integer','smallint','bigint','numeric')
+                    ) THEN
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived DROP DEFAULT', t);
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0)', t);
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived SET DEFAULT false', t);
+                        EXECUTE format('UPDATE %I SET archived = false WHERE archived IS NULL', t);
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived SET NOT NULL', t);
+                    END IF;
+                END LOOP;
+            END $$;
+        </sql>
+    </changeSet>
+
+    <!-- 22-05-2026 missing-column backfill.
+
+         Same root cause as the archived backfill above: is_interrupted and
+         prophylaxis_initiation_uuid were added INLINE to the precondition /
+         IF NOT EXISTS guarded CREATE TABLE changesets on 2026-05-08, a month
+         after those changesets first shipped (2026-04-04). Installs that
+         created the tables in that window never get the inline columns, so
+         the JPA entities (which map them) fail with `column ... does not
+         exist`.
+
+         New id, so it runs once everywhere. Each statement is idempotent
+         (ALTER TABLE IF EXISTS ... ADD COLUMN IF NOT EXISTS) — a no-op on
+         fresh installs that already have the columns.
+
+         is_interrupted is added with DEFAULT false so existing rows are
+         backfilled before NOT NULL applies. The prophylaxis_initiation_uuid
+         columns are added without the FK constraint: existing rows may hold
+         no link value, and the followup/interruption tables are already
+         joined in application queries — the constraint is a data-integrity
+         nicety, not required for the entities to load. -->
+    <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-missing-column-backfill">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_initiation
+                ADD COLUMN IF NOT EXISTS is_interrupted BOOLEAN NOT NULL DEFAULT false;
+            ALTER TABLE IF EXISTS prep_followup_visit
+                ADD COLUMN IF NOT EXISTS prophylaxis_initiation_uuid VARCHAR(255);
+            ALTER TABLE IF EXISTS pep_followup_visit
+                ADD COLUMN IF NOT EXISTS prophylaxis_initiation_uuid VARCHAR(255);
+            ALTER TABLE IF EXISTS prophylaxis_interruptions
+                ADD COLUMN IF NOT EXISTS prophylaxis_initiation_uuid VARCHAR(255);
         </sql>
     </changeSet>
 

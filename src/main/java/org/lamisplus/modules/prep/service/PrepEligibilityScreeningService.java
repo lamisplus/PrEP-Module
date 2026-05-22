@@ -132,6 +132,7 @@ public class PrepEligibilityScreeningService {
         e.setServiceStatus(dto.getServiceStatus());
         e.setTypeOfSession(dto.getTypeOfSession());
         e.setCategory(dto.getCategory());
+        e.setReceivedPrepFirstTimeThisYear(dto.getReceivedPrepFirstTimeThisYear());
         return e;
     }
 
@@ -168,6 +169,7 @@ public class PrepEligibilityScreeningService {
         e.setServiceStatus(dto.getServiceStatus());
         e.setTypeOfSession(dto.getTypeOfSession());
         e.setCategory(dto.getCategory());
+        e.setReceivedPrepFirstTimeThisYear(dto.getReceivedPrepFirstTimeThisYear());
         return e;
     }
 
@@ -205,6 +207,7 @@ public class PrepEligibilityScreeningService {
         dto.setServiceStatus(e.getServiceStatus());
         dto.setTypeOfSession(e.getTypeOfSession());
         dto.setCategory(e.getCategory());
+        dto.setReceivedPrepFirstTimeThisYear(e.getReceivedPrepFirstTimeThisYear());
         return dto;
     }
 }

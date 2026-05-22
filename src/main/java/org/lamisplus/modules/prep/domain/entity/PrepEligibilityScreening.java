@@ -89,6 +89,9 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
     @Column(name = "category")
     private String category;
 
+    @Column(name = "received_prep_first_time_this_year")
+    private String receivedPrepFirstTimeThisYear;
+
     @Column(name = "score")
     private Integer score;
 
