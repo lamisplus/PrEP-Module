@@ -1131,4 +1131,16 @@
         </sql>
     </changeSet>
 
+    <!-- 22-05-2026 Adds received_prep_first_time_this_year to prophylaxis_screening.
+         Backs the new screening-form question "Received PrEP for the first time
+         this year?" (stores a YES_NO codeset code). Idempotent (ADD COLUMN IF
+         NOT EXISTS) so the column is created automatically on the next jar
+         update and the changeset is safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-add-received-prep-first-time-this-year">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS received_prep_first_time_this_year VARCHAR(255);
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

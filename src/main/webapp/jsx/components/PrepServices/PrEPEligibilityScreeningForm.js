@@ -54,6 +54,32 @@ const STANDARD_DRUGS = [
 ];
 const ROUTES_OF_ADMINISTRATION = ["Sniff", "Snort", "Smoke", "Inject"];
 
+// "Type of Session" on the screening form is restricted to Individual / Couple.
+// The COUNSELING_TYPE codeset carries more options used by other forms, so we
+// filter the dropdown here rather than trimming the shared codeset.
+const SCREENING_SESSION_TYPE_CODES = [
+  "COUNSELING_TYPE_INDIVIDUAL",
+  "COUNSELING_TYPE_COUPLE",
+];
+
+// "Population Type" on the screening form shows only the sub-population
+// categories below. The POPULATION_TYPE codeset's full list is used by other
+// forms, so we filter here (by display / code text) rather than trimming the
+// shared codeset.
+const SCREENING_POPULATION_TYPE_KEYWORDS = [
+  "serodiscordant",        // Serodiscordant couples (SDC)
+  "sex worker",            // Sex workers + Partners of sex workers
+  "injecting drug",        // Injecting drug users
+  "exposed adolescent",    // Exposed adolescents and young people
+  "transgender",           // Transgender
+  "other population",      // Other population
+  "pregnant",              // At-risk pregnant & breastfeeding women
+];
+const isAllowedScreeningPopulationType = item => {
+  const text = `${item?.display || ""} ${item?.code || ""}`.toLowerCase();
+  return SCREENING_POPULATION_TYPE_KEYWORDS.some(k => text.includes(k));
+};
+
 // Legacy drug_use_history records were a flat object mixing drug Yes/No flags,
 // route Yes/No flags, useDrugSexualPerformance, and HIV testing fields. Convert
 // to the new array shape so view/edit doesn't break for old saved records.
@@ -152,7 +178,6 @@ const BasicInfo = props => {
   const history = useLocation;
   const patientObj = history?.state?.patientObj || props?.patientObj;
   const [codeset, setCodeset] = useState({});
-  const [settingOptions, setSettingOptions] = useState([]);
   let temp = { ...errors };
 
   const [objValues, setObjValues] = useState({
@@ -181,6 +206,7 @@ const BasicInfo = props => {
     setting: "",
     serviceStatus: "",
     typeOfSession: "",
+    receivedPrepFirstTimeThisYear: "",
     score: 0,
   });
 
@@ -259,7 +285,6 @@ const BasicInfo = props => {
   const [servicesReceivedByClient, setServicesReceivedByClient] = useState({
     prepOffered: "",
     willingToCommencePrep: "",
-    prepAccepted: "",
     clientReferredToOtherServices: "",
     othersSpecify: "",
     reasonsForDecline: [],
@@ -295,9 +320,8 @@ const BasicInfo = props => {
   });
 
   useEffect(() => {
-    fetchEligibilityScreeningCodesets().then(({ codeset, settingOptions }) => {
+    fetchEligibilityScreeningCodesets().then(({ codeset }) => {
       setCodeset(codeset);
-      setSettingOptions(settingOptions);
     });
   }, []);
 
@@ -579,6 +603,9 @@ const BasicInfo = props => {
       ? ""
       : "This field is required";
     temp.serviceStatus = objValues.serviceStatus
+      ? ""
+      : "This field is required";
+    temp.receivedPrepFirstTimeThisYear = objValues.receivedPrepFirstTimeThisYear
       ? ""
       : "This field is required";
     temp.sexPartner = objValues.sexPartner ? "" : "This field is required";
@@ -1057,9 +1084,9 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value="">Select</option>
-                    {settingOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
+                    {(codeset?.PREP_SETTINGS || []).map(item => (
+                      <option key={item.code} value={item.code}>
+                        {item.display}
                       </option>
                     ))}
                   </select>
@@ -1087,11 +1114,13 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    {(codeset?.POPULATION_TYPE || []).map(value => (
-                      <option key={value.code} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
+                    {(codeset?.POPULATION_TYPE || [])
+                      .filter(isAllowedScreeningPopulationType)
+                      .map(value => (
+                        <option key={value.code} value={value.code}>
+                          {value.display}
+                        </option>
+                      ))}
                   </select>
                   {errors.populationType !== "" ? (
                     <span className={classes.error}>{errors.populationType}</span>
@@ -1170,10 +1199,45 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    {(codeset?.COUNSELING_TYPE || []).map(item => (
+                    {(codeset?.COUNSELING_TYPE || [])
+                      .filter(item => SCREENING_SESSION_TYPE_CODES.includes(item.code))
+                      .map(item => (
+                        <option key={item.code} value={item.code}>{item.display}</option>
+                      ))}
+                  </select>
+                </FormGroup>
+              </div>
+
+              <div className="form-group col-md-4 p-2">
+                <FormGroup className="p-2">
+                  <Label>
+                    Received PrEP for the first time this year?{" "}
+                    <span style={{ color: "red" }}> *</span>
+                  </Label>
+                  <select
+                    className="form-control"
+                    name="receivedPrepFirstTimeThisYear"
+                    id="receivedPrepFirstTimeThisYear"
+                    value={objValues.receivedPrepFirstTimeThisYear}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.2rem",
+                    }}
+                    disabled={disabledField}
+                  >
+                    <option value={""}>Select</option>
+                    {(codeset?.YES_NO || []).map(item => (
                       <option key={item.code} value={item.code}>{item.display}</option>
                     ))}
                   </select>
+                  {errors.receivedPrepFirstTimeThisYear !== "" ? (
+                    <span className={classes.error}>
+                      {errors.receivedPrepFirstTimeThisYear}
+                    </span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
 
@@ -2478,7 +2542,7 @@ const BasicInfo = props => {
 
               <div className="form-group col-md-4 p-3">
                 <FormGroup>
-                  <Label>Recommended for HIV Retest? <span style={{ color: "red" }}> *</span></Label>
+                  <Label>Recommended for HIV Retest after 1 year? <span style={{ color: "red" }}> *</span></Label>
                   <select
                     className="form-control"
                     name="recommendHivRetest"
@@ -2892,30 +2956,6 @@ const BasicInfo = props => {
                     ) : (
                       ""
                     )}
-                  </FormGroup>
-                </div>
-              )}
-              {isYes(servicesReceivedByClient?.willingToCommencePrep) && (
-                <div className="form-group col-md-4 p-2">
-                  <FormGroup className="p-2">
-                    <Label>PrEP Accepted</Label>
-                    <select
-                      className="form-control"
-                      name="prepAccepted"
-                      id="prepAccepted"
-                      value={servicesReceivedByClient?.prepAccepted}
-                      onChange={handleInputChangeServicesReceivedByClient}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.2rem",
-                      }}
-                      disabled={disabledField}
-                    >
-                      <option value={""}>Select</option>
-                      {(codeset?.YES_NO || []).map(item => (
-                        <option key={item.code} value={item.code}>{item.display}</option>
-                      ))}
-                    </select>
                   </FormGroup>
                 </div>
               )}
