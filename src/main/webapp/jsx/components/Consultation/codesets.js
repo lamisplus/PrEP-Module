@@ -280,6 +280,14 @@ export function fetchAllCodesets() {
     PrEP_VISIT_TYPE: toApiShape(getVisitTypeOptions()),
     PREGNANCY_STATUS: toApiShape(getPregnancyStatusOptions()),
     HTS_RESULT: toApiShape(getHTSResultOptions()),
+    // Shared HIV result codeset used by the screening, initiation and both
+    // follow-up forms. Offline fallback for when the codeset API is down.
+    HIV_TEST_RESULT: toApiShape([
+      { value: "HIV_TEST_RESULT_NEGATIVE", label: "Negative" },
+      { value: "HIV_TEST_RESULT_POSITIVE", label: "Positive" },
+      { value: "HIV_TEST_RESULT_NOT_DONE", label: "Not done" },
+      { value: "HIV_TEST_RESULT_EARLY_DETECT", label: "Early detect" },
+    ]),
     PREP_SIDE_EFFECTS: toApiShape(getNotedSideEffectOptions()),
     SYNDROMIC_STI_SCREENING: toApiShape(getSyndromicSTIOptions()),
     PrEP_RISK_REDUCTION_PLAN: toApiShape(getRiskReductionOptions()),

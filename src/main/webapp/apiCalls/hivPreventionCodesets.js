@@ -185,7 +185,7 @@ export async function fetchFollowupVisitCodesets() {
       "REASON_METHOD_SWITCH",
       "FAMILY_PLANNING_METHOD",
       "PREGNANCY_STATUS",
-      "HTS_RESULT",
+      "HIV_TEST_RESULT",
       "YES_NO",
     ]);
     // Forms reference PrEP_RISK_REDUCTION_PLAN / PrEP_LEVEL_OF_ADHERENCE; alias from the

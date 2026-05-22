@@ -9,7 +9,7 @@ import {
 } from "reactstrap";
 import { url as baseUrl, token } from "../../../api";
 import { ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
-import { toHtsResultCode } from "../../../Utils/htsResultMapper";
+import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
@@ -370,12 +370,13 @@ const ClinicVisit = props => {
   // HIV test result is now sourced from the latest hts_encounter shipped with
   // the patient row (see `props.patientObj.latestHtsResult`) — the legacy
   // hts_client lookup endpoint and its "HTS record found" toast are gone.
-  // HTS observation stores STI_HIV_RESULT_* codes; the followup form's
-  // dropdown is on HTS_RESULT_HIV_*, so translate.
+  // HTS observation stores STI_HIV_RESULT_* / HIV_CONFIRMATORY_TEST_RESULT_*
+  // codes; the followup form's dropdown is on the shared HIV_TEST_RESULT
+  // codeset (same as the screening / initiation forms), so translate.
   const getHivResult = () => {
     if (!latestHts) return;
     setHivTestValue(
-      toHtsResultCode(
+      toHivTestResultCode(
         htsObs.confirmatoryHivTest || htsObs.initialHivTest,
         htsObs.typeOfHivTestDone) || ""
     );
@@ -824,7 +825,7 @@ const ClinicVisit = props => {
     // Push the HIV test result through the codeset mapper so the dropdown's
     // selected option resolves correctly on edit/view too.
     setHivTestValue(
-      toHtsResultCode(
+      toHivTestResultCode(
         htsObs.confirmatoryHivTest || htsObs.initialHivTest,
         htsObs.typeOfHivTestDone) || ""
     );
@@ -1515,7 +1516,7 @@ const ClinicVisit = props => {
                           // the disabled field stays in sync with the dropdown
                           // options regardless of formik state timing.
                           value={isFromHts
-                            ? (toHtsResultCode(
+                            ? (toHivTestResultCode(
                                 htsObs.confirmatoryHivTest || htsObs.initialHivTest,
                                 htsObs.typeOfHivTestDone) || "")
                             : (hivTestValue || "")}
@@ -1528,7 +1529,7 @@ const ClinicVisit = props => {
                           onChange={e => setHivTestValue(e.target.value)}
                         >
                           <option value="">Select</option>
-                          {(codeset?.HTS_RESULT || []).map(item => (
+                          {(codeset?.HIV_TEST_RESULT || []).map(item => (
                             <option key={item.code} value={item.code}>{item.display}</option>
                           ))}
                         </Input>
