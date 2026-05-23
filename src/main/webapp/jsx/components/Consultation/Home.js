@@ -360,7 +360,11 @@ const ClinicVisit = props => {
         regimenId: normalizeRegimenIdToCode(data?.regimenId, regimenList),
         monthsOfRefill: getDurationByValue(data.monthsOfRefill) || data?.monthsOfRefill,
         duration: getDurationByValue(data.monthsOfRefill) || data?.duration,
-        hasOtherDrugs: data.otherDrugs ? "true" : "",
+        // hasOtherDrugs drives a YES_NO codeset dropdown, so the loaded
+        // toggle has to use the canonical "YES_NO_YES" / "YES_NO_NO" codes —
+        // any other value (e.g. legacy "true") would not match a dropdown
+        // option, leaving the toggle blank and the text field hidden on view.
+        hasOtherDrugs: data.otherDrugs ? "YES_NO_YES" : "",
         otherDrugsPrescribed: data.otherDrugs || "",
       };
       if (data.prepNotedSideEffects) {
@@ -1119,8 +1123,9 @@ const ClinicVisit = props => {
     payload.previousPrepStatus = props.patientObj?.prepStatus;
     // Derive stiScreening from syndromicStiScreening for API compatibility
     payload.stiScreening = syndromicStiSelected.length > 0 ? "true" : "false";
-    // Map otherDrugsPrescribed back to otherDrugs for API compatibility
-    if (payload.hasOtherDrugs === "true") {
+    // Map otherDrugsPrescribed back to otherDrugs for API compatibility.
+    // hasOtherDrugs is a YES_NO codeset code so we match on YES_NO_YES.
+    if (payload.hasOtherDrugs === "YES_NO_YES") {
       payload.otherDrugs = payload.otherDrugsPrescribed || "";
     } else {
       payload.otherDrugs = "";
@@ -1901,49 +1906,58 @@ const ClinicVisit = props => {
                       </div>
                     )}
 
-                    {/* 16. Other Drugs Prescribed */}
-                    <div className="form-group mb-3 col-md-6">
-                      <FormGroup>
-                        <FormLabelName>Other Drugs Prescribed</FormLabelName>
-                        <Input
-                          type="select"
-                          name="hasOtherDrugs"
-                          id="hasOtherDrugs"
-                          value={values.hasOtherDrugs}
-                          onChange={e => {
-                            handleChange(e);
-                            if (e.target.value !== "true") {
-                              setFieldValue("otherDrugsPrescribed", "");
-                            }
-                          }}
-                          style={inputStyle}
-                          disabled={disabledField}
-                        >
-                          <option value="">Select</option>
-                          {(codeset?.YES_NO || []).map(item => (
-                            <option key={item.code} value={item.code}>{item.display}</option>
-                          ))}
-                        </Input>
-                      </FormGroup>
-                    </div>
-                    {values.hasOtherDrugs === "true" && (
-                      <div className="mb-3 col-md-6">
-                        <FormGroup>
-                          <FormLabelName>
-                            Specify Other Drugs Prescribed
-                          </FormLabelName>
-                          <Input
-                            type="text"
-                            name="otherDrugsPrescribed"
-                            id="otherDrugsPrescribed"
-                            value={values.otherDrugsPrescribed}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            disabled={disabledField}
-                            placeholder="Enter other drugs prescribed..."
-                          />
-                        </FormGroup>
-                      </div>
+                    {/* 16. Other Drugs Prescribed
+                        On view, hide the entire section when the visit was
+                        entered without an other-drug value — the user asked
+                        not to surface an empty Yes/No toggle for visits where
+                        nothing was filled in. On entry/edit the section is
+                        always shown so the user can answer either way. */}
+                    {(!disabledField || values.hasOtherDrugs === "YES_NO_YES") && (
+                      <>
+                        <div className="form-group mb-3 col-md-6">
+                          <FormGroup>
+                            <FormLabelName>Other Drugs Prescribed</FormLabelName>
+                            <Input
+                              type="select"
+                              name="hasOtherDrugs"
+                              id="hasOtherDrugs"
+                              value={values.hasOtherDrugs}
+                              onChange={e => {
+                                handleChange(e);
+                                if (e.target.value !== "YES_NO_YES") {
+                                  setFieldValue("otherDrugsPrescribed", "");
+                                }
+                              }}
+                              style={inputStyle}
+                              disabled={disabledField}
+                            >
+                              <option value="">Select</option>
+                              {(codeset?.YES_NO || []).map(item => (
+                                <option key={item.code} value={item.code}>{item.display}</option>
+                              ))}
+                            </Input>
+                          </FormGroup>
+                        </div>
+                        {values.hasOtherDrugs === "YES_NO_YES" && (
+                          <div className="mb-3 col-md-6">
+                            <FormGroup>
+                              <FormLabelName>
+                                Specify Other Drugs Prescribed
+                              </FormLabelName>
+                              <Input
+                                type="text"
+                                name="otherDrugsPrescribed"
+                                id="otherDrugsPrescribed"
+                                value={values.otherDrugsPrescribed}
+                                onChange={handleChange}
+                                style={inputStyle}
+                                disabled={disabledField}
+                                placeholder="Enter other drugs prescribed..."
+                              />
+                            </FormGroup>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 

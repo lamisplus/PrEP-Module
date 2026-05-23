@@ -1736,7 +1736,16 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     String ENROLLED_WHERE =
             "WHERE CAST(pet.archived AS BOOLEAN) = ?1\n" +
             "  AND pet.facility_id = ?2\n" +
-            "  AND pet.enrollment_type = ?3\n";
+            "  AND pet.enrollment_type = ?3\n" +
+            // Exclude clients whose latest interruption on this arm is
+            // Seroconverted — they should not surface on the Enrolled grid for
+            // either PrEP or PEP. prepi is LEFT-JOINed and pre-scoped to the
+            // current arm (?3), so this WHERE works for both queries; clients
+            // with no interruption at all keep flowing through because
+            // prepi.interruption_type IS NULL.
+            "  AND (prepi.interruption_type IS NULL\n" +
+            "       OR prepi.interruption_type NOT IN ('PREP_DISCONTINUATION_TYPE_SEROCONVERTED',\n" +
+            "                                          'PREP_STATUS_SEROCONVERTED'))\n";
 
     String SEARCH_PREDICATE =
             "  AND (p.first_name ILIKE ?4\n" +

@@ -381,7 +381,12 @@ const BasicInfo = props => {
 
   const getPatientPrepEligibility = id => {
     axios
-      .get(`${baseUrl}prep/eligibility/${id}`, {
+      // GET hits the new screening endpoint (PrepEligibilityScreeningController)
+      // so the response DTO carries receivedPrepFirstTimeThisYear, hivTesting,
+      // useDrugSexualPerformance and the current assessmentForPepIndication
+      // shape — fields the legacy /prep/eligibility/{id} DTO did not expose,
+      // which is why they were not auto-populating on view/edit.
+      .get(`${baseUrl}prep-eligibility-screening/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
