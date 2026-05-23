@@ -997,18 +997,12 @@
          hts_encounter_uuid link to hts_encounter, matching the screening /
          initiation pattern.
 
-         The remaining columns the user listed as no-longer-set
-         (history_of_drug_to_drug_interaction, history_of_drug_allergies,
-          comment, why, referred, date_referred, prep_given, date_prep_start,
-          date_prep_given, other_prep_given, other_prep_type,
-          was_prep_administered, prep_distribution_setting,
-          date_initial_adherence_counseling, noted_side_effects,
-          urinalysis_result, creatinine, creatinine_result,
-          liver_function_test_results, date_of_liver_function_test_results,
-          family_planning, date_of_family_planning, syndromic_screening) are
-         removed at the entity / DTO / service level only — per the user's
-         instruction, no changeset is needed when a column is no longer
-         written by the application.
+         The remaining columns the user listed as no-longer-set are dropped
+         in a separate "23-05-2026-drop-prep-followup-visit-unused-cols"
+         changeset further below — per the updated directive, every column
+         listed in PrEP_DB_Adjustments_Summary_MAIN.xlsx as removed must be
+         physically dropped via a changeset, not just unmapped at the
+         entity/DTO level.
 
          Idempotent (DROP COLUMN IF EXISTS); safe to re-run. -->
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prep-followup-visit-hts-derived-cols">
@@ -1027,16 +1021,12 @@
            hiv_test_result_date.
          * Drops visit_type per the user's directive — PEP follow-ups don't
            branch on visit type the way PrEP follow-ups do.
-         The remaining columns the user listed as no-longer-set
-         (noted_side_effects, other_noted_side_effects, prep_noted_side_effects,
-          urinalysis_result, creatinine, creatinine_result, hepatitis, syphilis,
-          other_tests_done, liver_function_test_results,
-          date_of_liver_function_test_results, family_planning,
-          date_of_family_planning, other_drugs, history_of_drug_to_drug_interaction,
-          history_of_drug_allergies, comment, why, referred, date_referred,
-          other_pep_regimen) are removed at the entity / DTO / service level
-         only — per the user's directive, no changeset is needed when a column
-         is no longer written by the application.
+         The remaining columns the user listed as no-longer-set are dropped
+         in a separate "23-05-2026-drop-pep-followup-visit-unused-cols"
+         changeset further below — per the updated directive, every column
+         listed in PrEP_DB_Adjustments_Summary_MAIN.xlsx as removed must be
+         physically dropped via a changeset, not just unmapped at the
+         entity/DTO level.
 
          Idempotent (ADD/DROP COLUMN IF [NOT] EXISTS); safe to re-run. -->
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-pep-followup-visit-cleanup">
@@ -1393,6 +1383,167 @@
               WHERE tgt.regimen_id ~ '^[0-9]+$'
                 AND bac.id::text = tgt.regimen_id
                 AND bac.codeset_group IN ('PREP_REGIMEN','PEP_REGIMEN');
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 new-column add changesets.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx — every column the
+         spreadsheet marks with a leading '+' is added here, once per owning
+         table, under a new id. Each statement is ADD COLUMN IF NOT EXISTS
+         (and ALTER TABLE IF EXISTS) so:
+           * fresh installs (column already present from the CREATE TABLE
+             body) → no-op,
+           * installs that already ran the earlier add changesets
+             (21-05-2026-prophylaxis-interruptions-hts-uuid,
+              21-05-2026-pep-followup-visit-cleanup) → no-op,
+           * legacy installs that never received the column → column is added
+             now.
+
+         Per the spreadsheet, the '+' set is:
+           - prophylaxis_interruptions: +hts_encounter_uuid
+           - pep_followup_visit:        +hts_encounter_uuid -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-add-prophylaxis-interruptions-new-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_interruptions
+                ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-add-pep-followup-visit-new-cols">
+        <sql>
+            ALTER TABLE IF EXISTS pep_followup_visit
+                ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prophylaxis_screening unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx (DB Adjustments
+         Overview sheet). Mirrors the 21-05-2026 drop changeset for the same
+         table — re-stated here under a new id so the spreadsheet → changeset
+         mapping is explicit for every table the spreadsheet touches. Every
+         drop is guarded by IF EXISTS, so on environments where the 21-05
+         changeset already ran (column already gone) this is a no-op.
+         Columns dropped:
+           - client_hts_code, pregnancy_status, extra. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-screening-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS client_hts_code;
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS pregnancy_status;
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS extra;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prophylaxis_initiation unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx. Mirrors the
+         21-05-2026 drop changeset for the same table; re-stated under a new
+         id for consistency with the per-table drop changesets across all 5
+         new tables. Every drop is IF EXISTS guarded, so a no-op where
+         already applied.
+         Columns dropped:
+           - pregnancy_status, hiv_testing_point, date_of_hiv_test,
+             result_of_hiv_test, breast_feeding, status. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-initiation-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS pregnancy_status;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS hiv_testing_point;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS date_of_hiv_test;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS result_of_hiv_test;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS breast_feeding;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS status;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prophylaxis_interruptions unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx. The hts_encounter_uuid
+         column was already added on 2026-05-21; this changeset re-states the
+         hiv_result drop under a new id (IF EXISTS guarded). -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-interruptions-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_interruptions DROP COLUMN IF EXISTS hiv_result;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prep_followup_visit unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx (DB Adjustments
+         Overview sheet). The HTS-derived trio (pregnant / hiv_test_result /
+         hiv_test_result_date) was already dropped on 2026-05-21; this
+         changeset cleans up the remaining 23 columns from the spreadsheet
+         that the entity / DTO / service layer no longer reads or writes:
+           - noted_side_effects, urinalysis_result, creatinine,
+             creatinine_result, liver_function_test_results,
+             date_of_liver_function_test_results, family_planning,
+             date_of_family_planning, syndromic_screening,
+             history_of_drug_to_drug_interaction, history_of_drug_allergies,
+             comment, why, referred, date_referred, prep_given,
+             date_prep_start, date_prep_given, other_prep_given,
+             other_prep_type, was_prep_administered, prep_distribution_setting,
+             date_initial_adherence_counseling.
+         Idempotent (DROP COLUMN IF EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prep-followup-visit-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS noted_side_effects;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS urinalysis_result;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS creatinine;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS creatinine_result;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS liver_function_test_results;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_of_liver_function_test_results;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS family_planning;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_of_family_planning;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS syndromic_screening;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS history_of_drug_to_drug_interaction;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS history_of_drug_allergies;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS comment;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS why;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS referred;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_referred;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS prep_given;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_prep_start;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_prep_given;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS other_prep_given;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS other_prep_type;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS was_prep_administered;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS prep_distribution_setting;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_initial_adherence_counseling;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 pep_followup_visit unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx. The HTS-derived
+         columns (pregnant / hiv_test_result / hiv_test_result_date) and
+         visit_type were already dropped on 2026-05-21; this changeset cleans
+         up the remaining 21 columns from the spreadsheet that the entity /
+         DTO / service layer no longer reads or writes:
+           - noted_side_effects, other_noted_side_effects, prep_noted_side_effects,
+             urinalysis_result, creatinine, creatinine_result, hepatitis, syphilis,
+             other_tests_done, liver_function_test_results,
+             date_of_liver_function_test_results, family_planning,
+             date_of_family_planning, other_drugs, history_of_drug_to_drug_interaction,
+             history_of_drug_allergies, comment, why, referred, date_referred,
+             other_pep_regimen.
+         Idempotent (DROP COLUMN IF EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-pep-followup-visit-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS noted_side_effects;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_noted_side_effects;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS prep_noted_side_effects;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS urinalysis_result;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS creatinine;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS creatinine_result;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS hepatitis;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS syphilis;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_tests_done;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS liver_function_test_results;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS date_of_liver_function_test_results;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS family_planning;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS date_of_family_planning;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_drugs;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS history_of_drug_to_drug_interaction;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS history_of_drug_allergies;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS comment;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS why;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS referred;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS date_referred;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_pep_regimen;
         </sql>
     </changeSet>
 
