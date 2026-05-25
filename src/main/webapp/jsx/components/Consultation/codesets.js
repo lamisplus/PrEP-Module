@@ -280,6 +280,14 @@ export function fetchAllCodesets() {
     PrEP_VISIT_TYPE: toApiShape(getVisitTypeOptions()),
     PREGNANCY_STATUS: toApiShape(getPregnancyStatusOptions()),
     HTS_RESULT: toApiShape(getHTSResultOptions()),
+    // Shared HIV result codeset used by the screening, initiation and both
+    // follow-up forms. Offline fallback for when the codeset API is down.
+    HIV_TEST_RESULT: toApiShape([
+      { value: "HIV_TEST_RESULT_NEGATIVE", label: "Negative" },
+      { value: "HIV_TEST_RESULT_POSITIVE", label: "Positive" },
+      { value: "HIV_TEST_RESULT_NOT_DONE", label: "Not done" },
+      { value: "HIV_TEST_RESULT_EARLY_DETECT", label: "Early detect" },
+    ]),
     PREP_SIDE_EFFECTS: toApiShape(getNotedSideEffectOptions()),
     SYNDROMIC_STI_SCREENING: toApiShape(getSyndromicSTIOptions()),
     PrEP_RISK_REDUCTION_PLAN: toApiShape(getRiskReductionOptions()),
@@ -329,6 +337,18 @@ export function fetchAllCodesets() {
       { value: "PrEP_ENTRY_POINT_TRANSFER_IN", label: "Transfer In" },
     ]),
     // Codesets used by Eligibility Screening form
+    // Drives the "Referred From" / entry-point select. Offline fallback only —
+    // when the codeset API is reachable, the seeded PREP_SOURCE_REFERRAL group
+    // is the source of truth. Codes here MUST match the seeded codeset so a
+    // value picked offline still resolves to a label later.
+    PREP_SOURCE_REFERRAL: toApiShape([
+      { value: "PREP_SOURCE_REFERRAL_COMMUNITY", label: "Community" },
+      { value: "PREP_SOURCE_REFERRAL_FACILITY", label: "Facility" },
+      { value: "PREP_SOURCE_REFERRAL_OUTREACH", label: "Outreach" },
+      { value: "PREP_SOURCE_REFERRAL_INDEX_TESTING", label: "Index Testing" },
+      { value: "PREP_SOURCE_REFERRAL_SELF_REFERRAL", label: "Self Referral" },
+      { value: "PREP_SOURCE_REFERRAL_OTHER", label: "Other" },
+    ]),
     COUNSELING_TYPE: toApiShape([
       { value: "COUNSELING_TYPE_PRE_TEST", label: "Pre-test counselling" },
       { value: "COUNSELING_TYPE_POST_TEST", label: "Post-test counselling" },

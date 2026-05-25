@@ -9,7 +9,7 @@ import {
 } from "reactstrap";
 import { url as baseUrl, token } from "../../../api";
 import { ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
-import { toHtsResultCode } from "../../../Utils/htsResultMapper";
+import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
@@ -21,7 +21,6 @@ import Divider from "@mui/material/Divider";
 import { TiTrash } from "react-icons/ti";
 import DualListBox from "react-dual-listbox";
 import "react-dual-listbox/lib/react-dual-listbox.css";
-import { LiverFunctionTest } from "../PrepServices/PrEPEligibilityScreeningForm";
 import DurationWrapper from "./DurationWrapper/DurationWrapper";
 import { useStyles } from "../../../hooks/styles/prepVisit/useStyle";
 import { Formik } from "formik";
@@ -156,65 +155,42 @@ const buildValidationSchema = (isFemalePatient, isFromHts) =>
 
 const INITIAL_VALUES = {
   adherenceLevel: "",
-  dateInitialAdherenceCounseling: "",
-  datePrepGiven: "",
-  datePrepStart: "",
-  dateReferre: "",
   diastolic: "",
   encounterDate: "",
   height: "",
   hepatitis: {},
   nextAppointment: "",
   prepNotedSideEffects: [],
-  notedSideEffects: "",
-  wasPrepAdministered: "",
   otherTestsDone: [],
   personId: "",
   pregnant: "",
   htsEncounterUuid: "",
   prepEnrollmentUuid: "",
   pulse: "",
-  referred: "",
   regimenId: "",
   otherRegimenId: "",
-  otherPrepGiven: "",
   respiratoryRate: "",
   riskReductionServices: "",
   healthCareWorkerSignature: "",
   stiScreening: "",
   syndromicStiScreening: null,
-  syndromicScreening: "",
   syphilis: {},
   systolic: "",
   temperature: "",
   urinalysis: {},
-  creatinine: {},
-  urinalysisResult: "",
-  creatinineResult: "",
   weight: "",
-  why: "",
   otherDrugs: "",
   otherDrugsPrescribed: "",
   hasOtherDrugs: "",
-  prepGiven: "",
-  hivTestResult: "",
-  hivTestResultDate: "",
   prepType: "",
-  otherPrepType: "",
   populationType: "",
-  prepDistributionSetting: "",
-  familyPlanning: "",
-  dateOfFamilyPlanning: "",
   monthsOfRefill: "",
   visitType: "",
   reasonForSwitch: "",
-  dateLiverFunctionTestResults: "",
-  liverFunctionTestResults: [],
   whyAdherenceLevelPoor: "",
   otherReasonForPoorFairAdherence: "",
   otherSyndromicStiScreening: "",
   otherNotedSideEffects: "",
-  comment: "",
   duration: "",
 };
 
@@ -228,7 +204,6 @@ const ClinicVisit = props => {
   const [codeset, setCodeset] = useState({});
   const [latestFromEligibility, setLatestFromEligibility] = useState(null);
   const [hivTestValue, setHivTestValue] = useState("");
-  const [hivTestResultDate, setHivTestResultDate] = useState("");
 
   // The Patient tab now ships the latest HTS encounter with each row. When
   // present, Pregnancy Status / HTS Result are sourced from it (not collected
@@ -293,7 +268,6 @@ const ClinicVisit = props => {
   });
   const [editingOtherTestIndex, setEditingOtherTestIndex] = useState(null);
   const [showOtherTests, setShowOtherTests] = useState(false);
-  const [liverFunctionTestEnabled, setLiverFunctionTestEnabled] = useState(false);
 
   const [formInitialValues, setFormInitialValues] = useState({
     ...INITIAL_VALUES,
@@ -369,11 +343,28 @@ const ClinicVisit = props => {
       setSyphilisTest(data?.syphilis || { syphilisTest: "No", testDate: "", result: "", others: "" });
       setHepatitisTest(data?.hepatitis || { hepatitisTest: "No", testDate: "", result: "" });
       setIsCabLaEligible(true);
+      // Pull the live regimen list so a legacy `regimenId` saved as the
+      // codeset row id can be converted to its canonical code before binding
+      // to the dropdown (otherwise the field renders empty on view/edit).
+      let regimenList = prepRegimen;
+      if (!regimenList || regimenList.length === 0) {
+        try {
+          regimenList = await fetchPrepRegimens();
+          setprepRegimen(regimenList);
+        } catch (_) {
+          regimenList = [];
+        }
+      }
       data = {
         ...data,
+        regimenId: normalizeRegimenIdToCode(data?.regimenId, regimenList),
         monthsOfRefill: getDurationByValue(data.monthsOfRefill) || data?.monthsOfRefill,
         duration: getDurationByValue(data.monthsOfRefill) || data?.duration,
-        hasOtherDrugs: data.otherDrugs ? "true" : "",
+        // hasOtherDrugs drives a YES_NO codeset dropdown, so the loaded
+        // toggle has to use the canonical "YES_NO_YES" / "YES_NO_NO" codes —
+        // any other value (e.g. legacy "true") would not match a dropdown
+        // option, leaving the toggle blank and the text field hidden on view.
+        hasOtherDrugs: data.otherDrugs ? "YES_NO_YES" : "",
         otherDrugsPrescribed: data.otherDrugs || "",
       };
       if (data.prepNotedSideEffects) {
@@ -396,16 +387,16 @@ const ClinicVisit = props => {
   // HIV test result is now sourced from the latest hts_encounter shipped with
   // the patient row (see `props.patientObj.latestHtsResult`) — the legacy
   // hts_client lookup endpoint and its "HTS record found" toast are gone.
-  // HTS observation stores STI_HIV_RESULT_* codes; the followup form's
-  // dropdown is on HTS_RESULT_HIV_*, so translate.
+  // HTS observation stores STI_HIV_RESULT_* / HIV_CONFIRMATORY_TEST_RESULT_*
+  // codes; the followup form's dropdown is on the shared HIV_TEST_RESULT
+  // codeset (same as the screening / initiation forms), so translate.
   const getHivResult = () => {
     if (!latestHts) return;
     setHivTestValue(
-      toHtsResultCode(
+      toHivTestResultCode(
         htsObs.confirmatoryHivTest || htsObs.initialHivTest,
         htsObs.typeOfHivTestDone) || ""
     );
-    setHivTestResultDate(latestHts.dateOfVisit || "");
   };
 
   const getPatientDtoObj = () => {
@@ -549,8 +540,27 @@ const ClinicVisit = props => {
     return `${year}-${m}-${d}`;
   }
 
+  // Filter by canonical code (the value persisted on the form). Legacy rows
+  // may still carry the codeset row id — `lastRegimenId` is matched against
+  // both shapes so a "method switch" hides the previous regimen either way.
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
-    codeSet?.filter(regimen => regimen.id !== lastRegimenId);
+    codeSet?.filter(regimen => {
+      if (lastRegimenId == null || lastRegimenId === "") return true;
+      const key = String(lastRegimenId);
+      return regimen.code !== key && String(regimen.id) !== key;
+    });
+
+  // Form field `regimenId` now holds the canonical PREP_REGIMEN code. Older
+  // records saved the codeset row id (e.g. "2172") — resolve those to the
+  // matching code so the dropdown still autopopulates on view/edit.
+  const normalizeRegimenIdToCode = (value, list) => {
+    if (value == null || value === "") return "";
+    const key = String(value);
+    const byCode = (list || []).find(r => r.code === key);
+    if (byCode) return byCode.code;
+    const byId = (list || []).find(r => String(r.id) === key);
+    return byId?.code || key;
+  };
 
   const getOptions = (otherPrepTypeVal) => {
     switch (otherPrepTypeVal) {
@@ -573,8 +583,11 @@ const ClinicVisit = props => {
   const isSelectedRegimenCabLa = useCallback(
     (regimenIdVal) => {
       if (regimenIdVal === undefined || regimenIdVal === null || regimenIdVal === "") return false;
+      const key = regimenIdVal.toString();
+      // `regimenIdVal` is now the canonical code on new records; older rows
+      // may still hold the codeset row id — match both.
       const selected = (prepRegimen || []).find(
-        r => r.id?.toString() === regimenIdVal.toString()
+        r => r.code === key || r.id?.toString() === key
       );
       return LONG_ACTING_INJECTABLE_CODES.includes(selected?.code);
     },
@@ -653,10 +666,6 @@ const ClinicVisit = props => {
     } else {
       setHepatitisTest({ ...hepatitisTest, hepatitisTest: "Yes" });
     }
-  };
-
-  const handleCheckBoxLiverFunctionTest = () => {
-    setLiverFunctionTestEnabled(prev => !prev);
   };
 
   const otherTestIdCounter = useRef(0);
@@ -783,15 +792,6 @@ const ClinicVisit = props => {
     ]);
   };
 
-  // ── Liver Function Test handler ──
-
-  const handleLftInputChange = event => {
-    const { name, value } = event.target;
-    if (formikRef.current) {
-      formikRef.current.setFieldValue(name, value);
-    }
-  };
-
   // ── Codeset fetch ──
 
   useEffect(() => {
@@ -864,11 +864,10 @@ const ClinicVisit = props => {
     // Push the HIV test result through the codeset mapper so the dropdown's
     // selected option resolves correctly on edit/view too.
     setHivTestValue(
-      toHtsResultCode(
+      toHivTestResultCode(
         htsObs.confirmatoryHivTest || htsObs.initialHivTest,
         htsObs.typeOfHivTestDone) || ""
     );
-    setHivTestResultDate(latestHts.dateOfVisit || "");
   }, [latestHts?.uuid]);
 
   useEffect(() => {
@@ -914,8 +913,6 @@ const ClinicVisit = props => {
       formikRef.current.setFieldValue("populationType", "");
       formikRef.current.setFieldValue("visitType", "");
       formikRef.current.setFieldValue("pregnant", "");
-      formikRef.current.setFieldValue("liverFunctionTestResults", []);
-      formikRef.current.setFieldValue("dateLiverFunctionTestResults", "");
     }
   }, [eligibilityVisitDateSync]);
 
@@ -940,25 +937,6 @@ const ClinicVisit = props => {
       // pregnant + HTS Result correctly. The legacy
       // `latestFromEligibility.pregnancyStatus` field no longer exists on
       // prophylaxis_screening, so this block stops writing pregnant directly.
-    }
-  }, [latestFromEligibility, eligibilityVisitDateSync]);
-
-  useEffect(() => {
-    if (eligibilityVisitDateSync && latestFromEligibility && formikRef.current) {
-      formikRef.current.setFieldValue(
-        "liverFunctionTestResults",
-        latestFromEligibility.liverFunctionTestResults
-      );
-      formikRef.current.setFieldValue(
-        "dateLiverFunctionTestResults",
-        latestFromEligibility.dateLiverFunctionTestResults || ""
-      );
-      if (
-        latestFromEligibility.liverFunctionTestResults?.length > 0 ||
-        latestFromEligibility.dateLiverFunctionTestResults
-      ) {
-        setLiverFunctionTestEnabled(true);
-      }
     }
   }, [latestFromEligibility, eligibilityVisitDateSync]);
 
@@ -1090,13 +1068,6 @@ const ClinicVisit = props => {
     if (syphilisTest?.testDate && !syphilisTest.result) {
       manualErrors.push("Syphilis Result is required");
     }
-    if (
-      values?.dateLiverFunctionTestResults &&
-      (!values?.liverFunctionTestResults ||
-        values.liverFunctionTestResults.length === 0)
-    ) {
-      manualErrors.push("Liver Function Test Result is required");
-    }
     otherTest.forEach((t, idx) => {
       if (t?.testDate && !t.result) {
         manualErrors.push(`Other Test #${idx + 1}: Result is required`);
@@ -1114,14 +1085,11 @@ const ClinicVisit = props => {
     const payload = { ...values };
     payload.duration = getDuration(payload.monthsOfRefill);
     payload.monthsOfRefill = getDuration(payload.monthsOfRefill);
-    // On the HTS path we persist only `htsEncounterUuid`; the backend no longer stores
-    // hiv_test_result / hiv_test_result_date / pregnant on prep_followup_visit
-    // (everything is dereferenced via hts_encounter at read time).
+    // The backend no longer stores hiv_test_result / hiv_test_result_date /
+    // pregnant on prep_followup_visit — they are dereferenced via
+    // hts_encounter at read time. We persist only `htsEncounterUuid`.
     if (isFromHts) {
       payload.htsEncounterUuid = latestHts.uuid;
-    } else {
-      payload.hivTestResultDate = hivTestResultDate;
-      payload.hivTestResult = hivTestValue;
     }
     payload.syphilis = syphilisTest;
     payload.hepatitis = hepatitisTest;
@@ -1152,12 +1120,12 @@ const ClinicVisit = props => {
     payload.prepEnrollmentUuid = resolvedEnrollmentUuid;
     payload.prepNotedSideEffects = notedSideEffects;
     payload.syndromicStiScreening = syndromicStiSelected;
-    payload.notedSideEffects = "";
     payload.previousPrepStatus = props.patientObj?.prepStatus;
     // Derive stiScreening from syndromicStiScreening for API compatibility
     payload.stiScreening = syndromicStiSelected.length > 0 ? "true" : "false";
-    // Map otherDrugsPrescribed back to otherDrugs for API compatibility
-    if (payload.hasOtherDrugs === "true") {
+    // Map otherDrugsPrescribed back to otherDrugs for API compatibility.
+    // hasOtherDrugs is a YES_NO codeset code so we match on YES_NO_YES.
+    if (payload.hasOtherDrugs === "YES_NO_YES") {
       payload.otherDrugs = payload.otherDrugsPrescribed || "";
     } else {
       payload.otherDrugs = "";
@@ -1588,7 +1556,7 @@ const ClinicVisit = props => {
                           // the disabled field stays in sync with the dropdown
                           // options regardless of formik state timing.
                           value={isFromHts
-                            ? (toHtsResultCode(
+                            ? (toHivTestResultCode(
                                 htsObs.confirmatoryHivTest || htsObs.initialHivTest,
                                 htsObs.typeOfHivTestDone) || "")
                             : (hivTestValue || "")}
@@ -1601,7 +1569,7 @@ const ClinicVisit = props => {
                           onChange={e => setHivTestValue(e.target.value)}
                         >
                           <option value="">Select</option>
-                          {(codeset?.HTS_RESULT || []).map(item => (
+                          {(codeset?.HIV_TEST_RESULT || []).map(item => (
                             <option key={item.code} value={item.code}>{item.display}</option>
                           ))}
                         </Input>
@@ -1834,25 +1802,6 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* 13b. PrEP Type - Other specify */}
-                    {values.prepType === "PREP_TYPE_OTHERS" && (
-                      <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                          <FormLabelName>Specify Other PrEP Type</FormLabelName>
-                          <Input
-                            type="text"
-                            name="otherPrepType"
-                            id="otherPrepType"
-                            value={values.otherPrepType}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            disabled={disabledField}
-                            placeholder="Specify..."
-                          />
-                        </FormGroup>
-                      </div>
-                    )}
-
                     {/* 14. Prep Regimen */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
@@ -1883,7 +1832,7 @@ const ClinicVisit = props => {
                             props.activeContent.actionType
                           )
                             ? prepRegimen?.map(value => (
-                                <option key={value.id} value={value.id}>
+                                <option key={value.code || value.id} value={value.code}>
                                   {value.regimen}
                                 </option>
                               ))
@@ -1893,12 +1842,12 @@ const ClinicVisit = props => {
                                 prepRegimen,
                                 props.recentActivities?.[0]?.regimenId
                               )?.map(value => (
-                                <option key={value.id} value={value.id}>
+                                <option key={value.code || value.id} value={value.code}>
                                   {value.regimen}
                                 </option>
                               ))
                             : prepRegimen?.map(value => (
-                                <option key={value.id} value={value.id}>
+                                <option key={value.code || value.id} value={value.code}>
                                   {value.regimen}
                                 </option>
                               ))}
@@ -1957,49 +1906,58 @@ const ClinicVisit = props => {
                       </div>
                     )}
 
-                    {/* 16. Other Drugs Prescribed */}
-                    <div className="form-group mb-3 col-md-6">
-                      <FormGroup>
-                        <FormLabelName>Other Drugs Prescribed</FormLabelName>
-                        <Input
-                          type="select"
-                          name="hasOtherDrugs"
-                          id="hasOtherDrugs"
-                          value={values.hasOtherDrugs}
-                          onChange={e => {
-                            handleChange(e);
-                            if (e.target.value !== "true") {
-                              setFieldValue("otherDrugsPrescribed", "");
-                            }
-                          }}
-                          style={inputStyle}
-                          disabled={disabledField}
-                        >
-                          <option value="">Select</option>
-                          {(codeset?.YES_NO || []).map(item => (
-                            <option key={item.code} value={item.code}>{item.display}</option>
-                          ))}
-                        </Input>
-                      </FormGroup>
-                    </div>
-                    {values.hasOtherDrugs === "true" && (
-                      <div className="mb-3 col-md-6">
-                        <FormGroup>
-                          <FormLabelName>
-                            Specify Other Drugs Prescribed
-                          </FormLabelName>
-                          <Input
-                            type="text"
-                            name="otherDrugsPrescribed"
-                            id="otherDrugsPrescribed"
-                            value={values.otherDrugsPrescribed}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            disabled={disabledField}
-                            placeholder="Enter other drugs prescribed..."
-                          />
-                        </FormGroup>
-                      </div>
+                    {/* 16. Other Drugs Prescribed
+                        On view, hide the entire section when the visit was
+                        entered without an other-drug value — the user asked
+                        not to surface an empty Yes/No toggle for visits where
+                        nothing was filled in. On entry/edit the section is
+                        always shown so the user can answer either way. */}
+                    {(!disabledField || values.hasOtherDrugs === "YES_NO_YES") && (
+                      <>
+                        <div className="form-group mb-3 col-md-6">
+                          <FormGroup>
+                            <FormLabelName>Other Drugs Prescribed</FormLabelName>
+                            <Input
+                              type="select"
+                              name="hasOtherDrugs"
+                              id="hasOtherDrugs"
+                              value={values.hasOtherDrugs}
+                              onChange={e => {
+                                handleChange(e);
+                                if (e.target.value !== "YES_NO_YES") {
+                                  setFieldValue("otherDrugsPrescribed", "");
+                                }
+                              }}
+                              style={inputStyle}
+                              disabled={disabledField}
+                            >
+                              <option value="">Select</option>
+                              {(codeset?.YES_NO || []).map(item => (
+                                <option key={item.code} value={item.code}>{item.display}</option>
+                              ))}
+                            </Input>
+                          </FormGroup>
+                        </div>
+                        {values.hasOtherDrugs === "YES_NO_YES" && (
+                          <div className="mb-3 col-md-6">
+                            <FormGroup>
+                              <FormLabelName>
+                                Specify Other Drugs Prescribed
+                              </FormLabelName>
+                              <Input
+                                type="text"
+                                name="otherDrugsPrescribed"
+                                id="otherDrugsPrescribed"
+                                value={values.otherDrugsPrescribed}
+                                onChange={handleChange}
+                                style={inputStyle}
+                                disabled={disabledField}
+                                placeholder="Enter other drugs prescribed..."
+                              />
+                            </FormGroup>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 
@@ -2242,77 +2200,6 @@ const ClinicVisit = props => {
                           </FormGroup>
                         </div>
                       )}
-                    </div>
-                  )}
-
-                  {/* ── Result of Liver Function Test ── */}
-                  <Label
-                    as="a"
-                    color="olive"
-                    style={{ width: "106%", height: "35px" }}
-                    ribbon
-                  >
-                    <h4 style={{ color: "#fff" }}>
-                      <input
-                        type="checkbox"
-                        name="liverFunctionTest"
-                        value="Yes"
-                        onChange={handleCheckBoxLiverFunctionTest}
-                        checked={liverFunctionTestEnabled}
-                        disabled={disabledField}
-                      />{" "}
-                      Result of Liver Function Test
-                    </h4>
-                  </Label>
-                  <br />
-                  <br />
-                  {liverFunctionTestEnabled && (
-                    <div className="row">
-                      <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                          <FormLabelName>
-                            Date of Liver Function Test
-                          </FormLabelName>
-                          <Input
-                            className="form-control"
-                            type="date"
-                            onKeyDown={e => e.preventDefault()}
-                            name="dateLiverFunctionTestResults"
-                            id="dateLiverFunctionTestResults"
-                            max={moment(new Date()).format("YYYY-MM-DD")}
-                            value={values.dateLiverFunctionTestResults}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            disabled={disabledField}
-                          />
-                        </FormGroup>
-                      </div>
-                      <div className="form-group mb-3 col-md-12">
-                        <FormGroup>
-                          <FormLabelName>
-                            Result
-                            {values?.dateLiverFunctionTestResults && (
-                              <span style={{ color: "red" }}> *</span>
-                            )}
-                          </FormLabelName>
-                          <LiverFunctionTest
-                            objValues={values}
-                            handleInputChange={handleLftInputChange}
-                            liverFunctionTestResult={
-                              codeset?.LIVER_FUNCTION_TEST_RESULT
-                            }
-                            disabledField={disabledField}
-                            isAutoPop={false}
-                          />
-                          {values?.dateLiverFunctionTestResults &&
-                            (!values?.liverFunctionTestResults ||
-                              values.liverFunctionTestResults.length === 0) && (
-                              <span className={classes.error}>
-                                Result is required when a date has been selected
-                              </span>
-                            )}
-                        </FormGroup>
-                      </div>
                     </div>
                   )}
 

@@ -23,9 +23,19 @@ const REGIMEN_ID_DISPLAY = {
   "4": "Lenacapavir",
 };
 
-export const displayRegimen = value =>
-  value
-    ? REGIMEN_CODE_DISPLAY[value] || REGIMEN_ID_DISPLAY[String(value)] || value
-    : value;
+// `idMap` is an optional runtime map of codeset row id -> display name, supplied
+// by callers that have already fetched the live PREP_REGIMEN / PEP_REGIMEN
+// codeset. Resolves rows that were saved with the codeset row id (e.g. 2172)
+// before the form was fixed to persist the canonical code instead.
+export const displayRegimen = (value, idMap) => {
+  if (value === null || value === undefined || value === "") return value;
+  const key = String(value);
+  return (
+    REGIMEN_CODE_DISPLAY[value]
+    || REGIMEN_ID_DISPLAY[key]
+    || (idMap && idMap[key])
+    || value
+  );
+};
 
 export default displayRegimen;

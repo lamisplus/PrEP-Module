@@ -32,8 +32,9 @@ import { makeStyles } from '@material-ui/core/styles'
 import "@reach/menu-button/styles.css";
 import { Modal } from "react-bootstrap";
 import { Dropdown, Button, Menu, Icon } from 'semantic-ui-react'
-import { getPepRegimenOptions } from './codesets'
+import { getPepRegimenOptions, fetchPrepRegimens } from './codesets'
 import { displayRegimen } from "../../../Utils/regimenDisplay";
+import useRegimenLookup from "../../../hooks/useRegimenLookup";
 
 
 const tableIcons = {
@@ -106,6 +107,10 @@ const PatientnHistory = (props) => {
     const [saving, setSaving] = useState(false)
     const [open, setOpen] = React.useState(false)
     const [record, setRecord] = useState(null)
+    // Live PREP_REGIMEN + PEP_REGIMEN codesets keyed by row id, so legacy
+    // rows that stored `regimenId` as the codeset id (e.g. "2172") still
+    // resolve to the display name in the History grid.
+    const { idMap: regimenById } = useRegimenLookup();
 
     const toggle = () => setOpen(prev => !prev);
     useEffect(() => {
@@ -219,10 +224,18 @@ const PatientnHistory = (props) => {
                 isLoading={props.loading}
                 data={props.recentActivities && props.recentActivities.map((row) => ({
                     date: row.encounterDate,
-                    // Always run the stored value (codeset code OR legacy id)
-                    // through displayRegimen so the grid never surfaces a raw
-                    // PEP_REGIMEN_TDF_3TC_DTG or "3" to the user.
-                    regimen: displayRegimen(row.pepRegimen) || displayRegimen(row.regimen) || "",
+                    // Resolve regimen for display. Priority:
+                    //  1. PEP regimen code (row.pepRegimen) → displayRegimen()
+                    //  2. Backend-resolved regimen display (row.regimen) —
+                    //     present only for legacy ids 1–4 today.
+                    //  3. row.regimenId — the canonical code on new records,
+                    //     or the codeset row id on legacy rows. displayRegimen
+                    //     with the live id-map fallback handles both shapes.
+                    regimen:
+                        displayRegimen(row.pepRegimen, regimenById)
+                        || displayRegimen(row.regimen, regimenById)
+                        || displayRegimen(row.regimenId, regimenById)
+                        || "",
                     nextAppointment: row.nextAppointment,
                     actions:
 

@@ -74,7 +74,6 @@ const PrEPCommencementForm = props => {
     referred: "",
     datereferred: "",
     nextAppointment: "",
-    pregnant: "",
     prepEnrollmentUuid: "",
     duration: "",
     prepDistributionSetting: "",
@@ -123,6 +122,18 @@ const PrEPCommencementForm = props => {
       });
   };
 
+  // Legacy rows saved `regimenId` as the codeset row id (e.g. "2172"); new
+  // ones persist the canonical code. Translate id → code on load so the
+  // dropdown autopopulates instead of going blank on view/edit.
+  const normalizeRegimenIdToCode = (value, list) => {
+    if (value == null || value === "") return "";
+    const key = String(value);
+    const byCode = (list || []).find(r => r.code === key);
+    if (byCode) return byCode.code;
+    const byId = (list || []).find(r => String(r.id) === key);
+    return byId?.code || key;
+  };
+
   const getPatientCommencement = id => {
     axios
       .get(
@@ -133,10 +144,22 @@ const PrEPCommencementForm = props => {
           headers: { Authorization: `Bearer ${token}` },
         }
       )
-      .then(response => {
+      .then(async response => {
         let data = response.data.find(x => x.id === id);
+        let regimenList =
+          (prepRegimen && prepRegimen.length > 0 && prepRegimen) ||
+          (availableRegimens && availableRegimens.length > 0 && availableRegimens) ||
+          null;
+        if (!regimenList) {
+          try {
+            regimenList = await fetchPrepRegimens();
+          } catch (_) {
+            regimenList = [];
+          }
+        }
         data = {
           ...data,
+          regimenId: normalizeRegimenIdToCode(data?.regimenId, regimenList),
           monthsOfRefill:
             getDurationByValue(data?.monthsOfRefill) || data?.monthsOfRefill,
         };
@@ -187,10 +210,6 @@ const PrEPCommencementForm = props => {
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
   };
 
-  const isFemalePatient =
-    (props.patientObj.gender?.toLowerCase() === "female" ||
-      props.patientObj.sex?.toLowerCase() === "female");
-
   const validate = () => {
     let temp = { ...errors };
     temp.dateInitialAdherenceCounseling =
@@ -217,12 +236,6 @@ const PrEPCommencementForm = props => {
       objValues.liverFunctionTestResults.length > 0
         ? ""
         : "This field is required";
-    if (isFemalePatient) {
-      temp.pregnant = objValues.pregnant ? "" : "This field is required";
-      temp.breastFeeding = objValues.breastFeeding
-        ? ""
-        : "This field is required";
-    }
     setErrors({ ...temp });
     return Object.values(temp).every(x => x === "");
   };
@@ -372,8 +385,11 @@ const PrEPCommencementForm = props => {
 
   const isSelectedRegimenCabLa = useCallback(() => {
     if (!objValues?.regimenId) return false;
+    const key = objValues.regimenId.toString();
+    // New records persist the canonical code; older rows may still carry the
+    // codeset row id, so match either shape.
     const selected = (prepRegimen || availableRegimens || []).find(
-      r => r.id?.toString() === objValues.regimenId.toString()
+      r => r.code === key || r.id?.toString() === key
     );
     return LONG_ACTING_INJECTABLE_CODES.includes(selected?.code);
   }, [objValues, prepRegimen, availableRegimens]);
@@ -560,66 +576,9 @@ const PrEPCommencementForm = props => {
                 </FormGroup>
               )}
             </div>
-            {(props.patientObj.gender?.toLowerCase() === "female" ||
-              props.patientObj.sex?.toLowerCase()) === "female" && (
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>Pregnant <span style={{ color: "red" }}>*</span></Label>
-                  <Input
-                    type="select"
-                    name="pregnant"
-                    id="pregnant"
-                    onChange={handleInputChange}
-                    value={objValues.pregnant}
-                    disabled={disabledField}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.25rem",
-                    }}
-                  >
-                    <option value="">Select</option>
-                    {(codeset?.YES_NO || []).map(value => (
-                      <option key={value.code} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                  {errors.pregnant && (
-                    <span className={classes.error}>{errors.pregnant}</span>
-                  )}
-                </FormGroup>
-              </div>
-            )}
-            {(props.patientObj.gender?.toLowerCase() === "female" ||
-              props.patientObj.sex?.toLowerCase()) === "female" && (
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label>Breastfeeding <span style={{ color: "red" }}>*</span></Label>
-                  <Input
-                    type="select"
-                    name="breastFeeding"
-                    id="breastFeeding"
-                    onChange={handleInputChange}
-                    value={objValues.breastFeeding}
-                    disabled={disabledField}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.25rem",
-                    }}
-                  >
-                    <option value="">Select</option>
-                    {(codeset?.YES_NO || []).map(value => (
-                      <option key={value.code} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
-                  </Input>
-                  {errors.breastFeeding && (
-                    <span className={classes.error}>{errors.breastFeeding}</span>
-                  )}
-                </FormGroup>
-              </div>
-            )}
+            {/* Pregnancy / Breastfeeding are no longer captured on the initiation
+                form; both are resolved from the linked hts_encounter (via
+                hts_encounter_uuid) at display time. */}
             <div className="form-group mb-3 col-md-6">
               <FormGroup>
                 <Label>History of drug Allergies <span style={{ color: "red" }}>*</span></Label>
@@ -844,7 +803,7 @@ const PrEPCommencementForm = props => {
                 >
                   <option value="">Select</option>
                   {prepRegimen.map(value => (
-                    <option key={value.id} value={value.id}>
+                    <option key={value.code || value.id} value={value.code}>
                       {value.regimen}
                     </option>
                   ))}

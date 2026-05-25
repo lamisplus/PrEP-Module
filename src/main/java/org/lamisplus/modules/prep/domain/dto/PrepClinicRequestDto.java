@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 
+/** See {@link PrepClinicDto} — kept fat to keep the legacy PrepClinicService path compiling. */
 @Builder(toBuilder = true)
 @Getter
 @Setter
@@ -29,7 +30,7 @@ public class PrepClinicRequestDto implements Serializable {
     private String enrollmentType;
 
     //@NotNull(message = "regimenId is mandatory")
-    private long regimenId;
+    private String regimenId;
 
     //private long regimenTypeId;
 
@@ -75,7 +76,6 @@ public class PrepClinicRequestDto implements Serializable {
 
     private String riskReductionServices;
 
-    private String notedSideEffects;
     private Object prepNotedSideEffects;
     private String healthCareWorkerSignature;
 
@@ -111,4 +111,3 @@ public class PrepClinicRequestDto implements Serializable {
     private String otherNotedSideEffects;
     private String otherSyndromicStiScreening;
 }
-

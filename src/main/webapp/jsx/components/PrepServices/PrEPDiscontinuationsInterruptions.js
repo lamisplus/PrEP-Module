@@ -275,8 +275,26 @@ const PrEPDiscontinuationsInterruptions = props => {
 
     const canonicalEnrollmentType =
       toEnrollmentTypeCode(enrollmentType) || ENROLLMENT_TYPE_PREP;
-    objValues.previousPrepStatus = props.patientObj?.prepStatus;
+    // Route the patient's current status into the column matching their arm.
+    // PEP enrollments land in previous_pep_status; PrEP (default) into
+    // previous_prep_status. The other column is cleared so we don't carry
+    // stale per-arm state across discontinuations.
+    if (isPEP) {
+      objValues.previousPepStatus = props.patientObj?.prepStatus;
+      objValues.previousPrepStatus = null;
+    } else {
+      objValues.previousPrepStatus = props.patientObj?.prepStatus;
+      objValues.previousPepStatus = null;
+    }
     objValues.enrollmentType = canonicalEnrollmentType;
+    // HIV result is no longer denormalised onto the interruption row; we
+    // store the linked hts_encounter uuid and resolve it on read. The form's
+    // hivResult dropdown is kept for skip-logic but its value isn't persisted.
+    objValues.htsEncounterUuid =
+      patientDto?.htsEncounterUuid
+      || props.patientObj?.htsEncounterUuid
+      || props.patientObj?.latestHtsResult?.uuid
+      || objValues.htsEncounterUuid;
     // Mirror the type-specific date into interruptionDate so the dashboard's
     // prepStatus SQL (which compares prepi.interruption_date to the latest
     // follow-up encounter_date) flips immediately after save — without this,

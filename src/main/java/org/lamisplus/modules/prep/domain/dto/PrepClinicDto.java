@@ -7,6 +7,16 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 
+/**
+ * DTO shared between two save paths that both write a "clinic visit":
+ *   * the legacy {@code /api/v1/prep-clinic} endpoint (PrepClinicService → PrepClinic entity)
+ *   * the new commencement / clinic mappers on PrepService that write the
+ *     PrepFollowupVisit entity (prep_followup_visit table).
+ *
+ * Fields used only by the legacy PrepClinic entity stay on this DTO so the
+ * legacy endpoint keeps compiling — the PrepFollowupVisit mappers on
+ * PrepService simply don't reference them anymore.
+ */
 @Builder(toBuilder = true)
 @Getter
 @Setter
@@ -26,7 +36,7 @@ public class PrepClinicDto implements Serializable {
 
     private String prepEnrollmentUuid;
 
-    private long regimenId;
+    private String regimenId;
 
     private String urinalysisResult;
 
@@ -37,8 +47,6 @@ public class PrepClinicDto implements Serializable {
     private Long personId;
 
     private LocalDate nextAppointment;
-
-    //private String status;
 
     private Boolean isCommencement;
 
@@ -74,8 +82,6 @@ public class PrepClinicDto implements Serializable {
 
     private String riskReductionServices;
 
-    private String notedSideEffects;
-
     private Integer duration;
 
     private String otherPrepGiven;
@@ -106,4 +112,3 @@ public class PrepClinicDto implements Serializable {
     private String otherNotedSideEffects;
     private String otherSyndromicStiScreening;
 }
-

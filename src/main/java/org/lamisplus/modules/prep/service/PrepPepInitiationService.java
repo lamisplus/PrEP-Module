@@ -52,7 +52,6 @@ public class PrepPepInitiationService {
         PrepPepInitiation entity = requestDtoToEntity(requestDto, person.getUuid());
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setUuid(UUID.randomUUID().toString());
-        entity.setStatus("ENROLLED");
 
         if (requestDto.getDateEnrolled() != null) {
             prepPepInitiationRepository
@@ -110,9 +109,8 @@ public class PrepPepInitiationService {
     public PrepPepInitiationDto getOpenEnrollment(Long personId) {
         Person person = this.getPerson(personId);
 
-        String status = "STOPPED, DEATH";
         Optional<PrepPepInitiation> entityOptional = prepPepInitiationRepository
-                .findByPersonUuidAndArchived(person.getUuid(), false, currentUserOrganizationService.getCurrentUserOrganization(), status);
+                .findByPersonUuidAndArchived(person.getUuid(), false, currentUserOrganizationService.getCurrentUserOrganization());
         if (entityOptional.isPresent()) return entityToDto(entityOptional.get());
         return new PrepPepInitiationDto();
     }
@@ -133,7 +131,6 @@ public class PrepPepInitiationService {
         entity.setSupporterName(dto.getSupporterName());
         entity.setSupporterRelationshipType(dto.getSupporterRelationshipType());
         entity.setSupporterPhone(dto.getSupporterPhone());
-        entity.setStatus("ENROLLED");
 
         entity.setHtsEncounterUuid(dto.getHtsEncounterUuid());
 
@@ -141,7 +138,6 @@ public class PrepPepInitiationService {
         entity.setPopulationType(dto.getPopulationType());
         entity.setWeight(dto.getWeight());
         entity.setHeight(dto.getHeight());
-        entity.setBreastFeeding(dto.getBreastFeeding());
         entity.setHistoryOfDrugAllergies(dto.getHistoryOfDrugAllergies());
         entity.setHistoryOfDrugToDrugInteraction(dto.getHistoryOfDrugToDrugInteraction());
         entity.setUrinalysisResult(dto.getUrinalysisResult());
@@ -172,7 +168,6 @@ public class PrepPepInitiationService {
         entity.setSupporterName(dto.getSupporterName());
         entity.setSupporterRelationshipType(dto.getSupporterRelationshipType());
         entity.setSupporterPhone(dto.getSupporterPhone());
-        entity.setStatus("Enrolled");
 
         entity.setHtsEncounterUuid(dto.getHtsEncounterUuid());
 
@@ -180,7 +175,6 @@ public class PrepPepInitiationService {
         entity.setPopulationType(dto.getPopulationType());
         entity.setWeight(dto.getWeight());
         entity.setHeight(dto.getHeight());
-        entity.setBreastFeeding(dto.getBreastFeeding());
         entity.setHistoryOfDrugAllergies(dto.getHistoryOfDrugAllergies());
         entity.setHistoryOfDrugToDrugInteraction(dto.getHistoryOfDrugToDrugInteraction());
         entity.setUrinalysisResult(dto.getUrinalysisResult());
@@ -220,7 +214,6 @@ public class PrepPepInitiationService {
         dto.setPopulationType(entity.getPopulationType());
         dto.setWeight(entity.getWeight());
         dto.setHeight(entity.getHeight());
-        dto.setBreastFeeding(entity.getBreastFeeding());
         dto.setHistoryOfDrugAllergies(entity.getHistoryOfDrugAllergies());
         dto.setHistoryOfDrugToDrugInteraction(entity.getHistoryOfDrugToDrugInteraction());
         dto.setUrinalysisResult(entity.getUrinalysisResult());

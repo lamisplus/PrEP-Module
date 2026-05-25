@@ -17,6 +17,8 @@ public class PrepEligibilityScreeningDto implements Serializable {
     private Long personId;
     private Object stiScreening;
     private Object drugUseHistory;
+    private Object hivTesting;
+    private String useDrugSexualPerformance;
     private Object personalHivRiskAssessment;
     private Object sexPartnerRisk;
     private String sexPartner;
@@ -36,8 +38,6 @@ public class PrepEligibilityScreeningDto implements Serializable {
     private String visitType;
     private String uniqueClientId;
     private String htsEncounterUuid;
-    private String clientHtsCode;
-    private String pregnancyStatus;
     private String referredFrom;
     private String setting;
     private String serviceStatus;
@@ -45,4 +45,5 @@ public class PrepEligibilityScreeningDto implements Serializable {
     private String prepStatus;
     private Integer prepEligibilityCount;
     private String category;
+    private String receivedPrepFirstTimeThisYear;
 }

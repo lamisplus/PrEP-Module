@@ -7,11 +7,12 @@ import java.util.Map;
 /**
  * Resolves regimen display names for PrEP / PEP follow-up visits and initiations.
  *
- * <p>Regimens are no longer rows in the {@code prep_regimen} table — they come from
- * codesets ({@code PREP_REGIMEN}, {@code PEP_REGIMEN}). The frontend keeps a small
- * hardcoded list whose numeric ids feed {@code regimen_id} on follow-ups; this map
- * mirrors that list so the backend can hand back display names in DTOs without
- * triggering a missing-FK lookup against {@code prep_regimen}.
+ * <p>Regimens come from codesets ({@code PREP_REGIMEN}, {@code PEP_REGIMEN}).
+ * The {@code regimen_id} column is now a {@code varchar(255)} that stores the
+ * codeset's canonical code (e.g. {@code PREP_REGIMEN_TDF_FTC}), persisted by the
+ * frontend dropdown. {@link #displayByCode(String)} is the primary resolver;
+ * {@link #displayById(Long)} remains as a fallback for legacy rows that survived
+ * the bigint→varchar migration as a stringified numeric id.
  */
 public final class PrepRegimens {
 

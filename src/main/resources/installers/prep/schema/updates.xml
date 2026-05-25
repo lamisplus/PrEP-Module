@@ -769,8 +769,13 @@
         </sql>
     </changeSet>
 
-    <!-- is_interrupted, breast_feeding and prophylaxis_initiation_uuid columns are
-         declared inline on the CREATE TABLE changesets above; no ALTER required. -->
+    <!-- is_interrupted and prophylaxis_initiation_uuid are declared inline on the
+         CREATE TABLE changesets above, but those changesets are precondition /
+         IF NOT EXISTS guarded — so on installs that created the tables before
+         these columns were added inline, the inline declaration never applies.
+         The 22-05-2026-missing-column-backfill changeset at the end of this
+         file ALTERs them in idempotently. -->
+
 
     <!-- Adds the hts_encounter_uuid link column to the four prep tables that now
          dereference an hts_encounter (uuid) instead of denormalising HTS fields
@@ -883,6 +888,662 @@
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_interruptions
                 ADD COLUMN IF NOT EXISTS date_defaulted DATE;
+        </sql>
+    </changeSet>
+
+    <!-- Splits the legacy drug_use_history JSONB on prophylaxis_screening into
+         three distinct buckets so each subsection owns its own field:
+           * drug_use_history JSONB stays, but is repurposed to hold an array
+             of { drug, routesOfAdministration[] } entries only.
+           * hiv_testing JSONB (new) holds the HIV Testing subsection fields
+             (hivTestedBefore, lastTest, recommendHivRetest, clinicalSetting,
+             hivTestResultAtvisit, reportHivRisk, hivExposure).
+           * use_drug_sexual_performance VARCHAR (new) is a standalone field
+             that is no longer gated by drug-selection skip logic.
+         All three are idempotent (ADD COLUMN IF NOT EXISTS) so safe to re-run.
+         The old JSONB column is preserved on existing rows so view/edit can
+         still rehydrate legacy records via a frontend compatibility shim. -->
+    <changeSet failOnError="false" author="Gamaliel" id="18-05-2026-split-drug-use-history">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS hiv_testing JSONB;
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS use_drug_sexual_performance VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <!-- 21-05-2026 prophylaxis_screening cleanup:
+         * Drops client_hts_code and pregnancy_status — both are now resolved via
+           the hts_encounter_uuid link to hts_encounter (single source of truth).
+         * Drops the unused legacy 'extra' JSONB column carried over from the
+           original v2 CREATE TABLE; never read or written by the application.
+         Idempotent (DROP COLUMN IF EXISTS) so safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prophylaxis-screening-legacy-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS client_hts_code;
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS pregnancy_status;
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS extra;
+        </sql>
+    </changeSet>
+
+    <!-- 21-05-2026 prophylaxis_initiation cleanup:
+         * pregnancy_status / hiv_testing_point / date_of_hiv_test /
+           result_of_hiv_test — were carried inline on the v2 CREATE TABLE but
+           never mapped on the entity; values always wrote NULL. All four are
+           now resolved via the hts_encounter_uuid link to hts_encounter.
+         * breast_feeding — was entity-mapped but the initiation form no longer
+           collects it; pregnancy + breastfeeding state both come from
+           hts_encounter (the pregnancyStatus codeset on HTS encodes
+           Breastfeeding as a distinct value).
+         * status — was hard-coded to "ENROLLED"/"Enrolled" on every write and
+           never advanced; the only query that filtered on it
+           (findByPersonUuidAndArchived) used a malformed NOT IN (?) so the
+           predicate was a no-op. Actual enrollment state lives on is_interrupted.
+         Idempotent (DROP COLUMN IF EXISTS) so safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prophylaxis-initiation-legacy-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS pregnancy_status;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS hiv_testing_point;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS date_of_hiv_test;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS result_of_hiv_test;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS breast_feeding;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS status;
+        </sql>
+    </changeSet>
+
+    <!-- 21-05-2026 prophylaxis_interruptions cleanup:
+         * Adds hts_encounter_uuid (mirrors the pattern on prophylaxis_screening
+           and prophylaxis_initiation). HIV result for the interruption is now
+           resolved by joining hts_encounter on this uuid.
+         * Drops the legacy hiv_result column it replaces.
+         Idempotent (ADD/DROP COLUMN IF [NOT] EXISTS), safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-prophylaxis-interruptions-hts-uuid">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_interruptions
+                ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+            ALTER TABLE IF EXISTS prophylaxis_interruptions DROP COLUMN IF EXISTS hiv_result;
+        </sql>
+    </changeSet>
+
+    <!-- 21-05-2026 backfill: previous_prep_status → previous_pep_status for
+         PEP rows. Before this change every interruption wrote the patient's
+         status into previous_prep_status regardless of arm. For rows whose
+         related initiation's enrollment_type matches a PEP value, move the
+         value into previous_pep_status and null out previous_prep_status so
+         each per-arm column only carries that arm's status.
+         Only acts on rows where the destination is still NULL (idempotent /
+         safe to re-run; won't clobber values already saved correctly by the
+         post-fix code path). -->
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-backfill-previous-pep-status">
+        <sql>
+            UPDATE prophylaxis_interruptions pi
+            SET previous_pep_status  = pi.previous_prep_status,
+                previous_prep_status = NULL
+            FROM prophylaxis_initiation pinit
+            WHERE pi.prophylaxis_initiation_uuid = pinit.uuid
+              AND pi.previous_prep_status IS NOT NULL
+              AND pi.previous_pep_status IS NULL
+              AND (
+                   UPPER(TRIM(pinit.enrollment_type)) = 'PEP'
+                OR UPPER(TRIM(pinit.enrollment_type)) LIKE '%\_PEP' ESCAPE '\'
+                OR UPPER(TRIM(pinit.enrollment_type)) LIKE 'PREP\_PEP\_ENROLLMENT\_TYPE\_PEP' ESCAPE '\'
+              );
+        </sql>
+    </changeSet>
+
+    <!-- 21-05-2026 prep_followup_visit cleanup — drops HTS-derived columns
+         (pregnant / hiv_test_result / hiv_test_result_date) that the
+         followup row used to store inline. These are now resolved via the
+         hts_encounter_uuid link to hts_encounter, matching the screening /
+         initiation pattern.
+
+         The remaining columns the user listed as no-longer-set are dropped
+         in a separate "23-05-2026-drop-prep-followup-visit-unused-cols"
+         changeset further below — per the updated directive, every column
+         listed in PrEP_DB_Adjustments_Summary_MAIN.xlsx as removed must be
+         physically dropped via a changeset, not just unmapped at the
+         entity/DTO level.
+
+         Idempotent (DROP COLUMN IF EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prep-followup-visit-hts-derived-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS pregnant;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS hiv_test_result;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS hiv_test_result_date;
+        </sql>
+    </changeSet>
+
+    <!-- 21-05-2026 pep_followup_visit cleanup:
+         * Adds hts_encounter_uuid (was missing from the original CREATE TABLE
+           and the add-hts-encounter-uuid-to-prep-tables changeset). HIV result
+           and pregnancy status are now resolved through this link.
+         * Drops the HTS-derived columns pregnant / hiv_test_result /
+           hiv_test_result_date.
+         * Drops visit_type per the user's directive — PEP follow-ups don't
+           branch on visit type the way PrEP follow-ups do.
+         The remaining columns the user listed as no-longer-set are dropped
+         in a separate "23-05-2026-drop-pep-followup-visit-unused-cols"
+         changeset further below — per the updated directive, every column
+         listed in PrEP_DB_Adjustments_Summary_MAIN.xlsx as removed must be
+         physically dropped via a changeset, not just unmapped at the
+         entity/DTO level.
+
+         Idempotent (ADD/DROP COLUMN IF [NOT] EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-pep-followup-visit-cleanup">
+        <sql>
+            ALTER TABLE IF EXISTS pep_followup_visit
+                ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS pregnant;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS hiv_test_result;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS hiv_test_result_date;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS visit_type;
+        </sql>
+    </changeSet>
+
+    <!-- 22-05-2026 archived column type backfill.
+
+         Root cause: the five new tables (prophylaxis_screening,
+         prophylaxis_initiation, prophylaxis_interruptions, prep_followup_visit,
+         pep_followup_visit) were first shipped with `archived INTEGER NOT NULL
+         DEFAULT 0`. A later commit edited those same CREATE TABLE changesets to
+         `archived BOOLEAN` and stamped them validCheckSum=ANY — but Liquibase
+         keys a changeset by id+author+file, not content, so the edited body
+         never re-runs on installs that booted before the edit. Those
+         environments still have `archived integer`, while the JPA entities map
+         it as Boolean, producing `operator does not exist: integer = boolean`.
+
+         This changeset has a NEW id, so it runs once on every environment. The
+         plpgsql block converts `archived` to boolean only where it is still a
+         numeric type, so it is a no-op on fresh installs (already boolean) and
+         idempotent on re-run. The integer default must be dropped before the
+         type change (0 cannot auto-cast to boolean) and re-added afterwards. -->
+    <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-archived-column-type-backfill">
+        <sql splitStatements="false">
+            DO $$
+            DECLARE
+                t   text;
+                tbls text[] := ARRAY[
+                    'prophylaxis_screening',
+                    'prophylaxis_initiation',
+                    'prophylaxis_interruptions',
+                    'prep_followup_visit',
+                    'pep_followup_visit'
+                ];
+            BEGIN
+                FOREACH t IN ARRAY tbls LOOP
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = t
+                          AND column_name = 'archived'
+                          AND data_type IN ('integer','smallint','bigint','numeric')
+                    ) THEN
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived DROP DEFAULT', t);
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0)', t);
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived SET DEFAULT false', t);
+                        EXECUTE format('UPDATE %I SET archived = false WHERE archived IS NULL', t);
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived SET NOT NULL', t);
+                    END IF;
+                END LOOP;
+            END $$;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 archived column type backfill — RE-DO.
+
+         The 22-05-2026 changeset above used failOnError="false" + a DO block,
+         which on some installs caused the EXECUTE format(...) chain to fail
+         silently. Liquibase marked the changeset as ran in databasechangelog
+         but the columns stayed `integer`, breaking the JPA entities that map
+         them as Boolean.
+
+         These per-table changesets do the same conversion the safe way:
+           - new ids, so Liquibase runs them again on every install
+           - failOnError defaults to true, so any DB error surfaces in logs
+           - a preCondition with onFail="MARK_RAN" gates execution: ALTER
+             runs only when the column is still numeric. Already-boolean
+             columns are skipped (no-op on fresh installs, idempotent on
+             re-run).
+           - straight DDL/DML, no DO/EXECUTE nested-quoting risk.
+
+         Pattern per table:
+           1. DROP DEFAULT  (integer's `0` cannot auto-cast to boolean)
+           2. ALTER TYPE    USING (COALESCE(archived, 0) &lt;&gt; 0)
+           3. SET DEFAULT false
+           4. NULL → false   (defensive — should be unreachable post-cast)
+           5. SET NOT NULL -->
+
+    <!-- prophylaxis_screening -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-screening">
+        <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_screening.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prophylaxis_screening'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prophylaxis_screening SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- prophylaxis_initiation -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-initiation">
+        <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_initiation.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prophylaxis_initiation'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prophylaxis_initiation SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- prophylaxis_interruptions -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-interruptions">
+        <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_interruptions.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prophylaxis_interruptions'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prophylaxis_interruptions SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- prep_followup_visit -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prep-followup">
+        <preConditions onFail="MARK_RAN" onFailMessage="prep_followup_visit.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prep_followup_visit'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prep_followup_visit SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- pep_followup_visit -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-pep-followup">
+        <preConditions onFail="MARK_RAN" onFailMessage="pep_followup_visit.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'pep_followup_visit'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived SET DEFAULT false;
+            UPDATE pep_followup_visit SET archived = false WHERE archived IS NULL;
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- 22-05-2026 missing-column backfill.
+
+         Same root cause as the archived backfill above: is_interrupted and
+         prophylaxis_initiation_uuid were added INLINE to the precondition /
+         IF NOT EXISTS guarded CREATE TABLE changesets on 2026-05-08, a month
+         after those changesets first shipped (2026-04-04). Installs that
+         created the tables in that window never get the inline columns, so
+         the JPA entities (which map them) fail with `column ... does not
+         exist`.
+
+         New id, so it runs once everywhere. Each statement is idempotent
+         (ALTER TABLE IF EXISTS ... ADD COLUMN IF NOT EXISTS) — a no-op on
+         fresh installs that already have the columns.
+
+         is_interrupted is added with DEFAULT false so existing rows are
+         backfilled before NOT NULL applies. The prophylaxis_initiation_uuid
+         columns are added without the FK constraint: existing rows may hold
+         no link value, and the followup/interruption tables are already
+         joined in application queries — the constraint is a data-integrity
+         nicety, not required for the entities to load. -->
+    <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-missing-column-backfill">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_initiation
+                ADD COLUMN IF NOT EXISTS is_interrupted BOOLEAN NOT NULL DEFAULT false;
+            ALTER TABLE IF EXISTS prep_followup_visit
+                ADD COLUMN IF NOT EXISTS prophylaxis_initiation_uuid VARCHAR(255);
+            ALTER TABLE IF EXISTS pep_followup_visit
+                ADD COLUMN IF NOT EXISTS prophylaxis_initiation_uuid VARCHAR(255);
+            ALTER TABLE IF EXISTS prophylaxis_interruptions
+                ADD COLUMN IF NOT EXISTS prophylaxis_initiation_uuid VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <!-- 22-05-2026 Adds received_prep_first_time_this_year to prophylaxis_screening.
+         Backs the new screening-form question "Received PrEP for the first time
+         this year?" (stores a YES_NO codeset code). Idempotent (ADD COLUMN IF
+         NOT EXISTS) so the column is created automatically on the next jar
+         update and the changeset is safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-add-received-prep-first-time-this-year">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS received_prep_first_time_this_year VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 Convert regimen_id from BIGINT to VARCHAR(255) on the three
+         tables that hold a selected PrEP/PEP regimen: prep_clinic,
+         prep_followup_visit, pep_followup_visit. Background: the regimen
+         dropdown was persisting the codeset's row id (long) instead of the
+         canonical codeset code (string). The frontend was switched to send
+         the code; these changesets align the column type and backfill
+         existing rows so legacy ids stop surfacing as raw numbers on the
+         History grid / dashboard summary.
+
+         Per table we run two changesets:
+           a) ALTER COLUMN TYPE VARCHAR(255) — gated by a precondition that
+              checks the current data_type is still numeric. If the column is
+              already varchar the precondition marks the changeset as ran and
+              we skip the ALTER (so re-runs are no-ops).
+           b) Backfill — maps legacy ids to canonical codes:
+                NULL / "0"       -> NULL
+                "1"..."4"        -> hardcoded PREP code (PrepRegimens table)
+                any other digits -> code looked up from base_application_codeset
+                                    (filtered to PREP_REGIMEN / PEP_REGIMEN)
+                unresolved value -> kept as-is; displayRegimen on the FE
+                                    still renders something readable via the
+                                    live codeset map at runtime.
+
+         Each statement uses failOnError=true (the default) so any DB-side
+         failure surfaces in startup logs instead of getting swallowed. -->
+
+    <!-- prep_clinic: ALTER TYPE -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-prep-clinic-type">
+        <preConditions onFail="MARK_RAN" onFailMessage="prep_clinic.regimen_id is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prep_clinic'
+                  AND column_name = 'regimen_id'
+                  AND data_type IN ('bigint','integer','smallint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic
+                ALTER COLUMN regimen_id DROP DEFAULT;
+            ALTER TABLE prep_clinic
+                ALTER COLUMN regimen_id TYPE VARCHAR(255)
+                USING regimen_id::text;
+        </sql>
+    </changeSet>
+
+    <!-- prep_clinic: backfill -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-prep-clinic">
+        <sql>
+            UPDATE prep_clinic SET regimen_id = NULL                        WHERE regimen_id = '0';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_TDF_3TC'      WHERE regimen_id = '2';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_CABOTEGRAVIR' WHERE regimen_id = '3';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_LENACAPAVIR'  WHERE regimen_id = '4';
+            UPDATE prep_clinic tgt
+                SET regimen_id = bac.code
+              FROM base_application_codeset bac
+              WHERE tgt.regimen_id ~ '^[0-9]+$'
+                AND bac.id::text = tgt.regimen_id
+                AND bac.codeset_group IN ('PREP_REGIMEN','PEP_REGIMEN');
+        </sql>
+    </changeSet>
+
+    <!-- prep_followup_visit: ALTER TYPE -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-prep-followup-type">
+        <preConditions onFail="MARK_RAN" onFailMessage="prep_followup_visit.regimen_id is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prep_followup_visit'
+                  AND column_name = 'regimen_id'
+                  AND data_type IN ('bigint','integer','smallint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_followup_visit
+                ALTER COLUMN regimen_id DROP DEFAULT;
+            ALTER TABLE prep_followup_visit
+                ALTER COLUMN regimen_id TYPE VARCHAR(255)
+                USING regimen_id::text;
+        </sql>
+    </changeSet>
+
+    <!-- prep_followup_visit: backfill -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-prep-followup">
+        <sql>
+            UPDATE prep_followup_visit SET regimen_id = NULL                        WHERE regimen_id = '0';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_3TC'      WHERE regimen_id = '2';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_CABOTEGRAVIR' WHERE regimen_id = '3';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_LENACAPAVIR'  WHERE regimen_id = '4';
+            UPDATE prep_followup_visit tgt
+                SET regimen_id = bac.code
+              FROM base_application_codeset bac
+              WHERE tgt.regimen_id ~ '^[0-9]+$'
+                AND bac.id::text = tgt.regimen_id
+                AND bac.codeset_group IN ('PREP_REGIMEN','PEP_REGIMEN');
+        </sql>
+    </changeSet>
+
+    <!-- pep_followup_visit: ALTER TYPE -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-pep-followup-type">
+        <preConditions onFail="MARK_RAN" onFailMessage="pep_followup_visit.regimen_id is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'pep_followup_visit'
+                  AND column_name = 'regimen_id'
+                  AND data_type IN ('bigint','integer','smallint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE pep_followup_visit
+                ALTER COLUMN regimen_id DROP DEFAULT;
+            ALTER TABLE pep_followup_visit
+                ALTER COLUMN regimen_id TYPE VARCHAR(255)
+                USING regimen_id::text;
+        </sql>
+    </changeSet>
+
+    <!-- pep_followup_visit: backfill -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-pep-followup">
+        <sql>
+            UPDATE pep_followup_visit SET regimen_id = NULL                        WHERE regimen_id = '0';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_3TC'      WHERE regimen_id = '2';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_CABOTEGRAVIR' WHERE regimen_id = '3';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_LENACAPAVIR'  WHERE regimen_id = '4';
+            UPDATE pep_followup_visit tgt
+                SET regimen_id = bac.code
+              FROM base_application_codeset bac
+              WHERE tgt.regimen_id ~ '^[0-9]+$'
+                AND bac.id::text = tgt.regimen_id
+                AND bac.codeset_group IN ('PREP_REGIMEN','PEP_REGIMEN');
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 new-column add changesets.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx — every column the
+         spreadsheet marks with a leading '+' is added here, once per owning
+         table, under a new id. Each statement is ADD COLUMN IF NOT EXISTS
+         (and ALTER TABLE IF EXISTS) so:
+           * fresh installs (column already present from the CREATE TABLE
+             body) → no-op,
+           * installs that already ran the earlier add changesets
+             (21-05-2026-prophylaxis-interruptions-hts-uuid,
+              21-05-2026-pep-followup-visit-cleanup) → no-op,
+           * legacy installs that never received the column → column is added
+             now.
+
+         Per the spreadsheet, the '+' set is:
+           - prophylaxis_interruptions: +hts_encounter_uuid
+           - pep_followup_visit:        +hts_encounter_uuid -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-add-prophylaxis-interruptions-new-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_interruptions
+                ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-add-pep-followup-visit-new-cols">
+        <sql>
+            ALTER TABLE IF EXISTS pep_followup_visit
+                ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prophylaxis_screening unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx (DB Adjustments
+         Overview sheet). Mirrors the 21-05-2026 drop changeset for the same
+         table — re-stated here under a new id so the spreadsheet → changeset
+         mapping is explicit for every table the spreadsheet touches. Every
+         drop is guarded by IF EXISTS, so on environments where the 21-05
+         changeset already ran (column already gone) this is a no-op.
+         Columns dropped:
+           - client_hts_code, pregnancy_status, extra. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-screening-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS client_hts_code;
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS pregnancy_status;
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS extra;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prophylaxis_initiation unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx. Mirrors the
+         21-05-2026 drop changeset for the same table; re-stated under a new
+         id for consistency with the per-table drop changesets across all 5
+         new tables. Every drop is IF EXISTS guarded, so a no-op where
+         already applied.
+         Columns dropped:
+           - pregnancy_status, hiv_testing_point, date_of_hiv_test,
+             result_of_hiv_test, breast_feeding, status. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-initiation-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS pregnancy_status;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS hiv_testing_point;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS date_of_hiv_test;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS result_of_hiv_test;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS breast_feeding;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS status;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prophylaxis_interruptions unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx. The hts_encounter_uuid
+         column was already added on 2026-05-21; this changeset re-states the
+         hiv_result drop under a new id (IF EXISTS guarded). -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-interruptions-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_interruptions DROP COLUMN IF EXISTS hiv_result;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prep_followup_visit unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx (DB Adjustments
+         Overview sheet). The HTS-derived trio (pregnant / hiv_test_result /
+         hiv_test_result_date) was already dropped on 2026-05-21; this
+         changeset cleans up the remaining 23 columns from the spreadsheet
+         that the entity / DTO / service layer no longer reads or writes:
+           - noted_side_effects, urinalysis_result, creatinine,
+             creatinine_result, liver_function_test_results,
+             date_of_liver_function_test_results, family_planning,
+             date_of_family_planning, syndromic_screening,
+             history_of_drug_to_drug_interaction, history_of_drug_allergies,
+             comment, why, referred, date_referred, prep_given,
+             date_prep_start, date_prep_given, other_prep_given,
+             other_prep_type, was_prep_administered, prep_distribution_setting,
+             date_initial_adherence_counseling.
+         Idempotent (DROP COLUMN IF EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prep-followup-visit-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS noted_side_effects;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS urinalysis_result;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS creatinine;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS creatinine_result;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS liver_function_test_results;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_of_liver_function_test_results;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS family_planning;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_of_family_planning;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS syndromic_screening;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS history_of_drug_to_drug_interaction;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS history_of_drug_allergies;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS comment;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS why;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS referred;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_referred;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS prep_given;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_prep_start;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_prep_given;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS other_prep_given;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS other_prep_type;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS was_prep_administered;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS prep_distribution_setting;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_initial_adherence_counseling;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 pep_followup_visit unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx. The HTS-derived
+         columns (pregnant / hiv_test_result / hiv_test_result_date) and
+         visit_type were already dropped on 2026-05-21; this changeset cleans
+         up the remaining 21 columns from the spreadsheet that the entity /
+         DTO / service layer no longer reads or writes:
+           - noted_side_effects, other_noted_side_effects, prep_noted_side_effects,
+             urinalysis_result, creatinine, creatinine_result, hepatitis, syphilis,
+             other_tests_done, liver_function_test_results,
+             date_of_liver_function_test_results, family_planning,
+             date_of_family_planning, other_drugs, history_of_drug_to_drug_interaction,
+             history_of_drug_allergies, comment, why, referred, date_referred,
+             other_pep_regimen.
+         Idempotent (DROP COLUMN IF EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-pep-followup-visit-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS noted_side_effects;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_noted_side_effects;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS prep_noted_side_effects;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS urinalysis_result;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS creatinine;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS creatinine_result;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS hepatitis;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS syphilis;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_tests_done;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS liver_function_test_results;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS date_of_liver_function_test_results;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS family_planning;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS date_of_family_planning;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_drugs;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS history_of_drug_to_drug_interaction;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS history_of_drug_allergies;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS comment;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS why;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS referred;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS date_referred;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_pep_regimen;
         </sql>
     </changeSet>
 

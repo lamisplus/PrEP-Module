@@ -28,10 +28,11 @@ public class PrepCompletionRequestDto implements Serializable {
     private String reasonStopped;
     private String reasonStoppedOthers;
     private String previousPrepStatus;
+    private String previousPepStatus;
     private String why;
     private String pepCompletion;
     private LocalDate followUpVisitDate;
-    private String hivResult;
+    private String htsEncounterUuid;
     private String earlyDetectViralLoadResult;
     private String prepEnrollmentUuid;
     private String enrollmentType;

@@ -27,18 +27,22 @@ public interface PrepFollowupVisitRepository extends JpaRepository<PrepFollowupV
     Optional<PrepFollowupVisit> findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(LocalDate encounterDate, String uuid, Boolean isCommencement, Boolean archived);
     Optional<PrepFollowupVisit> findByUuid(String uuid);
 
+    // CAB-LA eligibility: a patient becomes injectable-eligible after they
+    // have had an initiation visit on the long-acting injectable regimen.
+    // Compare on the canonical codes (Cabotegravir / Lenacapavir) since
+    // `regimen_id` is now a varchar holding the codeset code, not a numeric id.
     @Query(value = "SELECT enableCab FROM (" +
             "SELECT person_uuid, p.id, regimen_id, next_appointment, encounter_date, " +
             "CASE " +
-            "WHEN (?2 - encounter_date) >= 23 AND pc.regimen_id = 2 AND pc.visit_type = 'PREP_VISIT_TYPE_INITIATION' THEN true " +
-            "WHEN (?2 - encounter_date) >= 53 AND pc.regimen_id = 2 AND pc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' THEN true " +
+            "WHEN (?2 - encounter_date) >= 23 AND pc.regimen_id IN ('PREP_REGIMEN_CABOTEGRAVIR','PREP_REGIMEN_LENACAPAVIR') AND pc.visit_type = 'PREP_VISIT_TYPE_INITIATION' THEN true " +
+            "WHEN (?2 - encounter_date) >= 53 AND pc.regimen_id IN ('PREP_REGIMEN_CABOTEGRAVIR','PREP_REGIMEN_LENACAPAVIR') AND pc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' THEN true " +
             "ELSE false END AS enableCab, " +
             "ROW_NUMBER() OVER (PARTITION BY person_uuid ORDER BY next_appointment DESC) AS rowNums " +
             "FROM prep_followup_visit pc " +
             "JOIN patient_person p ON p.uuid = pc.person_uuid " +
             "WHERE CAST(pc.archived AS BOOLEAN)=false AND p.archived=0 " +
             "AND is_commencement = false " +
-            "AND regimen_id = 2 " +
+            "AND regimen_id IN ('PREP_REGIMEN_CABOTEGRAVIR','PREP_REGIMEN_LENACAPAVIR') " +
             ") sub " +
             "WHERE id = ?1 AND rowNums = 1", nativeQuery = true)
     Boolean checkEnableCabaL(Long id, LocalDate currentVisitDate);
@@ -73,22 +77,6 @@ public interface PrepFollowupVisitRepository extends JpaRepository<PrepFollowupV
             "AND pc.encounter_date = (SELECT MAX(pc2.encounter_date) FROM prep_followup_visit pc2 " +
             "WHERE pc2.person_uuid = ?1 AND pc2.is_commencement = false)", nativeQuery = true)
     int updateLastEncounterPrevStatusByPersonUuid(String personUuid, String previousStatus);
-
-    @Modifying
-    @Transactional
-    @Query(value =
-            "WITH target AS (SELECT id FROM prep_followup_visit " +
-                    "WHERE encounter_date = ?1 AND is_commencement = false AND person_uuid = ?2 " +
-                    "ORDER BY id ASC LIMIT 1) " +
-                    "UPDATE prep_followup_visit " +
-                    "SET visit_type = ?3, population_type = ?4, pregnant = ?5, " +
-                    "liver_function_test_results = CAST(?6 AS jsonb), " +
-                    "reason_for_switch = ?7, date_of_liver_function_test_results = ?8 " +
-                    "WHERE id = (SELECT id FROM target)", nativeQuery = true)
-    int updateFirstPrepFollowupVisitMatchViaCte(
-            LocalDate encounterDate, String personUuid, String visitType,
-            String populationType, String pregnant, String liverFunctionTestResults,
-            String reasonForSwitch, LocalDate dateOfLiverFunctionTestResults);
 
     List<PrepFollowupVisit> findAllByFacilityId(Long facilityId);
 

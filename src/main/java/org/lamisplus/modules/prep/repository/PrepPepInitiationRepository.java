@@ -34,8 +34,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     Optional<PrepPepInitiation> findByUuid(String uuid);
 
     @Query(value = "SELECT * FROM prophylaxis_initiation pe WHERE pe.person_uuid=?1 AND CAST(pe.archived AS BOOLEAN)=?2 AND " +
-            "pe.status NOT IN (?4) AND pe.facility_id=?3 ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
-    Optional<PrepPepInitiation> findByPersonUuidAndArchived(String personUuid, Boolean archived, Long facilityId, String status);
+            "pe.facility_id=?3 ORDER BY pe.date_enrolled DESC LIMIT 1", nativeQuery = true)
+    Optional<PrepPepInitiation> findByPersonUuidAndArchived(String personUuid, Boolean archived, Long facilityId);
 
     Optional<PrepPepInitiation> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, Boolean archived);
 
@@ -146,7 +146,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "               WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' \n" +
             "               ELSE prepi.interruption_type \n" +
             "             END) \n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -280,7 +279,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "               WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' \n" +
             "               ELSE prepi.interruption_type \n" +
             "             END) \n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -415,7 +413,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "               WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' \n" +
             "               ELSE prepi.interruption_type \n" +
             "             END) \n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -530,7 +527,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "he.date_confirmed_hiv as dateConfirmedHiv,   CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount,   " +
             "(CASE WHEN el_max.HIVResultAtVisit ILIKE '%Positive%'  " +
             "THEN 'HIV Positive' WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display, CASE prepi.interruption_type WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' WHEN 'PREP_DISCONTINUATION_TYPE_DEAD' THEN 'Dead' WHEN 'PREP_DISCONTINUATION_TYPE_REFERRED' THEN 'Referred' WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' ELSE prepi.interruption_type END)  " +
-            "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' WHEN pet.person_uuid IS NULL  " +
+            "WHEN pet.person_uuid IS NULL  " +
             "THEN 'Not Enrolled' WHEN prepc.person_uuid IS NULL  " +
             "THEN 'Not Commenced' ELSE prepc.status END) prepStatus " +
             "FROM patient_person p   LEFT JOIN (SELECT COUNT(el.person_uuid) as eligibility_count,  " +
@@ -609,7 +606,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "               WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' \n" +
             "               ELSE prepi.interruption_type \n" +
             "             END) \n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' \n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' \n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' \n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped' \n" +
@@ -732,7 +728,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "               WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' \n" +
             "               ELSE prepi.interruption_type \n" +
             "             END) \n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -872,7 +867,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "            WHEN prepc.previous_prep_status IN ('Stopped', 'Discontinued') THEN 'Restart'\n" +
             "            WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display, CASE prepi.interruption_type WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' WHEN 'PREP_DISCONTINUATION_TYPE_DEAD' THEN 'Dead' WHEN 'PREP_DISCONTINUATION_TYPE_REFERRED' THEN 'Referred' WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' ELSE prepi.interruption_type END)\n" +
-            "            WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "            WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "            WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
             "            WHEN prepi.interruption_type = 'PREP_STATUS_SEROCONVERTED' THEN 'Seroconverted'\n" +
@@ -1005,7 +999,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                    WHEN el_max.hivTestResult ILIKE '%Positive%' THEN 'HIV Positive'\n" +
             "                    WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
             "                    WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display, CASE prepi.interruption_type WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' WHEN 'PREP_DISCONTINUATION_TYPE_DEAD' THEN 'Dead' WHEN 'PREP_DISCONTINUATION_TYPE_REFERRED' THEN 'Referred' WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' ELSE prepi.interruption_type END)\n" +
-            "                    WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "                    WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "                    WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "                    WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -1127,7 +1120,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "(CASE " +
             "WHEN el_max.HIVResultAtVisit ILIKE '%Positive%' THEN 'HIV Positive' " +
             "WHEN prepi.interruption_date IS NOT NULL AND (prepc.encounter_date IS NULL OR prepi.interruption_date >= prepc.encounter_date) THEN COALESCE(bac.display, CASE prepi.interruption_type WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' WHEN 'PREP_DISCONTINUATION_TYPE_STOPPED' THEN 'Stopped' WHEN 'PREP_DISCONTINUATION_TYPE_DEAD' THEN 'Dead' WHEN 'PREP_DISCONTINUATION_TYPE_REFERRED' THEN 'Referred' WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' ELSE prepi.interruption_type END) " +
-            "WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV' " +
             "WHEN pet.person_uuid IS NULL THEN 'Not Enrolled' " +
             "WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' " +
             "ELSE prepc.status END) prepStatus" +
@@ -1212,7 +1204,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "               WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' \n" +
             "               ELSE prepi.interruption_type \n" +
             "             END) \n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -1347,7 +1338,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "               WHEN 'PREP_DISCONTINUATION_TYPE_SEROCONVERTED' THEN 'Seroconverted' \n" +
             "               ELSE prepi.interruption_type \n" +
             "             END) \n" +
-            "        WHEN he.person_uuid IS NOT NULL THEN 'Enrolled into HIV'\n" +
             "        WHEN pet.person_uuid IS NULL THEN 'Not Enrolled'\n" +
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
@@ -1474,11 +1464,12 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     // Status precedence (top wins):
     //   1. is_interrupted = true        -> codeset display of the latest
     //                                       interruption_type on the SAME arm.
-    //   2. hiv_enrollment exists        -> 'Enrolled into HIV'
-    //   3. previous_prep_status flips   -> 'Restart'
-    //   4. prepc.person_uuid IS NULL    -> 'Not Commenced'
-    //   5. PrEP CASE (Injectibles bands / Oral duration) — used by findPrepEnrolled
+    //   2. previous_prep_status flips   -> 'Restart'
+    //   3. prepc.person_uuid IS NULL    -> 'Not Commenced'
+    //   4. PrEP CASE (Injectibles bands / Oral duration) — used by findPrepEnrolled
     //      PEP CASE  (28-day window after latest PEP visit) — used by findPepEnrolled
+    // ('Enrolled into HIV' branch removed — the grid no longer special-cases
+    //  hiv_enrollment; HIV status is sourced from hts_encounter.)
     //
     // Arm filtering uses prophylaxis_interruptions.prophylaxis_initiation_uuid
     // joined to prophylaxis_initiation.enrollment_type so a patient's PrEP
@@ -1745,7 +1736,16 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     String ENROLLED_WHERE =
             "WHERE CAST(pet.archived AS BOOLEAN) = ?1\n" +
             "  AND pet.facility_id = ?2\n" +
-            "  AND pet.enrollment_type = ?3\n";
+            "  AND pet.enrollment_type = ?3\n" +
+            // Exclude clients whose latest interruption on this arm is
+            // Seroconverted — they should not surface on the Enrolled grid for
+            // either PrEP or PEP. prepi is LEFT-JOINed and pre-scoped to the
+            // current arm (?3), so this WHERE works for both queries; clients
+            // with no interruption at all keep flowing through because
+            // prepi.interruption_type IS NULL.
+            "  AND (prepi.interruption_type IS NULL\n" +
+            "       OR prepi.interruption_type NOT IN ('PREP_DISCONTINUATION_TYPE_SEROCONVERTED',\n" +
+            "                                          'PREP_STATUS_SEROCONVERTED'))\n";
 
     String SEARCH_PREDICATE =
             "  AND (p.first_name ILIKE ?4\n" +

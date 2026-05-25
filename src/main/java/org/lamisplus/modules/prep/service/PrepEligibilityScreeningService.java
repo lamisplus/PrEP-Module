@@ -107,6 +107,8 @@ public class PrepEligibilityScreeningService {
         e.setScore(dto.getScore());
         e.setStiScreening(dto.getStiScreening());
         e.setDrugUseHistory(dto.getDrugUseHistory());
+        e.setHivTesting(dto.getHivTesting());
+        e.setUseDrugSexualPerformance(dto.getUseDrugSexualPerformance());
         e.setPersonalHivRiskAssessment(dto.getPersonalHivRiskAssessment());
         e.setSexPartnerRisk(dto.getSexPartnerRisk());
         e.setSexPartner(dto.getSexPartner());
@@ -125,13 +127,12 @@ public class PrepEligibilityScreeningService {
         e.setVisitDate(dto.getVisitDate());
         e.setUniqueClientId(dto.getUniqueClientId());
         e.setHtsEncounterUuid(dto.getHtsEncounterUuid());
-        e.setClientHtsCode(dto.getClientHtsCode());
-        e.setPregnancyStatus(dto.getPregnancyStatus());
         e.setReferredFrom(dto.getReferredFrom());
         e.setSetting(dto.getSetting());
         e.setServiceStatus(dto.getServiceStatus());
         e.setTypeOfSession(dto.getTypeOfSession());
         e.setCategory(dto.getCategory());
+        e.setReceivedPrepFirstTimeThisYear(dto.getReceivedPrepFirstTimeThisYear());
         return e;
     }
 
@@ -143,6 +144,8 @@ public class PrepEligibilityScreeningService {
         e.setScore(dto.getScore());
         e.setStiScreening(dto.getStiScreening());
         e.setDrugUseHistory(dto.getDrugUseHistory());
+        e.setHivTesting(dto.getHivTesting());
+        e.setUseDrugSexualPerformance(dto.getUseDrugSexualPerformance());
         e.setPersonalHivRiskAssessment(dto.getPersonalHivRiskAssessment());
         e.setSexPartnerRisk(dto.getSexPartnerRisk());
         e.setSexPartner(dto.getSexPartner());
@@ -161,13 +164,12 @@ public class PrepEligibilityScreeningService {
         e.setVisitDate(dto.getVisitDate());
         e.setUniqueClientId(dto.getUniqueClientId());
         e.setHtsEncounterUuid(dto.getHtsEncounterUuid());
-        e.setClientHtsCode(dto.getClientHtsCode());
-        e.setPregnancyStatus(dto.getPregnancyStatus());
         e.setReferredFrom(dto.getReferredFrom());
         e.setSetting(dto.getSetting());
         e.setServiceStatus(dto.getServiceStatus());
         e.setTypeOfSession(dto.getTypeOfSession());
         e.setCategory(dto.getCategory());
+        e.setReceivedPrepFirstTimeThisYear(dto.getReceivedPrepFirstTimeThisYear());
         return e;
     }
 
@@ -179,6 +181,8 @@ public class PrepEligibilityScreeningService {
         dto.setPersonUuid(e.getPersonUuid());
         dto.setStiScreening(e.getStiScreening());
         dto.setDrugUseHistory(e.getDrugUseHistory());
+        dto.setHivTesting(e.getHivTesting());
+        dto.setUseDrugSexualPerformance(e.getUseDrugSexualPerformance());
         dto.setPersonalHivRiskAssessment(e.getPersonalHivRiskAssessment());
         dto.setSexPartnerRisk(e.getSexPartnerRisk());
         dto.setSexPartner(e.getSexPartner());
@@ -198,13 +202,12 @@ public class PrepEligibilityScreeningService {
         dto.setVisitDate(e.getVisitDate());
         dto.setUniqueClientId(e.getUniqueClientId());
         dto.setHtsEncounterUuid(e.getHtsEncounterUuid());
-        dto.setClientHtsCode(e.getClientHtsCode());
-        dto.setPregnancyStatus(e.getPregnancyStatus());
         dto.setReferredFrom(e.getReferredFrom());
         dto.setSetting(e.getSetting());
         dto.setServiceStatus(e.getServiceStatus());
         dto.setTypeOfSession(e.getTypeOfSession());
         dto.setCategory(e.getCategory());
+        dto.setReceivedPrepFirstTimeThisYear(e.getReceivedPrepFirstTimeThisYear());
         return dto;
     }
 }

@@ -127,6 +127,7 @@ public class PrepCompletionService {
         e.setPersonUuid(personUuid);
         e.setInterruptionType(dto.getInterruptionType());
         e.setPreviousPrepStatus(dto.getPreviousPrepStatus());
+        e.setPreviousPepStatus(dto.getPreviousPepStatus());
         e.setInterruptionDate(dto.getInterruptionDate());
         e.setDateDefaulted(dto.getDateDefaulted());
         e.setInterruptionReason(dto.getInterruptionReason());
@@ -144,7 +145,7 @@ public class PrepCompletionService {
         e.setWhy(dto.getWhy());
         e.setPepCompletion(dto.getPepCompletion());
         e.setFollowUpVisitDate(dto.getFollowUpVisitDate());
-        e.setHivResult(dto.getHivResult());
+        e.setHtsEncounterUuid(dto.getHtsEncounterUuid());
         e.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
         e.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
         e.setEnrollmentType(dto.getEnrollmentType());
@@ -158,6 +159,7 @@ public class PrepCompletionService {
         e.setPersonUuid(personUuid);
         e.setInterruptionType(dto.getInterruptionType());
         e.setPreviousPrepStatus(dto.getPreviousPrepStatus());
+        e.setPreviousPepStatus(dto.getPreviousPepStatus());
         e.setInterruptionDate(dto.getInterruptionDate());
         e.setDateDefaulted(dto.getDateDefaulted());
         e.setInterruptionReason(dto.getInterruptionReason());
@@ -175,7 +177,7 @@ public class PrepCompletionService {
         e.setWhy(dto.getWhy());
         e.setPepCompletion(dto.getPepCompletion());
         e.setFollowUpVisitDate(dto.getFollowUpVisitDate());
-        e.setHivResult(dto.getHivResult());
+        e.setHtsEncounterUuid(dto.getHtsEncounterUuid());
         e.setEarlyDetectViralLoadResult(dto.getEarlyDetectViralLoadResult());
         e.setProphylaxisInitiationUuid(dto.getPrepEnrollmentUuid());
         e.setEnrollmentType(dto.getEnrollmentType());
@@ -188,6 +190,7 @@ public class PrepCompletionService {
         dto.setId(e.getId());
         dto.setInterruptionType(e.getInterruptionType());
         dto.setPreviousPrepStatus(e.getPreviousPrepStatus());
+        dto.setPreviousPepStatus(e.getPreviousPepStatus());
         dto.setInterruptionDate(e.getInterruptionDate());
         dto.setDateDefaulted(e.getDateDefaulted());
         dto.setInterruptionReason(e.getInterruptionReason());
@@ -205,7 +208,7 @@ public class PrepCompletionService {
         dto.setWhy(e.getWhy());
         dto.setPepCompletion(e.getPepCompletion());
         dto.setFollowUpVisitDate(e.getFollowUpVisitDate());
-        dto.setHivResult(e.getHivResult());
+        dto.setHtsEncounterUuid(e.getHtsEncounterUuid());
         dto.setEarlyDetectViralLoadResult(e.getEarlyDetectViralLoadResult());
         dto.setPrepEnrollmentUuid(e.getProphylaxisInitiationUuid());
         dto.setEnrollmentType(e.getEnrollmentType());

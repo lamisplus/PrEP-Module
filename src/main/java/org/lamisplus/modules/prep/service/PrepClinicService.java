@@ -222,7 +222,6 @@ public class PrepClinicService {
         prepClinic.setSyndromicStiScreening(sanitizeJsonb(prepClinicDto.getSyndromicStiScreening()));
         prepClinic.setSyndromicScreening(prepClinicDto.getSyndromicScreening());
         prepClinic.setRiskReductionServices(prepClinicDto.getRiskReductionServices());
-        prepClinic.setNotedSideEffects(prepClinicDto.getNotedSideEffects());
         prepClinic.setHealthCareWorkerSignature(prepClinicDto.getHealthCareWorkerSignature());
         prepClinic.setDuration(prepClinicDto.getDuration());
         prepClinic.setPrepGiven(prepClinicDto.getPrepGiven());
@@ -292,7 +291,6 @@ public class PrepClinicService {
         prepClinic.setSyndromicStiScreening(sanitizeJsonb(prepClinicRequestDto.getSyndromicStiScreening()));
         prepClinic.setSyndromicScreening(prepClinicRequestDto.getSyndromicScreening());
         prepClinic.setRiskReductionServices(prepClinicRequestDto.getRiskReductionServices());
-        prepClinic.setNotedSideEffects(prepClinicRequestDto.getNotedSideEffects());
         prepClinic.setHealthCareWorkerSignature(prepClinicRequestDto.getHealthCareWorkerSignature());
         prepClinic.setDuration(prepClinicRequestDto.getDuration());
         prepClinic.setPrepGiven(prepClinicRequestDto.getPrepGiven());
@@ -362,7 +360,6 @@ public class PrepClinicService {
         prepClinicDto.setSyndromicStiScreening(clinic.getSyndromicStiScreening());
         prepClinicDto.setSyndromicScreening(clinic.getSyndromicScreening());
         prepClinicDto.setRiskReductionServices(clinic.getRiskReductionServices());
-        prepClinicDto.setNotedSideEffects(clinic.getNotedSideEffects());
         prepClinicDto.setHealthCareWorkerSignature(clinic.getHealthCareWorkerSignature());
         prepClinicDto.setDuration(clinic.getDuration());
         prepClinicDto.setPrepGiven(clinic.getPrepGiven());

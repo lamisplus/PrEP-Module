@@ -56,12 +56,6 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
     @Column(name = "hts_encounter_uuid")
     private String htsEncounterUuid;
 
-    @Column(name = "client_hts_code")
-    private String clientHtsCode;
-
-    @Column(name = "pregnancy_status")
-    private String pregnancyStatus;
-
     @Column(name = "target_group")
     private String targetGroup;
 
@@ -95,6 +89,9 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
     @Column(name = "category")
     private String category;
 
+    @Column(name = "received_prep_first_time_this_year")
+    private String receivedPrepFirstTimeThisYear;
+
     @Column(name = "score")
     private Integer score;
 
@@ -107,6 +104,14 @@ public class PrepEligibilityScreening extends Audit implements Serializable {
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "drug_use_history", columnDefinition = "jsonb")
     private Object drugUseHistory;
+
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "hiv_testing", columnDefinition = "jsonb")
+    private Object hivTesting;
+
+    @Column(name = "use_drug_sexual_performance")
+    private String useDrugSexualPerformance;
 
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.LAZY)

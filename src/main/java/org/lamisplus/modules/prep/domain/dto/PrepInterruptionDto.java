@@ -32,9 +32,13 @@ public class PrepInterruptionDto implements Serializable {
     private String enrollmentType;
     private String prepEnrollmentUuid;
 
+    private String previousPepStatus;
     private String why;
     private String pepCompletion;
     private LocalDate followUpVisitDate;
+    /** Legacy: still written on the {@code prep_interruption} (PrepInterruption) path. */
     private String hivResult;
+    /** Used by the {@code prophylaxis_interruptions} (ProphylaxisInterruption) path; HIV result is resolved via this uuid. */
+    private String htsEncounterUuid;
     private String earlyDetectViralLoadResult;
 }
