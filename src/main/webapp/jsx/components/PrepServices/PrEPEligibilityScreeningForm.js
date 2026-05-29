@@ -1262,7 +1262,7 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    {(codeset?.SEX || []).map(item => (
+                    {(codeset?.SEX_PARTNERS || []).map(item => (
                       <option key={item.code} value={item.code}>{item.display}</option>
                     ))}
                   </select>

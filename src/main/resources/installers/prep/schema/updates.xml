@@ -1547,4 +1547,29 @@
         </sql>
     </changeSet>
 
+    <!-- 2026-05-23 Drop the prep_followup_visit -> prophylaxis_initiation
+         foreign key. Migrated follow-up records are missing the
+         prophylaxis_initiation_uuid relation, so the database-level FK rejects
+         their insertion. We remove the constraint and enforce the relation in
+         the application layer instead (see
+         PrepFollowupVisitService validation of prophylaxisInitiationUuid).
+
+         Conditional: the precondition only lets the DROP run when the FK
+         constraint actually exists. onFail="MARK_RAN" marks the changeset as
+         executed (rather than erroring) on databases where it was never
+         created, so the migration is safe to run everywhere and re-runnable. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prep-followup-initiation-fk">
+        <preConditions onFail="MARK_RAN" onFailMessage="fk_prep_followup_initiation does not exist — nothing to drop">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.table_constraints
+                WHERE table_name = 'prep_followup_visit'
+                  AND constraint_name = 'fk_prep_followup_initiation'
+                  AND constraint_type = 'FOREIGN KEY';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit DROP CONSTRAINT IF EXISTS fk_prep_followup_initiation;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

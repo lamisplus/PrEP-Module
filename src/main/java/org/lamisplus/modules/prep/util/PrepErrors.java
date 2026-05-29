@@ -83,6 +83,12 @@ public final class PrepErrors {
                 "This " + what + " is linked to a different client. Refresh the page and try again.");
     }
 
+    public static ResponseStatusException invalidProphylaxisInitiation() {
+        return new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "This visit is not linked to a valid PrEP initiation. Initiate the client on PrEP "
+                        + "before recording a follow-up visit.");
+    }
+
     public static ResponseStatusException enrollmentHasDependentRecords(String childRecord) {
         return new ResponseStatusException(HttpStatus.CONFLICT,
                 "This enrollment cannot be removed because there is already a " + childRecord

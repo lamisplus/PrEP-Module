@@ -1123,6 +1123,49 @@ const PrEPInitialVisitForm = props => {
                 </div>
               )}
 
+              {/* 16b. Breast Feeding — UI-only, autopopulated from the patient
+                  card's pregnancy status (`patientDetail.pregnant` is the
+                  PREGNANCY_STATUS display string resolved server-side). When
+                  the display reads "Breastfeeding" we show YES_NO_YES,
+                  otherwise YES_NO_NO. Always disabled, same female-only
+                  visibility rule as Pregnant. Not submitted to the backend. */}
+              {(props.patientObj?.gender?.toLowerCase() === "female" ||
+                props.patientObj?.sex?.toLowerCase() === "female") && (
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>Breast Feeding</Label>
+                    <select
+                      className="form-control"
+                      name="breastFeeding"
+                      id="breastFeeding"
+                      value={
+                        (props.patientDetail?.pregnant || "")
+                          .toString()
+                          .toLowerCase()
+                          .replace(/\s|-/g, "") === "breastfeeding"
+                          ? "YES_NO_YES"
+                          : "YES_NO_NO"
+                      }
+                      disabled
+                      title="Autopopulated from pregnancy status"
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                        padding: "0.5rem",
+                        backgroundColor: "#f1f3f5",
+                      }}
+                    >
+                      <option value="">Select</option>
+                      {(codeset?.YES_NO || []).map(item => (
+                        <option key={item.id} value={item.code}>
+                          {item.display}
+                        </option>
+                      ))}
+                    </select>
+                  </FormGroup>
+                </div>
+              )}
+
               {/* 17. PrEP/PEP Type at Start — shown for both arms. PrEP uses
                   the PrEP_TYPE codeset (Oral/Injectibles/etc.); PEP has a
                   small hardcoded list (Oral/Others) that the joint regimen
