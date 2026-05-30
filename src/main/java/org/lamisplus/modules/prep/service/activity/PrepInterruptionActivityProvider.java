@@ -1,7 +1,6 @@
 package org.lamisplus.modules.prep.service.activity;
 
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.prep.domain.dto.PatientActivity;
 import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
@@ -11,7 +10,9 @@ import org.lamisplus.modules.prep.service.PatientActivityProvider;
 import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -23,12 +24,11 @@ public class PrepInterruptionActivityProvider implements PatientActivityProvider
 	public List<PatientActivity> getActivitiesFor(Person person) {
 		return interruptionRepository.findAllByPersonAndArchived(person, false)
 				.stream()
-				.filter(i -> i.getInterruptionDate() != null || i.getFollowUpVisitDate() != null)
 				.map(this::buildPatientActivity)
+				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 	}
 
-	@NotNull
 	private PatientActivity buildPatientActivity(ProphylaxisInterruption interruption) {
 		String name;
 		// Prefer the stored enrollmentType (set when the form was saved); fall back to the joined initiation
@@ -46,10 +46,17 @@ public class PrepInterruptionActivityProvider implements PatientActivityProvider
 		} else {
 			name = "PrEP Discontinuation/Interruption";
 		}
-		// PEP completion may not set interruptionDate; fall back to followUpVisitDate
-		java.time.LocalDate date = interruption.getInterruptionDate() != null
+		// PEP completion may not set interruptionDate; fall back to
+		// followUpVisitDate, then to dateCreated for migrated rows that have
+		// neither (previously these were dropped from the timeline entirely).
+		LocalDate clinicalDate = interruption.getInterruptionDate() != null
 				? interruption.getInterruptionDate()
 				: interruption.getFollowUpVisitDate();
+		LocalDate date = PatientActivityProvider.resolveActivityDate(
+				clinicalDate, interruption.getDateCreated());
+		if (date == null) {
+			return null;
+		}
 		assert interruption.getId() != null;
 		return new PatientActivity(interruption.getId(), name, date, "", "prep-completion");
 	}
