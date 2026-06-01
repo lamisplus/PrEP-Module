@@ -32,4 +32,4 @@ export function isValidHtsEncounter(hts) {
 export const NO_VALID_HTS_WARNING =
   "No valid HTS Record was found. Please confirm that the patient has a recent, " +
   "valid HTS encounter before proceeding — you may not be able to view or save " +
-  "the client's HTS information properly.";
+  "the client's HTS information successfully.";

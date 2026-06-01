@@ -15,11 +15,8 @@ const WARNING_AMBER = "#ffc107";
  * HTS-sourced fields are never validated as required in this state.
  */
 const HtsWarningModal = ({ isOpen, onProceed, message }) => (
-  <Modal isOpen={isOpen} toggle={onProceed} centered backdrop="static">
-    <ModalHeader
-      toggle={onProceed}
-      style={{ backgroundColor: WARNING_AMBER, color: "#212529" }}
-    >
+  <Modal isOpen={isOpen} centered backdrop="static" keyboard={false}>
+    <ModalHeader style={{ backgroundColor: WARNING_AMBER, color: "#212529" }}>
       HTS Record Not Found
     </ModalHeader>
     <ModalBody>{message || NO_VALID_HTS_WARNING}</ModalBody>
