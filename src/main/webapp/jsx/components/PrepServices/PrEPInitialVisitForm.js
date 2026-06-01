@@ -25,6 +25,8 @@ import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 import { fetchInitialVisitCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
+import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import {
   fetchPrepRegimens,
   fetchPrepRegimenByType,
@@ -100,7 +102,14 @@ const PrEPInitialVisitForm = props => {
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = props.patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
-  const isFromHts = !!latestHts;
+  // "HTS found" is now decided purely by whether the linked hts_encounter
+  // (resolved from htsEncounterUuid) is valid/properly structured — not merely
+  // present. Migrated records often carry a dangling uuid or a malformed
+  // encounter, in which case HTS is treated as absent: fields stay editable and
+  // are not validated as required, and we surface a non-blocking warning modal.
+  const isFromHts = isValidHtsEncounter(latestHts);
+  const [htsWarningOpen, setHtsWarningOpen] = React.useState(false);
+  const htsWarnedRef = React.useRef(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [prepRisk, setPrepRisk] = useState([]);
@@ -212,6 +221,22 @@ const PrEPInitialVisitForm = props => {
       pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
     }));
   }, [latestHts?.uuid]);
+
+  // Warn (once) when no valid HTS encounter can be resolved. Uses a short
+  // settling delay so we don't flash the warning while the hts_encounter fetch
+  // (keyed on htsEncounterUuid) is still in flight; if a valid encounter
+  // arrives the effect re-runs and cancels the pending warning.
+  useEffect(() => {
+    if (htsWarnedRef.current) return;
+    if (isFromHts) return;
+    const timer = setTimeout(() => {
+      if (!htsWarnedRef.current && !isValidHtsEncounter(latestHts)) {
+        htsWarnedRef.current = true;
+        setHtsWarningOpen(true);
+      }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [isFromHts, latestHts]);
 
   const GetPatientDTOObj = () => {
     const personId = props.patientObj.personId || props.patientObj.id;
@@ -356,16 +381,12 @@ const PrEPInitialVisitForm = props => {
       ? ""
       : "This field is required";
     // hivTestingPoint / dateOfHivTest / resultOfHivTest are sourced from the
-    // latest hts_encounter when present; auto-satisfied on the HTS path.
-    temp.hivTestingPoint = isFromHts || objValues.hivTestingPoint
-      ? ""
-      : "This field is required";
-    temp.dateOfHivTest = isFromHts || objValues.dateOfHivTest
-      ? ""
-      : "This field is required";
-    temp.resultOfHivTest = isFromHts || objValues.resultOfHivTest
-      ? ""
-      : "This field is required";
+    // linked hts_encounter. HTS is a soft dependency (migrated records may have
+    // no valid encounter), so these are never required — the user can save even
+    // when the HTS fields are empty. They were warned via the HTS modal.
+    temp.hivTestingPoint = "";
+    temp.dateOfHivTest = "";
+    temp.resultOfHivTest = "";
     // Conditional: supporter fields required if supporter name is provided (only for PrEP)
     if (objValues.enrollmentType !== 'PEP' && objValues.supporterName) {
       temp.supporterRelationshipType = objValues.supporterRelationshipType
@@ -404,16 +425,10 @@ const PrEPInitialVisitForm = props => {
       ? "" : "This field is required";
     temp.prepRegimen = objValues.prepRegimen
       ? "" : "This field is required";
-    // Pregnancy only applies to female patients; HTS may pre-populate it.
-    const isFemale =
-      props.patientObj?.gender?.toLowerCase() === "female" ||
-      props.patientObj?.sex?.toLowerCase() === "female";
-    if (isFemale) {
-      const pregVal = isFromHts
-        ? (htsObs.pregnancyStatus || objValues.pregnancyStatus)
-        : objValues.pregnancyStatus;
-      temp.pregnancyStatus = pregVal ? "" : "This field is required";
-    }
+    // Pregnancy status is sourced from the linked hts_encounter, so it is part
+    // of the soft HTS dependency — never block submission on it (migrated
+    // records may have no valid HTS to populate it from).
+    temp.pregnancyStatus = "";
     temp.historyOfDrugAllergies = objValues.historyOfDrugAllergies
       ? "" : "This field is required";
     temp.weight = objValues.weight ? "" : "This field is required";
@@ -546,6 +561,10 @@ const PrEPInitialVisitForm = props => {
 
   return (
       <Card className={classes.root}>
+        <HtsWarningModal
+          isOpen={htsWarningOpen}
+          onProceed={() => setHtsWarningOpen(false)}
+        />
         <CardBody>
           <form>
             <div className="row">

@@ -16,6 +16,8 @@ import "react-phone-input-2/lib/style.css";
 import { fetchEligibilityScreeningCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
+import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
@@ -221,7 +223,13 @@ const BasicInfo = props => {
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
-  const isFromHts = !!latestHts;
+  // "HTS found" is decided by whether the linked hts_encounter resolved from
+  // htsEncounterUuid is valid/properly structured. Migrated records often have
+  // a dangling uuid or malformed encounter — HTS is then treated as absent
+  // (fields editable, not required) and a non-blocking modal is shown.
+  const isFromHts = isValidHtsEncounter(latestHts);
+  const [htsWarningOpen, setHtsWarningOpen] = useState(false);
+  const htsWarnedRef = React.useRef(false);
   const [riskAssessment, setRiskAssessment] = useState({
     unprotectedVaginalSexCasual: "",
     unprotectedVaginalSexRegular: "",
@@ -379,6 +387,22 @@ const BasicInfo = props => {
     }));
   }, [latestHts?.uuid]);
 
+  // Warn (once) when no valid HTS encounter can be resolved. A short settling
+  // delay avoids flashing the warning while the hts_encounter fetch (keyed on
+  // htsEncounterUuid) is still in flight; a valid encounter arriving re-runs
+  // this effect and cancels the pending warning.
+  useEffect(() => {
+    if (htsWarnedRef.current) return;
+    if (isFromHts) return;
+    const timer = setTimeout(() => {
+      if (!htsWarnedRef.current && !isValidHtsEncounter(latestHts)) {
+        htsWarnedRef.current = true;
+        setHtsWarningOpen(true);
+      }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [isFromHts, latestHts]);
+
   const getPatientPrepEligibility = id => {
     axios
       // GET hits the new screening endpoint (PrepEligibilityScreeningController)
@@ -417,19 +441,24 @@ const BasicInfo = props => {
           ...response.data,
           useDrugSexualPerformance: promotedUseDrugSexualPerformance,
         });
-        setRiskAssessment(personalHivRiskAssessment);
-        setRiskAssessmentPartner(sexPartnerRisk);
-        setStiScreening(stiScreening);
+        // Migrated records frequently carry null for these JSONB groups
+        // (assessmentForPepIndication, sexPartnerRisk, etc.). Merging onto the
+        // default-shaped state (functional update form) keeps every expected
+        // key present so the render-path Object.values(...) calls never receive
+        // null. Never replace the state with a raw null from the response.
+        setRiskAssessment(prev => ({ ...prev, ...(personalHivRiskAssessment || {}) }));
+        setRiskAssessmentPartner(prev => ({ ...prev, ...(sexPartnerRisk || {}) }));
+        setStiScreening(prev => ({ ...prev, ...(stiScreening || {}) }));
         setDrugUseHistory(normalizeLegacyDrugUseHistory(drugUseHistory));
         setHivTesting(extractLegacyHivTesting(drugUseHistory, hivTesting));
-        setAssessmentForPepIndication(assessmentForPepIndication);
-        setAssessmentForAcuteHivInfection(assessmentForAcuteHivInfection);
-        setServicesReceivedByClient(servicesReceivedByClient);
-        setAssessmentForPrepEligibility(assessmentForPrepEligibility);
+        setAssessmentForPepIndication(prev => ({ ...prev, ...(assessmentForPepIndication || {}) }));
+        setAssessmentForAcuteHivInfection(prev => ({ ...prev, ...(assessmentForAcuteHivInfection || {}) }));
+        setServicesReceivedByClient(prev => ({ ...prev, ...(servicesReceivedByClient || {}) }));
+        setAssessmentForPrepEligibility(prev => ({ ...prev, ...(assessmentForPrepEligibility || {}) }));
         if (considerationForInjections)
-          setConsiderationForInjections(considerationForInjections);
+          setConsiderationForInjections(prev => ({ ...prev, ...considerationForInjections }));
         if (reasonForDecliningPrep)
-          setReasonForDecliningPrep(reasonForDecliningPrep);
+          setReasonForDecliningPrep(prev => ({ ...prev, ...reasonForDecliningPrep }));
       })
       .catch(error => {
         console.error("Error fetching patient eligibility data:", error);
@@ -614,10 +643,10 @@ const BasicInfo = props => {
       ? ""
       : "This field is required";
     temp.sexPartner = objValues.sexPartner ? "" : "This field is required";
-    // HIV Test Result at Visit comes from HTS observation when available.
-    temp.hivTestResultAtvisit = isFromHts || hivTesting.hivTestResultAtvisit
-      ? ""
-      : "This field is required";
+    // HIV Test Result at Visit is sourced from the linked hts_encounter — a
+    // soft dependency. Never block submission on it (migrated records may have
+    // no valid HTS); the user was warned via the HTS modal.
+    temp.hivTestResultAtvisit = "";
     // useDrugSexualPerformance is its own standalone column now — it's no
     // longer gated by drug selection, so always required regardless of
     // whether any drug was checked.
@@ -885,6 +914,10 @@ const BasicInfo = props => {
 
   return (
     <>
+      <HtsWarningModal
+        isOpen={htsWarningOpen}
+        onProceed={() => setHtsWarningOpen(false)}
+      />
       <Card className={classes.root}>
         <CardBody>
           <h1 style={{ fontSize: "1.1rem" }}>{screeningType === 'PEP' ? 'PEP' : 'PrEP'} Eligibility Screening</h1>

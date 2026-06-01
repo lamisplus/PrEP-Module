@@ -11,6 +11,8 @@ import { url as baseUrl, token } from "../../../api";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
+import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
 import AddIcon from "@mui/icons-material/Add";
@@ -63,12 +65,12 @@ const buildValidationSchema = (isFemalePatient, isFromHts) =>
     durationBeforePep: Yup.string().required("This field is required"),
     systolic: Yup.string().required("This field is required"),
     diastolic: Yup.string().required("This field is required"),
-    pregnant: isFemalePatient && !isFromHts
-      ? Yup.string().required("This field is required")
-      : Yup.string(),
-    hivStatusAtExposure: isFromHts
-      ? Yup.string()
-      : Yup.string().required("This field is required"),
+    // Pregnancy Status and HIV Status at Exposure are sourced from the linked
+    // hts_encounter — a soft dependency. Never block submission on them
+    // (migrated records may have no valid HTS); the user is warned via the
+    // HTS modal instead.
+    pregnant: Yup.string(),
+    hivStatusAtExposure: Yup.string(),
     riskReductionServices: Yup.string().required("This field is required"),
     adherenceLevel: Yup.string().required("This field is required"),
     pepRegimen: Yup.string().required("This field is required"),
@@ -128,7 +130,13 @@ const PEPFollowupVisit = props => {
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = props.patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
-  const isFromHts = !!latestHts;
+  // "HTS found" is decided by whether the linked hts_encounter resolved from
+  // htsEncounterUuid is valid/properly structured. Migrated records often have
+  // a dangling uuid or malformed encounter — HTS is then treated as absent
+  // (fields editable, not required) and a non-blocking modal is shown.
+  const isFromHts = isValidHtsEncounter(latestHts);
+  const [htsWarningOpen, setHtsWarningOpen] = useState(false);
+  const htsWarnedRef = useRef(false);
 
   const [hivTestEntries, setHivTestEntries] = useState([]);
   const [hivTestInput, setHivTestInput] = useState({ test: "", result: "" });
@@ -375,6 +383,22 @@ const PEPFollowupVisit = props => {
     }
   }, [latestHts?.uuid]);
 
+  // Warn (once) when no valid HTS encounter can be resolved. A short settling
+  // delay avoids flashing the warning while the hts_encounter fetch (keyed on
+  // htsEncounterUuid) is still in flight; a valid encounter arriving re-runs
+  // this effect and cancels the pending warning.
+  useEffect(() => {
+    if (htsWarnedRef.current) return;
+    if (isFromHts) return;
+    const timer = setTimeout(() => {
+      if (!htsWarnedRef.current && !isValidHtsEncounter(latestHts)) {
+        htsWarnedRef.current = true;
+        setHtsWarningOpen(true);
+      }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [isFromHts, latestHts]);
+
   useEffect(() => {
     if (
       props.activeContent.actionType === "" ||
@@ -555,6 +579,10 @@ const PEPFollowupVisit = props => {
 
   return (
     <div className={`${classes.root} container-fluid`}>
+      <HtsWarningModal
+        isOpen={htsWarningOpen}
+        onProceed={() => setHtsWarningOpen(false)}
+      />
       <div className="row">
         <div className="col-12">
           <h2 className="p-2">PEP Follow-up Visit</h2>

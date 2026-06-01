@@ -11,6 +11,8 @@ import { url as baseUrl, token } from "../../../api";
 import { ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
+import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
 import AddIcon from "@mui/icons-material/Add";
@@ -132,11 +134,10 @@ const buildValidationSchema = (isFemalePatient, isFromHts) =>
     weight: Yup.string().required("This field is required"),
     systolic: Yup.string().required("This field is required"),
     diastolic: Yup.string().required("This field is required"),
-    // Pregnancy status is sourced from the latest hts_encounter on the HTS
-    // path; skip the required check there since the field is read-only.
-    pregnant: isFemalePatient && !isFromHts
-      ? Yup.string().required("This field is required")
-      : Yup.string(),
+    // Pregnancy status is sourced from the linked hts_encounter, which is a
+    // soft dependency (migrated records may have no valid HTS). Never block
+    // submission on it — the user is warned separately via the HTS modal.
+    pregnant: Yup.string(),
     riskReductionServices: Yup.string().required("This field is required"),
     adherenceLevel: Yup.string().required("This field is required"),
     prepType: Yup.string().required("This field is required"),
@@ -215,7 +216,13 @@ const ClinicVisit = props => {
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = props.patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
-  const isFromHts = !!latestHts;
+  // "HTS found" is decided by whether the linked hts_encounter resolved from
+  // htsEncounterUuid is valid/properly structured — migrated records often have
+  // a dangling uuid or malformed encounter, in which case HTS is treated as
+  // absent (fields editable, not required) and a non-blocking modal is shown.
+  const isFromHts = isValidHtsEncounter(latestHts);
+  const [htsWarningOpen, setHtsWarningOpen] = useState(false);
+  const htsWarnedRef = useRef(false);
   const [recentActivities, setRecentActivities] = useState([]);
   const [fullPrepTypeList, setFullPrepTypeList] = useState([]);
   const [isCabLaEligible, setIsCabLaEligible] = useState(false);
@@ -870,6 +877,22 @@ const ClinicVisit = props => {
     );
   }, [latestHts?.uuid]);
 
+  // Warn (once) when no valid HTS encounter can be resolved. A short settling
+  // delay avoids flashing the warning while the hts_encounter fetch (keyed on
+  // htsEncounterUuid) is still in flight; a valid encounter arriving re-runs
+  // this effect and cancels the pending warning.
+  useEffect(() => {
+    if (htsWarnedRef.current) return;
+    if (isFromHts) return;
+    const timer = setTimeout(() => {
+      if (!htsWarnedRef.current && !isValidHtsEncounter(latestHts)) {
+        htsWarnedRef.current = true;
+        setHtsWarningOpen(true);
+      }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [isFromHts, latestHts]);
+
   useEffect(() => {
     getPrepEligibilityObj();
     getPatientVisit();
@@ -1047,11 +1070,9 @@ const ClinicVisit = props => {
   const handleFormSubmit = async (values) => {
     // Manual validation for non-Formik fields
     const manualErrors = [];
-    // HTS Result is sourced from the latest hts_encounter on the HTS path; the
-    // hivTestValue local state mirrors it and stays in sync via getHivResult().
-    if (!isFromHts && !hivTestValue) {
-      manualErrors.push("HIV Test Result is required");
-    }
+    // HIV Test Result is sourced from the linked hts_encounter (a soft
+    // dependency). It is intentionally NOT required here so records with no
+    // valid HTS can still be saved; the user was warned via the HTS modal.
     if (!notedSideEffects || notedSideEffects.length === 0) {
       manualErrors.push("Noted Side Effects is required");
     }
@@ -1176,6 +1197,10 @@ const ClinicVisit = props => {
 
   return (
     <div className={`${classes.root} container-fluid`}>
+      <HtsWarningModal
+        isOpen={htsWarningOpen}
+        onProceed={() => setHtsWarningOpen(false)}
+      />
       <div className="row">
         <div className="col-12">
           <h2 className="p-2">PrEP Follow-up Visit</h2>
