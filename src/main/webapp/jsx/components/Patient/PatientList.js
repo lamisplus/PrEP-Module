@@ -316,7 +316,7 @@ const EnrollPatientButton = ({ row }) => {
               !activeStatus.loaded
                 ? "rgb(153, 46, 98)"
                 : blockedArm
-                ? "#b91c1c"
+                ? "#F44336"
                 : "rgb(153, 46, 98)",
             color: "#fff",
             padding: "0.75rem 1rem",
@@ -356,35 +356,48 @@ const EnrollPatientButton = ({ row }) => {
               <CircularProgress size={20} />
               Checking enrollment status…
             </div>
-          ) : blockedArm ? (
-            <div
-              style={{
-                fontSize: "0.95rem",
-                color: "#444",
-                lineHeight: 1.5,
-              }}
-            >
-              <strong>
-                {row?.firstName} {row?.surname}
-              </strong>{" "}
-              is currently initiated for <strong>{blockedArm}</strong>. You must
-              discontinue this enrollment before starting another.
-            </div>
           ) : (
             <>
-              <div
-                style={{
-                  marginBottom: "1rem",
-                  fontSize: "0.875rem",
-                  color: "#444",
-                }}
-              >
-                Choose the service line to enroll{" "}
-                <strong>
-                  {row?.firstName} {row?.surname}
-                </strong>{" "}
-                into.
-              </div>
+              {/* One modal for both states: the two entry-point cards always
+                  render. When the client is active on an arm we keep the cards
+                  visible but disabled and surface a red-orange block notice
+                  right below the header, instead of swapping to a separate
+                  "Active Enrollment" view. */}
+              {blockedArm ? (
+                <div
+                  role="alert"
+                  style={{
+                    marginBottom: "1rem",
+                    padding: "0.625rem 0.75rem",
+                    backgroundColor: "#F44336",
+                    color: "#fff",
+                    borderRadius: "0.375rem",
+                    fontSize: "0.875rem",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <strong>
+                    {row?.firstName} {row?.surname}
+                  </strong>{" "}
+                  is currently initiated for <strong>{blockedArm}</strong>.
+                  Discontinue this active enrollment before starting another —
+                  both options below are disabled.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    marginBottom: "1rem",
+                    fontSize: "0.875rem",
+                    color: "#444",
+                  }}
+                >
+                  Choose the service line to enroll{" "}
+                  <strong>
+                    {row?.firstName} {row?.surname}
+                  </strong>{" "}
+                  into.
+                </div>
+              )}
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
                 {ENTRY_POINTS.map((entry) => {
                   const isPrepDisabledByAge =
@@ -393,19 +406,23 @@ const EnrollPatientButton = ({ row }) => {
                     entry.code === "PrEP" && prepBlockedByEarlyDetect;
                   const isPrepDisabled =
                     isPrepDisabledByAge || isPrepDisabledByEarlyDetect;
+                  // Active enrollment hard-blocks BOTH arms; the PrEP-only
+                  // age / early-detect rules still apply when not blocked.
+                  const disabled = !!blockedArm || isPrepDisabled;
+                  const disabledReason = blockedArm
+                    ? `Client is currently active on ${blockedArm}. Discontinue it before enrolling.`
+                    : isPrepDisabledByEarlyDetect
+                    ? "Latest HTS encounter indicates a reactive antigen result — only PEP can be initiated."
+                    : isPrepDisabledByAge
+                    ? "Not available for clients under 15. Please use PEP."
+                    : null;
                   return (
                     <EntryPointCard
                       key={entry.code}
                       entry={entry}
                       onSelect={handleEnroll}
-                      disabled={isPrepDisabled}
-                      disabledReason={
-                        isPrepDisabledByEarlyDetect
-                          ? "Latest HTS encounter indicates a reactive antigen result — only PEP can be initiated."
-                          : isPrepDisabledByAge
-                          ? "Not available for clients under 15. Please use PEP."
-                          : null
-                      }
+                      disabled={disabled}
+                      disabledReason={disabledReason}
                     />
                   );
                 })}
