@@ -368,18 +368,16 @@ const EnrollPatientButton = ({ row }) => {
                   role="alert"
                   style={{
                     marginBottom: "1rem",
-                    padding: "0.625rem 0.75rem",
-                    backgroundColor: "#F44336",
-                    color: "#fff",
-                    borderRadius: "0.375rem",
-                    fontSize: "0.875rem",
+                    fontSize: "0.95rem",
+                    color: "#444",
                     lineHeight: 1.5,
                   }}
                 >
-                  <strong>
+                  <strong style={{ color: "#F44336" }}>
                     {row?.firstName} {row?.surname}
                   </strong>{" "}
-                  is currently initiated for <strong>{blockedArm}</strong>.
+                  is currently initiated for{" "}
+                  <strong style={{ color: "#F44336" }}>{blockedArm}</strong>.
                   Discontinue this active enrollment before starting another —
                   both options below are disabled.
                 </div>

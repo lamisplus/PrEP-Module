@@ -16,8 +16,10 @@ const SCHEME_RED_ORANGE = "#F44336";
  */
 const HtsWarningModal = ({ isOpen, onProceed, message }) => (
   <Modal isOpen={isOpen} centered backdrop="static" keyboard={false}>
-    <ModalHeader style={{ backgroundColor: SCHEME_RED_ORANGE, color: "#ffffff" }}>
-      HTS Record Not Found
+    <ModalHeader style={{ backgroundColor: SCHEME_RED_ORANGE }}>
+      {/* Color the text on the title element itself; setting it on the header
+          wrapper is overridden by the theme's `.modal-title` rule. */}
+      <span style={{ color: "#ffffff" }}>HTS Record Not Found</span>
     </ModalHeader>
     <ModalBody>{message || NO_VALID_HTS_WARNING}</ModalBody>
     <ModalFooter>
