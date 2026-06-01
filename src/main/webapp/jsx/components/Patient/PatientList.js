@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { token as token, url as baseUrl } from "./../../../api";
@@ -195,14 +195,21 @@ const EnrollPatientButton = ({ row }) => {
     loaded: false,
   });
   const [loading, setLoading] = useState(false);
+  // True only when the user clicked before the prefetch landed — drives the
+  // button's transient "Checking…" state. Background prefetch never sets this,
+  // so row buttons don't all flash a spinner while the list loads.
+  const [awaitingOpen, setAwaitingOpen] = useState(false);
+  // Open intent, read inside the fetch's async callback without stale closures.
+  const openWhenLoadedRef = useRef(false);
+  // Guards against duplicate in-flight requests (prefetch vs. an early click).
+  const fetchingRef = useRef(false);
 
-  // Open the modal immediately and resolve active-enrollment flags inside it.
-  // While the request is in flight, the dialog renders a small spinner (acts as
-  // a Suspense-style fallback). When loaded, the body swaps to either the
-  // entry-point picker or the "active enrollment" block, with no extra wait.
-  const handleOpen = () => {
-    setOpen(true);
-    if (activeStatus.loaded || loading) return;
+  // Resolve active-enrollment status from the backend. Cached after the first
+  // success so the modal can open instantly in its final state — no jarring
+  // spinner→content (or picker→active) switch inside the dialog.
+  const fetchStatus = () => {
+    if (activeStatus.loaded || fetchingRef.current) return;
+    fetchingRef.current = true;
     setLoading(true);
     const personId = row?.personId || row?.id;
     axios
@@ -220,7 +227,33 @@ const EnrollPatientButton = ({ row }) => {
       .catch(() => {
         setActiveStatus({ prep: false, pep: false, loaded: true });
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        fetchingRef.current = false;
+        setLoading(false);
+        if (openWhenLoadedRef.current) {
+          openWhenLoadedRef.current = false;
+          setAwaitingOpen(false);
+          setOpen(true);
+        }
+      });
+  };
+
+  // Prefetch on mount so an active patient shows the red-orange blocked modal
+  // the instant the user clicks — no visible state switch.
+  useEffect(() => {
+    fetchStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleOpen = () => {
+    if (activeStatus.loaded) {
+      setOpen(true);
+      return;
+    }
+    // Prefetch still in flight (or not yet started) — open as soon as it lands.
+    openWhenLoadedRef.current = true;
+    setAwaitingOpen(true);
+    fetchStatus();
   };
 
   const blockedArm = activeStatus.prep
@@ -261,6 +294,7 @@ const EnrollPatientButton = ({ row }) => {
         variant="contained"
         size="small"
         disableRipple
+        disabled={awaitingOpen}
         style={{
           backgroundColor: "rgb(153, 46, 98)",
           color: "#fff",
@@ -288,7 +322,11 @@ const EnrollPatientButton = ({ row }) => {
             borderRight: "0.0625rem solid rgba(255,255,255,0.4)",
           }}
         >
-          <Icon name="user plus" style={{ margin: 0, fontSize: "0.95rem" }} />
+          {awaitingOpen ? (
+            <CircularProgress size={15} style={{ color: "#fff" }} />
+          ) : (
+            <Icon name="user plus" style={{ margin: 0, fontSize: "0.95rem" }} />
+          )}
         </span>
         <span
           style={{
@@ -298,7 +336,7 @@ const EnrollPatientButton = ({ row }) => {
             whiteSpace: "nowrap",
           }}
         >
-          Enroll Patient
+          {awaitingOpen ? "Checking…" : "Enroll Patient"}
         </span>
       </MuiButton>
 
