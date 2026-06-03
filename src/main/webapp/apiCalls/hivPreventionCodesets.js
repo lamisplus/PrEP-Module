@@ -69,6 +69,17 @@ function pruneEmpty(obj) {
 //            select).
 // ---------------------------------------------------------------------------
 
+// "When was your last test?" must show exactly these three options. The codeset
+// feed currently returns the wrong unarchived rows (<3 months / >6 months);
+// the desired rows (<1, 1-3, 4-6 months) exist in TIME_LAST_NEGATIVE_TEST_RESULT
+// but are archived, so we curate the list here using their real codes (so the
+// persisted payload still matches the codeset) rather than depend on the feed.
+const CURATED_TIME_LAST_NEGATIVE_TEST_RESULT = [
+  { id: 1, code: "TIME_LAST_NEGATIVE_TEST_RESULT_<1_MONTH", display: "<1 Month" },
+  { id: 2, code: "TIME_LAST_NEGATIVE_TEST_RESULT_1-3_MONTHS", display: "1-3 Months" },
+  { id: 3, code: "TIME_LAST_NEGATIVE_TEST_RESULT_4-6_MONTHS", display: "4-6 Months" },
+];
+
 export async function fetchEligibilityScreeningCodesets() {
   try {
     const data = await callApi([
@@ -86,6 +97,10 @@ export async function fetchEligibilityScreeningCodesets() {
       "YES_NO",
     ]);
 
+    // Override with the curated three options regardless of what the feed
+    // returns for this group (see note above).
+    data.TIME_LAST_NEGATIVE_TEST_RESULT = CURATED_TIME_LAST_NEGATIVE_TEST_RESULT;
+
     // Convert PREP_SETTINGS to the { value, label } shape the form uses
     const settingOptions = (data.PREP_SETTINGS || []).map(item => ({
       value: item.display,
@@ -98,6 +113,7 @@ export async function fetchEligibilityScreeningCodesets() {
       hardcodedFallback(),
       hardcodedSettingOptions(),
     ]);
+    codeset.TIME_LAST_NEGATIVE_TEST_RESULT = CURATED_TIME_LAST_NEGATIVE_TEST_RESULT;
     return { codeset, settingOptions };
   }
 }

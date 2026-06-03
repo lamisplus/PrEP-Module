@@ -102,14 +102,16 @@ const PrEPInitialVisitForm = props => {
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = props.patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
-  // "HTS found" is now decided purely by whether the linked hts_encounter
-  // (resolved from htsEncounterUuid) is valid/properly structured — not merely
-  // present. Migrated records often carry a dangling uuid or a malformed
-  // encounter, in which case HTS is treated as absent: fields stay editable and
-  // are not validated as required, and we surface a non-blocking warning modal.
+  // "HTS found" is decided by whether the linked hts_encounter (resolved from
+  // htsEncounterUuid) is valid/properly structured — not merely present. A
+  // valid HTS record is REQUIRED, so when none can be resolved we hard-block
+  // with a modal (no "proceed"). Migrated records with a dangling uuid or a
+  // malformed encounter are treated as "no HTS" and blocked.
   const isFromHts = isValidHtsEncounter(latestHts);
   const [htsWarningOpen, setHtsWarningOpen] = React.useState(false);
-  const htsWarnedRef = React.useRef(false);
+  // The hard block only applies when creating a new initiation (no record id).
+  // Existing records can always be viewed/edited even if their HTS is missing.
+  const isCreateMode = !props.activeContent?.id;
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [prepRisk, setPrepRisk] = useState([]);
@@ -117,6 +119,17 @@ const PrEPInitialVisitForm = props => {
   const [patientDto, setPatientDto] = useState();
   const [disabledField, setSisabledField] = useState(false);
   const [codeset, setCodeset] = useState({});
+  // A candidate uuid whose encounter is still being fetched means HTS isn't
+  // resolved yet — wait (no timer) rather than hard-block prematurely.
+  const htsCandidateUuid =
+    objValues?.htsEncounterUuid
+    || patientDto?.htsEncounterUuid
+    || props.patientObj?.latestHtsResult?.uuid
+    || null;
+  const htsFetchPending =
+    !!htsCandidateUuid &&
+    props.patientObj?.latestHtsResult?.uuid !== htsCandidateUuid &&
+    loadedHts?.uuid !== htsCandidateUuid;
   // True once the patient is found to have a prior prophylaxis_initiation record.
   // Locks the Unique ID field so all initiations for the same client share one ID.
   const [hasExistingInitiation, setHasExistingInitiation] = useState(false);
@@ -222,21 +235,17 @@ const PrEPInitialVisitForm = props => {
     }));
   }, [latestHts?.uuid]);
 
-  // Warn (once) when no valid HTS encounter can be resolved. Uses a short
-  // settling delay so we don't flash the warning while the hts_encounter fetch
-  // (keyed on htsEncounterUuid) is still in flight; if a valid encounter
-  // arrives the effect re-runs and cancels the pending warning.
+  // Hard block (create only): open the modal as soon as we can conclude there
+  // is no valid HTS encounter — immediately (no timer), once any in-flight
+  // encounter fetch has settled. Existing records (view/edit) are never blocked.
   useEffect(() => {
-    if (htsWarnedRef.current) return;
-    if (isFromHts) return;
-    const timer = setTimeout(() => {
-      if (!htsWarnedRef.current && !isValidHtsEncounter(latestHts)) {
-        htsWarnedRef.current = true;
-        setHtsWarningOpen(true);
-      }
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, [isFromHts, latestHts]);
+    if (!isCreateMode || isFromHts) {
+      setHtsWarningOpen(false);
+      return;
+    }
+    if (htsFetchPending) return;
+    setHtsWarningOpen(true);
+  }, [isCreateMode, isFromHts, htsFetchPending]);
 
   const GetPatientDTOObj = () => {
     const personId = props.patientObj.personId || props.patientObj.id;
@@ -451,6 +460,12 @@ const PrEPInitialVisitForm = props => {
 
   const handleSubmit = e => {
     e.preventDefault();
+    // Hard block: a valid HTS record is required to create a new initiation.
+    // Edits to existing records are allowed even without HTS.
+    if (isCreateMode && !isFromHts) {
+      setHtsWarningOpen(true);
+      return;
+    }
     // Block save if HIV result is Positive — show as toast, not inline
     if (objValues.resultOfHivTest === "Positive") {
       const typeLabel =
@@ -563,7 +578,7 @@ const PrEPInitialVisitForm = props => {
       <Card className={classes.root}>
         <HtsWarningModal
           isOpen={htsWarningOpen}
-          onProceed={() => setHtsWarningOpen(false)}
+          onReturnToDashboard={() => setHtsWarningOpen(false)}
         />
         <CardBody>
           <form>

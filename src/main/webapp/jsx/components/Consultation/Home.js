@@ -222,7 +222,11 @@ const ClinicVisit = props => {
   // absent (fields editable, not required) and a non-blocking modal is shown.
   const isFromHts = isValidHtsEncounter(latestHts);
   const [htsWarningOpen, setHtsWarningOpen] = useState(false);
-  const htsWarnedRef = useRef(false);
+  // The hard block only applies when creating a new visit (no record id).
+  // Existing records can always be viewed/edited even if their HTS is missing.
+  // (htsCandidateUuid / htsFetchPending are computed below, after the state
+  // they depend on is declared.)
+  const isCreateMode = !props.activeContent?.id;
   const [recentActivities, setRecentActivities] = useState([]);
   const [fullPrepTypeList, setFullPrepTypeList] = useState([]);
   const [isCabLaEligible, setIsCabLaEligible] = useState(false);
@@ -265,6 +269,13 @@ const ClinicVisit = props => {
     testDate: "",
     result: "",
   });
+  // Liver Function Test — same shape/UI as the Syphilis/Hepatitis test rows.
+  // Persisted to its own liver_function_test_results JSONB column.
+  const [liverFunctionTest, setLiverFunctionTest] = useState({
+    liverFunctionTest: "No",
+    testDate: "",
+    result: "",
+  });
   const [otherTest, setOtherTest] = useState([]);
   const [otherTestInput, setOtherTestInput] = useState({
     testDate: "",
@@ -283,6 +294,18 @@ const ClinicVisit = props => {
 
   const formikRef = useRef(null);
   const otherTestInputRef = useRef();
+
+  // A candidate uuid whose encounter is still being fetched means HTS isn't
+  // resolved yet — wait (no timer) rather than hard-block prematurely.
+  const htsCandidateUuid =
+    formInitialValues?.htsEncounterUuid
+    || latestFromEligibility?.htsEncounterUuid
+    || props.patientObj?.latestHtsResult?.uuid
+    || null;
+  const htsFetchPending =
+    !!htsCandidateUuid &&
+    props.patientObj?.latestHtsResult?.uuid !== htsCandidateUuid &&
+    loadedHts?.uuid !== htsCandidateUuid;
 
   // ── API Calls ──
 
@@ -349,6 +372,9 @@ const ClinicVisit = props => {
       }
       setSyphilisTest(data?.syphilis || { syphilisTest: "No", testDate: "", result: "", others: "" });
       setHepatitisTest(data?.hepatitis || { hepatitisTest: "No", testDate: "", result: "" });
+      setLiverFunctionTest(
+        data?.liverFunctionTestResults || { liverFunctionTest: "No", testDate: "", result: "" }
+      );
       setIsCabLaEligible(true);
       // Pull the live regimen list so a legacy `regimenId` saved as the
       // codeset row id can be converted to its canonical code before binding
@@ -675,6 +701,14 @@ const ClinicVisit = props => {
     }
   };
 
+  const handleCheckBoxLiverFunctionTest = () => {
+    if (liverFunctionTest?.liverFunctionTest === "Yes") {
+      setLiverFunctionTest({ liverFunctionTest: "No", testDate: "", result: "" });
+    } else {
+      setLiverFunctionTest({ ...liverFunctionTest, liverFunctionTest: "Yes" });
+    }
+  };
+
   const otherTestIdCounter = useRef(0);
 
   const handleCheckBoxOtherTest = () => {
@@ -702,6 +736,10 @@ const ClinicVisit = props => {
 
   const handleInputChangeHepatitisTest = e => {
     setHepatitisTest({ ...hepatitisTest, [e.target.name]: e.target.value });
+  };
+
+  const handleInputChangeLiverFunctionTest = e => {
+    setLiverFunctionTest({ ...liverFunctionTest, [e.target.name]: e.target.value });
   };
 
   const handleOtherTestInputChange = e => {
@@ -877,21 +915,17 @@ const ClinicVisit = props => {
     );
   }, [latestHts?.uuid]);
 
-  // Warn (once) when no valid HTS encounter can be resolved. A short settling
-  // delay avoids flashing the warning while the hts_encounter fetch (keyed on
-  // htsEncounterUuid) is still in flight; a valid encounter arriving re-runs
-  // this effect and cancels the pending warning.
+  // Hard block (create only): open the modal as soon as we can conclude there
+  // is no valid HTS encounter — immediately (no timer), once any in-flight
+  // encounter fetch has settled. Existing records (view/edit) are never blocked.
   useEffect(() => {
-    if (htsWarnedRef.current) return;
-    if (isFromHts) return;
-    const timer = setTimeout(() => {
-      if (!htsWarnedRef.current && !isValidHtsEncounter(latestHts)) {
-        htsWarnedRef.current = true;
-        setHtsWarningOpen(true);
-      }
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, [isFromHts, latestHts]);
+    if (!isCreateMode || isFromHts) {
+      setHtsWarningOpen(false);
+      return;
+    }
+    if (htsFetchPending) return;
+    setHtsWarningOpen(true);
+  }, [isCreateMode, isFromHts, htsFetchPending]);
 
   useEffect(() => {
     getPrepEligibilityObj();
@@ -922,6 +956,7 @@ const ClinicVisit = props => {
       setUrinalysisTest({ urinalysisTest: "No", testDate: "", result: "" });
       setSyphilisTest({ syphilisTest: "No", testDate: "", result: "", others: "" });
       setHepatitisTest({ hepatitisTest: "No", testDate: "", result: "" });
+      setLiverFunctionTest({ liverFunctionTest: "No", testDate: "", result: "" });
       setOtherTest([]);
       setShowOtherTests(false);
       setNotedSideEffects([]);
@@ -1068,11 +1103,16 @@ const ClinicVisit = props => {
   }
 
   const handleFormSubmit = async (values) => {
+    // Hard block: a valid HTS record is required to create a PrEP follow-up
+    // visit. Edits to existing records are allowed even without HTS.
+    if (isCreateMode && !isFromHts) {
+      setHtsWarningOpen(true);
+      return;
+    }
     // Manual validation for non-Formik fields
     const manualErrors = [];
-    // HIV Test Result is sourced from the linked hts_encounter (a soft
-    // dependency). It is intentionally NOT required here so records with no
-    // valid HTS can still be saved; the user was warned via the HTS modal.
+    // HIV Test Result is sourced from the linked hts_encounter; it auto-pops
+    // from the (now-required, valid) encounter, so it is not validated here.
     if (!notedSideEffects || notedSideEffects.length === 0) {
       manualErrors.push("Noted Side Effects is required");
     }
@@ -1088,6 +1128,9 @@ const ClinicVisit = props => {
     }
     if (syphilisTest?.testDate && !syphilisTest.result) {
       manualErrors.push("Syphilis Result is required");
+    }
+    if (liverFunctionTest?.testDate && !liverFunctionTest.result) {
+      manualErrors.push("Liver Function Test Result is required");
     }
     otherTest.forEach((t, idx) => {
       if (t?.testDate && !t.result) {
@@ -1116,6 +1159,7 @@ const ClinicVisit = props => {
     payload.hepatitis = hepatitisTest;
     payload.urinalysis = urinalysisTest;
     payload.otherTestsDone = otherTest;
+    payload.liverFunctionTestResults = liverFunctionTest;
     payload.enrollmentType = ENROLLMENT_TYPE_PREP;
 
     let resolvedEnrollmentUuid = patientDto?.uuid;
@@ -1199,7 +1243,7 @@ const ClinicVisit = props => {
     <div className={`${classes.root} container-fluid`}>
       <HtsWarningModal
         isOpen={htsWarningOpen}
-        onProceed={() => setHtsWarningOpen(false)}
+        onReturnToDashboard={() => setHtsWarningOpen(false)}
       />
       <div className="row">
         <div className="col-12">
@@ -2225,6 +2269,81 @@ const ClinicVisit = props => {
                           </FormGroup>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* ── Liver Function Test ── */}
+                  <Label
+                    as="a"
+                    color="blue"
+                    style={{ width: "106%", height: "35px" }}
+                    ribbon
+                  >
+                    <h4 style={{ color: "#fff" }}>
+                      <input
+                        type="checkbox"
+                        name="liverFunctionTest"
+                        value="Yes"
+                        onChange={handleCheckBoxLiverFunctionTest}
+                        checked={liverFunctionTest?.liverFunctionTest === "Yes"}
+                        disabled={disabledField}
+                      />{" "}
+                      Liver Function Test
+                    </h4>
+                  </Label>
+                  <br />
+                  <br />
+                  {liverFunctionTest?.liverFunctionTest === "Yes" && (
+                    <div className="row">
+                      <div className="mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>Date of Liver Function Test</FormLabelName>
+                          <Input
+                            type="date"
+                            onKeyDown={e => e.preventDefault()}
+                            name="testDate"
+                            id="liverFunctionTestDate"
+                            value={liverFunctionTest?.testDate}
+                            onChange={handleInputChangeLiverFunctionTest}
+                            style={inputStyle}
+                            disabled={disabledField}
+                            // Valid date; not in the future and on or before the
+                            // Visit Date (encounterDate, capped at today).
+                            max={values.encounterDate || moment(new Date()).format("YYYY-MM-DD")}
+                          />
+                        </FormGroup>
+                      </div>
+                      <div className="mb-3 col-md-6">
+                        <FormGroup>
+                          <FormLabelName>
+                            Result
+                            {liverFunctionTest?.testDate && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
+                          </FormLabelName>
+                          <Input
+                            type="select"
+                            name="result"
+                            id="liverFunctionResult"
+                            value={liverFunctionTest?.result}
+                            onChange={handleInputChangeLiverFunctionTest}
+                            style={inputStyle}
+                            disabled={disabledField}
+                          >
+                            <option value="">Select</option>
+                            {codeset?.LIVER_FUNCTION_TEST_RESULT?.map(value => (
+                              <option key={value.id} value={value.code}>
+                                {value.display}
+                              </option>
+                            ))}
+                          </Input>
+                          {liverFunctionTest?.testDate && !liverFunctionTest?.result && (
+                            <span className={classes.error}>
+                              Result is required when a date has been selected
+                            </span>
+                          )}
+                        </FormGroup>
+                      </div>
                     </div>
                   )}
 

@@ -76,6 +76,7 @@ const SCREENING_POPULATION_TYPE_KEYWORDS = [
   "transgender",           // Transgender
   "other population",      // Other population
   "pregnant",              // At-risk pregnant & breastfeeding women
+  "anal sex",              // Individuals who engage in anal sex on a prolonged and regular basis
 ];
 const isAllowedScreeningPopulationType = item => {
   const text = `${item?.display || ""} ${item?.code || ""}`.toLowerCase();
@@ -224,12 +225,23 @@ const BasicInfo = props => {
   const latestHts = patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
   // "HTS found" is decided by whether the linked hts_encounter resolved from
-  // htsEncounterUuid is valid/properly structured. Migrated records often have
-  // a dangling uuid or malformed encounter — HTS is then treated as absent
-  // (fields editable, not required) and a non-blocking modal is shown.
+  // htsEncounterUuid is valid/properly structured. A valid HTS record is
+  // REQUIRED for screening, so when none can be resolved we hard-block with a
+  // modal (no "proceed"). Migrated records frequently have a dangling uuid or
+  // malformed encounter — those are treated as "no HTS" and blocked.
   const isFromHts = isValidHtsEncounter(latestHts);
   const [htsWarningOpen, setHtsWarningOpen] = useState(false);
-  const htsWarnedRef = React.useRef(false);
+  // The hard block only applies when creating a new screening (no record id).
+  // Existing records can always be viewed/edited even if their HTS is missing.
+  const isCreateMode = !props.activeContent?.id;
+  // A candidate uuid whose encounter is still being fetched means HTS isn't
+  // resolved yet — wait (no timer) rather than block prematurely.
+  const htsCandidateUuid =
+    objValues?.htsEncounterUuid || patientObj?.latestHtsResult?.uuid || null;
+  const htsFetchPending =
+    !!htsCandidateUuid &&
+    patientObj?.latestHtsResult?.uuid !== htsCandidateUuid &&
+    loadedHts?.uuid !== htsCandidateUuid;
   const [riskAssessment, setRiskAssessment] = useState({
     unprotectedVaginalSexCasual: "",
     unprotectedVaginalSexRegular: "",
@@ -387,21 +399,17 @@ const BasicInfo = props => {
     }));
   }, [latestHts?.uuid]);
 
-  // Warn (once) when no valid HTS encounter can be resolved. A short settling
-  // delay avoids flashing the warning while the hts_encounter fetch (keyed on
-  // htsEncounterUuid) is still in flight; a valid encounter arriving re-runs
-  // this effect and cancels the pending warning.
+  // Hard block (create only): open the modal as soon as we can conclude there
+  // is no valid HTS encounter — immediately (no timer), once any in-flight
+  // encounter fetch has settled. Existing records (view/edit) are never blocked.
   useEffect(() => {
-    if (htsWarnedRef.current) return;
-    if (isFromHts) return;
-    const timer = setTimeout(() => {
-      if (!htsWarnedRef.current && !isValidHtsEncounter(latestHts)) {
-        htsWarnedRef.current = true;
-        setHtsWarningOpen(true);
-      }
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, [isFromHts, latestHts]);
+    if (!isCreateMode || isFromHts) {
+      setHtsWarningOpen(false);
+      return;
+    }
+    if (htsFetchPending) return;
+    setHtsWarningOpen(true);
+  }, [isCreateMode, isFromHts, htsFetchPending]);
 
   const getPatientPrepEligibility = id => {
     axios
@@ -680,6 +688,13 @@ const BasicInfo = props => {
   const handleSubmit = e => {
     e.preventDefault();
 
+    // Hard block: a valid HTS record is required to create a new screening.
+    // Edits to existing records are allowed even without HTS.
+    if (isCreateMode && !isFromHts) {
+      setHtsWarningOpen(true);
+      return;
+    }
+
     if (validate()) {
       setSaving(true);
       // drug_use_history is now an array of { drug, routesOfAdministration[] }
@@ -916,7 +931,7 @@ const BasicInfo = props => {
     <>
       <HtsWarningModal
         isOpen={htsWarningOpen}
-        onProceed={() => setHtsWarningOpen(false)}
+        onReturnToDashboard={() => setHtsWarningOpen(false)}
       />
       <Card className={classes.root}>
         <CardBody>

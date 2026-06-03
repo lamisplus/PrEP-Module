@@ -418,14 +418,46 @@ function stripInternal(list) {
 
 const INJECTIBLE_CODE_FRAGMENTS = ["CABOTEGRAVIR", "LENACAPAVIR"];
 
+// The Ring PrEP type maps to the Dapivirine vaginal ring regimen. That regimen
+// is not in the PREP_REGIMEN codeset yet, but we know its code/display will
+// contain "dapivirine" (the spec also wrote it "dapvirine"), so we match on
+// either fragment ahead of the codeset entry being added. Matching by name —
+// rather than a hardcoded code — keeps this working once the real code lands.
+const RING_REGIMEN_FRAGMENTS = ["DAPIVIRINE", "DAPVIRINE"];
+
+function containsAnyFragment(text, fragments) {
+  if (!text) return false;
+  const upper = String(text).toUpperCase();
+  return fragments.some(frag => upper.includes(frag));
+}
+
 function isInjectibleCode(code) {
-  if (!code) return false;
-  const upper = String(code).toUpperCase();
-  return INJECTIBLE_CODE_FRAGMENTS.some(frag => upper.includes(frag));
+  return containsAnyFragment(code, INJECTIBLE_CODE_FRAGMENTS);
+}
+
+/** True when a regimen (by code or display) is the Ring / Dapivirine regimen. */
+export function isRingRegimen(regimen) {
+  if (!regimen) return false;
+  return (
+    containsAnyFragment(regimen.code, RING_REGIMEN_FRAGMENTS) ||
+    containsAnyFragment(regimen.regimen, RING_REGIMEN_FRAGMENTS) ||
+    containsAnyFragment(regimen.display, RING_REGIMEN_FRAGMENTS)
+  );
+}
+
+/**
+ * Skip-logic helper: from a list of regimens, return those that map to the
+ * "Ring" PrEP type (i.e. the Dapivirine ring). Encapsulated so callers don't
+ * re-derive the dapivirine matching rule.
+ */
+export function getRingRegimens(regimens) {
+  return (regimens || []).filter(isRingRegimen);
 }
 
 function typesForCode(code) {
-  return isInjectibleCode(code) ? ["PREP_TYPE_INJECTIBLES"] : ["PREP_TYPE_ORAL"];
+  if (isInjectibleCode(code)) return ["PREP_TYPE_INJECTIBLES"];
+  if (containsAnyFragment(code, RING_REGIMEN_FRAGMENTS)) return ["PREP_TYPE_RING"];
+  return ["PREP_TYPE_ORAL"];
 }
 
 async function fetchRegimenCodesetGroup(group) {
@@ -459,10 +491,15 @@ export async function fetchPrepRegimens() {
 }
 
 /**
- * Live-filtered PrEP regimens by PrEP type (oral vs injectibles).
+ * Live-filtered PrEP regimens by PrEP type (oral vs injectibles vs ring).
+ * Ring uses the encapsulated dapivirine matcher (getRingRegimens) so it keeps
+ * working before the Dapivirine regimen is added to the PREP_REGIMEN codeset.
  */
 export async function fetchPrepRegimenByType(prepType) {
   const all = await fetchPrepRegimens();
+  if (prepType === "PREP_TYPE_RING") {
+    return getRingRegimens(all);
+  }
   return all.filter(r => (r.types || typesForCode(r.code)).includes(prepType));
 }
 

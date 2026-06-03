@@ -1572,4 +1572,16 @@
         </sql>
     </changeSet>
 
+    <!-- 2026-06-03 Re-add liver_function_test_results to prep_followup_visit.
+         A "Liver Function Test" (Date + Result, mirroring the Syphilis/Hepatitis
+         test rows) is now captured on the PrEP follow-up visit form. The column
+         was dropped during the 23-05 cleanup; bring it back as JSONB so it can
+         hold { liverFunctionTest, testDate, result } exactly like the other
+         test columns. Idempotent (ADD COLUMN IF NOT EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="03-06-2026-prep-followup-add-liver-function">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

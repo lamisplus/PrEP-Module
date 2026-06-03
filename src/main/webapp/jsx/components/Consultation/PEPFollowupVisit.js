@@ -136,7 +136,10 @@ const PEPFollowupVisit = props => {
   // (fields editable, not required) and a non-blocking modal is shown.
   const isFromHts = isValidHtsEncounter(latestHts);
   const [htsWarningOpen, setHtsWarningOpen] = useState(false);
-  const htsWarnedRef = useRef(false);
+  // The hard block only applies when creating a new visit (no record id).
+  // Existing records can always be viewed/edited even if their HTS is missing.
+  // (htsCandidateUuid / htsFetchPending are computed below.)
+  const isCreateMode = !props.activeContent?.id;
 
   const [hivTestEntries, setHivTestEntries] = useState([]);
   const [hivTestInput, setHivTestInput] = useState({ test: "", result: "" });
@@ -153,6 +156,18 @@ const PEPFollowupVisit = props => {
   });
 
   const formikRef = useRef(null);
+
+  // A candidate uuid whose encounter is still being fetched means HTS isn't
+  // resolved yet — wait (no timer) rather than hard-block prematurely.
+  const htsCandidateUuid =
+    formInitialValues?.htsEncounterUuid
+    || patientDto?.htsEncounterUuid
+    || props.patientObj?.latestHtsResult?.uuid
+    || null;
+  const htsFetchPending =
+    !!htsCandidateUuid &&
+    props.patientObj?.latestHtsResult?.uuid !== htsCandidateUuid &&
+    loadedHts?.uuid !== htsCandidateUuid;
 
   // ── API Calls ──
 
@@ -383,21 +398,17 @@ const PEPFollowupVisit = props => {
     }
   }, [latestHts?.uuid]);
 
-  // Warn (once) when no valid HTS encounter can be resolved. A short settling
-  // delay avoids flashing the warning while the hts_encounter fetch (keyed on
-  // htsEncounterUuid) is still in flight; a valid encounter arriving re-runs
-  // this effect and cancels the pending warning.
+  // Hard block (create only): open the modal as soon as we can conclude there
+  // is no valid HTS encounter — immediately (no timer), once any in-flight
+  // encounter fetch has settled. Existing records (view/edit) are never blocked.
   useEffect(() => {
-    if (htsWarnedRef.current) return;
-    if (isFromHts) return;
-    const timer = setTimeout(() => {
-      if (!htsWarnedRef.current && !isValidHtsEncounter(latestHts)) {
-        htsWarnedRef.current = true;
-        setHtsWarningOpen(true);
-      }
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, [isFromHts, latestHts]);
+    if (!isCreateMode || isFromHts) {
+      setHtsWarningOpen(false);
+      return;
+    }
+    if (htsFetchPending) return;
+    setHtsWarningOpen(true);
+  }, [isCreateMode, isFromHts, htsFetchPending]);
 
   useEffect(() => {
     if (
@@ -481,6 +492,12 @@ const PEPFollowupVisit = props => {
   }
 
   const handleFormSubmit = async values => {
+    // Hard block: a valid HTS record is required to create a PEP follow-up
+    // visit. Edits to existing records are allowed even without HTS.
+    if (isCreateMode && !isFromHts) {
+      setHtsWarningOpen(true);
+      return;
+    }
     // Manual validation for non-Formik fields
     const manualErrors = [];
     if (!notedSideEffects || notedSideEffects.length === 0) {
@@ -581,7 +598,7 @@ const PEPFollowupVisit = props => {
     <div className={`${classes.root} container-fluid`}>
       <HtsWarningModal
         isOpen={htsWarningOpen}
-        onProceed={() => setHtsWarningOpen(false)}
+        onReturnToDashboard={() => setHtsWarningOpen(false)}
       />
       <div className="row">
         <div className="col-12">

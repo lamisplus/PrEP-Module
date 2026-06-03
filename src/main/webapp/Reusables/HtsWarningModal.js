@@ -1,33 +1,40 @@
 import React from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from "reactstrap";
-import { NO_VALID_HTS_WARNING } from "../Utils/htsEncounter";
+import BlockIcon from "@material-ui/icons/Block";
+import { NO_VALID_HTS_MESSAGE } from "../Utils/htsEncounter";
 
-// App colour scheme. The header uses the red-orange (warning / attention) and
-// the Proceed action uses the dark blue (primary) so the modal matches the rest
-// of the module.
-const SCHEME_DARK_BLUE = "#0D47A1";
+// App colour scheme. The header/icon use the red-orange (operation not allowed)
+// and the dismiss action uses the light blue so the modal matches the module.
 const SCHEME_RED_ORANGE = "#F44336";
+const SCHEME_LIGHT_BLUE = "#03A9F4";
 
 /**
- * Non-blocking warning shown when a PrEP/PEP form cannot resolve a valid linked
- * HTS encounter (common for records migrated from the old PrEP tables). The
- * user acknowledges with "Proceed" and may still fill in / submit the form —
- * HTS-sourced fields are never validated as required in this state.
+ * Hard block shown when a PrEP/PEP form cannot resolve a valid linked HTS
+ * encounter (e.g. records migrated from the old PrEP tables, or clients with no
+ * HTS service yet). Per the bootcamp requirement a valid HTS record is required
+ * for PrEP/PEP screening, so there is no "Proceed" — the user must go to the
+ * HTS module, provide HTS service, and come back. The single action dismisses
+ * the modal and leaves them on the dashboard.
  */
-const HtsWarningModal = ({ isOpen, onProceed, message }) => (
+const HtsWarningModal = ({ isOpen, onReturnToDashboard, message }) => (
   <Modal isOpen={isOpen} centered backdrop="static" keyboard={false}>
     <ModalHeader style={{ backgroundColor: SCHEME_RED_ORANGE }}>
-      {/* Color the text on the title element itself; setting it on the header
+      {/* Colour the text on the title element itself; setting it on the header
           wrapper is overridden by the theme's `.modal-title` rule. */}
-      <span style={{ color: "#ffffff" }}>HTS Record Not Found</span>
+      <span style={{ color: "#ffffff" }}>HTS Record Required</span>
     </ModalHeader>
-    <ModalBody>{message || NO_VALID_HTS_WARNING}</ModalBody>
+    <ModalBody>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+        <BlockIcon style={{ color: SCHEME_RED_ORANGE, fontSize: "2.25rem", flexShrink: 0 }} />
+        <span>{message || NO_VALID_HTS_MESSAGE}</span>
+      </div>
+    </ModalBody>
     <ModalFooter>
       <Button
-        onClick={onProceed}
-        style={{ backgroundColor: SCHEME_DARK_BLUE, borderColor: SCHEME_DARK_BLUE }}
+        onClick={onReturnToDashboard}
+        style={{ backgroundColor: SCHEME_LIGHT_BLUE, borderColor: SCHEME_LIGHT_BLUE }}
       >
-        Proceed
+        Return to Dashboard
       </Button>
     </ModalFooter>
   </Modal>

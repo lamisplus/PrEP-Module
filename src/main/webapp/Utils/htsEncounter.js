@@ -1,11 +1,11 @@
 /**
  * Helpers for the linked HTS encounter that PrEP/PEP forms auto-populate from.
  *
- * Records migrated from the old PrEP tables frequently have no hts_encounter,
- * a dangling hts_encounter_uuid, or a malformed encounter payload. We therefore
- * treat HTS as a *soft* dependency: the form should warn the user that HTS
- * information may not populate or save, but must never block submission and
- * must never validate HTS-sourced fields as required.
+ * Per the bootcamp requirement a valid HTS record is required for PrEP/PEP
+ * screening. Records migrated from the old PrEP tables frequently have no
+ * hts_encounter, a dangling hts_encounter_uuid, or a malformed encounter
+ * payload — in those cases the form hard-blocks (see HtsWarningModal): the user
+ * is told to provide HTS service in the HTS module before continuing.
  */
 
 /**
@@ -28,8 +28,8 @@ export function isValidHtsEncounter(hts) {
   );
 }
 
-/** Warning shown (once) when a form cannot find a valid linked HTS encounter. */
-export const NO_VALID_HTS_WARNING =
-  "No valid HTS Record was found. Please confirm that the patient has a recent, " +
-  "valid HTS encounter before proceeding — you may not be able to view or save " +
-  "the client's HTS information successfully.";
+/** Message shown in the hard-block modal when no valid HTS encounter is found. */
+export const NO_VALID_HTS_MESSAGE =
+  "No valid HTS record was found for this client. Please go to the HTS module " +
+  "and provide an HTS service for the client before continuing with PrEP/PEP " +
+  "screening.";
