@@ -108,7 +108,6 @@ const PrEPInitialVisitForm = props => {
   // with a modal (no "proceed"). Migrated records with a dangling uuid or a
   // malformed encounter are treated as "no HTS" and blocked.
   const isFromHts = isValidHtsEncounter(latestHts);
-  const [htsWarningOpen, setHtsWarningOpen] = React.useState(false);
   // The hard block only applies when creating a new initiation (no record id).
   // Existing records can always be viewed/edited even if their HTS is missing.
   const isCreateMode = !props.activeContent?.id;
@@ -130,6 +129,10 @@ const PrEPInitialVisitForm = props => {
     !!htsCandidateUuid &&
     props.patientObj?.latestHtsResult?.uuid !== htsCandidateUuid &&
     loadedHts?.uuid !== htsCandidateUuid;
+  // Whether to hard-block the form. Computed synchronously (not via state set in
+  // an effect) so the form never paints for a blocked record — otherwise it
+  // would flash on screen for a frame before the effect hid it.
+  const htsBlocked = isCreateMode && !isFromHts && !htsFetchPending;
   // True once the patient is found to have a prior prophylaxis_initiation record.
   // Locks the Unique ID field so all initiations for the same client share one ID.
   const [hasExistingInitiation, setHasExistingInitiation] = useState(false);
@@ -234,18 +237,6 @@ const PrEPInitialVisitForm = props => {
       pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
     }));
   }, [latestHts?.uuid]);
-
-  // Hard block (create only): open the modal as soon as we can conclude there
-  // is no valid HTS encounter — immediately (no timer), once any in-flight
-  // encounter fetch has settled. Existing records (view/edit) are never blocked.
-  useEffect(() => {
-    if (!isCreateMode || isFromHts) {
-      setHtsWarningOpen(false);
-      return;
-    }
-    if (htsFetchPending) return;
-    setHtsWarningOpen(true);
-  }, [isCreateMode, isFromHts, htsFetchPending]);
 
   const GetPatientDTOObj = () => {
     const personId = props.patientObj.personId || props.patientObj.id;
@@ -461,9 +452,9 @@ const PrEPInitialVisitForm = props => {
   const handleSubmit = e => {
     e.preventDefault();
     // Hard block: a valid HTS record is required to create a new initiation.
-    // Edits to existing records are allowed even without HTS.
-    if (isCreateMode && !isFromHts) {
-      setHtsWarningOpen(true);
+    // Edits to existing records are allowed even without HTS. (In practice the
+    // form is not rendered when blocked, so this is a defensive guard.)
+    if (htsBlocked) {
       return;
     }
     // Block save if HIV result is Positive — show as toast, not inline
@@ -579,7 +570,7 @@ const PrEPInitialVisitForm = props => {
   // overlays the patient dashboard (summary / recent activities) that
   // PatientDetail keeps rendered behind it. "Return to Dashboard" navigates back
   // to recent-history so the form route is exited entirely.
-  if (htsWarningOpen) {
+  if (htsBlocked) {
     return (
       <HtsWarningModal
         isOpen

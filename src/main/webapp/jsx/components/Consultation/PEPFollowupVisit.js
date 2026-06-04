@@ -135,7 +135,6 @@ const PEPFollowupVisit = props => {
   // a dangling uuid or malformed encounter — HTS is then treated as absent
   // (fields editable, not required) and a non-blocking modal is shown.
   const isFromHts = isValidHtsEncounter(latestHts);
-  const [htsWarningOpen, setHtsWarningOpen] = useState(false);
   // The hard block only applies when creating a new visit (no record id).
   // Existing records can always be viewed/edited even if their HTS is missing.
   // (htsCandidateUuid / htsFetchPending are computed below.)
@@ -168,6 +167,10 @@ const PEPFollowupVisit = props => {
     !!htsCandidateUuid &&
     props.patientObj?.latestHtsResult?.uuid !== htsCandidateUuid &&
     loadedHts?.uuid !== htsCandidateUuid;
+  // Whether to hard-block the form. Computed synchronously (not via state set in
+  // an effect) so the form never paints for a blocked record — otherwise it
+  // would flash on screen for a frame before the effect hid it.
+  const htsBlocked = isCreateMode && !isFromHts && !htsFetchPending;
 
   // ── API Calls ──
 
@@ -398,18 +401,6 @@ const PEPFollowupVisit = props => {
     }
   }, [latestHts?.uuid]);
 
-  // Hard block (create only): open the modal as soon as we can conclude there
-  // is no valid HTS encounter — immediately (no timer), once any in-flight
-  // encounter fetch has settled. Existing records (view/edit) are never blocked.
-  useEffect(() => {
-    if (!isCreateMode || isFromHts) {
-      setHtsWarningOpen(false);
-      return;
-    }
-    if (htsFetchPending) return;
-    setHtsWarningOpen(true);
-  }, [isCreateMode, isFromHts, htsFetchPending]);
-
   useEffect(() => {
     if (
       props.activeContent.actionType === "" ||
@@ -493,9 +484,10 @@ const PEPFollowupVisit = props => {
 
   const handleFormSubmit = async values => {
     // Hard block: a valid HTS record is required to create a PEP follow-up
-    // visit. Edits to existing records are allowed even without HTS.
-    if (isCreateMode && !isFromHts) {
-      setHtsWarningOpen(true);
+    // visit. Edits to existing records are allowed even without HTS. (In
+    // practice the form is not rendered when blocked, so this is a defensive
+    // guard.)
+    if (htsBlocked) {
       return;
     }
     // Manual validation for non-Formik fields
@@ -599,7 +591,7 @@ const PEPFollowupVisit = props => {
   // overlays the patient dashboard (summary / recent activities) that
   // PatientDetail keeps rendered behind it. "Return to Dashboard" navigates back
   // to recent-history so the form route is exited entirely.
-  if (htsWarningOpen) {
+  if (htsBlocked) {
     return (
       <HtsWarningModal
         isOpen
