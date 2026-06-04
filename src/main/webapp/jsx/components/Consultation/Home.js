@@ -272,6 +272,9 @@ const ClinicVisit = props => {
   // form). Holds an array of LIVER_FUNCTION_TEST_RESULT codes and is persisted
   // to the liver_function_test_results JSONB column.
   const [liverFunctionTestResults, setLiverFunctionTestResults] = useState([]);
+  // Drives the show/hide of the Liver Function Test dual list box. Checked on
+  // load whenever an existing record already carries selected results.
+  const [showLiverFunctionTest, setShowLiverFunctionTest] = useState(false);
   const [otherTest, setOtherTest] = useState([]);
   const [otherTestInput, setOtherTestInput] = useState({
     testDate: "",
@@ -375,11 +378,13 @@ const ClinicVisit = props => {
       // Newer records store an array of codes; legacy records stored an object
       // ({ liverFunctionTest, testDate, result }) which can't map to the
       // multi-select, so fall back to an empty selection for those.
-      setLiverFunctionTestResults(
-        Array.isArray(data?.liverFunctionTestResults)
-          ? data.liverFunctionTestResults
-          : []
-      );
+      const loadedLiverResults = Array.isArray(data?.liverFunctionTestResults)
+        ? data.liverFunctionTestResults
+        : [];
+      setLiverFunctionTestResults(loadedLiverResults);
+      // Expand the dual list box on view/edit when the record already has
+      // results so the selections are visible.
+      setShowLiverFunctionTest(loadedLiverResults.length > 0);
       setIsCabLaEligible(true);
       // Pull the live regimen list so a legacy `regimenId` saved as the
       // codeset row id can be converted to its canonical code before binding
@@ -710,6 +715,15 @@ const ClinicVisit = props => {
     setLiverFunctionTestResults(selected);
   };
 
+  const handleCheckBoxLiverFunctionTest = () => {
+    setShowLiverFunctionTest(prev => {
+      // Collapsing the section clears any selection so we don't persist results
+      // for a test the user has hidden.
+      if (prev) setLiverFunctionTestResults([]);
+      return !prev;
+    });
+  };
+
   const otherTestIdCounter = useRef(0);
 
   const handleCheckBoxOtherTest = () => {
@@ -942,6 +956,7 @@ const ClinicVisit = props => {
       setSyphilisTest({ syphilisTest: "No", testDate: "", result: "", others: "" });
       setHepatitisTest({ hepatitisTest: "No", testDate: "", result: "" });
       setLiverFunctionTestResults([]);
+      setShowLiverFunctionTest(false);
       setOtherTest([]);
       setShowOtherTests(false);
       setNotedSideEffects([]);
@@ -2277,24 +2292,36 @@ const ClinicVisit = props => {
                     style={{ width: "106%", height: "35px" }}
                     ribbon
                   >
-                    <h4 style={{ color: "#fff" }}>Liver Function Test</h4>
+                    <h4 style={{ color: "#fff" }}>
+                      <input
+                        type="checkbox"
+                        name="liverFunctionTest"
+                        value="Yes"
+                        onChange={handleCheckBoxLiverFunctionTest}
+                        checked={showLiverFunctionTest}
+                        disabled={disabledField}
+                      />{" "}
+                      Liver Function Test
+                    </h4>
                   </Label>
                   <br />
                   <br />
-                  <div className="mb-3 col-md-12">
-                    <FormGroup>
-                      <DualListBox
-                        options={(codeset?.LIVER_FUNCTION_TEST_RESULT || []).map(value => ({
-                          value: value?.code,
-                          label: value?.display,
-                        }))}
-                        selected={liverFunctionTestResults}
-                        onChange={handleLiverFunctionTestChange}
-                        disabled={disabledField}
-                        canFilter
-                      />
-                    </FormGroup>
-                  </div>
+                  {showLiverFunctionTest && (
+                    <div className="mb-3 col-md-12">
+                      <FormGroup>
+                        <DualListBox
+                          options={(codeset?.LIVER_FUNCTION_TEST_RESULT || []).map(value => ({
+                            value: value?.code,
+                            label: value?.display,
+                          }))}
+                          selected={liverFunctionTestResults}
+                          onChange={handleLiverFunctionTestChange}
+                          disabled={disabledField}
+                          canFilter
+                        />
+                      </FormGroup>
+                    </div>
+                  )}
 
                   {/* ── Result of Other Tests ── */}
                   <Label
