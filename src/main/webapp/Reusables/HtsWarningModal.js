@@ -20,14 +20,15 @@ const HtsWarningModal = ({ isOpen, onReturnToDashboard, message }) => (
   <Modal isOpen={isOpen} centered backdrop="static" keyboard={false}>
     <ModalHeader style={{ backgroundColor: SCHEME_RED_ORANGE }}>
       {/* Colour the text on the title element itself; setting it on the header
-          wrapper is overridden by the theme's `.modal-title` rule. */}
-      <span style={{ color: "#ffffff" }}>HTS Record Required</span>
+          wrapper is overridden by the theme's `.modal-title` rule. The icon sits
+          at the top-left before the title text. */}
+      <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#ffffff" }}>
+        <BlockIcon style={{ color: "#ffffff", fontSize: "1.75rem", flexShrink: 0 }} />
+        HTS Record Required
+      </span>
     </ModalHeader>
     <ModalBody>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
-        <BlockIcon style={{ color: SCHEME_RED_ORANGE, fontSize: "2.25rem", flexShrink: 0 }} />
-        <span>{message || NO_VALID_HTS_MESSAGE}</span>
-      </div>
+      <span>{message || NO_VALID_HTS_MESSAGE}</span>
     </ModalBody>
     <ModalFooter>
       <Button

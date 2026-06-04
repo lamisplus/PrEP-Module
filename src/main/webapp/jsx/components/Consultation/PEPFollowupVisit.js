@@ -594,12 +594,27 @@ const PEPFollowupVisit = props => {
     }
   };
 
+  // Hard block: when no valid HTS encounter can be resolved (create mode) the
+  // follow-up form must not render at all. We return only the modal, which then
+  // overlays the patient dashboard (summary / recent activities) that
+  // PatientDetail keeps rendered behind it. "Return to Dashboard" navigates back
+  // to recent-history so the form route is exited entirely.
+  if (htsWarningOpen) {
+    return (
+      <HtsWarningModal
+        isOpen
+        onReturnToDashboard={() =>
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "recent-history",
+          })
+        }
+      />
+    );
+  }
+
   return (
     <div className={`${classes.root} container-fluid`}>
-      <HtsWarningModal
-        isOpen={htsWarningOpen}
-        onReturnToDashboard={() => setHtsWarningOpen(false)}
-      />
       <div className="row">
         <div className="col-12">
           <h2 className="p-2">PEP Follow-up Visit</h2>

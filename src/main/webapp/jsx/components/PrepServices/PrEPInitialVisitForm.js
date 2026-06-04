@@ -574,12 +574,27 @@ const PrEPInitialVisitForm = props => {
     }
   };
 
+  // Hard block: when no valid HTS encounter can be resolved (create mode) the
+  // initiation form must not render at all. We return only the modal, which then
+  // overlays the patient dashboard (summary / recent activities) that
+  // PatientDetail keeps rendered behind it. "Return to Dashboard" navigates back
+  // to recent-history so the form route is exited entirely.
+  if (htsWarningOpen) {
+    return (
+      <HtsWarningModal
+        isOpen
+        onReturnToDashboard={() =>
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "recent-history",
+          })
+        }
+      />
+    );
+  }
+
   return (
       <Card className={classes.root}>
-        <HtsWarningModal
-          isOpen={htsWarningOpen}
-          onReturnToDashboard={() => setHtsWarningOpen(false)}
-        />
         <CardBody>
           <form>
             <div className="row">

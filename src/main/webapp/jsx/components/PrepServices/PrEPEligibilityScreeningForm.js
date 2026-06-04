@@ -927,12 +927,27 @@ const BasicInfo = props => {
     }
   }, [hivTesting.hivTestedBefore]);
 
+  // Hard block: when no valid HTS encounter can be resolved (create mode) the
+  // screening form must not render at all. We return only the modal, which then
+  // overlays the patient dashboard (summary / recent activities) that
+  // PatientDetail keeps rendered behind it. "Return to Dashboard" navigates back
+  // to recent-history so the form route is exited entirely.
+  if (htsWarningOpen) {
+    return (
+      <HtsWarningModal
+        isOpen
+        onReturnToDashboard={() =>
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "recent-history",
+          })
+        }
+      />
+    );
+  }
+
   return (
     <>
-      <HtsWarningModal
-        isOpen={htsWarningOpen}
-        onReturnToDashboard={() => setHtsWarningOpen(false)}
-      />
       <Card className={classes.root}>
         <CardBody>
           <h1 style={{ fontSize: "1.1rem" }}>{screeningType === 'PEP' ? 'PEP' : 'PrEP'} Eligibility Screening</h1>
