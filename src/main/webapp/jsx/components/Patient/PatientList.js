@@ -416,8 +416,7 @@ const EnrollPatientButton = ({ row }) => {
                   </strong>{" "}
                   is currently initiated for{" "}
                   <strong style={{ color: "#F44336" }}>{blockedArm}</strong>.
-                  Discontinue this active enrollment before starting another —
-                  both options below are disabled.
+                  Discontinue this active enrollment before starting another!
                 </div>
               ) : (
                 <div

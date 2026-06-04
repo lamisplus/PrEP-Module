@@ -31,5 +31,4 @@ export function isValidHtsEncounter(hts) {
 /** Message shown in the hard-block modal when no valid HTS encounter is found. */
 export const NO_VALID_HTS_MESSAGE =
   "No valid HTS record was found for this client. Please go to the HTS module " +
-  "and provide an HTS service for the client before continuing with PrEP/PEP " +
-  "screening.";
+  "and provide an HTS service for the client before you continue";
