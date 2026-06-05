@@ -236,6 +236,7 @@ public class PrepFollowupVisitService {
         entity.setSyphilis(sanitizeJsonb(dto.getSyphilis()));
         entity.setOtherTestsDone(sanitizeJsonb(dto.getOtherTestsDone()));
         entity.setLiverFunctionTestResults(sanitizeJsonb(dto.getLiverFunctionTestResults()));
+        entity.setDateLiverFunctionTestResults(dto.getDateLiverFunctionTestResults());
         entity.setSyndromicStiScreening(sanitizeJsonb(dto.getSyndromicStiScreening()));
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
@@ -281,6 +282,7 @@ public class PrepFollowupVisitService {
         entity.setSyphilis(sanitizeJsonb(dto.getSyphilis()));
         entity.setOtherTestsDone(sanitizeJsonb(dto.getOtherTestsDone()));
         entity.setLiverFunctionTestResults(sanitizeJsonb(dto.getLiverFunctionTestResults()));
+        entity.setDateLiverFunctionTestResults(dto.getDateLiverFunctionTestResults());
         entity.setSyndromicStiScreening(sanitizeJsonb(dto.getSyndromicStiScreening()));
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
@@ -348,6 +350,7 @@ public class PrepFollowupVisitService {
         dto.setSyphilis(entity.getSyphilis());
         dto.setOtherTestsDone(entity.getOtherTestsDone());
         dto.setLiverFunctionTestResults(entity.getLiverFunctionTestResults());
+        dto.setDateLiverFunctionTestResults(entity.getDateLiverFunctionTestResults());
         dto.setSyndromicStiScreening(entity.getSyndromicStiScreening());
         dto.setRiskReductionServices(entity.getRiskReductionServices());
         dto.setHealthCareWorkerSignature(entity.getHealthCareWorkerSignature());

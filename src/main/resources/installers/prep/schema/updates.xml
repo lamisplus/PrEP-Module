@@ -1584,4 +1584,15 @@
         </sql>
     </changeSet>
 
+    <!-- 2026-06-05 Add date_of_liver_function_test_results to prep_followup_visit.
+         The PrEP follow-up visit form now captures the date the liver function
+         test was conducted (a DATE row above the result dual list box), mirroring
+         the column already present on prep_clinic. Idempotent
+         (ADD COLUMN IF NOT EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="05-06-2026-prep-followup-add-date-liver-function">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit ADD COLUMN IF NOT EXISTS date_of_liver_function_test_results DATE;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

@@ -275,6 +275,9 @@ const ClinicVisit = props => {
   // Drives the show/hide of the Liver Function Test dual list box. Checked on
   // load whenever an existing record already carries selected results.
   const [showLiverFunctionTest, setShowLiverFunctionTest] = useState(false);
+  // Date the liver function test was conducted (persisted to its own
+  // date_of_liver_function_test_results column).
+  const [dateLiverFunctionTestResults, setDateLiverFunctionTestResults] = useState("");
   const [otherTest, setOtherTest] = useState([]);
   const [otherTestInput, setOtherTestInput] = useState({
     testDate: "",
@@ -382,9 +385,11 @@ const ClinicVisit = props => {
         ? data.liverFunctionTestResults
         : [];
       setLiverFunctionTestResults(loadedLiverResults);
-      // Expand the dual list box on view/edit when the record already has
-      // results so the selections are visible.
-      setShowLiverFunctionTest(loadedLiverResults.length > 0);
+      const loadedLiverDate = data?.dateLiverFunctionTestResults || "";
+      setDateLiverFunctionTestResults(loadedLiverDate);
+      // Expand the section on view/edit when the record already has a date or
+      // results so the captured values are visible.
+      setShowLiverFunctionTest(loadedLiverResults.length > 0 || !!loadedLiverDate);
       setIsCabLaEligible(true);
       // Pull the live regimen list so a legacy `regimenId` saved as the
       // codeset row id can be converted to its canonical code before binding
@@ -717,9 +722,12 @@ const ClinicVisit = props => {
 
   const handleCheckBoxLiverFunctionTest = () => {
     setShowLiverFunctionTest(prev => {
-      // Collapsing the section clears any selection so we don't persist results
-      // for a test the user has hidden.
-      if (prev) setLiverFunctionTestResults([]);
+      // Collapsing the section clears the date and selection so we don't persist
+      // values for a test the user has hidden.
+      if (prev) {
+        setLiverFunctionTestResults([]);
+        setDateLiverFunctionTestResults("");
+      }
       return !prev;
     });
   };
@@ -956,6 +964,7 @@ const ClinicVisit = props => {
       setSyphilisTest({ syphilisTest: "No", testDate: "", result: "", others: "" });
       setHepatitisTest({ hepatitisTest: "No", testDate: "", result: "" });
       setLiverFunctionTestResults([]);
+      setDateLiverFunctionTestResults("");
       setShowLiverFunctionTest(false);
       setOtherTest([]);
       setShowOtherTests(false);
@@ -1158,6 +1167,7 @@ const ClinicVisit = props => {
     payload.urinalysis = urinalysisTest;
     payload.otherTestsDone = otherTest;
     payload.liverFunctionTestResults = liverFunctionTestResults;
+    payload.dateLiverFunctionTestResults = dateLiverFunctionTestResults || null;
     payload.enrollmentType = ENROLLMENT_TYPE_PREP;
 
     let resolvedEnrollmentUuid = patientDto?.uuid;
@@ -2307,20 +2317,40 @@ const ClinicVisit = props => {
                   <br />
                   <br />
                   {showLiverFunctionTest && (
-                    <div className="mb-3 col-md-12">
-                      <FormGroup>
-                        <DualListBox
-                          options={(codeset?.LIVER_FUNCTION_TEST_RESULT || []).map(value => ({
-                            value: value?.code,
-                            label: value?.display,
-                          }))}
-                          selected={liverFunctionTestResults}
-                          onChange={handleLiverFunctionTestChange}
-                          disabled={disabledField}
-                          canFilter
-                        />
-                      </FormGroup>
-                    </div>
+                    <>
+                      <div className="mb-3 col-md-12">
+                        <FormGroup>
+                          <FormLabelName>Date of Liver Function Test</FormLabelName>
+                          <Input
+                            type="date"
+                            onKeyDown={e => e.preventDefault()}
+                            name="dateLiverFunctionTestResults"
+                            id="dateLiverFunctionTestResults"
+                            value={dateLiverFunctionTestResults}
+                            onChange={e => setDateLiverFunctionTestResults(e.target.value)}
+                            style={inputStyle}
+                            disabled={disabledField}
+                            // Not in the future and on or before the Visit Date
+                            // (encounterDate, itself capped at today).
+                            max={values.encounterDate || moment(new Date()).format("YYYY-MM-DD")}
+                          />
+                        </FormGroup>
+                      </div>
+                      <div className="mb-3 col-md-12">
+                        <FormGroup>
+                          <DualListBox
+                            options={(codeset?.LIVER_FUNCTION_TEST_RESULT || []).map(value => ({
+                              value: value?.code,
+                              label: value?.display,
+                            }))}
+                            selected={liverFunctionTestResults}
+                            onChange={handleLiverFunctionTestChange}
+                            disabled={disabledField}
+                            canFilter
+                          />
+                        </FormGroup>
+                      </div>
+                    </>
                   )}
 
                   {/* ── Result of Other Tests ── */}
