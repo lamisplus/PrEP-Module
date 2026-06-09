@@ -19,22 +19,17 @@ import java.time.LocalDate;
 public class PrepEligibilityDto implements Serializable {
     private Long id;
     private String uuid;
-    private Object hivRisk;
     private Object stiScreening;
     private Object drugUseHistory;
     private Object personalHivRiskAssessment;
     private Object sexPartnerRisk;
     private String personUuid;
     private String sexPartner;
-    private String counselingType;
     private Boolean firstTimeVisit;
     private Integer numChildrenLessThanFive;
-    private Integer numWives;
     private String targetGroup;
-    private String uniqueId;
     private Integer score;
 
-    private Object extra;
     private String prepStatus;
     private Integer prepEligibilityCount;
 
@@ -44,11 +39,16 @@ public class PrepEligibilityDto implements Serializable {
     private  Object servicesReceivedByClient;
     private String populationType;
     private String visitType;
-    private String lftConducted;
     private String reasonForSwitch;
-    private LocalDate dateLiverFunctionTestResults;
-    private Object liverFunctionTestResults;
-    private String pregnancyStatus;
+    private Object considerationForInjections;
+    private Object reasonForDecliningPrep;
+    private String uniqueClientId;
+    private String htsEncounterUuid;
+    private String referredFrom;
+    private String setting;
+    private String serviceStatus;
+    private String typeOfSession;
+    private String category;
 
     //private PersonResponseDto personResponseDto;
 

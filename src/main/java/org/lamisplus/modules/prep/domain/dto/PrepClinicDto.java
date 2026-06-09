@@ -7,6 +7,16 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 
+/**
+ * DTO shared between two save paths that both write a "clinic visit":
+ *   * the legacy {@code /api/v1/prep-clinic} endpoint (PrepClinicService → PrepClinic entity)
+ *   * the new commencement / clinic mappers on PrepService that write the
+ *     PrepFollowupVisit entity (prep_followup_visit table).
+ *
+ * Fields used only by the legacy PrepClinic entity stay on this DTO so the
+ * legacy endpoint keeps compiling — the PrepFollowupVisit mappers on
+ * PrepService simply don't reference them anymore.
+ */
 @Builder(toBuilder = true)
 @Getter
 @Setter
@@ -22,13 +32,11 @@ public class PrepClinicDto implements Serializable {
 
     private Double height;
 
-    private String pregnant;
+    private String htsEncounterUuid;
 
     private String prepEnrollmentUuid;
 
-    private long regimenId;
-
-    private long regimenTypeId;
+    private String regimenId;
 
     private String urinalysisResult;
 
@@ -39,10 +47,6 @@ public class PrepClinicDto implements Serializable {
     private Long personId;
 
     private LocalDate nextAppointment;
-
-    private Object extra;
-
-    //private String status;
 
     private Boolean isCommencement;
 
@@ -74,25 +78,20 @@ public class PrepClinicDto implements Serializable {
     private Object otherTestsDone;
 
     private Object syndromicStiScreening;
+    private String syndromicScreening;
 
     private String riskReductionServices;
 
-    private String notedSideEffects;
-
     private Integer duration;
 
-    private String regimen;
     private String otherPrepGiven;
     private String otherPrepType;
     private String otherRegimenId;
-    private int visitCount;
-
     private String prepGiven;
     private String prepDistributionSetting;
     private String familyPlanning;
     private LocalDate dateOfFamilyPlanning;
     private String otherDrugs;
-    private String hivTestResult;
     private String prepType;
     private String populationType;
     private String visitType;
@@ -105,9 +104,11 @@ public class PrepClinicDto implements Serializable {
 
     private String historyOfDrugToDrugInteraction;
     private String historyOfDrugAllergies;
-    private LocalDate hivTestResultDate;
     private Integer monthsOfRefill;
     private String comment;
     private String previousPrepStatus;
+    private String whyAdherenceLevelPoor;
+    private String otherReasonForPoorFairAdherence;
+    private String otherNotedSideEffects;
+    private String otherSyndromicStiScreening;
 }
-

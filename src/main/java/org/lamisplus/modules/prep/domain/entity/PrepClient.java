@@ -44,4 +44,14 @@ public interface PrepClient {
     String getAddress();
 
     String getHIVResultAtVisit();
+
+    String getPreviousProphylaxis();
+
+    /**
+     * Reflects {@code prophylaxis_initiation.is_interrupted}. When true, the
+     * patient's most recent enrollment on the relevant arm has been flagged
+     * as interrupted (Stopped / Dead / Seroconverted / Transfer out / …) and
+     * the status column resolves to the interruption type's codeset display.
+     */
+    Boolean getIsInterrupted();
 }

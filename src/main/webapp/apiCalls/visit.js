@@ -36,7 +36,7 @@ export const getReasonForSwitch = async () => {
 
 export const checkEligibleForCabLa = async (personId, currentDate) => {
   return await axios.get(
-    `${baseUrl}prep-clinic/checkEnableCab/${personId}/${currentDate}`,
+    `${baseUrl}prep-followup-visit/checkEnableCab/${personId}/${currentDate}`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
@@ -44,13 +44,13 @@ export const checkEligibleForCabLa = async (personId, currentDate) => {
 };
 
 export const getPatientVisit = async id => {
-  return await axios.get(`${baseUrl}prep-clinic/${id}`, {
+  return await axios.get(`${baseUrl}prep-followup-visit/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
 
 export const getHivResult = async personId => {
-  return await axios.get(`${baseUrl}prep-clinic/hts-record/${personId}`, {
+  return await axios.get(`${baseUrl}prep-followup-visit/hts-record/${personId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
@@ -129,7 +129,7 @@ export const getVisitType = async () => {
 
 export const getWhyPoorFairAdherence = async () => {
   return await axios.get(
-    `${baseUrl}application-codesets/v2/WHY_POOR_FAIR_ADHERENCE`,
+    `${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE_REASONS`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
@@ -223,7 +223,7 @@ export const getLiverFunctionTestResult = async () => {
 export const saveClinicVisit = async (id, objValues, actionType) => {
   const url =
     actionType === 'update'
-      ? `${baseUrl}prep-clinic/${id}`
+      ? `${baseUrl}prep-followup-visit/${id}`
       : `${baseUrl}prep/clinic-visit`;
   const method = actionType === 'update' ? 'put' : 'post';
   return await axios[method](url, objValues, {

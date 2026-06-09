@@ -10,6 +10,7 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.patient.repository.VisitRepository;
 import org.lamisplus.modules.patient.service.PersonService;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.patient.service.VisitService;
 import org.lamisplus.modules.prep.domain.dto.*;
 import org.lamisplus.modules.prep.domain.entity.*;
@@ -65,8 +66,8 @@ public class PrepEnrollmentService {
     public void delete(Long id) {
         PrepEnrollment prepEnrollment = this.getByEnrollmentById(id);
 
-        if(!prepClinicRepository.findAllByPrepEnrollmentUuid(prepEnrollment.getUuid()).isEmpty()){
-            throw new RecordExistException(PrepClinic.class, "Prep Clinic", "exist for enrollment");
+        if(!prepClinicRepository.findAllByPrepEnrollmentUuidAndArchived(prepEnrollment.getUuid(), UN_ARCHIVED).isEmpty()){
+            throw PrepErrors.enrollmentHasDependentRecords("clinic / follow-up visit");
         }
 
         prepEnrollment.setArchived(ARCHIVED);
@@ -108,23 +109,30 @@ public class PrepEnrollmentService {
         PrepEnrollment prepEnrollment = new PrepEnrollment();
 
         prepEnrollment.setPersonUuid( personUuid);
-        prepEnrollment.setExtra( enrollmentDto.getExtra() );
         prepEnrollment.setUniqueId( enrollmentDto.getUniqueId() );
-        prepEnrollment.setExtra( enrollmentDto.getExtra() );
         prepEnrollment.setPrepEligibilityUuid( enrollmentDto.getPrepEligibilityUuid() );
 
         prepEnrollment.setDateEnrolled( enrollmentDto.getDateEnrolled() );
         prepEnrollment.setDateReferred( enrollmentDto.getDateReferred() );
-        prepEnrollment.setRiskType( enrollmentDto.getRiskType() );
         prepEnrollment.setSupporterName( enrollmentDto.getSupporterName() );
         prepEnrollment.setSupporterRelationshipType( enrollmentDto.getSupporterRelationshipType() );
         prepEnrollment.setSupporterPhone( enrollmentDto.getSupporterPhone() );
         prepEnrollment.setStatus("Enrolled");
 
-        prepEnrollment.setAncUniqueArtNo( enrollmentDto.getAncUniqueArtNo() );
-        prepEnrollment.setHivTestingPoint(enrollmentDto.getHivTestingPoint());
-        prepEnrollment.setDateOfLastHivNegativeTest(enrollmentDto.getDateOfLastHivNegativeTest());
-        prepEnrollment.setTargetGroup(enrollmentDto.getTargetGroup());
+        prepEnrollment.setEnrollmentType(enrollmentDto.getEnrollmentType());
+        prepEnrollment.setPopulationType(enrollmentDto.getPopulationType());
+        prepEnrollment.setWeight(enrollmentDto.getWeight());
+        prepEnrollment.setHeight(enrollmentDto.getHeight());
+        prepEnrollment.setHistoryOfDrugAllergies(enrollmentDto.getHistoryOfDrugAllergies());
+        prepEnrollment.setHistoryOfDrugToDrugInteraction(enrollmentDto.getHistoryOfDrugToDrugInteraction());
+        prepEnrollment.setUrinalysisResult(enrollmentDto.getUrinalysisResult());
+        prepEnrollment.setLiverFunctionTestResults(enrollmentDto.getLiverFunctionTestResults());
+        prepEnrollment.setDateOfInitialAdherenceCounseling(enrollmentDto.getDateOfInitialAdherenceCounseling());
+        prepEnrollment.setDatePrepStarted(enrollmentDto.getDatePrepStarted());
+        prepEnrollment.setPrepTypeAtStart(enrollmentDto.getPrepTypeAtStart());
+        prepEnrollment.setPrepTypeAtStartOthersSpecify(enrollmentDto.getPrepTypeAtStartOthersSpecify());
+        prepEnrollment.setPrepRegimen(enrollmentDto.getPrepRegimen());
+        prepEnrollment.setMonthsOfRefill(enrollmentDto.getMonthsOfRefill());
 
         return prepEnrollment;
     }
@@ -137,25 +145,30 @@ public class PrepEnrollmentService {
         PrepEnrollment prepEnrollment = new PrepEnrollment();
 
         prepEnrollment.setPersonUuid( personUuid);
-        prepEnrollment.setExtra( prepEnrollmentRequestDto.getExtra() );
         prepEnrollment.setUniqueId( prepEnrollmentRequestDto.getUniqueId() );
-        prepEnrollment.setExtra( prepEnrollmentRequestDto.getExtra() );
         prepEnrollment.setPrepEligibilityUuid( prepEnrollmentRequestDto.getPrepEligibilityUuid() );
 
         prepEnrollment.setDateEnrolled( prepEnrollmentRequestDto.getDateEnrolled() );
         prepEnrollment.setDateReferred( prepEnrollmentRequestDto.getDateReferred() );
-        prepEnrollment.setRiskType( prepEnrollmentRequestDto.getRiskType() );
         prepEnrollment.setSupporterName( prepEnrollmentRequestDto.getSupporterName() );
         prepEnrollment.setSupporterRelationshipType( prepEnrollmentRequestDto.getSupporterRelationshipType() );
         prepEnrollment.setSupporterPhone( prepEnrollmentRequestDto.getSupporterPhone() );
         prepEnrollment.setStatus("ENROLLED");
 
-        prepEnrollment.setAncUniqueArtNo( prepEnrollmentRequestDto.getAncUniqueArtNo() );
-
-        prepEnrollment.setHivTestingPoint(prepEnrollmentRequestDto.getHivTestingPoint());
-        prepEnrollment.setDateOfLastHivNegativeTest(prepEnrollmentRequestDto.getDateOfLastHivNegativeTest());
-
-        prepEnrollment.setTargetGroup( prepEnrollmentRequestDto.getTargetGroup() );
+        prepEnrollment.setEnrollmentType(prepEnrollmentRequestDto.getEnrollmentType());
+        prepEnrollment.setPopulationType(prepEnrollmentRequestDto.getPopulationType());
+        prepEnrollment.setWeight(prepEnrollmentRequestDto.getWeight());
+        prepEnrollment.setHeight(prepEnrollmentRequestDto.getHeight());
+        prepEnrollment.setHistoryOfDrugAllergies(prepEnrollmentRequestDto.getHistoryOfDrugAllergies());
+        prepEnrollment.setHistoryOfDrugToDrugInteraction(prepEnrollmentRequestDto.getHistoryOfDrugToDrugInteraction());
+        prepEnrollment.setUrinalysisResult(prepEnrollmentRequestDto.getUrinalysisResult());
+        prepEnrollment.setLiverFunctionTestResults(prepEnrollmentRequestDto.getLiverFunctionTestResults());
+        prepEnrollment.setDateOfInitialAdherenceCounseling(prepEnrollmentRequestDto.getDateOfInitialAdherenceCounseling());
+        prepEnrollment.setDatePrepStarted(prepEnrollmentRequestDto.getDatePrepStarted());
+        prepEnrollment.setPrepTypeAtStart(prepEnrollmentRequestDto.getPrepTypeAtStart());
+        prepEnrollment.setPrepTypeAtStartOthersSpecify(prepEnrollmentRequestDto.getPrepTypeAtStartOthersSpecify());
+        prepEnrollment.setPrepRegimen(prepEnrollmentRequestDto.getPrepRegimen());
+        prepEnrollment.setMonthsOfRefill(prepEnrollmentRequestDto.getMonthsOfRefill());
 
         return prepEnrollment;
     }
@@ -168,10 +181,8 @@ public class PrepEnrollmentService {
 
         PrepEnrollmentDto enrollmentDto = new PrepEnrollmentDto();
 
-        enrollmentDto.setExtra( enrollment.getExtra() );
         enrollmentDto.setId( enrollment.getId() );
         enrollmentDto.setUniqueId( enrollment.getUniqueId() );
-        enrollmentDto.setExtra( enrollment.getExtra() );
         enrollmentDto.setUuid(enrollment.getUuid());
 
         if(enrollment.getCreatedBy().equals("ETL")){
@@ -180,18 +191,26 @@ public class PrepEnrollmentService {
         }
         enrollmentDto.setDateEnrolled( enrollment.getDateEnrolled() );
         enrollmentDto.setDateReferred( enrollment.getDateReferred() );
-        enrollmentDto.setRiskType( enrollment.getRiskType() );
         enrollmentDto.setSupporterName( enrollment.getSupporterName() );
         enrollmentDto.setSupporterRelationshipType( enrollment.getSupporterRelationshipType() );
         enrollmentDto.setSupporterPhone( enrollment.getSupporterPhone() );
         enrollmentDto.setPrepEligibilityUuid(enrollment.getPrepEligibilityUuid());
         enrollmentDto.setCommenced(true);
 
-        enrollmentDto.setAncUniqueArtNo(enrollment.getAncUniqueArtNo());
-
-        enrollmentDto.setHivTestingPoint(enrollment.getHivTestingPoint());
-        enrollmentDto.setDateOfLastHivNegativeTest(enrollment.getDateOfLastHivNegativeTest());
-        enrollmentDto.setTargetGroup(enrollmentDto.getTargetGroup());
+        enrollmentDto.setEnrollmentType(enrollment.getEnrollmentType());
+        enrollmentDto.setPopulationType(enrollment.getPopulationType());
+        enrollmentDto.setWeight(enrollment.getWeight());
+        enrollmentDto.setHeight(enrollment.getHeight());
+        enrollmentDto.setHistoryOfDrugAllergies(enrollment.getHistoryOfDrugAllergies());
+        enrollmentDto.setHistoryOfDrugToDrugInteraction(enrollment.getHistoryOfDrugToDrugInteraction());
+        enrollmentDto.setUrinalysisResult(enrollment.getUrinalysisResult());
+        enrollmentDto.setLiverFunctionTestResults(enrollment.getLiverFunctionTestResults());
+        enrollmentDto.setDateOfInitialAdherenceCounseling(enrollment.getDateOfInitialAdherenceCounseling());
+        enrollmentDto.setDatePrepStarted(enrollment.getDatePrepStarted());
+        enrollmentDto.setPrepTypeAtStart(enrollment.getPrepTypeAtStart());
+        enrollmentDto.setPrepTypeAtStartOthersSpecify(enrollment.getPrepTypeAtStartOthersSpecify());
+        enrollmentDto.setPrepRegimen(enrollment.getPrepRegimen());
+        enrollmentDto.setMonthsOfRefill(enrollment.getMonthsOfRefill());
 
         return enrollmentDto;
     }

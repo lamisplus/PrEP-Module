@@ -61,7 +61,7 @@ export const getLiverFunctionTestResult = async () => {
 export const savePrepEligibility = async (id, objValues, actionType) => {
   const url =
     actionType === 'update'
-      ? `${baseUrl}prep-eligibility/${id}`
+      ? `${baseUrl}prep-eligibility-screening/${id}`
       : `${baseUrl}prep/eligibility`;
   const method = actionType === 'update' ? 'put' : 'post';
   return await axios[method](url, objValues, {

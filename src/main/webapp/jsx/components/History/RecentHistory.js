@@ -1,29 +1,40 @@
-import React, { Fragment, useState, useEffect } from 'react';
+import React, { Fragment, useState, useEffect } from "react";
 // BS
-import { Dropdown } from 'react-bootstrap';
+import { Dropdown } from "react-bootstrap";
 /// Scroll
-import { makeStyles } from '@material-ui/core/styles';
-import PerfectScrollbar from 'react-perfect-scrollbar';
+import { makeStyles } from "@material-ui/core/styles";
+import PerfectScrollbar from "react-perfect-scrollbar";
 //import { Link } from "react-router-dom";
-import axios from 'axios';
-import { url as baseUrl, token } from '../../../api';
+import axios from "axios";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
+import { url as baseUrl, token } from "../../../api";
+import { ENROLLMENT_TYPE_PREP, ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
 //import { Alert } from "react-bootstrap";
-import { Card, Accordion } from 'react-bootstrap';
-import { Modal } from 'react-bootstrap';
-import 'react-widgets/dist/css/react-widgets.css';
-import { toast } from 'react-toastify';
+import { Card, Accordion } from "react-bootstrap";
+import { Modal } from "react-bootstrap";
+import "react-widgets/dist/css/react-widgets.css";
+import { toast } from "react-toastify";
 
-import { Button } from 'semantic-ui-react';
+import { Button } from "semantic-ui-react";
+
+import { displayRegimen } from "../../../Utils/regimenDisplay";
+import useRegimenLookup from "../../../hooks/useRegimenLookup";
 
 const RecentHistory = props => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [summary, setSummary] = useState(null);
+  const [summarySource, setSummarySource] = useState(null); // "prep" or "pep"
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = React.useState(false);
   const [record, setRecord] = useState(null);
   const toggle = () => setOpen(!open);
   const [activeAccordionHeaderShadow, setActiveAccordionHeaderShadow] =
     useState(0);
+  // Live PREP_REGIMEN + PEP_REGIMEN codesets keyed by row id, so the
+  // Current Regimen chip renders the display name regardless of whether
+  // the value persisted on the record is the canonical code or a legacy
+  // codeset row id.
+  const { idMap: regimenById } = useRegimenLookup();
 
   useEffect(() => {
     Summary();
@@ -33,7 +44,9 @@ const RecentHistory = props => {
   const RecentActivities = () => {
     axios
       .get(
-        `${baseUrl}prep/activities/patients/${props.patientObj.personId}?full=true`,
+        `${baseUrl}prep/activities/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }?full=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -43,23 +56,65 @@ const RecentHistory = props => {
         //console.log(error);
       });
   };
+  console.log("props.patientObj recent history: ", props.patientObj.id);
   const Summary = () => {
-    axios
-      .get(
-        `${baseUrl}prep-clinic/person/${props.patientObj.personId}?full=true`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(response => {
-        setSummary(response.data[0]);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
+    const personId = props.patientObj.personId || props.patientObj.id;
+    const headers = { Authorization: `Bearer ${token}` };
+
+    // Pull the latest PrEP/PEP follow-up visit AND the latest PrEP/PEP initiation.
+    // Summary is built from the latest of all four — falling back to the initiation
+    // when no follow-up exists, and merging fields so a missing weight/regimen on
+    // the latest follow-up is still served from the initiation.
+    Promise.all([
+      axios.get(`${baseUrl}prep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
+      axios.get(`${baseUrl}pep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
+      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PREP}`, { headers }).catch(() => ({ data: {} })),
+      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PEP}`, { headers }).catch(() => ({ data: {} })),
+    ]).then(([prepFollowupRes, pepFollowupRes, prepInitRes, pepInitRes]) => {
+      const prepVisit = prepFollowupRes.data[0];
+      const pepVisit = pepFollowupRes.data[0];
+      const prepInit = prepInitRes.data && prepInitRes.data.uuid ? prepInitRes.data : null;
+      const pepInit = pepInitRes.data && pepInitRes.data.uuid ? pepInitRes.data : null;
+
+      // Fall back to initiation values for any field the follow-up didn't capture.
+      const prepBlend = prepVisit
+        ? { ...(prepInit || {}), ...prepVisit, encounterDate: prepVisit.encounterDate }
+        : prepInit
+        ? { ...prepInit, encounterDate: prepInit.dateEnrolled }
+        : null;
+      const pepBlend = pepVisit
+        ? { ...(pepInit || {}), ...pepVisit, encounterDate: pepVisit.encounterDate }
+        : pepInit
+        ? { ...pepInit, encounterDate: pepInit.dateEnrolled }
+        : null;
+
+      const prepDate = prepBlend?.encounterDate ? new Date(prepBlend.encounterDate) : null;
+      const pepDate = pepBlend?.encounterDate ? new Date(pepBlend.encounterDate) : null;
+
+      if (prepBlend && pepBlend) {
+        const pepIsNewer = pepDate > prepDate;
+        setSummary(pepIsNewer ? pepBlend : prepBlend);
+        setSummarySource(pepIsNewer ? "pep" : "prep");
+      } else if (pepBlend) {
+        setSummary(pepBlend);
+        setSummarySource("pep");
+      } else if (prepBlend) {
+        setSummary(prepBlend);
+        setSummarySource("prep");
+      } else {
+        setSummary(null);
+        setSummarySource(null);
+      }
+    });
   };
 
   function countPrepEligibility(data) {
     let count = 0;
-    let relevantActivities = ['Prep Commencement', 'Prep Clinic'];
+    let relevantActivities = [
+      "Prep Commencement", "Prep Clinic", "PEP Clinic",
+      "PrEP Initiation", "PEP Initiation",
+      "PrEP Discontinuation/Interruption", "PEP Completion"
+    ];
     data.forEach(entry => {
       entry?.activities?.forEach(activity => {
         if (relevantActivities.includes(activity?.name)) {
@@ -72,55 +127,67 @@ const RecentHistory = props => {
   }
 
   const ActivityName = name => {
-    if (name === 'HIV Enrollment') {
-      return 'HE';
-    } else if (name === 'Prep Clinic') {
-      return 'PC';
-    } else if (name === 'Prep Enrollment') {
-      return 'PE';
-    } else if (name === 'Prep Eligibility') {
-      return 'PE';
-    } else if (name === 'ART Commencement') {
-      return 'AC';
+    if (name === "HIV Enrollment") {
+      return "HE";
+    } else if (name === "Prep Clinic") {
+      return "PC";
+    } else if (name === "PEP Clinic") {
+      return "PPC";
+    } else if (name === "PrEP Initiation" || name === "Prep Enrollment" || name === "PrEP & PEP Initiation") {
+      return "PI";
+    } else if (name === "PEP Initiation") {
+      return "PPI";
+    } else if (name === "PrEP Eligibility Screening" || name === "PEP Eligibility Screening" || name === "Prep Eligibility") {
+      return "PE";
+    } else if (name === "ART Commencement" || name === "Prep Commencement") {
+      return "AC";
+    } else if (name === "PrEP Discontinuation/Interruption") {
+      return "PD";
+    } else if (name === "PEP Completion") {
+      return "PPC";
     } else {
-      return 'RA';
+      return "RA";
     }
   };
 
   const LoadViewPage = (row, action) => {
-    if (row.path === 'prep-eligibility') {
+    if (row.path === "prep-eligibility-screening") {
       props.setActiveContent({
         ...props.activeContent,
-        route: 'prep-screening',
+        route: "prep-screening",
         id: row.id,
         actionType: action,
       });
-    } else if (row.path === 'prep-enrollment') {
+    } else if (row.path === "prep-pep-initiation") {
       props.setActiveContent({
         ...props.activeContent,
-        route: 'prep-registration',
+        route: "prep-registration",
         id: row.id,
         actionType: action,
       });
-    } else if (row.path === 'prep-clinic') {
-      //prep-commencement
+    } else if (row.path === "prep-followup-visit" || row.path === "prep-commencement") {
+      // Legacy "PrEP Commencement" records live in the same prep_followup_visit
+      // table as regular follow-up visits (the standalone commencement form was
+      // removed). Route both to the consultation (PrEP follow-up) view so old
+      // commencement records can still be viewed/edited instead of rendering a
+      // missing component.
       props.setActiveContent({
         ...props.activeContent,
-        route: 'consultation',
+        route: "consultation",
         id: row.id,
         actionType: action,
       });
-    } else if (row.path === 'prep-commencement') {
+    } else if (row.path === "pep-followup-visit") {
       props.setActiveContent({
         ...props.activeContent,
-        route: 'prep-commencement',
+        route: "pep-followup",
         id: row.id,
         actionType: action,
       });
-    } else if (row.path === 'prep-interruption') {
+    } else if (row.path === "prep-completion") {
       props.setActiveContent({
         ...props.activeContent,
-        route: 'prep-interruptions',
+        route: "prep-interruptions",
         id: row.id,
         actionType: action,
       });
@@ -132,131 +199,102 @@ const RecentHistory = props => {
     setRecord(row);
   };
   const LoadDeletePage = row => {
-    if (row.path === 'prep-eligibility') {
+    if (row.path === "prep-eligibility-screening") {
       setSaving(true);
       axios
-        .delete(`${baseUrl}prep-eligibility/${row.id}`, {
+        .delete(`${baseUrl}prep-eligibility-screening/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
           setSaving(false);
-          toast.success('Record Deleted Successfully');
+          toast.success("Record Deleted Successfully");
           RecentActivities();
           toggle();
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ''
-                ? error.response.data.apierror.message
-                : 'Something went wrong, please try again';
-            toast.error(errorMessage);
-          } else {
-            toast.error('Something went wrong. Please try again...');
-          }
+          toast.error(extractErrorMessage(error));
         });
-    } else if (row.path === 'prep-clinic') {
+    } else if (row.path === "prep-followup-visit") {
       setSaving(true);
       axios
-        .delete(`${baseUrl}prep-clinic/${row.id}`, {
+        .delete(`${baseUrl}prep-followup-visit/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
           setSaving(false);
-          toast.success('Record Deleted Successfully');
+          toast.success("Record Deleted Successfully");
           RecentActivities();
           toggle();
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ''
-                ? error.response.data.apierror.message
-                : 'Something went wrong, please try again';
-            toast.error(errorMessage);
-          } else {
-            toast.error('Something went wrong. Please try again...');
-          }
+          toast.error(extractErrorMessage(error));
         });
-    } else if (row.path === 'prep-enrollment') {
+    } else if (row.path === "prep-pep-initiation") {
       setSaving(true);
       axios
-        .delete(`${baseUrl}prep-enrollment/${row.id}`, {
+        .delete(`${baseUrl}prep-pep-initiation/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
           setSaving(false);
-          toast.success('Record Deleted Successfully');
+          toast.success("Record Deleted Successfully");
           RecentActivities();
           toggle();
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ''
-                ? error.response.data.apierror.message
-                : 'Something went wrong, please try again';
-            toast.error(errorMessage);
-          } else {
-            toast.error('Something went wrong. Please try again...');
-          }
+          toast.error(extractErrorMessage(error));
         });
-    } else if (row.path === 'prep-commencement') {
+    } else if (row.path === "pep-followup-visit") {
       setSaving(true);
       axios
-        .delete(`${baseUrl}prep-clinic/${row.id}`, {
+        .delete(`${baseUrl}pep-followup-visit/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
           setSaving(false);
-          toast.success('Record Deleted Successfully');
+          toast.success("Record Deleted Successfully");
           RecentActivities();
           toggle();
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ''
-                ? error.response.data.apierror.message
-                : 'Something went wrong, please try again';
-            toast.error(errorMessage);
-          } else {
-            toast.error('Something went wrong. Please try again...');
-          }
+          toast.error(extractErrorMessage(error));
         });
-    } else if (row.path === 'prep-interruption') {
+    } else if (row.path === "prep-commencement") {
+      setSaving(true);
+      axios
+        .delete(`${baseUrl}prep-followup-visit/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(response => {
+          setSaving(false);
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+        })
+        .catch(error => {
+          setSaving(false);
+          toast.error(extractErrorMessage(error));
+        });
+    } else if (row.path === "prep-completion") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
       axios
-        .delete(`${baseUrl}prep-interruption/${row.id}`, {
+        .delete(`${baseUrl}prep-completion/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
           setSaving(false);
-          toast.success('Record Deleted Successfully');
+          toast.success("Record Deleted Successfully");
           RecentActivities();
           toggle();
         })
         .catch(error => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ''
-                ? error.response.data.apierror.message
-                : 'Something went wrong, please try again';
-            toast.error(errorMessage);
-          } else {
-            toast.error('Something went wrong. Please try again...');
-          }
+          toast.error(extractErrorMessage(error));
         });
     } else {
     }
@@ -282,7 +320,7 @@ const RecentHistory = props => {
             </div>
             <div className="card-body">
               <PerfectScrollbar
-                style={{ height: '370px' }}
+                style={{ height: "370px" }}
                 id="DZ_W_Todo1"
                 className="widget-media dz-scroll ps ps--active-y"
               >
@@ -297,7 +335,7 @@ const RecentHistory = props => {
                           as={Card.Text}
                           eventKey={`${i}`}
                           className={`accordion-header ${
-                            activeAccordionHeaderShadow === 1 ? '' : 'collapsed'
+                            activeAccordionHeaderShadow === 1 ? "" : "collapsed"
                           } accordion-header-info`}
                           onClick={() =>
                             setActiveAccordionHeaderShadow(
@@ -307,8 +345,8 @@ const RecentHistory = props => {
                         >
                           <span className="accordion-header-icon"></span>
                           <span className="accordion-header-text">
-                            Encounter Date :{' '}
-                            <span className="">{data.date}</span>{' '}
+                            Encounter Date :{" "}
+                            <span className="">{data.date}</span>{" "}
                           </span>
                           <span className="accordion-header-indicator"></span>
                         </Accordion.Toggle>
@@ -326,11 +364,11 @@ const RecentHistory = props => {
                                         key={0}
                                         className={
                                           index % 2 === 0
-                                            ? 'media me-2 media-info'
-                                            : 'media me-2 media-success'
+                                            ? "media me-2 media-info"
+                                            : "media me-2 media-success"
                                         }
                                       >
-                                        {ActivityName(data.name)}
+                                        {ActivityName(activity.name)}
                                       </div>
                                       <div key={1} className="media-body">
                                         <h5 className="mb-1">
@@ -388,7 +426,7 @@ const RecentHistory = props => {
                                           <Dropdown.Item
                                             className="dropdown-item"
                                             onClick={() =>
-                                              LoadViewPage(activity, 'view')
+                                              LoadViewPage(activity, "view")
                                             }
                                           >
                                             View
@@ -396,7 +434,7 @@ const RecentHistory = props => {
                                           <Dropdown.Item
                                             className="dropdown-item"
                                             onClick={() =>
-                                              LoadViewPage(activity, 'update')
+                                              LoadViewPage(activity, "update")
                                             }
                                           >
                                             Update
@@ -428,7 +466,7 @@ const RecentHistory = props => {
           <div className="card">
             <div
               className="card-header border-0  pb-2"
-              style={{ backgroundColor: '#EEEEEE' }}
+              style={{ backgroundColor: "#EEEEEE" }}
             >
               <h4 className="card-title">Summary </h4>
             </div>
@@ -441,8 +479,8 @@ const RecentHistory = props => {
                         <div className="card overflow-hidden">
                           <div className="social-graph-wrapper widget-facebook">
                             <span className="s-icon">
-                              <span style={{ fontSize: '16px' }}>
-                                Total Clinic Visit :{' '}
+                              <span style={{ fontSize: "16px" }}>
+                                Total Clinic Visit :{" "}
                                 {countPrepEligibility(recentActivities)}
                               </span>
                             </span>
@@ -484,16 +522,22 @@ const RecentHistory = props => {
                         <div className="widget-stat card">
                           <div
                             className="card-body p-4"
-                            style={{ backgroundColor: '#fff' }}
+                            style={{ backgroundColor: "#fff" }}
                           >
                             <h4
                               className="card-title"
-                              style={{ fontSize: '15px' }}
+                              style={{ fontSize: "15px" }}
                             >
                               <b>Current Regimen Given</b>
                             </h4>
                             <h4 className="text-info ">
-                              {summary ? summary?.regimen : 'NIL'}
+                              {summary
+                                ? displayRegimen(summary?.regimen, regimenById) ||
+                                  displayRegimen(summary?.pepRegimen, regimenById) ||
+                                  displayRegimen(summary?.prepRegimen, regimenById) ||
+                                  displayRegimen(summary?.regimenId, regimenById) ||
+                                  "NIL"
+                                : "NIL"}
                             </h4>
                           </div>
                         </div>
@@ -503,64 +547,114 @@ const RecentHistory = props => {
                   <div className="col-sm-6 col-md-6 col-lg-6">
                     <div className="card-body">
                       <div className="card overflow-hidden">
-                        <div className="social-graph-wrapper widget-linkedin">
-                          <span className="s-icon">
-                            <span style={{ fontSize: '16px' }}>
-                              {
-                                <>
-                                  BMI :{' '}
-                                  {summary
-                                    ? (
-                                        summary?.weight /
-                                        ((summary?.height / 100) *
-                                          (summary?.height / 100))
-                                      ).toFixed(2)
-                                    : 'NIL'}{' '}
-                                  {summary && (
+                        {summarySource === "pep" ? (
+                          <>
+                            <div className="social-graph-wrapper widget-linkedin">
+                              <span className="s-icon">
+                                <span style={{ fontSize: "16px" }}>
+                                  Blood Pressure :{" "}
+                                  {summary && summary.systolic && summary.diastolic
+                                    ? `${summary.systolic}/${summary.diastolic} mmHg`
+                                    : "NIL"}
+                                </span>
+                              </span>
+                            </div>
+                            <div className="row">
+                              <div className="col-6 border-right">
+                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                  {summary && summary.systolic && (
                                     <>
-                                      kg/m<sup>2</sup>
-                                      <span></span>
+                                      <h4 className="m-1">
+                                        <span className="counter">
+                                          {summary.systolic}
+                                        </span>
+                                      </h4>
+                                      <p className="m-0">
+                                        <b>Systolic</b>
+                                      </p>
                                     </>
                                   )}
-                                </>
-                              }
-                            </span>
-                          </span>
-                        </div>
-                        <div className="row">
-                          <div className="col-6 border-right">
-                            <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                              {summary && (
-                                <>
-                                  <h4 className="m-1">
-                                    <span className="counter">
-                                      {summary ? summary.weight : '0'} Kg
-                                    </span>
-                                  </h4>
-                                  <p className="m-0">
-                                    <b>Weight </b>
-                                  </p>
-                                </>
-                              )}
+                                </div>
+                              </div>
+                              <div className="col-6">
+                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                  {summary && summary.diastolic && (
+                                    <>
+                                      <h4 className="m-1">
+                                        <span className="counter">
+                                          {summary.diastolic}
+                                        </span>
+                                      </h4>
+                                      <p className="m-0">
+                                        <b>Diastolic</b>
+                                      </p>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          <div className="col-6">
-                            <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                              {summary && (
-                                <>
-                                  <h4 className="m-1">
-                                    <span className="counter">
-                                      {summary ? summary.height : '0'} cm
-                                    </span>
-                                  </h4>
-                                  <p className="m-0">
-                                    <b>Height </b>
-                                  </p>
-                                </>
-                              )}
+                          </>
+                        ) : (
+                          <>
+                            <div className="social-graph-wrapper widget-linkedin">
+                              <span className="s-icon">
+                                <span style={{ fontSize: "16px" }}>
+                                  {
+                                    <>
+                                      BMI :{" "}
+                                      {summary && summary.weight && summary.height
+                                        ? (
+                                            summary.weight /
+                                            (summary.height * summary.height)
+                                          ).toFixed(2)
+                                        : "NIL"}{" "}
+                                      {summary && summary.weight && summary.height && (
+                                        <>
+                                          kg/m<sup>2</sup>
+                                          <span></span>
+                                        </>
+                                      )}
+                                    </>
+                                  }
+                                </span>
+                              </span>
                             </div>
-                          </div>
-                        </div>
+                            <div className="row">
+                              <div className="col-6 border-right">
+                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                  {summary && (
+                                    <>
+                                      <h4 className="m-1">
+                                        <span className="counter">
+                                          {summary ? summary.weight : "0"} Kg
+                                        </span>
+                                      </h4>
+                                      <p className="m-0">
+                                        <b>Weight </b>
+                                      </p>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="col-6">
+                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                  {summary && (
+                                    <>
+                                      <h4 className="m-1">
+                                        <span className="counter">
+                                          {summary ? summary.height : "0"} m
+                                        </span>
+                                      </h4>
+                                      <p className="m-0">
+                                        <b>Height </b>
+                                      </p>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -592,14 +686,14 @@ const RecentHistory = props => {
         <Modal.Footer>
           <Button
             onClick={() => LoadDeletePage(record)}
-            style={{ backgroundColor: 'red', color: '#fff' }}
+            style={{ backgroundColor: "red", color: "#fff" }}
             disabled={saving}
           >
-            {saving === false ? 'Yes' : 'Deleting...'}
+            {saving === false ? "Yes" : "Deleting..."}
           </Button>
           <Button
             onClick={toggle}
-            style={{ backgroundColor: '#014d88', color: '#fff' }}
+            style={{ backgroundColor: "#014d88", color: "#fff" }}
             disabled={saving}
           >
             No

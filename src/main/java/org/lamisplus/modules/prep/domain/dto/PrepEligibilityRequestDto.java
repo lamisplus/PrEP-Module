@@ -15,8 +15,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PrepEligibilityRequestDto implements Serializable {
-    @NotNull(message = "hivRisk is mandatory")
-    private Object hivRisk;
     private Object stiScreening;
     private Object drugUseHistory;
     @NotNull(message = "personalHivRiskAssessment is mandatory")
@@ -25,29 +23,27 @@ public class PrepEligibilityRequestDto implements Serializable {
     @NotNull(message = "personId is mandatory")
     private Long personId;
     private String sexPartner;
-    private String counselingType;
     @NotNull(message = "firstTimeVisit is mandatory")
     private Boolean firstTimeVisit;
     private Integer numChildrenLessThanFive;
-    private Integer numWives;
     @NotBlank(message = "targetGroup is mandatory")
     private String targetGroup;
-    private Object extra;
-    private String uniqueId;
     private Integer score;
     @NotNull(message = "visitDate is mandatory")
     private LocalDate visitDate;
     private  Object assessmentForPepIndication;
     private  Object assessmentForAcuteHivInfection;
     private  Object assessmentForPrepEligibility;
-    private String lftConducted;
     private String reasonForSwitch;
-
-    private Object liverFunctionTestResults;
-
-    private LocalDate dateLiverFunctionTestResults;
     private  Object servicesReceivedByClient;
+    private Object considerationForInjections;
+    private Object reasonForDecliningPrep;
     private String populationType;
     private String visitType;
-    private String pregnancyStatus;
+    private String uniqueClientId;
+    private String htsEncounterUuid;
+    private String referredFrom;
+    private String setting;
+    private String serviceStatus;
+    private String typeOfSession;
 }

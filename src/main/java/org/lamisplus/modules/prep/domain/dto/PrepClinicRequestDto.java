@@ -3,12 +3,11 @@ package org.lamisplus.modules.prep.domain.dto;
 
 import lombok.*;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
 
 
+/** See {@link PrepClinicDto} — kept fat to keep the legacy PrepClinicService path compiling. */
 @Builder(toBuilder = true)
 @Getter
 @Setter
@@ -17,19 +16,21 @@ import java.time.LocalDate;
 public class PrepClinicRequestDto implements Serializable {
     private LocalDate dateInitialAdherenceCounseling;
 
-    @NotNull(message = "weight is mandatory")
+    //@NotNull(message = "weight is mandatory")
     private Double weight;
 
-    @NotNull(message = "height is mandatory")
+    //@NotNull(message = "height is mandatory")
     private Double height;
 
-    private String pregnant;
+    private String htsEncounterUuid;
 
-    @NotBlank(message = "prepEnrollmentUuid is mandatory")
+    //@NotBlank(message = "prepEnrollmentUuid is mandatory")
     private String prepEnrollmentUuid;
 
-    @NotNull(message = "regimenId is mandatory")
-    private long regimenId;
+    private String enrollmentType;
+
+    //@NotNull(message = "regimenId is mandatory")
+    private String regimenId;
 
     //private long regimenTypeId;
 
@@ -39,14 +40,12 @@ public class PrepClinicRequestDto implements Serializable {
 
     private LocalDate dateReferred;
 
-    @NotNull(message = "personId is mandatory")
+    //@NotNull(message = "personId is mandatory")
     private Long personId;
 
     private LocalDate nextAppointment;
 
     private LocalDate encounterDate;
-
-    private Object extra;
 
     private LocalDate datePrepStart;
 
@@ -73,10 +72,10 @@ public class PrepClinicRequestDto implements Serializable {
     private Object otherTestsDone;
 
     private Object syndromicStiScreening;
+    private String syndromicScreening;
 
     private String riskReductionServices;
 
-    private String notedSideEffects;
     private Object prepNotedSideEffects;
     private String healthCareWorkerSignature;
 
@@ -92,7 +91,6 @@ public class PrepClinicRequestDto implements Serializable {
     private String familyPlanning;
     private LocalDate dateOfFamilyPlanning;
     private String otherDrugs;
-    private String hivTestResult;
 
     private String prepType;
     private String populationType;
@@ -105,9 +103,11 @@ public class PrepClinicRequestDto implements Serializable {
     private String wasPrepAdministered;
     private String historyOfDrugToDrugInteraction;
     private String historyOfDrugAllergies;
-    private LocalDate hivTestResultDate;
     private Integer monthsOfRefill;
     private String comment;
     private String previousPrepStatus;
+    private String whyAdherenceLevelPoor;
+    private String otherReasonForPoorFairAdherence;
+    private String otherNotedSideEffects;
+    private String otherSyndromicStiScreening;
 }
-

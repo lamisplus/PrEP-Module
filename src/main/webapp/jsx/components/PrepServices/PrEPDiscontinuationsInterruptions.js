@@ -1,142 +1,123 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Row, Card, CardBody, FormGroup, Label, Input } from 'reactstrap';
-import MatButton from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
-import SaveIcon from '@material-ui/icons/Save';
-import CancelIcon from '@material-ui/icons/Cancel';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { url as baseUrl, token } from '../../../api';
-import 'react-widgets/dist/css/react-widgets.css';
-import moment from 'moment';
-import { Spinner } from 'reactstrap';
+import React, { useState, useEffect } from "react";
+import { Card, CardBody, FormGroup, Label, Input } from "reactstrap";
+import MatButton from "@material-ui/core/Button";
+import SaveIcon from "@material-ui/icons/Save";
+import CancelIcon from "@material-ui/icons/Cancel";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { url as baseUrl, token } from "../../../api";
+import { fetchDiscontinuationCodesets } from "../../../apiCalls/hivPreventionCodesets";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
+import { toEnrollmentTypeCode, ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
+import "react-widgets/dist/css/react-widgets.css";
+import moment from "moment";
+import { Spinner } from "reactstrap";
+import { useStyles } from "../../../hooks/styles/prepDiscontinuationsInterruptions/useStyles";
 
-const useStyles = makeStyles(theme => ({
-  card: {
-    margin: theme.spacing(20),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(3),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-  cardBottom: {
-    marginBottom: 20,
-  },
-  Select: {
-    height: 45,
-    width: 300,
-  },
-  button: {
-    margin: theme.spacing(1),
-  },
-  root: {
-    flexGrow: 1,
-    '& .card-title': {
-      color: '#fff',
-      fontWeight: 'bold',
-    },
-    '& .form-control': {
-      borderRadius: '0.25rem',
-      height: '2.5625em',
-    },
-    '& .card-header:first-child': {
-      borderRadius: 'calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0',
-    },
-    '& .dropdown-toggle::after': {
-      display: ' block !important',
-    },
-    '& select': {
-      '-webkit-appearance': 'listbox !important',
-    },
-    '& p': {
-      color: 'red',
-    },
-    '& label': {
-      fontSize: '14px',
-      color: '#014d88',
-      fontWeight: 'bold',
-    },
-  },
-  demo: {
-    backgroundColor: theme.palette.background.default,
-  },
-  inline: {
-    display: 'inline',
-  },
-  error: {
-    color: '#f85032',
-    fontSize: '12.8px',
-  },
-  success: {
-    color: '#4BB543 ',
-    fontSize: '11px',
-  },
-}));
-
-const PrEPEligibiltyScreeningForm = props => {
+const PrEPDiscontinuationsInterruptions = props => {
   const patientObj = props.patientObj;
   const classes = useStyles();
   const [disabledField, setDisabledField] = useState(false);
+  // Prefer the screeningType from the active route (set when user clicked a tab) so PrEP/PEP context is preserved
+  const screeningTypeFromRoute = props.activeContent?.screeningType || "";
+  const [enrollmentType, setEnrollmentType] = useState(
+    screeningTypeFromRoute || patientObj?.enrollmentType || ""
+  );
   const [objValues, setObjValues] = useState({
-    dateInterruption: '',
-    why: '',
-    interruptionType: '',
-    dateRestartPlacedBackMedication: '',
-    personId: patientObj.personId,
-    causeOfDeath: '',
-    dateClientDied: '',
-    dateClientReferredOut: '',
-    facilityReferredTo: '',
-    interruptionDate: '',
-    interruptionReason: '',
-    sourceOfDeathInfo: '',
-    dateSeroconverted: '',
-    reasonStopped: '',
-    reasonStoppedOthers: '',
-    reasonForPrepDiscontinuation: '',
+    interruptionType: "",
+    // Distinct date fields per interruption type. interruptionDate (Date
+    // Stopped) is kept for backward compatibility but only used when the
+    // selected type is "Stopped"; the rest map 1:1 to new columns.
+    interruptionDate: "",     // Date Stopped (Stopped)
+    dateDefaulted: "",        // Date Defaulted (Default)
+    dateOfDeath: "",          // Date of Death (Dead) — paired with dateClientDied below
+    dateReferred: "",         // Date Referred (Referred) — paired with dateClientReferredOut below
+    dateSeroConverted: "",    // Date Seroconverted (Seroconverted)
+    why: "",
+    dateRestartPlacedBackMedication: "",
+    pepCompletion: "",
+    followUpVisitDate: "",
+    hivResult: "",
+    earlyDetectViralLoadResult: "",
+    dateClientReferredOut: "",
+    facilityReferredTo: "",
+    dateClientDied: "",
+    sourceOfDeathInfo: "",
+    causeOfDeath: "",
+    personId: patientObj.personId || props.patientObj.id,
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [prepStatus, setPrepStatus] = useState([]);
-  const [reasonStooped, setReasonStooped] = useState([]);
-  const [causeOfDeath, setCauseOfDeath] = useState([]);
-  const [reasonForDiscontinuationOptions, setReasonForDiscontinuationOptions] =
-    useState([]);
   const [patientDto, setPatientDto] = useState();
+  const [codeset, setCodeset] = useState({});
+
+  const isPEP = enrollmentType === "PEP";
+  const isPrEP = enrollmentType === "PrEP" || !isPEP;
+
+  // --- Skip logic derived from current form state ---
+  const isStopped = objValues.interruptionType?.toLowerCase().includes("stopped");
+  const isDefault = objValues.interruptionType?.toLowerCase().includes("default");
+  const isDead = objValues.interruptionType?.toLowerCase().includes("dead");
+  const isReferred = objValues.interruptionType?.toLowerCase().includes("referred");
+  const isSeroconverted = objValues.interruptionType
+    ?.toLowerCase().includes("seroconvert");
+  // Each interruption type now has its own date input; the legacy
+  // "showStoppedDefaultFields" lumping is gone so Default no longer reuses
+  // the Date Stopped label.
+  const showStoppedFields = isStopped;
+  const showDefaultFields = isDefault;
+  const showDeadFields = isDead;
+  const showReferredFields = isReferred;
+  const showSeroconvertedFields = isSeroconverted;
+  // pepCompletion is persisted as a YES_NO codeset code (YES_NO_YES /
+  // YES_NO_NO) so the backend PEP-tab query can match exact codes.
+  const showFollowUpVisitDate = objValues.pepCompletion === "YES_NO_YES";
+  const showHivPositiveFields = objValues.hivResult?.toLowerCase().includes("positive");
 
   useEffect(() => {
-    PREP_STATUS();
-    PREP_STATUS_STOPPED_REASON();
     GetPatientDTOObj();
-    CAUSE_DEATH();
-    getReasonForDiscontinuationOptions();
+    fetchDiscontinuationCodesets().then(data => setCodeset(data));
     if (
       props.activeContent.id &&
-      props.activeContent.id !== '' &&
+      props.activeContent.id !== "" &&
       props.activeContent.id !== null
     ) {
       setDisabledField(
-        props.activeContent.actionType === 'view' ? true : false
+        props.activeContent.actionType === "view" ? true : false
       );
     }
   }, []);
 
+  useEffect(() => {
+    GetPatientInterruption(props.activeContent.id);
+  }, [props.activeContent.id]);
+
   const GetPatientDTOObj = () => {
     axios
       .get(
-        `${baseUrl}prep/enrollment/open/patients/${props.patientObj.personId}`,
+        `${baseUrl}prep/enrollment/open/patients/${
+          props.patientObj.personId || props.patientObj.id
+        }`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       )
       .then(response => {
         setPatientDto(response.data);
+        // Only override enrollmentType from patientDto if no route-based type was provided.
+        // Normalize the canonical code to a short label (PrEP/PEP) the rest of
+        // the component compares against — same caveat as the load path:
+        // both canonical codes contain "PEP" as a substring, so suffix-check.
+        if (!screeningTypeFromRoute && response.data?.enrollmentType) {
+          const raw = String(response.data.enrollmentType).toUpperCase().trim();
+          if (raw === "PEP" || raw.endsWith("_PEP")) {
+            setEnrollmentType("PEP");
+          } else if (raw === "PREP" || raw.endsWith("_PREP")) {
+            setEnrollmentType("PrEP");
+          } else {
+            setEnrollmentType(response.data.enrollmentType);
+          }
+        }
       })
       .catch(error => {
         //console.log(error);
@@ -144,284 +125,276 @@ const PrEPEligibiltyScreeningForm = props => {
   };
 
   const GetPatientInterruption = id => {
+    if (!id) return;
     axios
-      .get(`${baseUrl}prep-interruption/${props.activeContent.id}`, {
+      .get(`${baseUrl}prep-completion/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
-        setObjValues(response.data);
+        const data = response.data || {};
+        // Preserve existing keys (e.g. personId default) and merge in the
+        // loaded record so view/update renders every entered value.
+        setObjValues(prev => ({ ...prev, ...data }));
+        // Normalize the canonical enrollment type into the short label this
+        // component compares against (drives isPEP / showFollowUpVisitDate /
+        // hivResult / pepCompletion visibility). Both canonical codes
+        // (PREP_PEP_ENROLLMENT_TYPE_PEP and ..._PREP) contain "PEP" and
+        // "PREP" as substrings, so check the suffix instead.
+        const raw = data.enrollmentType;
+        if (raw) {
+          const upper = String(raw).toUpperCase().trim();
+          if (upper === "PEP" || upper.endsWith("_PEP")) {
+            setEnrollmentType("PEP");
+          } else if (upper === "PREP" || upper.endsWith("_PREP")) {
+            setEnrollmentType("PrEP");
+          }
+        }
       })
       .catch(error => {
         //console.log(error);
       });
-  };
-
-  const PREP_STATUS = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setPrepStatus(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const CAUSE_DEATH = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CAUSE_DEATH`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setCauseOfDeath(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const PREP_STATUS_STOPPED_REASON = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_STATUS_STOPPED_REASON`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setReasonStooped(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const getReasonForDiscontinuationOptions = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/REASON_FOR_DISCONTINUATION`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(response => {
-        setReasonForDiscontinuationOptions(response.data);
-      })
-      .catch(error => {
-        //console.log(error);
-      });
-  };
-
-  const getNewPrepStatus = (interruptionOption, allPrepInterruptions) => {
-    const transformedInterruption =
-      interruptionOption?.interruptionType?.toLowerCase();
-    const newPrepInterruptionObj = allPrepInterruptions?.find(interruption =>
-      transformedInterruption.includes(
-        interruption?.display?.replace(/\s/g, '_').toLowerCase()
-      )
-    );
-    return newPrepInterruptionObj;
   };
 
   const handleInputChange = e => {
-    setErrors({ ...errors, [e.target.name]: '' });
-    if (e.target.name === 'interruptionType') {
-      switch (e.target.value) {
-        case 'PREP_STATUS_STOPPED':
-          setObjValues({
-            ...objValues,
-            reasonStopped: '',
-            reasonStoppedOthers: '',
-          });
-          break;
-        case 'PREP_STATUS_DEAD':
-          setObjValues({
-            ...objValues,
-            causeOfDeath: '',
-            sourceOfDeathInfo: '',
-            dateClientDied: '',
-          });
-          break;
-        case 'PREP_STATUS_RESTART':
-          setObjValues({ ...objValues, dateRestartPlacedBackMedication: '' });
-          break;
-        case 'PREP_STATUS_TRANSFER_OUT':
-          setObjValues({
-            ...objValues,
-            dateClientReferredOut: '',
-            facilityReferredTo: '',
-          });
-          break;
-        case 'PREP_STATUS_SEROCONVERTED':
-          setObjValues({ ...objValues, linkToArt: '', dateSeroconverted: '' });
-          break;
-        default:
-          break;
-      }
+    const { name, value } = e.target;
+    setErrors({ ...errors, [name]: "" });
+
+    // Clear dependent fields when interruptionType changes
+    if (name === "interruptionType") {
+      setObjValues(prev => ({
+        ...prev,
+        [name]: value,
+        interruptionDate: "",
+        dateDefaulted: "",
+        dateOfDeath: "",
+        dateReferred: "",
+        dateSeroConverted: "",
+        why: "",
+        dateRestartPlacedBackMedication: "",
+        dateClientDied: "",
+        sourceOfDeathInfo: "",
+        causeOfDeath: "",
+        dateClientReferredOut: "",
+        facilityReferredTo: "",
+      }));
+      return;
     }
-    setObjValues({ ...objValues, [e.target.name]: e.target.value });
+    if (name === "pepCompletion" && value !== "YES_NO_YES") {
+      setObjValues(prev => ({
+        ...prev,
+        [name]: value,
+        followUpVisitDate: "",
+      }));
+      return;
+    }
+
+    setObjValues({ ...objValues, [name]: value });
   };
 
   const validate = () => {
     let temp = { ...errors };
-    // if (
-    //   containsDiscontinued(objValues.interruptionType) &&
-    //   !objValues.reasonForPrepDiscontinuation
-    // ) {
-    //   temp.reasonForPrepDiscontinuation = 'This field is required';
-    // }
-    if (
-      (objValues.interruptionType === 'PREP_STATUS_ADVERSE_DRUG_REACTION' ||
-        objValues.interruptionType === 'PREP_STATUS_STOPPED' ||
-        objValues.interruptionType === 'PREP_STATUS_LOSS_TO_FOLLOW_UP') &&
-      !objValues.interruptionDate
-    ) {
-      temp.interruptionDate = 'This field is required';
+
+    // PrEP: validate interruption type
+    if (isPrEP) {
+      temp.interruptionType = objValues.interruptionType
+        ? ""
+        : "This field is required";
     }
-    if (
-      objValues.interruptionType === 'PREP_STATUS_TRANSFER_OUT' &&
-      !objValues.dateClientReferredOut
-    ) {
-      temp.dateClientReferredOut = 'This field is required';
+
+    // Stopped fields
+    if (showStoppedFields) {
+      temp.interruptionDate = objValues.interruptionDate
+        ? ""
+        : "This field is required";
+      temp.why = objValues.why ? "" : "This field is required";
     }
-    if (
-      objValues.interruptionType === 'PREP_STATUS_DEAD' &&
-      !objValues.dateClientDied
-    ) {
-      temp.dateClientDied = 'This field is required';
+
+    // Default fields — independent of Stopped: distinct date column.
+    if (showDefaultFields) {
+      temp.dateDefaulted = objValues.dateDefaulted
+        ? ""
+        : "This field is required";
+      temp.why = objValues.why ? "" : "This field is required";
     }
-    if (!objValues.interruptionType) {
-      temp.interruptionType = 'This field is required';
+
+    // Seroconverted fields
+    if (showSeroconvertedFields) {
+      temp.dateSeroConverted = objValues.dateSeroConverted
+        ? ""
+        : "This field is required";
     }
+
+    // Dead fields — `dateClientDied` is explicitly exempt from the required
+    // checklist (per the spec), so don't enforce it. Source/Cause stay
+    // required because they're the substantive fields for the Dead branch.
+    if (showDeadFields) {
+      temp.dateClientDied = "";
+      temp.sourceOfDeathInfo = objValues.sourceOfDeathInfo
+        ? ""
+        : "This field is required";
+      temp.causeOfDeath = objValues.causeOfDeath
+        ? ""
+        : "This field is required";
+    }
+
+    // Referred fields
+    if (showReferredFields) {
+      temp.dateClientReferredOut = objValues.dateClientReferredOut
+        ? ""
+        : "This field is required";
+      temp.facilityReferredTo = objValues.facilityReferredTo
+        ? ""
+        : "This field is required";
+    }
+
+    // PEP-only fields
+    if (isPEP) {
+      temp.pepCompletion = objValues.pepCompletion
+        ? ""
+        : "This field is required";
+      if (showFollowUpVisitDate) {
+        temp.followUpVisitDate = objValues.followUpVisitDate
+          ? ""
+          : "This field is required";
+      }
+      temp.hivResult = objValues.hivResult ? "" : "This field is required";
+      if (showHivPositiveFields) {
+        temp.earlyDetectViralLoadResult = objValues.earlyDetectViralLoadResult
+          ? ""
+          : "This field is required";
+      }
+    }
+
     setErrors({ ...temp });
-    return Object.values(temp).every(x => x === '');
+    return Object.values(temp).every(x => x === "");
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    if (
-      objValues.interruptionDate === '' &&
-      objValues.dateSeroconverted !== ''
-    ) {
-      objValues.interruptionDate = objValues.dateSeroconverted;
-    } else if (
-      objValues.interruptionDate === '' &&
-      objValues.dateRestartPlacedBackMedication !== ''
-    ) {
-      objValues.interruptionDate = objValues.dateRestartPlacedBackMedication;
-    } else if (
-      objValues.interruptionDate === '' &&
-      objValues.dateClientReferredOut !== ''
-    ) {
-      objValues.interruptionDate = objValues.dateClientReferredOut;
-    } else if (
-      objValues.interruptionDate === '' &&
-      objValues.dateClientDied !== ''
-    ) {
-      objValues.interruptionDate = objValues.dateClientDied;
-    }
-    if (validate()) {
+    if (!validate()) return;
+
+    const canonicalEnrollmentType =
+      toEnrollmentTypeCode(enrollmentType) || ENROLLMENT_TYPE_PREP;
+    // Route the patient's current status into the column matching their arm.
+    // PEP enrollments land in previous_pep_status; PrEP (default) into
+    // previous_prep_status. The other column is cleared so we don't carry
+    // stale per-arm state across discontinuations.
+    if (isPEP) {
+      objValues.previousPepStatus = props.patientObj?.prepStatus;
+      objValues.previousPrepStatus = null;
+    } else {
       objValues.previousPrepStatus = props.patientObj?.prepStatus;
-      setSaving(true);
-      if (props.activeContent && props.activeContent.actionType === 'update') {
-        axios
-          .put(
-            `${baseUrl}prep-interruption/${props.activeContent.id}`,
-            objValues,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          )
-          .then(response => {
-            setSaving(false);
-            toast.success('👍 Record saved successfully! ✔');
-            props.PatientObject();
-            props.setActiveContent({
-              ...props.activeContent,
-              route: 'recent-history',
-            });
-          })
-          .catch(error => {
-            setSaving(false);
-            handleError(error);
-          });
-      } else {
-        axios
-          .post(`${baseUrl}prep/interruption`, objValues, {
+      objValues.previousPepStatus = null;
+    }
+    objValues.enrollmentType = canonicalEnrollmentType;
+    // HIV result is no longer denormalised onto the interruption row; we
+    // store the linked hts_encounter uuid and resolve it on read. The form's
+    // hivResult dropdown is kept for skip-logic but its value isn't persisted.
+    objValues.htsEncounterUuid =
+      patientDto?.htsEncounterUuid
+      || props.patientObj?.htsEncounterUuid
+      || props.patientObj?.latestHtsResult?.uuid
+      || objValues.htsEncounterUuid;
+    // Mirror the type-specific date into interruptionDate so the dashboard's
+    // prepStatus SQL (which compares prepi.interruption_date to the latest
+    // follow-up encounter_date) flips immediately after save — without this,
+    // a "Default" record only sets dateDefaulted and the status stays stale.
+    // For PEP Completion the form doesn't ask for an interruptionDate at all,
+    // so fall back to followUpVisitDate; without a date we'd save NULL and
+    // the uniqueness check (date + person) collides with any prior NULL row.
+    if (!objValues.interruptionDate) {
+      objValues.interruptionDate =
+        objValues.dateDefaulted
+        || objValues.dateClientDied
+        || objValues.dateClientReferredOut
+        || objValues.dateSeroConverted
+        || objValues.dateOfDeath
+        || objValues.dateReferred
+        || objValues.followUpVisitDate
+        || "";
+    }
+    setSaving(true);
+
+    let resolvedEnrollmentUuid = null;
+    try {
+      const latest = await axios.get(
+        `${baseUrl}prep/initiation/latest/${
+          props.patientObj.personId || props.patientObj.id
+        }?enrollmentType=${encodeURIComponent(canonicalEnrollmentType)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      resolvedEnrollmentUuid = latest?.data?.uuid;
+    } catch (err) {}
+    if (!resolvedEnrollmentUuid) {
+      resolvedEnrollmentUuid = patientDto?.uuid;
+    }
+    if (!resolvedEnrollmentUuid) {
+      setSaving(false);
+      toast.error(
+        `No ${enrollmentType || "PrEP"} initiation found for this patient. Cannot record discontinuation/interruption.`
+      );
+      return;
+    }
+    objValues.prepEnrollmentUuid = resolvedEnrollmentUuid;
+
+    if (props.activeContent && props.activeContent.actionType === "update") {
+      axios
+        .put(
+          `${baseUrl}prep-completion/${props.activeContent.id}`,
+          objValues,
+          {
             headers: { Authorization: `Bearer ${token}` },
-          })
-          .then(response => {
-            const newStatus = getNewPrepStatus(response.data, prepStatus);
-            setSaving(false);
-            toast.success('👍 Record saved successfully! ✔');
-            props.PatientObject();
-            props.setActiveContent({
-              ...props.activeContent,
-              route: 'recent-history',
-              obj: { newStatus },
-            });
-          })
-          .catch(error => {
-            setSaving(false);
-            handleError(error);
+          }
+        )
+        .then(async response => {
+          setSaving(false);
+          toast.success(`${enrollmentType === 'PEP' ? 'PEP completion' : 'PrEP discontinuation/interruption'} updated successfully!`);
+          if (props.PatientObject) await props.PatientObject();
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "recent-history",
           });
-      }
+        })
+        .catch(error => {
+          setSaving(false);
+          handleError(error);
+        });
+    } else {
+      axios
+        .post(`${baseUrl}prep/interruption`, objValues, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(async response => {
+          setSaving(false);
+          toast.success(`${enrollmentType === 'PEP' ? 'PEP completion' : 'PrEP discontinuation/interruption'} saved successfully!`);
+          if (props.PatientObject) await props.PatientObject();
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "recent-history",
+          });
+        })
+        .catch(error => {
+          setSaving(false);
+          handleError(error);
+        });
     }
   };
 
   const handleError = error => {
-    if (error.response && error.response.data) {
-      let errorMessage =
-        error.response.data.apierror &&
-        error.response.data.apierror.message !== ''
-          ? error.response.data.apierror.message
-          : '❌ Something went wrong. Please try again...';
-      toast.error(errorMessage);
-    } else {
-      toast.error('❌ Something went wrong. Please try again...');
-    }
+    // Routes every backend error through the shared extractor so users see
+    // descriptive messages (e.g. "A discontinuation / interruption has
+    // already been recorded for this client on 13 May 2026") instead of
+    // generic "Something went wrong".
+    toast.error(extractErrorMessage(error));
   };
 
-  useEffect(() => {
-    getReasonForDiscontinuationOptions();
-  }, []);
+  const today = moment(new Date()).format("YYYY-MM-DD");
+  const minDate =
+    patientDto && patientDto.dateEnrolled ? patientDto.dateEnrolled : "";
 
-  useEffect(() => {
-    return () => {
-      if (!['view', 'update'].includes(props.activeContent.actionType)) {
-        setObjValues(prevValues => ({
-          ...prevValues,
-          dateInterruption: '',
-          dateRestartPlacedBackMedication: '',
-          causeOfDeath: '',
-          dateClientDied: '',
-          dateClientReferredOut: '',
-          facilityReferredTo: '',
-          interruptionDate: '',
-          sourceOfDeathInfo: '',
-          dateSeroconverted: '',
-          reasonStopped: '',
-          reasonStoppedOthers: '',
-          reasonForPrepDiscontinuation: '',
-        }));
-
-        setErrors(prevErrors => ({
-          ...prevErrors,
-          interruptionDate: '',
-          reasonStopped: '',
-          reasonStoppedOthers: '',
-          dateClientReferredOut: '',
-          facilityReferredTo: '',
-          dateClientDied: '',
-          causeOfDeath: '',
-          sourceOfDeathInfo: '',
-          dateRestartPlacedBackMedication: '',
-          dateSeroconverted: '',
-          reasonForPrepDiscontinuation: '',
-        }));
-      }
-    };
-  }, [objValues.interruptionType]);
-
-  useEffect(() => {
-    GetPatientInterruption(props.activeContent.id);
-  }, [props.activeContent.id]);
+  const formTitle = isPEP
+    ? "PEP Completion"
+    : "PrEP Discontinuation/Interruption";
 
   return (
     <div>
@@ -429,450 +402,478 @@ const PrEPEligibiltyScreeningForm = props => {
         <CardBody>
           <form>
             <div className="row">
-              <h2>PrEP Client Tracking & Discontinuations/Interruptions</h2>
-              <div className="form-group mb-3 col-md-6">
-                <FormGroup>
-                  <Label for="uniqueId">
-                    PrEP Interruptions <span style={{ color: 'red' }}> *</span>
-                  </Label>
-                  <Input
-                    type="select"
-                    name="interruptionType"
-                    id="interruptionType"
-                    onChange={handleInputChange}
-                    value={objValues.interruptionType}
-                    required
-                    style={{ border: '1px solid #014D88' }}
-                    disabled={disabledField}
-                  >
-                    <option value="">Select</option>
-                    {prepStatus
-                      .filter(interruption => interruption?.id !== 743)
-                      .map(value => (
-                        <option key={value.id} value={value.code}>
-                          {value.display}
-                        </option>
-                      ))}
-                    {/* <option value="PREP_INTERRUPtIONS_DISCONTINUED_ORAL_PREP">
-                      Discontinued Oral PrEP
-                    </option>
-                    <option value="PREP_INTERRUPtIONS_DISCONTINUED_CABLA">
-                      Discontinued CAB-LA
-                    </option> */}
-                  </Input>
-                  {errors.interruptionType !== '' ? (
-                    <span className={classes.error}>
-                      {errors.interruptionType}
-                    </span>
-                  ) : (
-                    ''
-                  )}
-                </FormGroup>
-              </div>
-              {(objValues.interruptionType ===
-                'PREP_STATUS_ADVERSE_DRUG_REACTION' ||
-                objValues.interruptionType === 'PREP_STATUS_STOPPED' ||
-                objValues.interruptionType ===
-                  'PREP_INTERRUPtIONS_DISCONTINUED_ORAL_PREP' ||
-                objValues.interruptionType ===
-                  'PREP_INTERRUPtIONS_DISCONTINUED_CABLA' ||
-                objValues.interruptionType ===
-                  'PREP_STATUS_LOSS_TO_FOLLOW_UP') && (
+              <h2>{formTitle}</h2>
+
+              {/* PrEP Interruptions Type - shown for PrEP only */}
+              {isPrEP && (
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
-                    <Label for="uniqueId">
-                      Date of Interruption{' '}
-                      <span style={{ color: 'red' }}> *</span>
+                    <Label>
+                      PrEP Interruptions{" "}
+                      <span style={{ color: "red" }}>*</span>
                     </Label>
                     <Input
-                      type="date"
-                      onKeyDown={e => {
-                        e.preventDefault();
-                      }}
-                      name="interruptionDate"
-                      id="interruptionDate"
-                      min={
-                        patientDto && patientDto.dateEnrolled
-                          ? patientDto.dateEnrolled
-                          : ''
-                      }
-                      max={moment(new Date()).format('YYYY-MM-DD')}
+                      type="select"
+                      name="interruptionType"
+                      id="interruptionType"
                       onChange={handleInputChange}
-                      value={objValues.interruptionDate}
-                      required
+                      value={objValues.interruptionType}
                       disabled={disabledField}
-                    />
-                    {errors.interruptionDate !== '' ? (
+                    >
+                      <option value="">Select</option>
+                      {(codeset?.PREP_DISCONTINUATION_TYPE || []).map(item => (
+                        <option key={item.code} value={item.code}>{item.display}</option>
+                      ))}
+                    </Input>
+                    {errors.interruptionType !== "" ? (
                       <span className={classes.error}>
-                        {errors.interruptionDate}
+                        {errors.interruptionType}
                       </span>
                     ) : (
-                      ''
+                      ""
                     )}
                   </FormGroup>
                 </div>
               )}
-              {objValues.interruptionType === 'PREP_STATUS_STOPPED' && (
+
+              {/* Stopped fields: Date Stopped, Why, Date of Restart (PEP) */}
+              {showStoppedFields && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
-                      <Label for="uniqueId">Reason Stopped </Label>
+                      <Label>
+                        Date Stopped <span style={{ color: "red" }}>*</span>
+                      </Label>
                       <Input
-                        type="select"
-                        name="reasonStopped"
-                        id="reasonStopped"
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        type="date"
+                        name="interruptionDate"
+                        id="interruptionDate"
+                        onKeyDown={e => e.preventDefault()}
+                        min={minDate}
+                        max={today}
                         onChange={handleInputChange}
-                        value={objValues.reasonStopped}
+                        value={objValues.interruptionDate}
                         disabled={disabledField}
-                      >
-                        <option value="">Select</option>
-                        {reasonStooped.map(value => (
-                          <option key={value.id} value={value.display}>
-                            {value.display}
-                          </option>
-                        ))}
-                      </Input>
-                      {errors.reasonStopped !== '' ? (
+                      />
+                      {errors.interruptionDate !== "" ? (
                         <span className={classes.error}>
-                          {errors.reasonStopped}
+                          {errors.interruptionDate}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
-                  {objValues.reasonStopped === 'Others (Pls specify)' && (
+
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Why <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="select"
+                        name="why"
+                        id="why"
+                        onChange={handleInputChange}
+                        value={objValues.why}
+                          disabled={disabledField}
+                      >
+                        <option value="">Select</option>
+                        {(codeset?.PREP_DISCONTINUATION_REASON || []).map(item => (
+                          <option key={item.code} value={item.code}>{item.display}</option>
+                        ))}
+                      </Input>
+                      {errors.why !== "" ? (
+                        <span className={classes.error}>{errors.why}</span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+
+                  {/* Date of Restart: PEP-only and never required when PrEP is Stopped */}
+                  {isPEP && (
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <Label for="uniqueId">Other Reason Stopped </Label>
+                        <Label>
+                          Date of Restart (If Placed Back on Medication)
+                        </Label>
                         <Input
-                          type="text"
-                          name="reasonStoppedOthers"
-                          id="reasonStoppedOthers"
-                          max={moment(new Date()).format('YYYY-MM-DD')}
+                          type="date"
+                          name="dateRestartPlacedBackMedication"
+                          id="dateRestartPlacedBackMedication"
+                          onKeyDown={e => e.preventDefault()}
+                          min={minDate}
+                          max={today}
                           onChange={handleInputChange}
-                          value={objValues.reasonStoppedOthers}
+                          value={objValues.dateRestartPlacedBackMedication}
                           disabled={disabledField}
-                        ></Input>
-                        {errors.reasonStoppedOther !== '' ? (
-                          <span className={classes.error}>
-                            {errors.reasonStopped}
-                          </span>
-                        ) : (
-                          ''
-                        )}
+                        />
                       </FormGroup>
                     </div>
                   )}
                 </>
               )}
-              {objValues.interruptionType === 'PREP_STATUS_TRANSFER_OUT' && (
+
+              {/* Default fields: Date Defaulted + Why. Distinct from Stopped
+                  so the date column stores the defaulted-on date, not the
+                  stopped-on date. */}
+              {showDefaultFields && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
-                      <Label for="uniqueId">Date of client referred out </Label>
+                      <Label>
+                        Date Defaulted <span style={{ color: "red" }}>*</span>
+                      </Label>
                       <Input
                         type="date"
+                        name="dateDefaulted"
+                        id="dateDefaulted"
                         onKeyDown={e => e.preventDefault()}
-                        name="dateClientReferredOut"
-                        id="dateClientReferredOut"
-                        min={
-                          patientDto && patientDto.dateEnrolled
-                            ? patientDto.dateEnrolled
-                            : ''
-                        }
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        min={minDate}
+                        max={today}
                         onChange={handleInputChange}
-                        value={
-                          objValues.dateClientReferredOut ||
-                          objValues.interruptionDate
-                        }
-                        required
+                        value={objValues.dateDefaulted}
                         disabled={disabledField}
                       />
-                      {errors.dateClientReferredOut !== '' ? (
+                      {errors.dateDefaulted !== "" ? (
                         <span className={classes.error}>
-                          {errors.dateClientReferredOut}
+                          {errors.dateDefaulted}
                         </span>
-                      ) : (
-                        ''
-                      )}
+                      ) : ""}
                     </FormGroup>
                   </div>
+
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
-                      <Label for="uniqueId">Facility referred to </Label>
+                      <Label>
+                        Why <span style={{ color: "red" }}>*</span>
+                      </Label>
                       <Input
-                        type="text"
-                        name="facilityReferredTo"
-                        id="facilityReferredTo"
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        type="select"
+                        name="why"
+                        id="why"
                         onChange={handleInputChange}
-                        value={objValues.facilityReferredTo}
-                        required
+                        value={objValues.why}
                         disabled={disabledField}
-                      />
-                      {errors.facilityReferredTo !== '' ? (
-                        <span className={classes.error}>
-                          {errors.facilityReferredTo}
-                        </span>
-                      ) : (
-                        ''
-                      )}
+                      >
+                        <option value="">Select</option>
+                        {(codeset?.PREP_DISCONTINUATION_REASON || []).map(item => (
+                          <option key={item.code} value={item.code}>{item.display}</option>
+                        ))}
+                      </Input>
+                      {errors.why !== "" ? (
+                        <span className={classes.error}>{errors.why}</span>
+                      ) : ""}
                     </FormGroup>
                   </div>
                 </>
               )}
-              {objValues.interruptionType === 'PREP_STATUS_DEAD' && (
+
+              {/* Seroconverted: just the date the client seroconverted. */}
+              {showSeroconvertedFields && (
+                <div className="form-group mb-3 col-md-6">
+                  <FormGroup>
+                    <Label>
+                      Date Seroconverted <span style={{ color: "red" }}>*</span>
+                    </Label>
+                    <Input
+                      type="date"
+                      name="dateSeroConverted"
+                      id="dateSeroConverted"
+                      onKeyDown={e => e.preventDefault()}
+                      min={minDate}
+                      max={today}
+                      onChange={handleInputChange}
+                      value={objValues.dateSeroConverted}
+                      disabled={disabledField}
+                    />
+                    {errors.dateSeroConverted !== "" ? (
+                      <span className={classes.error}>
+                        {errors.dateSeroConverted}
+                      </span>
+                    ) : ""}
+                  </FormGroup>
+                </div>
+              )}
+
+              {/* Dead fields: Date Client Died, Source of Death Information */}
+              {showDeadFields && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
-                      <Label for="uniqueId">Date of Client's Death </Label>
+                      <Label>
+                        Date Client Died
+                      </Label>
                       <Input
                         type="date"
-                        onKeyDown={e => e.preventDefault()}
                         name="dateClientDied"
                         id="dateClientDied"
-                        min={
-                          patientDto && patientDto.dateEnrolled
-                            ? patientDto.dateEnrolled
-                            : ''
-                        }
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        onKeyDown={e => e.preventDefault()}
+                        min={minDate}
+                        max={today}
                         onChange={handleInputChange}
-                        value={
-                          objValues.dateClientDied || objValues.interruptionDate
-                        }
-                        required
-                        disabled={disabledField}
+                        value={objValues.dateClientDied}
+                          disabled={disabledField}
                       />
-                      {errors.dateClientDied !== '' ? (
+                      {errors.dateClientDied !== "" ? (
                         <span className={classes.error}>
                           {errors.dateClientDied}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
+
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
-                      <Label for="uniqueId">Cause of death</Label>
-                      <Input
-                        type="select"
-                        name="causeOfDeath"
-                        id="causeOfDeath"
-                        min={
-                          patientDto && patientDto.dateEnrolled
-                            ? patientDto.dateEnrolled
-                            : ''
-                        }
-                        max={moment(new Date()).format('YYYY-MM-DD')}
-                        onChange={handleInputChange}
-                        value={objValues.causeOfDeath}
-                        required
-                        disabled={disabledField}
-                      >
-                        <option value="">Select</option>
-                        {causeOfDeath.map(value => (
-                          <option key={value.id} value={value.display}>
-                            {value.display}
-                          </option>
-                        ))}
-                      </Input>
-                      {errors.causeOfDeath !== '' ? (
-                        <span className={classes.error}>
-                          {errors.causeOfDeath}
-                        </span>
-                      ) : (
-                        ''
-                      )}
-                    </FormGroup>
-                  </div>
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <Label for="uniqueId">Source of death information </Label>
+                      <Label>
+                        Source of Death Information{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </Label>
                       <Input
                         type="text"
                         name="sourceOfDeathInfo"
                         id="sourceOfDeathInfo"
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        placeholder="Enter source of death information"
                         onChange={handleInputChange}
                         value={objValues.sourceOfDeathInfo}
-                        required
                         disabled={disabledField}
                       />
-                      {errors.sourceOfDeathInfo !== '' ? (
+                      {errors.sourceOfDeathInfo !== "" ? (
                         <span className={classes.error}>
                           {errors.sourceOfDeathInfo}
                         </span>
                       ) : (
-                        ''
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        Cause of Death{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <select
+                        className="form-control"
+                        name="causeOfDeath"
+                        id="causeOfDeath"
+                        onChange={handleInputChange}
+                        value={objValues.causeOfDeath}
+                        disabled={disabledField}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.2rem",
+                        }}
+                      >
+                        <option value="">Select</option>
+                        {(codeset?.PREP_DISCONTINUATION_CAUSE_OF_DEATH || []).map(item => (
+                          <option key={item.code} value={item.code}>
+                            {item.display}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.causeOfDeath !== "" ? (
+                        <span className={classes.error}>
+                          {errors.causeOfDeath}
+                        </span>
+                      ) : (
+                        ""
                       )}
                     </FormGroup>
                   </div>
                 </>
               )}
-              {objValues.interruptionType === 'PREP_STATUS_RESTART' && (
-                <div className="form-group mb-3 col-md-6">
-                  <FormGroup>
-                    <Label>Date of restart if placed back on medication</Label>
-                    <Input
-                      className="form-control"
-                      type="date"
-                      onKeyDown={e => e.preventDefault()}
-                      name="dateRestartPlacedBackMedication"
-                      id="dateRestartPlacedBackMedication"
-                      min={
-                        patientDto && patientDto.dateEnrolled
-                          ? patientDto.dateEnrolled
-                          : ''
-                      }
-                      max={moment(new Date()).format('YYYY-MM-DD')}
-                      value={objValues.dateRestartPlacedBackMedication}
-                      onChange={handleInputChange}
-                      disabled={disabledField}
-                      style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.2rem',
-                      }}
-                    />
-                    {errors.dateRestartPlacedBackMedication !== '' ? (
-                      <span className={classes.error}>
-                        {errors.dateRestartPlacedBackMedication}
-                      </span>
-                    ) : (
-                      ''
-                    )}
-                  </FormGroup>
-                </div>
-              )}
-              {objValues.interruptionType === 'PREP_STATUS_SEROCONVERTED' && (
+
+              {/* Referred fields: Date Client Referred Out, Facility Referred To */}
+              {showReferredFields && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
-                      <Label for="uniqueId">Date Seroconverted </Label>
+                      <Label>
+                        Date Client Referred Out{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </Label>
                       <Input
                         type="date"
+                        name="dateClientReferredOut"
+                        id="dateClientReferredOut"
                         onKeyDown={e => e.preventDefault()}
-                        name="dateSeroconverted"
-                        id="dateSeroconverted"
-                        min={
-                          patientDto && patientDto.dateEnrolled
-                            ? patientDto.dateEnrolled
-                            : ''
-                        }
-                        max={moment(new Date()).format('YYYY-MM-DD')}
+                        min={minDate}
+                        max={today}
                         onChange={handleInputChange}
-                        value={
-                          objValues.dateSeroconverted ||
-                          objValues.interruptionDate
-                        }
-                        required
-                        disabled={disabledField}
+                        value={objValues.dateClientReferredOut}
+                          disabled={disabledField}
                       />
-                      {errors.dateSeroconverted !== '' ? (
+                      {errors.dateClientReferredOut !== "" ? (
                         <span className={classes.error}>
-                          {errors.dateSeroconverted}
+                          {errors.dateClientReferredOut}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
+
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
-                      <Label>Link to ART</Label>
+                      <Label>
+                        Facility Referred To{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </Label>
                       <Input
-                        type="select"
-                        name="linkToArt"
-                        id="linkToArt"
+                        type="text"
+                        name="facilityReferredTo"
+                        id="facilityReferredTo"
+                        placeholder="Enter facility name"
                         onChange={handleInputChange}
-                        value={objValues.linkToArt}
+                        value={objValues.facilityReferredTo}
                         disabled={disabledField}
-                      >
-                        <option value=""> Select</option>
-                        <option value="true">Yes </option>
-                        <option value="false"> No</option>
-                      </Input>
-                      {errors.linkToArt !== '' ? (
+                      />
+                      {errors.facilityReferredTo !== "" ? (
                         <span className={classes.error}>
-                          {errors.linkToArt}
+                          {errors.facilityReferredTo}
                         </span>
                       ) : (
-                        ''
+                        ""
                       )}
                     </FormGroup>
                   </div>
-                  {objValues.linkToArt === 'true' && (
+                </>
+              )}
+
+              {/* PEP-only fields: PEP Completion, Follow Up, HIV Result */}
+              {isPEP && (
+                <>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        PEP Completion{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="select"
+                        name="pepCompletion"
+                        id="pepCompletion"
+                        onChange={handleInputChange}
+                        value={objValues.pepCompletion}
+                        disabled={disabledField}
+                      >
+                        <option value="">Select</option>
+                        {/* Drive from the YES_NO codeset so we save the
+                            canonical codes (YES_NO_YES / YES_NO_NO) that the
+                            PEP-tab query matches against. */}
+                        {(codeset?.YES_NO || []).map(item => (
+                          <option key={item.code} value={item.code}>
+                            {item.display}
+                          </option>
+                        ))}
+                      </Input>
+                      {errors.pepCompletion !== "" ? (
+                        <span className={classes.error}>
+                          {errors.pepCompletion}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+
+                  {showFollowUpVisitDate && (
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <Label>Date link to ART</Label>
+                        <Label>
+                          Follow Up Visit Date{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </Label>
                         <Input
-                          className="form-control"
                           type="date"
+                          name="followUpVisitDate"
+                          id="followUpVisitDate"
                           onKeyDown={e => e.preventDefault()}
-                          name="dateLinkToArt"
-                          id="dateLinkToArt"
-                          min={
-                            patientDto && patientDto.dateEnrolled
-                              ? patientDto.dateEnrolled
-                              : ''
-                          }
-                          max={moment(new Date()).format('YYYY-MM-DD')}
-                          value={objValues.dateLinkToArt}
+                          min={minDate}
                           onChange={handleInputChange}
+                          value={objValues.followUpVisitDate}
                           disabled={disabledField}
-                          style={{
-                            border: '1px solid #014D88',
-                            borderRadius: '0.2rem',
-                          }}
                         />
-                        {errors.dateLinkToArt !== '' ? (
+                        {errors.followUpVisitDate !== "" ? (
                           <span className={classes.error}>
-                            {errors.dateLinkToArt}
+                            {errors.followUpVisitDate}
                           </span>
                         ) : (
-                          ''
+                          ""
+                        )}
+                      </FormGroup>
+                    </div>
+                  )}
+
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>
+                        HIV Result <span style={{ color: "red" }}>*</span>
+                      </Label>
+                      <Input
+                        type="select"
+                        name="hivResult"
+                        id="hivResult"
+                        onChange={handleInputChange}
+                        value={objValues.hivResult}
+                          disabled={disabledField}
+                      >
+                        <option value="">Select</option>
+                        {(codeset?.HIV_TEST_RESULT || []).map(item => (
+                          <option key={item.code} value={item.code}>{item.display}</option>
+                        ))}
+                      </Input>
+                      {errors.hivResult !== "" ? (
+                        <span className={classes.error}>
+                          {errors.hivResult}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+
+                  {showHivPositiveFields && (
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>
+                          Early Detect Viral Load Result{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </Label>
+                        <Input
+                          type="select"
+                          name="earlyDetectViralLoadResult"
+                          id="earlyDetectViralLoadResult"
+                          onChange={handleInputChange}
+                          value={objValues.earlyDetectViralLoadResult}
+                              disabled={disabledField}
+                        >
+                          <option value="">Select</option>
+                          {(codeset?.EARLY_DETECT_VIRAL_LOAD_RESULT || []).map(item => (
+                            <option key={item.code} value={item.code}>{item.display}</option>
+                          ))}
+                        </Input>
+                        {errors.earlyDetectViralLoadResult !== "" ? (
+                          <span className={classes.error}>
+                            {errors.earlyDetectViralLoadResult}
+                          </span>
+                        ) : (
+                          ""
                         )}
                       </FormGroup>
                     </div>
                   )}
                 </>
               )}
-              {/* {containsDiscontinued(objValues.interruptionType) ? (
-                <div className="form-group mb-3 col-md-6">
-                  <FormGroup>
-                    <Label>Reason for discontinuation</Label>
-                    <span style={{ color: 'red' }}> *</span>
-                    <Input
-                      type="text"
-                      name="reasonForPrepDiscontinuation"
-                      id="reasonForPrepDiscontinuation"
-                      value={objValues.reasonForPrepDiscontinuation}
-                      placeholder="Enter reason for PrEP discontinuation..."
-                      onChange={handleInputChange}
-                      style={{
-                        border: '1px solid #014D88',
-                        borderRadius: '0.25rem',
-                      }}
-                      disabled={disabledField}
-                    ></Input>
-                  </FormGroup>
-                  {errors.reasonForPrepDiscontinuation !== '' ? (
-                    <span className={classes.error}>
-                      {errors.reasonForPrepDiscontinuation}
-                    </span>
-                  ) : (
-                    ''
-                  )}
-                </div>
-              ) : null} */}
             </div>
-            {saving ? <Spinner /> : ''}
+            {saving ? <Spinner /> : ""}
             <br />
-            {props.activeContent.actionType !== 'view' && (
+            {props.activeContent.actionType !== "view" && (
               <>
                 <MatButton
                   type="submit"
@@ -881,12 +882,12 @@ const PrEPEligibiltyScreeningForm = props => {
                   className={classes.button}
                   startIcon={<SaveIcon />}
                   onClick={handleSubmit}
-                  style={{ backgroundColor: '#014d88', fontWeight: 'bolder' }}
+                  style={{ backgroundColor: "#014d88", fontWeight: "bolder" }}
                 >
                   {!saving ? (
-                    <span style={{ textTransform: 'capitalize' }}>Save</span>
+                    <span style={{ textTransform: "capitalize" }}>Save</span>
                   ) : (
-                    <span style={{ textTransform: 'capitalize' }}>
+                    <span style={{ textTransform: "capitalize" }}>
                       Saving...
                     </span>
                   )}
@@ -896,11 +897,11 @@ const PrEPEligibiltyScreeningForm = props => {
                   className={classes.button}
                   startIcon={<CancelIcon />}
                   onClick={props.toggle}
-                  style={{ backgroundColor: '#992E62' }}
+                  style={{ backgroundColor: "#992E62" }}
                 >
-                  <span style={{ textTransform: 'capitalize', color: '#fff' }}>
-                    {' '}
-                    Cancel{' '}
+                  <span style={{ textTransform: "capitalize", color: "#fff" }}>
+                    {" "}
+                    Cancel{" "}
                   </span>
                 </MatButton>
               </>
@@ -912,4 +913,4 @@ const PrEPEligibiltyScreeningForm = props => {
   );
 };
 
-export default PrEPEligibiltyScreeningForm;
+export default PrEPDiscontinuationsInterruptions;

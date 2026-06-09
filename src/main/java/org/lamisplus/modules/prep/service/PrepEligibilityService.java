@@ -1,7 +1,7 @@
 package org.lamisplus.modules.prep.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
@@ -12,6 +12,7 @@ import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.patient.repository.VisitRepository;
 import org.lamisplus.modules.patient.service.PersonService;
 import org.lamisplus.modules.patient.service.VisitService;
+import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.prep.domain.dto.PrepEligibilityDto;
 import org.lamisplus.modules.prep.domain.dto.PrepEligibilityRequestDto;
 import org.lamisplus.modules.prep.domain.entity.PrepEligibility;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.lamisplus.modules.base.util.Constants.ArchiveStatus.ARCHIVED;
@@ -45,7 +47,6 @@ public class PrepEligibilityService {
     private final PrepClinicRepository prepClinicRepository;
     private final PatientActivityService patientActivityService;
     @Autowired
-    private ObjectMapper objectMapper;
     private ModuleService moduleService;
 
     private PrepInterruptionRepository prepInterruptionRepository;
@@ -55,12 +56,35 @@ public class PrepEligibilityService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
+    public PrepEligibilityDto save(PrepEligibilityRequestDto prepEligibilityRequestDto) {
+        Person person = this.getPerson(prepEligibilityRequestDto.getPersonId());
+        PrepEligibility prepEligibility = eligibilityRequestDtoToEligibility(prepEligibilityRequestDto, person.getUuid());
+        prepEligibility.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
+        prepEligibility.setUuid(UUID.randomUUID().toString());
+
+        //Check if client eligibility on same date exist and throw an error
+        prepEligibilityRepository
+                .findByVisitDateAndPersonUuidAndArchived(prepEligibilityRequestDto.getVisitDate(), person.getUuid(), 0)
+                .ifPresent(prepEligibilityRec -> {
+                    if (prepEligibilityRec.getArchived() == 0) {
+                        throw PrepErrors.screeningAlreadyExists(prepEligibilityRequestDto.getVisitDate());
+                    }
+                });
+
+        prepEligibility = prepEligibilityRepository.save(prepEligibility);
+        prepEligibility.setPerson(person);
+        PrepEligibilityDto prepEligibilityDto = eligibilityToEligibilityDto(prepEligibility);
+        prepEligibilityDto.setPrepEligibilityCount(prepEligibilityRepository
+                .findAllByPersonUuid(person.getUuid()).size());
+        return prepEligibilityDto;
+    }
+
     public void delete(Long id) {
         PrepEligibility prepEligibility = prepEligibilityRepository
                 .findByIdAndFacilityIdAndArchived(id, currentUserOrganizationService.getCurrentUserOrganization(), UN_ARCHIVED)
                 .orElseThrow(() -> new EntityNotFoundException(PrepEligibility.class, "id", String.valueOf(id)));
-        if (prepEnrollmentRepository.findByPrepEligibilityUuid(prepEligibility.getUuid()).isPresent()) {
-            throw new RecordExistException(PrepEnrollment.class, "PrepEnrollment", "exist for eligibility");
+        if (prepEnrollmentRepository.findByPrepEligibilityUuidAndArchived(prepEligibility.getUuid(), UN_ARCHIVED).isPresent()) {
+            throw PrepErrors.eligibilityHasDependentInitiation();
         }
         prepEligibility.setArchived(ARCHIVED);
         prepEligibilityRepository.save(prepEligibility);
@@ -105,29 +129,21 @@ public class PrepEligibilityService {
 
     @Transactional
     private void updatePrepClinicSafely(PrepEligibility prepEligibility) {
-        String liverFunctionJson;
-        try {
-            liverFunctionJson = objectMapper.writeValueAsString(prepEligibility.getLiverFunctionTestResults());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize liver function test results", e);
-        }
         try {
             boolean updated = prepClinicService.updateClinicByEligibility(
                     prepEligibility.getVisitDate(),
                     prepEligibility.getPersonUuid(),
                     prepEligibility.getVisitType(),
                     prepEligibility.getPopulationType(),
-                    prepEligibility.getPregnancyStatus(),
-                    liverFunctionJson,
+                    null,
                     prepEligibility.getReasonForSwitch(),
-                    prepEligibility.getDateLiverFunctionTestResults()
+                    null
             );
             if (!updated) {
                 System.out.println("Warning: No matching PrepClinic record found.");
             }
         } catch (Exception e) {
             System.err.println("PrepClinic update failed: " + e.getMessage());
-            // optionally log stack trace or send to monitoring system
         }
     }
 
@@ -157,8 +173,6 @@ public class PrepEligibilityService {
         PrepEligibility prepEligibility = new PrepEligibility();
 
         prepEligibility.setId(eligibilityDto.getId());
-        prepEligibility.setHivRisk(eligibilityDto.getHivRisk());
-        prepEligibility.setUniqueId(eligibilityDto.getUniqueId());
         prepEligibility.setScore(eligibilityDto.getScore());
         prepEligibility.setStiScreening(eligibilityDto.getStiScreening());
         prepEligibility.setDrugUseHistory(eligibilityDto.getDrugUseHistory());
@@ -166,24 +180,24 @@ public class PrepEligibilityService {
         prepEligibility.setSexPartnerRisk(eligibilityDto.getSexPartnerRisk());
         prepEligibility.setPersonUuid(personUuid);
         prepEligibility.setSexPartner(eligibilityDto.getSexPartner());
-        prepEligibility.setCounselingType(eligibilityDto.getCounselingType());
         prepEligibility.setFirstTimeVisit(eligibilityDto.getFirstTimeVisit());
         prepEligibility.setNumChildrenLessThanFive(eligibilityDto.getNumChildrenLessThanFive());
-        prepEligibility.setNumWives(eligibilityDto.getNumWives());
         prepEligibility.setTargetGroup(eligibilityDto.getTargetGroup());
-        prepEligibility.setExtra(eligibilityDto.getExtra());
         prepEligibility.setAssessmentForPepIndication(eligibilityDto.getAssessmentForPepIndication());
         prepEligibility.setAssessmentForAcuteHivInfection(eligibilityDto.getAssessmentForAcuteHivInfection());
         prepEligibility.setAssessmentForPrepEligibility(eligibilityDto.getAssessmentForPrepEligibility());
         prepEligibility.setServicesReceivedByClient(eligibilityDto.getServicesReceivedByClient());
         prepEligibility.setPopulationType(eligibilityDto.getPopulationType());
         prepEligibility.setVisitType(eligibilityDto.getVisitType());
-        prepEligibility.setPregnancyStatus(eligibilityDto.getPregnancyStatus());
         prepEligibility.setReasonForSwitch(eligibilityDto.getReasonForSwitch());
         prepEligibility.setVisitDate(eligibilityDto.getVisitDate());
-        prepEligibility.setLftConducted(eligibilityDto.getLftConducted());
-        prepEligibility.setDateLiverFunctionTestResults(eligibilityDto.getDateLiverFunctionTestResults());
-        prepEligibility.setLiverFunctionTestResults(eligibilityDto.getLiverFunctionTestResults());
+        prepEligibility.setConsiderationForInjections(eligibilityDto.getConsiderationForInjections());
+        prepEligibility.setReasonForDecliningPrep(eligibilityDto.getReasonForDecliningPrep());
+        prepEligibility.setUniqueClientId(eligibilityDto.getUniqueClientId());
+        prepEligibility.setReferredFrom(eligibilityDto.getReferredFrom());
+        prepEligibility.setSetting(eligibilityDto.getSetting());
+        prepEligibility.setServiceStatus(eligibilityDto.getServiceStatus());
+        prepEligibility.setTypeOfSession(eligibilityDto.getTypeOfSession());
         return prepEligibility;
     }
 
@@ -194,8 +208,6 @@ public class PrepEligibilityService {
 
         PrepEligibility prepEligibility = new PrepEligibility();
 
-        prepEligibility.setHivRisk(prepEligibilityRequestDto.getHivRisk());
-        prepEligibility.setUniqueId(prepEligibilityRequestDto.getUniqueId());
         prepEligibility.setScore(prepEligibilityRequestDto.getScore());
         prepEligibility.setStiScreening(prepEligibilityRequestDto.getStiScreening());
         prepEligibility.setDrugUseHistory(prepEligibilityRequestDto.getDrugUseHistory());
@@ -203,25 +215,24 @@ public class PrepEligibilityService {
         prepEligibility.setSexPartnerRisk(prepEligibilityRequestDto.getSexPartnerRisk());
         prepEligibility.setPersonUuid(personUuid);
         prepEligibility.setSexPartner(prepEligibilityRequestDto.getSexPartner());
-        prepEligibility.setCounselingType(prepEligibilityRequestDto.getCounselingType());
         prepEligibility.setFirstTimeVisit(prepEligibilityRequestDto.getFirstTimeVisit());
         prepEligibility.setNumChildrenLessThanFive(prepEligibilityRequestDto.getNumChildrenLessThanFive());
-        prepEligibility.setNumWives(prepEligibilityRequestDto.getNumWives());
         prepEligibility.setTargetGroup(prepEligibilityRequestDto.getTargetGroup());
-        prepEligibility.setExtra(prepEligibilityRequestDto.getExtra());
         prepEligibility.setAssessmentForPepIndication(prepEligibilityRequestDto.getAssessmentForPepIndication());
         prepEligibility.setAssessmentForAcuteHivInfection(prepEligibilityRequestDto.getAssessmentForAcuteHivInfection());
         prepEligibility.setAssessmentForPrepEligibility(prepEligibilityRequestDto.getAssessmentForPrepEligibility());
         prepEligibility.setServicesReceivedByClient(prepEligibilityRequestDto.getServicesReceivedByClient());
         prepEligibility.setPopulationType(prepEligibilityRequestDto.getPopulationType());
         prepEligibility.setVisitType(prepEligibilityRequestDto.getVisitType());
-        prepEligibility.setPregnancyStatus(prepEligibilityRequestDto.getPregnancyStatus());
         prepEligibility.setReasonForSwitch(prepEligibilityRequestDto.getReasonForSwitch());
         prepEligibility.setVisitDate(prepEligibilityRequestDto.getVisitDate());
-        prepEligibility.setLftConducted(prepEligibilityRequestDto.getLftConducted());
-
-        prepEligibility.setDateLiverFunctionTestResults(prepEligibilityRequestDto.getDateLiverFunctionTestResults());
-        prepEligibility.setLiverFunctionTestResults(prepEligibilityRequestDto.getLiverFunctionTestResults());
+        prepEligibility.setConsiderationForInjections(prepEligibilityRequestDto.getConsiderationForInjections());
+        prepEligibility.setReasonForDecliningPrep(prepEligibilityRequestDto.getReasonForDecliningPrep());
+        prepEligibility.setUniqueClientId(prepEligibilityRequestDto.getUniqueClientId());
+        prepEligibility.setReferredFrom(prepEligibilityRequestDto.getReferredFrom());
+        prepEligibility.setSetting(prepEligibilityRequestDto.getSetting());
+        prepEligibility.setServiceStatus(prepEligibilityRequestDto.getServiceStatus());
+        prepEligibility.setTypeOfSession(prepEligibilityRequestDto.getTypeOfSession());
         return prepEligibility;
     }
 
@@ -234,34 +245,32 @@ public class PrepEligibilityService {
 
         prepEligibilityDto.setId(eligibility.getId());
         prepEligibilityDto.setUuid(eligibility.getUuid());
-        prepEligibilityDto.setUniqueId(eligibility.getUniqueId());
-        prepEligibilityDto.setHivRisk(eligibility.getHivRisk());
         prepEligibilityDto.setStiScreening(eligibility.getStiScreening());
         prepEligibilityDto.setDrugUseHistory(eligibility.getDrugUseHistory());
         prepEligibilityDto.setPersonalHivRiskAssessment(eligibility.getPersonalHivRiskAssessment());
         prepEligibilityDto.setSexPartnerRisk(eligibility.getSexPartnerRisk());
         prepEligibilityDto.setPersonUuid(eligibility.getPersonUuid());
         prepEligibilityDto.setSexPartner(eligibility.getSexPartner());
-        prepEligibilityDto.setCounselingType(eligibility.getCounselingType());
         prepEligibilityDto.setFirstTimeVisit(eligibility.getFirstTimeVisit());
         prepEligibilityDto.setNumChildrenLessThanFive(eligibility.getNumChildrenLessThanFive());
-        prepEligibilityDto.setNumWives(eligibility.getNumWives());
         prepEligibilityDto.setTargetGroup(eligibility.getTargetGroup());
-        prepEligibilityDto.setExtra(eligibility.getExtra());
         prepEligibilityDto.setAssessmentForPepIndication(eligibility.getAssessmentForPepIndication());
         prepEligibilityDto.setAssessmentForAcuteHivInfection(eligibility.getAssessmentForAcuteHivInfection());
         prepEligibilityDto.setAssessmentForPrepEligibility(eligibility.getAssessmentForPrepEligibility());
         prepEligibilityDto.setServicesReceivedByClient(eligibility.getServicesReceivedByClient());
         prepEligibilityDto.setPopulationType(eligibility.getPopulationType());
         prepEligibilityDto.setVisitType(eligibility.getVisitType());
-        prepEligibilityDto.setPregnancyStatus(eligibility.getPregnancyStatus());
         //PersonResponseDto personResponseDto = personService.getDtoFromPerson(eligibility.getPerson());
         //prepEligibilityDto.setPersonResponseDto(personResponseDto);
         prepEligibilityDto.setReasonForSwitch(eligibility.getReasonForSwitch());
         prepEligibilityDto.setVisitDate(eligibility.getVisitDate());
-        prepEligibilityDto.setLftConducted(eligibility.getLftConducted());
-        prepEligibilityDto.setDateLiverFunctionTestResults(eligibility.getDateLiverFunctionTestResults());
-        prepEligibilityDto.setLiverFunctionTestResults(eligibility.getLiverFunctionTestResults());
+        prepEligibilityDto.setConsiderationForInjections(eligibility.getConsiderationForInjections());
+        prepEligibilityDto.setReasonForDecliningPrep(eligibility.getReasonForDecliningPrep());
+        prepEligibilityDto.setUniqueClientId(eligibility.getUniqueClientId());
+        prepEligibilityDto.setReferredFrom(eligibility.getReferredFrom());
+        prepEligibilityDto.setSetting(eligibility.getSetting());
+        prepEligibilityDto.setServiceStatus(eligibility.getServiceStatus());
+        prepEligibilityDto.setTypeOfSession(eligibility.getTypeOfSession());
         return prepEligibilityDto;
     }
 

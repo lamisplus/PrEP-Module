@@ -3,7 +3,6 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
-
     <changeSet failOnError="true" author="Emeka" id="prep-updates-1">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
@@ -28,23 +27,6 @@
         </sql>
     </changeSet>
 
-    <changeSet failOnError="true" author="Peter Abiodun" id="prep-regimen-update">
-        <preConditions onFail="MARK_RAN">
-            <sqlCheck expectedResult="1">
-                SELECT COUNT(*) FROM prep_regimen WHERE regimen = 'TDF(300mg)+3TC(150mg)';
-            </sqlCheck>
-        </preConditions>
-        <sql>
-            UPDATE prep_regimen SET regimen = 'TDF(300mg)+3TC(300mg)', code = 'TDF(300mg)+3TC(300mg)' WHERE regimen =
-            'TDF(300mg)+3TC(150mg)';
-            ALTER TABLE prep_regimen ADD COLUMN prep_type character varying;
-            ALTER TABLE prep_clinic ADD COLUMN prep_distribution_setting character varying;
-            INSERT INTO prep_regimen(regimen, composition, description, archived, code, prep_type) VALUES ('IM
-            CAB-LA(600mg/3mL)', 'IM Cabotegravir', 'Pre-Exposure Prophylaxis Injectable (PrEP Injectable)', 1,
-            'CAB-LA(600mg/3mL)', 'PREP_TYPE_INJECTIBLES');
-            UPDATE prep_regimen SET prep_type = 'PREP_TYPE_ORAL' WHERE regimen = 'TDF(300mg)+3TC(300mg)';
-        </sql>
-    </changeSet>
 
     <changeSet failOnError="true" author="Taiwo Gboyegun" id="family-planning-update">
         <preConditions onFail="MARK_RAN">
@@ -282,4 +264,1119 @@
             where pregnant = 'true' OR pregnant = '1'
         </sql>
     </changeSet>
+    <changeSet id="add-missing-prep-regimen-cols-082025" author="Gamaliel Dashua" failOnError="true">
+
+        <preConditions onFail="CONTINUE">
+            <not>
+                <and>
+                    <columnExists tableName="prep_regimen" columnName="prep_type"/>
+                    <columnExists tableName="prep_regimen" columnName="composition"/>
+                    <columnExists tableName="prep_regimen" columnName="description"/>
+                    <columnExists tableName="prep_regimen" columnName="archived"/>
+                    <columnExists tableName="prep_regimen" columnName="code"/>
+                    <columnExists tableName="prep_regimen" columnName="regimen"/>
+                    <columnExists tableName="prep_clinic" columnName="prep_distribution_setting"/>
+                </and>
+            </not>
+        </preConditions>
+
+        <sql>
+            ALTER TABLE prep_regimen ADD COLUMN IF NOT EXISTS prep_type character varying;
+            ALTER TABLE prep_regimen ADD COLUMN IF NOT EXISTS composition character varying;
+            ALTER TABLE prep_regimen ADD COLUMN IF NOT EXISTS description character varying;
+            ALTER TABLE prep_regimen ADD COLUMN IF NOT EXISTS archived integer;
+            ALTER TABLE prep_regimen ADD COLUMN IF NOT EXISTS code character varying;
+            ALTER TABLE prep_regimen ADD COLUMN IF NOT EXISTS regimen character varying;
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS prep_distribution_setting character varying;
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel Dashua" id="prep-regimen-update-v4-08-20-25">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM prep_regimen WHERE regimen = 'TDF(300mg)+3TC(150mg)';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE prep_regimen SET regimen = 'TDF(300mg)+3TC(300mg)', code = 'TDF(300mg)+3TC(300mg)' WHERE regimen =
+            'TDF(300mg)+3TC(150mg)';
+            ALTER TABLE prep_regimen ADD COLUMN prep_type character varying;
+            ALTER TABLE prep_clinic ADD COLUMN prep_distribution_setting character varying;
+            INSERT INTO prep_regimen(regimen, composition, description, archived, code, prep_type) VALUES ('IM
+            CAB-LA(600mg/3mL)', 'IM Cabotegravir', 'Pre-Exposure Prophylaxis Injectable (PrEP Injectable)', 1,
+            'CAB-LA(600mg/3mL)', 'PREP_TYPE_INJECTIBLES');
+            UPDATE prep_regimen SET prep_type = 'PREP_TYPE_ORAL' WHERE regimen = 'TDF(300mg)+3TC(300mg)';
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-02-2026-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_eligibility" columnName="consideration_for_injections"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_eligibility ADD COLUMN consideration_for_injections JSONB;
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="24-02-2026-02">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="prep_eligibility" columnName="reason_for_declining_prep"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_eligibility ADD COLUMN reason_for_declining_prep JSONB;
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Gamaliel" id="25-02-2026-01">
+        <sql>
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS unique_client_id VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS client_hts_code VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS referred_from VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS setting VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS service_status VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS type_of_session VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <!-- Phase 1D: Add missing columns to prep_enrollment -->
+    <changeSet failOnError="true" author="Gamaliel" id="25-02-2026-02">
+        <sql>
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS enrollment_type VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS population_type VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS weight DOUBLE PRECISION;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS height DOUBLE PRECISION;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS pregnancy_status VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS history_of_drug_allergies VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS history_of_drug_to_drug_interaction VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS urinalysis_result VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS date_of_hiv_test DATE;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS result_of_hiv_test VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS date_of_initial_adherence_counseling DATE;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS date_prep_started DATE;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS prep_type_at_start VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS prep_type_at_start_others_specify VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS prep_regimen VARCHAR(255);
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS months_of_refill INTEGER;
+            ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS hiv_testing_point_others_specify VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <!-- Phase 2B: Add missing columns to prep_interruption -->
+    <changeSet failOnError="true" author="Gamaliel" id="25-02-2026-03">
+        <sql>
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS why VARCHAR(255);
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS pep_completion VARCHAR(255);
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS follow_up_visit_date DATE;
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS hiv_result VARCHAR(255);
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS early_detect_viral_load_result VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <!-- Add missing columns to prep_clinic for adherence/side-effect/STI details -->
+    <changeSet failOnError="false" author="Gamaliel" id="03-03-2026-03">
+        <sql>
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS why_adherence_level_poor VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_reason_for_poor_fair_adherence VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_noted_side_effects VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_syndromic_sti_screening VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <!-- 2.1 prophylaxis_screening (must be created before tables that reference it) -->
+    <changeSet failOnError="false" author="Gamaliel" id="create-prophylaxis-screening-v2">
+        <validCheckSum>ANY</validCheckSum>
+        <sql>
+            CREATE TABLE IF NOT EXISTS prophylaxis_screening (
+            id BIGSERIAL PRIMARY KEY,
+            uuid VARCHAR(255) NOT NULL UNIQUE,
+            person_uuid VARCHAR(255) NOT NULL,
+            facility_id BIGINT NOT NULL,
+            visit_date DATE,
+            unique_client_id VARCHAR(255),
+            client_hts_code VARCHAR(255),
+            target_group VARCHAR(255),
+            population_type VARCHAR(255),
+            visit_type VARCHAR(255),
+            pregnancy_status VARCHAR(255),
+            sex_partner VARCHAR(255),
+            first_time_visit BOOLEAN,
+            num_children_less_than_five INTEGER,
+            referred_from VARCHAR(255),
+            setting VARCHAR(255),
+            service_status VARCHAR(255),
+            type_of_session VARCHAR(255),
+            category VARCHAR(255),
+            score INTEGER,
+            sti_screening JSONB,
+            drug_use_history JSONB,
+            personal_hiv_risk_assessment JSONB,
+            sex_partner_risk JSONB,
+            assessment_for_pep_indication JSONB,
+            assessment_for_acute_hiv_infection JSONB,
+            assessment_for_prep_eligibility JSONB,
+            services_received_by_client JSONB,
+            consideration_for_injections JSONB,
+            reason_for_declining_prep JSONB,
+            reason_for_switch VARCHAR(255),
+            extra JSONB,
+            archived BOOLEAN NOT NULL DEFAULT false,
+            created_by VARCHAR(255) NOT NULL,
+            date_created TIMESTAMP NOT NULL,
+            modified_by VARCHAR(255),
+            date_modified TIMESTAMP,
+            CONSTRAINT fk_prophylaxis_scr_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid)
+            );
+        </sql>
+    </changeSet>
+
+    <!-- 2.1b Add category column if table already existed without it -->
+    <changeSet failOnError="false" author="Gamaliel" id="add-category-to-prophylaxis-screening-v2">
+        <sql>
+            ALTER TABLE prophylaxis_screening ADD COLUMN IF NOT EXISTS category VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="create-prophylaxis-initiation-v2">
+        <validCheckSum>ANY</validCheckSum>
+        <sql>
+            CREATE TABLE IF NOT EXISTS prophylaxis_initiation (
+            id BIGSERIAL PRIMARY KEY,
+            uuid VARCHAR(255) NOT NULL UNIQUE,
+            person_uuid VARCHAR(255) NOT NULL,
+            facility_id BIGINT NOT NULL,
+            prophylaxis_screening_uuid VARCHAR(255),
+            unique_id VARCHAR(255),
+            status VARCHAR(255),
+            enrollment_type VARCHAR(255),
+            date_enrolled DATE,
+            date_referred DATE,
+            population_type VARCHAR(255),
+            supporter_name VARCHAR(255),
+            supporter_relationship_type VARCHAR(255),
+            supporter_phone VARCHAR(255),
+            hiv_testing_point VARCHAR(255),
+            weight DOUBLE PRECISION,
+            height DOUBLE PRECISION,
+            pregnancy_status VARCHAR(255),
+            breast_feeding VARCHAR(255),
+            history_of_drug_allergies VARCHAR(255),
+            history_of_drug_to_drug_interaction VARCHAR(255),
+            urinalysis_result VARCHAR(255),
+            liver_function_test_results JSONB,
+            date_of_hiv_test DATE,
+            result_of_hiv_test VARCHAR(255),
+            date_of_initial_adherence_counseling DATE,
+            date_prep_started DATE,
+            prep_type_at_start VARCHAR(255),
+            prep_type_at_start_others_specify VARCHAR(255),
+            prep_regimen VARCHAR(255),
+            months_of_refill INTEGER,
+            is_interrupted BOOLEAN NOT NULL DEFAULT false,
+            archived BOOLEAN NOT NULL DEFAULT false,
+            created_by VARCHAR(255) NOT NULL,
+            date_created TIMESTAMP NOT NULL,
+            modified_by VARCHAR(255),
+            date_modified TIMESTAMP,
+            CONSTRAINT fk_prophylaxis_init_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
+            CONSTRAINT fk_prophylaxis_init_screening FOREIGN KEY (prophylaxis_screening_uuid) REFERENCES prophylaxis_screening(uuid)
+            );
+        </sql>
+    </changeSet>
+
+    <!-- 1.3 prep_followup_visit (replaces prep_clinic) -->
+    <changeSet failOnError="true" author="Gamaliel" id="04-03-2026-03">
+        <!-- Accept any prior checksum: changeset body was edited after
+             deployment. -->
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="prep_followup_visit"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE prep_followup_visit (
+            id BIGSERIAL PRIMARY KEY,
+            uuid VARCHAR(255) NOT NULL UNIQUE,
+            person_uuid VARCHAR(255) NOT NULL,
+            facility_id BIGINT NOT NULL,
+            prophylaxis_initiation_uuid VARCHAR(255),
+            encounter_date DATE,
+            visit_type VARCHAR(255),
+            is_commencement BOOLEAN,
+            next_appointment DATE,
+            weight DOUBLE PRECISION,
+            height DOUBLE PRECISION,
+            pulse DOUBLE PRECISION,
+            temperature DOUBLE PRECISION,
+            respiratory_rate DOUBLE PRECISION,
+            systolic DOUBLE PRECISION,
+            diastolic DOUBLE PRECISION,
+            pregnant VARCHAR(255),
+            population_type VARCHAR(255),
+            prep_type VARCHAR(255),
+            regimen_id BIGINT,
+            other_regimen_id VARCHAR(255),
+            duration INTEGER,
+            date_prep_start DATE,
+            date_prep_given DATE,
+            prep_given VARCHAR(255),
+            other_prep_given VARCHAR(255),
+            other_prep_type VARCHAR(255),
+            was_prep_administered VARCHAR(255),
+            prep_distribution_setting VARCHAR(255),
+            months_of_refill INTEGER,
+            reason_for_switch VARCHAR(255),
+            adherence_level VARCHAR(255),
+            why_adherence_level_poor VARCHAR(255),
+            other_reason_for_poor_fair_adherence VARCHAR(255),
+            date_initial_adherence_counseling DATE,
+            hiv_test_result VARCHAR(255),
+            hiv_test_result_date DATE,
+            sti_screening BOOLEAN,
+            syndromic_sti_screening JSONB,
+            syndromic_screening VARCHAR(255),
+            other_syndromic_sti_screening VARCHAR(255),
+            risk_reduction_services VARCHAR(255),
+            noted_side_effects VARCHAR(255),
+            other_noted_side_effects VARCHAR(255),
+            prep_noted_side_effects JSONB,
+            urinalysis JSONB,
+            urinalysis_result VARCHAR(255),
+            creatinine JSONB,
+            creatinine_result VARCHAR(255),
+            hepatitis JSONB,
+            syphilis JSONB,
+            other_tests_done JSONB,
+            date_of_liver_function_test_results DATE,
+            liver_function_test_results JSONB,
+            family_planning VARCHAR(255),
+            date_of_family_planning DATE,
+            other_drugs VARCHAR(255),
+            history_of_drug_to_drug_interaction VARCHAR(255),
+            history_of_drug_allergies VARCHAR(255),
+            health_care_worker_signature VARCHAR(255),
+            comment VARCHAR(255),
+            previous_prep_status VARCHAR(255),
+            why BOOLEAN,
+            referred BOOLEAN,
+            date_referred DATE,
+            archived BOOLEAN NOT NULL DEFAULT false,
+            created_by VARCHAR(255) NOT NULL,
+            date_created TIMESTAMP NOT NULL,
+            modified_by VARCHAR(255),
+            date_modified TIMESTAMP,
+            CONSTRAINT fk_prep_followup_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
+            CONSTRAINT fk_prep_followup_initiation FOREIGN KEY (prophylaxis_initiation_uuid) REFERENCES
+            prophylaxis_initiation(uuid)
+            );
+        </sql>
+    </changeSet>
+
+    <!-- 1.4 pep_followup_visit (replaces pep_clinic) -->
+    <changeSet failOnError="true" author="Gamaliel" id="04-03-2026-04">
+        <!-- Accept any prior checksum: changeset body was edited after
+             deployment. -->
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pep_followup_visit"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE pep_followup_visit (
+            id BIGSERIAL PRIMARY KEY,
+            uuid VARCHAR(255) NOT NULL UNIQUE,
+            person_uuid VARCHAR(255) NOT NULL,
+            facility_id BIGINT NOT NULL,
+            prophylaxis_initiation_uuid VARCHAR(255),
+            encounter_date DATE,
+            visit_type VARCHAR(255),
+            is_commencement BOOLEAN,
+            next_appointment DATE,
+            weight DOUBLE PRECISION,
+            height DOUBLE PRECISION,
+            pulse DOUBLE PRECISION,
+            temperature DOUBLE PRECISION,
+            respiratory_rate DOUBLE PRECISION,
+            systolic DOUBLE PRECISION,
+            diastolic DOUBLE PRECISION,
+            pregnant VARCHAR(255),
+            population_type VARCHAR(255),
+            prep_type VARCHAR(255),
+            regimen_id BIGINT,
+            other_regimen_id VARCHAR(255),
+            duration INTEGER,
+            date_prep_start DATE,
+            date_prep_given DATE,
+            other_prep_given VARCHAR(255),
+            other_prep_type VARCHAR(255),
+            was_prep_administered VARCHAR(255),
+            prep_distribution_setting VARCHAR(255),
+            months_of_refill INTEGER,
+            reason_for_switch VARCHAR(255),
+            adherence_level VARCHAR(255),
+            why_adherence_level_poor VARCHAR(255),
+            other_reason_for_poor_fair_adherence VARCHAR(255),
+            date_initial_adherence_counseling DATE,
+            hiv_test_result VARCHAR(255),
+            hiv_test_result_date DATE,
+            sti_screening BOOLEAN,
+            syndromic_sti_screening JSONB,
+            syndromic_screening VARCHAR(255),
+            other_syndromic_sti_screening VARCHAR(255),
+            risk_reduction_services VARCHAR(255),
+            noted_side_effects VARCHAR(255),
+            other_noted_side_effects VARCHAR(255),
+            prep_noted_side_effects JSONB,
+            pep_noted_side_effects JSONB,
+            urinalysis JSONB,
+            urinalysis_result VARCHAR(255),
+            creatinine JSONB,
+            creatinine_result VARCHAR(255),
+            hepatitis JSONB,
+            syphilis JSONB,
+            other_tests_done JSONB,
+            date_of_liver_function_test_results DATE,
+            liver_function_test_results JSONB,
+            family_planning VARCHAR(255),
+            date_of_family_planning DATE,
+            other_drugs VARCHAR(255),
+            history_of_drug_to_drug_interaction VARCHAR(255),
+            history_of_drug_allergies VARCHAR(255),
+            health_care_worker_signature VARCHAR(255),
+            comment VARCHAR(255),
+            previous_prep_status VARCHAR(255),
+            why BOOLEAN,
+            referred BOOLEAN,
+            date_referred DATE,
+            mode_of_exposure VARCHAR(255),
+            duration_before_pep VARCHAR(255),
+            hiv_status_at_exposure VARCHAR(255),
+            pep_regimen VARCHAR(255),
+            other_pep_regimen VARCHAR(255),
+            date_start_pep DATE,
+            date_stop_pep DATE,
+            followup_hiv_test_results JSONB,
+            archived BOOLEAN NOT NULL DEFAULT false,
+            created_by VARCHAR(255) NOT NULL,
+            date_created TIMESTAMP NOT NULL,
+            modified_by VARCHAR(255),
+            date_modified TIMESTAMP,
+            CONSTRAINT fk_pep_followup_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
+            CONSTRAINT fk_pep_followup_initiation FOREIGN KEY (prophylaxis_initiation_uuid) REFERENCES
+            prophylaxis_initiation(uuid)
+            );
+        </sql>
+    </changeSet>
+
+    <!-- 3.0 Create prophylaxis_interruptions table -->
+    <changeSet failOnError="false" author="Gamaliel" id="create-prophylaxis-interruptions-v1">
+        <validCheckSum>ANY</validCheckSum>
+        <sql>
+            CREATE TABLE IF NOT EXISTS prophylaxis_interruptions (
+            id BIGSERIAL PRIMARY KEY,
+            uuid VARCHAR(255) NOT NULL UNIQUE,
+            person_uuid VARCHAR(255) NOT NULL,
+            facility_id BIGINT NOT NULL,
+            prophylaxis_initiation_uuid VARCHAR(255),
+            interruption_type VARCHAR(255),
+            interruption_date DATE,
+            interruption_reason VARCHAR(255),
+            date_client_died DATE,
+            cause_of_death VARCHAR(255),
+            source_of_death_info VARCHAR(255),
+            date_client_referred_out DATE,
+            facility_referred_to VARCHAR(255),
+            date_sero_converted DATE,
+            date_restart_placed_back_medication DATE,
+            link_to_art BOOLEAN,
+            reason_stopped VARCHAR(255),
+            reason_stopped_others VARCHAR(255),
+            reason_for_prep_discontinuation VARCHAR(255),
+            previous_prep_status VARCHAR(255),
+            previous_pep_status VARCHAR(255),
+            enrollment_type VARCHAR(255),
+            why VARCHAR(255),
+            pep_completion VARCHAR(255),
+            follow_up_visit_date DATE,
+            hiv_result VARCHAR(255),
+            early_detect_viral_load_result VARCHAR(255),
+            archived BOOLEAN NOT NULL DEFAULT false,
+            created_by VARCHAR(255) NOT NULL,
+            date_created TIMESTAMP NOT NULL,
+            modified_by VARCHAR(255),
+            date_modified TIMESTAMP,
+            CONSTRAINT fk_prophylaxis_int_person FOREIGN KEY (person_uuid) REFERENCES patient_person(uuid),
+            CONSTRAINT fk_prophylaxis_int_initiation FOREIGN KEY (prophylaxis_initiation_uuid) REFERENCES prophylaxis_initiation(uuid)
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-prep-clinic">
+        <sql>
+            ALTER TABLE IF EXISTS prep_clinic DROP COLUMN IF EXISTS extra;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-prep-interruption">
+        <sql>
+            ALTER TABLE IF EXISTS prep_interruption DROP COLUMN IF EXISTS extra;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="add-uuid-to-base-application-user">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'base_application_user' AND column_name = 'uuid';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE base_application_user ADD COLUMN uuid VARCHAR(64);
+            UPDATE base_application_user SET uuid = gen_random_uuid()::text WHERE uuid IS NULL;
+            ALTER TABLE base_application_user ADD CONSTRAINT uq_base_application_user_uuid UNIQUE (uuid);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="add-hts-encounter-uuid-to-prep-tables">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening   ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+            ALTER TABLE IF EXISTS prophylaxis_initiation  ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+            ALTER TABLE IF EXISTS prep_followup_visit     ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+            ALTER TABLE IF EXISTS prep_clinic             ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="hts-client-compat-view">
+        <sql>
+            CREATE OR REPLACE VIEW hts_client AS
+            SELECT
+                hts.id,
+                CAST(pp.uuid AS text)               AS person_uuid,
+                hts.date_of_visit                   AS date_visit,
+                CASE
+                    WHEN hts.observation->>'confirmatoryHivTest' = 'STI_HIV_RESULT_POSITIVE'
+                        THEN 'Positive'
+                    WHEN hts.observation->>'initialHivTest' = 'STI_HIV_RESULT_POSITIVE'
+                         AND COALESCE(hts.observation->>'confirmatoryHivTest', '') = ''
+                        THEN 'Positive'
+                    WHEN hts.observation->>'confirmatoryHivTest' = 'STI_HIV_RESULT_NEGATIVE'
+                         OR hts.observation->>'initialHivTest'   = 'STI_HIV_RESULT_NEGATIVE'
+                        THEN 'Negative'
+                    ELSE ''
+                END                                 AS hiv_test_result,
+                hts.facility_id                     AS facility_id,
+                hts.archived                        AS archived
+            FROM hts_encounter hts
+            JOIN patient_person pp ON pp.id = hts.patient_id
+            WHERE hts.archived = false;
+        </sql>
+    </changeSet>
+
+    <!-- Indexes covering the Patient-tab + Enrollment-tab joins. Each is an
+         additive CREATE INDEX IF NOT EXISTS, so safe on every boot. -->
+    <changeSet failOnError="false" author="Gamaliel" id="patient-grid-perf-indexes">
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_hts_encounter_patient_archived_date
+                ON hts_encounter (patient_id, archived, date_of_visit DESC);
+
+            CREATE INDEX IF NOT EXISTS idx_prophylaxis_initiation_person_archived
+                ON prophylaxis_initiation (person_uuid, archived);
+
+            CREATE INDEX IF NOT EXISTS idx_prophylaxis_screening_person_archived
+                ON prophylaxis_screening (person_uuid, archived);
+
+            CREATE INDEX IF NOT EXISTS idx_prep_followup_visit_person_archived
+                ON prep_followup_visit (person_uuid, archived, encounter_date DESC);
+
+            CREATE INDEX IF NOT EXISTS idx_prophylaxis_interruptions_person_archived
+                ON prophylaxis_interruptions (person_uuid, archived);
+
+            CREATE INDEX IF NOT EXISTS idx_hiv_enrollment_person_archived
+                ON hiv_enrollment (person_uuid, archived);
+
+            CREATE INDEX IF NOT EXISTS idx_patient_person_facility_archived
+                ON patient_person (facility_id, archived);
+
+            CREATE INDEX IF NOT EXISTS idx_base_application_codeset_code
+                ON base_application_codeset (code);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="add-client-hts-code-and-pregnancy-to-prophylaxis-screening">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS client_hts_code  VARCHAR(64);
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS pregnancy_status VARCHAR(64);
+        </sql>
+    </changeSet>
+
+
+    <changeSet failOnError="false" author="Gamaliel" id="add-date-defaulted-to-prophylaxis-interruptions">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_interruptions
+                ADD COLUMN IF NOT EXISTS date_defaulted DATE;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="18-05-2026-split-drug-use-history">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS hiv_testing JSONB;
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS use_drug_sexual_performance VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prophylaxis-screening-legacy-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS client_hts_code;
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS pregnancy_status;
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS extra;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prophylaxis-initiation-legacy-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS pregnancy_status;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS hiv_testing_point;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS date_of_hiv_test;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS result_of_hiv_test;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS breast_feeding;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS status;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-prophylaxis-interruptions-hts-uuid">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_interruptions
+                ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+            ALTER TABLE IF EXISTS prophylaxis_interruptions DROP COLUMN IF EXISTS hiv_result;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-backfill-previous-pep-status">
+        <sql>
+            UPDATE prophylaxis_interruptions pi
+            SET previous_pep_status  = pi.previous_prep_status,
+                previous_prep_status = NULL
+            FROM prophylaxis_initiation pinit
+            WHERE pi.prophylaxis_initiation_uuid = pinit.uuid
+              AND pi.previous_prep_status IS NOT NULL
+              AND pi.previous_pep_status IS NULL
+              AND (
+                   UPPER(TRIM(pinit.enrollment_type)) = 'PEP'
+                OR UPPER(TRIM(pinit.enrollment_type)) LIKE '%\_PEP' ESCAPE '\'
+                OR UPPER(TRIM(pinit.enrollment_type)) LIKE 'PREP\_PEP\_ENROLLMENT\_TYPE\_PEP' ESCAPE '\'
+              );
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prep-followup-visit-hts-derived-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS pregnant;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS hiv_test_result;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS hiv_test_result_date;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-pep-followup-visit-cleanup">
+        <sql>
+            ALTER TABLE IF EXISTS pep_followup_visit
+                ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS pregnant;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS hiv_test_result;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS hiv_test_result_date;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS visit_type;
+        </sql>
+    </changeSet>
+    <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-archived-column-type-backfill">
+        <sql splitStatements="false">
+            DO $$
+            DECLARE
+                t   text;
+                tbls text[] := ARRAY[
+                    'prophylaxis_screening',
+                    'prophylaxis_initiation',
+                    'prophylaxis_interruptions',
+                    'prep_followup_visit',
+                    'pep_followup_visit'
+                ];
+            BEGIN
+                FOREACH t IN ARRAY tbls LOOP
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = t
+                          AND column_name = 'archived'
+                          AND data_type IN ('integer','smallint','bigint','numeric')
+                    ) THEN
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived DROP DEFAULT', t);
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0)', t);
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived SET DEFAULT false', t);
+                        EXECUTE format('UPDATE %I SET archived = false WHERE archived IS NULL', t);
+                        EXECUTE format('ALTER TABLE %I ALTER COLUMN archived SET NOT NULL', t);
+                    END IF;
+                END LOOP;
+            END $$;
+        </sql>
+    </changeSet>
+
+    <!-- prophylaxis_screening -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-screening">
+        <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_screening.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prophylaxis_screening'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prophylaxis_screening SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prophylaxis_screening ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- prophylaxis_initiation -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-initiation">
+        <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_initiation.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prophylaxis_initiation'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prophylaxis_initiation SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prophylaxis_initiation ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- prophylaxis_interruptions -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-interruptions">
+        <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_interruptions.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prophylaxis_interruptions'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prophylaxis_interruptions SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prophylaxis_interruptions ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- prep_followup_visit -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prep-followup">
+        <preConditions onFail="MARK_RAN" onFailMessage="prep_followup_visit.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prep_followup_visit'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived SET DEFAULT false;
+            UPDATE prep_followup_visit SET archived = false WHERE archived IS NULL;
+            ALTER TABLE prep_followup_visit ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- pep_followup_visit -->
+    <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-pep-followup">
+        <preConditions onFail="MARK_RAN" onFailMessage="pep_followup_visit.archived is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'pep_followup_visit'
+                  AND column_name = 'archived'
+                  AND data_type IN ('integer','smallint','bigint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived DROP DEFAULT;
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived TYPE boolean USING (COALESCE(archived, 0) &lt;&gt; 0);
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived SET DEFAULT false;
+            UPDATE pep_followup_visit SET archived = false WHERE archived IS NULL;
+            ALTER TABLE pep_followup_visit ALTER COLUMN archived SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-missing-column-backfill">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_initiation
+                ADD COLUMN IF NOT EXISTS is_interrupted BOOLEAN NOT NULL DEFAULT false;
+            ALTER TABLE IF EXISTS prep_followup_visit
+                ADD COLUMN IF NOT EXISTS prophylaxis_initiation_uuid VARCHAR(255);
+            ALTER TABLE IF EXISTS pep_followup_visit
+                ADD COLUMN IF NOT EXISTS prophylaxis_initiation_uuid VARCHAR(255);
+            ALTER TABLE IF EXISTS prophylaxis_interruptions
+                ADD COLUMN IF NOT EXISTS prophylaxis_initiation_uuid VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-add-received-prep-first-time-this-year">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening
+                ADD COLUMN IF NOT EXISTS received_prep_first_time_this_year VARCHAR(255);
+        </sql>
+    </changeSet>
+
+    <changeSet author="Gamaliel" id="23-05-2026-drop-regimen-id-fk-before-varchar" failOnError="false">
+        <sql splitStatements="false">
+            DO $$
+            DECLARE r record;
+            BEGIN
+                FOR r IN
+                    SELECT rel.relname AS tbl, con.conname
+                    FROM pg_constraint con
+                    JOIN pg_class rel ON rel.oid = con.conrelid
+                    WHERE con.contype = 'f'
+                      AND rel.relname IN ('prep_clinic','prep_followup_visit','pep_followup_visit')
+                      AND EXISTS (
+                          SELECT 1
+                          FROM unnest(con.conkey) AS k(attnum)
+                          JOIN pg_attribute a ON a.attrelid = con.conrelid AND a.attnum = k.attnum
+                          WHERE a.attname = 'regimen_id'
+                      )
+                LOOP
+                    EXECUTE format('ALTER TABLE %I DROP CONSTRAINT %I', r.tbl, r.conname);
+                END LOOP;
+            END $$;
+        </sql>
+    </changeSet>
+
+    <!-- prep_clinic: ALTER TYPE -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-prep-clinic-type">
+        <preConditions onFail="MARK_RAN" onFailMessage="prep_clinic.regimen_id is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prep_clinic'
+                  AND column_name = 'regimen_id'
+                  AND data_type IN ('bigint','integer','smallint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_clinic
+                ALTER COLUMN regimen_id DROP DEFAULT;
+            ALTER TABLE prep_clinic
+                ALTER COLUMN regimen_id TYPE VARCHAR(255)
+                USING regimen_id::text;
+        </sql>
+    </changeSet>
+
+    <!-- prep_clinic: backfill -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-prep-clinic">
+        <sql>
+            UPDATE prep_clinic SET regimen_id = NULL                        WHERE regimen_id = '0';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_TDF_3TC'      WHERE regimen_id = '2';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_CABOTEGRAVIR' WHERE regimen_id = '3';
+            UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_LENACAPAVIR'  WHERE regimen_id = '4';
+            UPDATE prep_clinic tgt
+                SET regimen_id = bac.code
+              FROM base_application_codeset bac
+              WHERE tgt.regimen_id ~ '^[0-9]+$'
+                AND bac.id::text = tgt.regimen_id
+                AND bac.codeset_group IN ('PREP_REGIMEN','PEP_REGIMEN');
+        </sql>
+    </changeSet>
+
+    <!-- prep_followup_visit: ALTER TYPE -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-prep-followup-type">
+        <preConditions onFail="MARK_RAN" onFailMessage="prep_followup_visit.regimen_id is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'prep_followup_visit'
+                  AND column_name = 'regimen_id'
+                  AND data_type IN ('bigint','integer','smallint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE prep_followup_visit
+                ALTER COLUMN regimen_id DROP DEFAULT;
+            ALTER TABLE prep_followup_visit
+                ALTER COLUMN regimen_id TYPE VARCHAR(255)
+                USING regimen_id::text;
+        </sql>
+    </changeSet>
+
+    <!-- prep_followup_visit: backfill -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-prep-followup">
+        <sql>
+            UPDATE prep_followup_visit SET regimen_id = NULL                        WHERE regimen_id = '0';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_3TC'      WHERE regimen_id = '2';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_CABOTEGRAVIR' WHERE regimen_id = '3';
+            UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_LENACAPAVIR'  WHERE regimen_id = '4';
+            UPDATE prep_followup_visit tgt
+                SET regimen_id = bac.code
+              FROM base_application_codeset bac
+              WHERE tgt.regimen_id ~ '^[0-9]+$'
+                AND bac.id::text = tgt.regimen_id
+                AND bac.codeset_group IN ('PREP_REGIMEN','PEP_REGIMEN');
+        </sql>
+    </changeSet>
+
+    <!-- pep_followup_visit: ALTER TYPE -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-pep-followup-type">
+        <preConditions onFail="MARK_RAN" onFailMessage="pep_followup_visit.regimen_id is not numeric — skipping ALTER">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'pep_followup_visit'
+                  AND column_name = 'regimen_id'
+                  AND data_type IN ('bigint','integer','smallint','numeric')
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE pep_followup_visit
+                ALTER COLUMN regimen_id DROP DEFAULT;
+            ALTER TABLE pep_followup_visit
+                ALTER COLUMN regimen_id TYPE VARCHAR(255)
+                USING regimen_id::text;
+        </sql>
+    </changeSet>
+
+    <!-- pep_followup_visit: backfill -->
+    <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-pep-followup">
+        <sql>
+            UPDATE pep_followup_visit SET regimen_id = NULL                        WHERE regimen_id = '0';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_3TC'      WHERE regimen_id = '2';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_CABOTEGRAVIR' WHERE regimen_id = '3';
+            UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_LENACAPAVIR'  WHERE regimen_id = '4';
+            UPDATE pep_followup_visit tgt
+                SET regimen_id = bac.code
+              FROM base_application_codeset bac
+              WHERE tgt.regimen_id ~ '^[0-9]+$'
+                AND bac.id::text = tgt.regimen_id
+                AND bac.codeset_group IN ('PREP_REGIMEN','PEP_REGIMEN');
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 new-column add changesets.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx — every column the
+         spreadsheet marks with a leading '+' is added here, once per owning
+         table, under a new id. Each statement is ADD COLUMN IF NOT EXISTS
+         (and ALTER TABLE IF EXISTS) so:
+           * fresh installs (column already present from the CREATE TABLE
+             body) → no-op,
+           * installs that already ran the earlier add changesets
+             (21-05-2026-prophylaxis-interruptions-hts-uuid,
+              21-05-2026-pep-followup-visit-cleanup) → no-op,
+           * legacy installs that never received the column → column is added
+             now.
+
+         Per the spreadsheet, the '+' set is:
+           - prophylaxis_interruptions: +hts_encounter_uuid
+           - pep_followup_visit:        +hts_encounter_uuid -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-add-prophylaxis-interruptions-new-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_interruptions
+                ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-add-pep-followup-visit-new-cols">
+        <sql>
+            ALTER TABLE IF EXISTS pep_followup_visit
+                ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prophylaxis_screening unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx (DB Adjustments
+         Overview sheet). Mirrors the 21-05-2026 drop changeset for the same
+         table — re-stated here under a new id so the spreadsheet → changeset
+         mapping is explicit for every table the spreadsheet touches. Every
+         drop is guarded by IF EXISTS, so on environments where the 21-05
+         changeset already ran (column already gone) this is a no-op.
+         Columns dropped:
+           - client_hts_code, pregnancy_status, extra. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-screening-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS client_hts_code;
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS pregnancy_status;
+            ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS extra;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prophylaxis_initiation unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx. Mirrors the
+         21-05-2026 drop changeset for the same table; re-stated under a new
+         id for consistency with the per-table drop changesets across all 5
+         new tables. Every drop is IF EXISTS guarded, so a no-op where
+         already applied.
+         Columns dropped:
+           - pregnancy_status, hiv_testing_point, date_of_hiv_test,
+             result_of_hiv_test, breast_feeding, status. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-initiation-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS pregnancy_status;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS hiv_testing_point;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS date_of_hiv_test;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS result_of_hiv_test;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS breast_feeding;
+            ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS status;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prophylaxis_interruptions unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx. The hts_encounter_uuid
+         column was already added on 2026-05-21; this changeset re-states the
+         hiv_result drop under a new id (IF EXISTS guarded). -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-interruptions-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prophylaxis_interruptions DROP COLUMN IF EXISTS hiv_result;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 prep_followup_visit unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx (DB Adjustments
+         Overview sheet). The HTS-derived trio (pregnant / hiv_test_result /
+         hiv_test_result_date) was already dropped on 2026-05-21; this
+         changeset cleans up the remaining 23 columns from the spreadsheet
+         that the entity / DTO / service layer no longer reads or writes:
+           - noted_side_effects, urinalysis_result, creatinine,
+             creatinine_result, liver_function_test_results,
+             date_of_liver_function_test_results, family_planning,
+             date_of_family_planning, syndromic_screening,
+             history_of_drug_to_drug_interaction, history_of_drug_allergies,
+             comment, why, referred, date_referred, prep_given,
+             date_prep_start, date_prep_given, other_prep_given,
+             other_prep_type, was_prep_administered, prep_distribution_setting,
+             date_initial_adherence_counseling.
+         Idempotent (DROP COLUMN IF EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prep-followup-visit-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS noted_side_effects;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS urinalysis_result;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS creatinine;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS creatinine_result;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS liver_function_test_results;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_of_liver_function_test_results;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS family_planning;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_of_family_planning;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS syndromic_screening;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS history_of_drug_to_drug_interaction;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS history_of_drug_allergies;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS comment;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS why;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS referred;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_referred;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS prep_given;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_prep_start;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_prep_given;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS other_prep_given;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS other_prep_type;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS was_prep_administered;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS prep_distribution_setting;
+            ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS date_initial_adherence_counseling;
+        </sql>
+    </changeSet>
+
+    <!-- 23-05-2026 pep_followup_visit unused-column drop.
+         Sourced from PrEP_DB_Adjustments_Summary_MAIN.xlsx. The HTS-derived
+         columns (pregnant / hiv_test_result / hiv_test_result_date) and
+         visit_type were already dropped on 2026-05-21; this changeset cleans
+         up the remaining 21 columns from the spreadsheet that the entity /
+         DTO / service layer no longer reads or writes:
+           - noted_side_effects, other_noted_side_effects, prep_noted_side_effects,
+             urinalysis_result, creatinine, creatinine_result, hepatitis, syphilis,
+             other_tests_done, liver_function_test_results,
+             date_of_liver_function_test_results, family_planning,
+             date_of_family_planning, other_drugs, history_of_drug_to_drug_interaction,
+             history_of_drug_allergies, comment, why, referred, date_referred,
+             other_pep_regimen.
+         Idempotent (DROP COLUMN IF EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-pep-followup-visit-unused-cols">
+        <sql>
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS noted_side_effects;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_noted_side_effects;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS prep_noted_side_effects;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS urinalysis_result;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS creatinine;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS creatinine_result;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS hepatitis;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS syphilis;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_tests_done;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS liver_function_test_results;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS date_of_liver_function_test_results;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS family_planning;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS date_of_family_planning;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_drugs;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS history_of_drug_to_drug_interaction;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS history_of_drug_allergies;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS comment;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS why;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS referred;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS date_referred;
+            ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_pep_regimen;
+        </sql>
+    </changeSet>
+
+    <!-- 2026-05-23 Drop the prep_followup_visit -> prophylaxis_initiation
+         foreign key. Migrated follow-up records are missing the
+         prophylaxis_initiation_uuid relation, so the database-level FK rejects
+         their insertion. We remove the constraint and enforce the relation in
+         the application layer instead (see
+         PrepFollowupVisitService validation of prophylaxisInitiationUuid).
+
+         Conditional: the precondition only lets the DROP run when the FK
+         constraint actually exists. onFail="MARK_RAN" marks the changeset as
+         executed (rather than erroring) on databases where it was never
+         created, so the migration is safe to run everywhere and re-runnable. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prep-followup-initiation-fk">
+        <preConditions onFail="MARK_RAN" onFailMessage="fk_prep_followup_initiation does not exist — nothing to drop">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.table_constraints
+                WHERE table_name = 'prep_followup_visit'
+                  AND constraint_name = 'fk_prep_followup_initiation'
+                  AND constraint_type = 'FOREIGN KEY';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit DROP CONSTRAINT IF EXISTS fk_prep_followup_initiation;
+        </sql>
+    </changeSet>
+
+    <!-- 2026-06-03 Re-add liver_function_test_results to prep_followup_visit.
+         A "Liver Function Test" (Date + Result, mirroring the Syphilis/Hepatitis
+         test rows) is now captured on the PrEP follow-up visit form. The column
+         was dropped during the 23-05 cleanup; bring it back as JSONB so it can
+         hold { liverFunctionTest, testDate, result } exactly like the other
+         test columns. Idempotent (ADD COLUMN IF NOT EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="03-06-2026-prep-followup-add-liver-function">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
+        </sql>
+    </changeSet>
+
+    <!-- 2026-06-05 Add date_of_liver_function_test_results to prep_followup_visit.
+         The PrEP follow-up visit form now captures the date the liver function
+         test was conducted (a DATE row above the result dual list box), mirroring
+         the column already present on prep_clinic. Idempotent
+         (ADD COLUMN IF NOT EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="05-06-2026-prep-followup-add-date-liver-function">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit ADD COLUMN IF NOT EXISTS date_of_liver_function_test_results DATE;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

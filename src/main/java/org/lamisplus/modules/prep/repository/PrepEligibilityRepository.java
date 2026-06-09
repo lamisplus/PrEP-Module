@@ -23,9 +23,9 @@ public interface PrepEligibilityRepository extends JpaRepository<PrepEligibility
 
     List<PrepEligibility> findAllByPersonAndArchived(Person person, int archived);
 
-    @Query(value = "SELECT * FROM prep_eligibility pe WHERE pe.person_uuid=?1 AND pe.archived=?2 AND " +
+    @Query(value = "SELECT * FROM prep_eligibility pe WHERE pe.person_uuid=?1 AND CAST(pe.archived AS BOOLEAN)=?2 AND " +
             "pe.uuid NOT IN (SELECT prep_eligibility_uuid FROM prep_enrollment peu WHERE peu.person_uuid=?1 " +
-            "AND peu.archived=?2 ) ORDER BY pe.visit_date ASC LIMIT 1", nativeQuery = true)
+            "AND CAST(peu.archived AS BOOLEAN)=?2 ) ORDER BY pe.visit_date ASC LIMIT 1", nativeQuery = true)
     PrepEligibility findByPersonUuidAndArchived(String personUuid, int archived);
     Optional<PrepEligibility> findByVisitDateAndPersonUuidAndArchived(LocalDate visitDate, String personUuid, int archived);
     Optional<PrepEligibility> findByIdAndFacilityIdAndArchived(Long id, Long facilityId, int archived);

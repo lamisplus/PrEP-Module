@@ -21,8 +21,6 @@ public class PrepEnrollmentDto implements Serializable {
 
     private String uniqueId;
 
-    private LocalDate dateOfRegistration;
-
     //@NotBlank(message = "prepEligibilityUuid is mandatory")
     public String prepEligibilityUuid;
 
@@ -30,10 +28,6 @@ public class PrepEnrollmentDto implements Serializable {
     private LocalDate dateEnrolled;
 
     private LocalDate dateReferred;
-
-    private String riskType; //applicationCodeSet
-
-    private Object extra;
 
     private String uuid;
 
@@ -47,11 +41,33 @@ public class PrepEnrollmentDto implements Serializable {
 
     private String status;
 
-    private String ancUniqueArtNo;
+    private String htsEncounterUuid;
 
-    private String hivTestingPoint;
+    private String enrollmentType;
 
-    private LocalDate dateOfLastHivNegativeTest;
+    private String populationType;
 
-    private String targetGroup;
+    private Double weight;
+
+    private Double height;
+
+    private String historyOfDrugAllergies;
+
+    private String historyOfDrugToDrugInteraction;
+
+    private String urinalysisResult;
+
+    private Object liverFunctionTestResults;
+
+    private LocalDate dateOfInitialAdherenceCounseling;
+
+    private LocalDate datePrepStarted;
+
+    private String prepTypeAtStart;
+
+    private String prepTypeAtStartOthersSpecify;
+
+    private String prepRegimen;
+
+    private Integer monthsOfRefill;
 }

@@ -7,6 +7,7 @@ import { forwardRef } from 'react';
 import 'semantic-ui-css/semantic.min.css';
 import "react-widgets/dist/css/react-widgets.css";
 import { toast } from "react-toastify";
+import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowUpward from '@material-ui/icons/ArrowUpward';
@@ -31,6 +32,9 @@ import { makeStyles } from '@material-ui/core/styles'
 import "@reach/menu-button/styles.css";
 import { Modal } from "react-bootstrap";
 import { Dropdown, Button, Menu, Icon } from 'semantic-ui-react'
+import { getPepRegimenOptions, fetchPrepRegimens } from './codesets'
+import { displayRegimen } from "../../../Utils/regimenDisplay";
+import useRegimenLookup from "../../../hooks/useRegimenLookup";
 
 
 const tableIcons = {
@@ -103,6 +107,10 @@ const PatientnHistory = (props) => {
     const [saving, setSaving] = useState(false)
     const [open, setOpen] = React.useState(false)
     const [record, setRecord] = useState(null)
+    // Live PREP_REGIMEN + PEP_REGIMEN codesets keyed by row id, so legacy
+    // rows that stored `regimenId` as the codeset id (e.g. "2172") still
+    // resolve to the display name in the History grid.
+    const { idMap: regimenById } = useRegimenLookup();
 
     const toggle = () => setOpen(prev => !prev);
     useEffect(() => {
@@ -112,8 +120,9 @@ const PatientnHistory = (props) => {
         }
     }, [props.patientObj.id, props.activeContent.actionType]);
 
+    const routeName = props.routeName || 'consultation';
     const LoadViewPage = (row, action) => {
-        props.setActiveContent({ ...props.activeContent, route: 'consultation', id: row.id, actionType: action, activeTab: 'home' })
+        props.setActiveContent({ ...props.activeContent, route: routeName, id: row.id, actionType: action, activeTab: 'home' })
     }
     const LoadModal = (row) => {
         toggle()
@@ -134,18 +143,12 @@ const PatientnHistory = (props) => {
                 })
                 .catch((error) => {
                     setSaving(false)
-                    if (error.response && error.response.data) {
-                        let errorMessage = error.response.data.apierror && error.response.data.apierror.message !== "" ? error.response.data.apierror.message : "Something went wrong, please try again";
-                        toast.error(errorMessage);
-                    }
-                    else {
-                        toast.error("Something went wrong. Please try again...");
-                    }
+                    toast.error(extractErrorMessage(error));
                 });
         } else if (row.path === 'prep-clinic') {
             setSaving(true)
             axios
-                .delete(`${baseUrl}prep-clinic/${row.id}`,
+                .delete(`${baseUrl}prep-followup-visit/${row.id}`,
                     { headers: { "Authorization": `Bearer ${token}` } }
                 )
                 .then((response) => {
@@ -157,13 +160,7 @@ const PatientnHistory = (props) => {
                 })
                 .catch((error) => {
                     setSaving(false)
-                    if (error.response && error.response.data) {
-                        let errorMessage = error.response.data.apierror && error.response.data.apierror.message !== "" ? error.response.data.apierror.message : "Something went wrong, please try again";
-                        toast.error(errorMessage);
-                    }
-                    else {
-                        toast.error("Something went wrong. Please try again...");
-                    }
+                    toast.error(extractErrorMessage(error));
                 });
 
         } else if (row.path === 'prep-enrollment') {
@@ -181,13 +178,7 @@ const PatientnHistory = (props) => {
                 })
                 .catch((error) => {
                     setSaving(false)
-                    if (error.response && error.response.data) {
-                        let errorMessage = error.response.data.apierror && error.response.data.apierror.message !== "" ? error.response.data.apierror.message : "Something went wrong, please try again";
-                        toast.error(errorMessage);
-                    }
-                    else {
-                        toast.error("Something went wrong. Please try again...");
-                    }
+                    toast.error(extractErrorMessage(error));
                 });
 
         } else if (row.path === 'prep-enrollment2') {
@@ -204,13 +195,7 @@ const PatientnHistory = (props) => {
                 })
                 .catch((error) => {
                     setSaving(false)
-                    if (error.response && error.response.data) {
-                        let errorMessage = error.response.data.apierror && error.response.data.apierror.message !== "" ? error.response.data.apierror.message : "Something went wrong, please try again";
-                        toast.error(errorMessage);
-                    }
-                    else {
-                        toast.error("Something went wrong. Please try again...");
-                    }
+                    toast.error(extractErrorMessage(error));
                 });
 
         } else {
@@ -239,7 +224,18 @@ const PatientnHistory = (props) => {
                 isLoading={props.loading}
                 data={props.recentActivities && props.recentActivities.map((row) => ({
                     date: row.encounterDate,
-                    regimen: row.regimen,
+                    // Resolve regimen for display. Priority:
+                    //  1. PEP regimen code (row.pepRegimen) → displayRegimen()
+                    //  2. Backend-resolved regimen display (row.regimen) —
+                    //     present only for legacy ids 1–4 today.
+                    //  3. row.regimenId — the canonical code on new records,
+                    //     or the codeset row id on legacy rows. displayRegimen
+                    //     with the live id-map fallback handles both shapes.
+                    regimen:
+                        displayRegimen(row.pepRegimen, regimenById)
+                        || displayRegimen(row.regimen, regimenById)
+                        || displayRegimen(row.regimenId, regimenById)
+                        || "",
                     nextAppointment: row.nextAppointment,
                     actions:
 

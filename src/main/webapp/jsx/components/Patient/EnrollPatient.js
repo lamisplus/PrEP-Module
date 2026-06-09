@@ -168,7 +168,6 @@ const UserRegistration = props => {
     dateEnrolled: '',
     dateOfLastHivNegativeTest: '',
     dateReferredForPrep: '',
-    extra: {},
     hivTestingPoint: '',
     prepRiskType: '',
     personDto: {},

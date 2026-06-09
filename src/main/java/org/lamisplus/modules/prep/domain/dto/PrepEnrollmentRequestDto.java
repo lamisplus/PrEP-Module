@@ -5,8 +5,6 @@ import lombok.*;
 import org.lamisplus.modules.patient.domain.dto.PersonDto;
 import org.lamisplus.modules.prep.domain.entity.PrepEnrollment;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -16,23 +14,19 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PrepEnrollmentRequestDto implements Serializable {
-    @NotNull(message = "personId is mandatory")
+    //@NotNull(message = "personId is mandatory")
     private Long personId;
 
     private String uniqueId;
 
-    @NotBlank(message = "prepEligibilityUuid is mandatory")
+    //@NotBlank(message = "prepEligibilityUuid is mandatory")
     public String prepEligibilityUuid;
 
     //@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @NotNull(message = "dateEnrolled is mandatory")
+    //@NotNull(message = "dateEnrolled is mandatory")
     private LocalDate dateEnrolled;
 
     private LocalDate dateReferred;
-
-    private String riskType; //applicationCodeSet
-
-    private Object extra;
 
     private String supporterName;
 
@@ -40,11 +34,33 @@ public class PrepEnrollmentRequestDto implements Serializable {
 
     private String supporterPhone;
 
-    private String ancUniqueArtNo;
+    private String htsEncounterUuid;
 
-    private String hivTestingPoint;
+    private String enrollmentType;
 
-    private LocalDate dateOfLastHivNegativeTest;
+    private String populationType;
 
-    private String targetGroup;
+    private Double weight;
+
+    private Double height;
+
+    private String historyOfDrugAllergies;
+
+    private String historyOfDrugToDrugInteraction;
+
+    private String urinalysisResult;
+
+    private Object liverFunctionTestResults;
+
+    private LocalDate dateOfInitialAdherenceCounseling;
+
+    private LocalDate datePrepStarted;
+
+    private String prepTypeAtStart;
+
+    private String prepTypeAtStartOthersSpecify;
+
+    private String prepRegimen;
+
+    private Integer monthsOfRefill;
 }
