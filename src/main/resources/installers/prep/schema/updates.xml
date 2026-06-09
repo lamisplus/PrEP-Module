@@ -27,24 +27,6 @@
         </sql>
     </changeSet>
 
-    <!--    <changeSet failOnError="true" author="Peter Abiodun" id="prep-regimen-update">-->
-    <!--        <preConditions onFail="MARK_RAN">-->
-    <!--            <sqlCheck expectedResult="1">-->
-    <!--                SELECT COUNT(*) FROM prep_regimen WHERE regimen = 'TDF(300mg)+3TC(150mg)';-->
-    <!--            </sqlCheck>-->
-    <!--        </preConditions>-->
-    <!--        <sql>-->
-    <!--            UPDATE prep_regimen SET regimen = 'TDF(300mg)+3TC(300mg)', code = 'TDF(300mg)+3TC(300mg)' WHERE regimen =-->
-    <!--            'TDF(300mg)+3TC(150mg)';-->
-    <!--            ALTER TABLE prep_regimen ADD COLUMN prep_type character varying;-->
-    <!--            ALTER TABLE prep_clinic ADD COLUMN prep_distribution_setting character varying;-->
-    <!--            INSERT INTO prep_regimen(regimen, composition, description, archived, code, prep_type) VALUES ('IM-->
-    <!--            CAB-LA(600mg/3mL)', 'IM Cabotegravir', 'Pre-Exposure Prophylaxis Injectable (PrEP Injectable)', 1,-->
-    <!--            'CAB-LA(600mg/3mL)', 'PREP_TYPE_INJECTIBLES');-->
-    <!--            UPDATE prep_regimen SET prep_type = 'PREP_TYPE_ORAL' WHERE regimen = 'TDF(300mg)+3TC(300mg)';-->
-    <!--        </sql>-->
-    <!--    </changeSet>-->
-
 
     <changeSet failOnError="true" author="Taiwo Gboyegun" id="family-planning-update">
         <preConditions onFail="MARK_RAN">
@@ -403,10 +385,6 @@
 
     <!-- 2.1 prophylaxis_screening (must be created before tables that reference it) -->
     <changeSet failOnError="false" author="Gamaliel" id="create-prophylaxis-screening-v2">
-        <!-- Accept any prior checksum: this changeset's column list was edited
-             after deployment (removed pregnancy_status / client_hts_code). The
-             CREATE TABLE itself is precondition-guarded so re-execution is a
-             no-op against an existing table. -->
         <validCheckSum>ANY</validCheckSum>
         <sql>
             CREATE TABLE IF NOT EXISTS prophylaxis_screening (
@@ -459,10 +437,7 @@
         </sql>
     </changeSet>
 
-    <!-- 2.2 prophylaxis_initiation (must be created before tables that reference it) -->
     <changeSet failOnError="false" author="Gamaliel" id="create-prophylaxis-initiation-v2">
-        <!-- Accept any prior checksum: column list was edited after
-             deployment. CREATE TABLE is precondition-guarded. -->
         <validCheckSum>ANY</validCheckSum>
         <sql>
             CREATE TABLE IF NOT EXISTS prophylaxis_initiation (
@@ -697,8 +672,6 @@
 
     <!-- 3.0 Create prophylaxis_interruptions table -->
     <changeSet failOnError="false" author="Gamaliel" id="create-prophylaxis-interruptions-v1">
-        <!-- Accept any prior checksum: changeset body was edited after
-             deployment. CREATE TABLE is precondition-guarded. -->
         <validCheckSum>ANY</validCheckSum>
         <sql>
             CREATE TABLE IF NOT EXISTS prophylaxis_interruptions (
@@ -740,9 +713,6 @@
         </sql>
     </changeSet>
 
-    <!-- Legacy 'extra' column drops on the OLD prep_clinic / prep_interruption tables.
-         The new prep_followup_visit / pep_followup_visit / prophylaxis_* tables are
-         created fresh via the CREATE TABLE changesets above and never had the column. -->
     <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-prep-clinic">
         <sql>
             ALTER TABLE IF EXISTS prep_clinic DROP COLUMN IF EXISTS extra;
@@ -769,20 +739,6 @@
         </sql>
     </changeSet>
 
-    <!-- is_interrupted and prophylaxis_initiation_uuid are declared inline on the
-         CREATE TABLE changesets above, but those changesets are precondition /
-         IF NOT EXISTS guarded — so on installs that created the tables before
-         these columns were added inline, the inline declaration never applies.
-         The 22-05-2026-missing-column-backfill changeset at the end of this
-         file ALTERs them in idempotently. -->
-
-
-    <!-- Adds the hts_encounter_uuid link column to the four prep tables that now
-         dereference an hts_encounter (uuid) instead of denormalising HTS fields
-         (pregnancy_status, hiv_test_result, hiv_testing_point, etc.). Each ALTER
-         is idempotent (ADD COLUMN IF NOT EXISTS) so this changeset is safe to
-         re-run against environments that may already have the column. The set
-         tolerates a table not existing yet (failOnError=false). -->
     <changeSet failOnError="false" author="Gamaliel" id="add-hts-encounter-uuid-to-prep-tables">
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_screening   ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
@@ -792,23 +748,6 @@
         </sql>
     </changeSet>
 
-    <!-- Legacy compatibility view: many existing native queries (PrEP/PEP
-         enrollment tabs, etc.) still SELECT from `hts_client` with columns
-         person_uuid / date_visit / hiv_test_result. The new HTS module stores
-         everything in `hts_encounter` keyed by patient_id, so this view
-         projects the old shape on top of the new table. If a real `hts_client`
-         table already exists in the environment, the CREATE OR REPLACE VIEW
-         will fail (you can't replace a table with a view) and failOnError="false"
-         lets the legacy table keep serving — best of both worlds.
-
-         The hiv_test_result column is derived from the observation JSONB:
-           - "Positive" when confirmatoryHivTest = STI_HIV_RESULT_POSITIVE,
-             OR when initialHivTest = STI_HIV_RESULT_POSITIVE and there is no
-             confirmatory result.
-           - "Negative" when either field is STI_HIV_RESULT_NEGATIVE.
-           - Empty string otherwise.
-         The downstream ILIKE '%Positive%' / NOT ILIKE '%Positive%' filters work
-         against these display strings. -->
     <changeSet failOnError="false" author="Gamaliel" id="hts-client-compat-view">
         <sql>
             CREATE OR REPLACE VIEW hts_client AS
@@ -865,10 +804,6 @@
         </sql>
     </changeSet>
 
-    <!-- Adds client_hts_code and pregnancy_status to prophylaxis_screening so
-         the eligibility screening form can persist the HTS-side identifiers
-         (currently saving as null on the backend even though the frontend
-         collects them). Idempotent; safe to re-run. -->
     <changeSet failOnError="false" author="Gamaliel" id="add-client-hts-code-and-pregnancy-to-prophylaxis-screening">
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_screening
@@ -878,12 +813,7 @@
         </sql>
     </changeSet>
 
-    <!-- Adds date_defaulted to prophylaxis_interruptions so the
-         discontinuations/interruptions form can record the date a client
-         defaulted (separate from interruption_date, which is reserved for
-         the "Stopped" interruption type). Other dates already exist:
-         date_client_died (Dead), date_client_referred_out (Referred),
-         date_sero_converted (Seroconverted). Idempotent; safe to re-run. -->
+
     <changeSet failOnError="false" author="Gamaliel" id="add-date-defaulted-to-prophylaxis-interruptions">
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_interruptions
@@ -891,18 +821,6 @@
         </sql>
     </changeSet>
 
-    <!-- Splits the legacy drug_use_history JSONB on prophylaxis_screening into
-         three distinct buckets so each subsection owns its own field:
-           * drug_use_history JSONB stays, but is repurposed to hold an array
-             of { drug, routesOfAdministration[] } entries only.
-           * hiv_testing JSONB (new) holds the HIV Testing subsection fields
-             (hivTestedBefore, lastTest, recommendHivRetest, clinicalSetting,
-             hivTestResultAtvisit, reportHivRisk, hivExposure).
-           * use_drug_sexual_performance VARCHAR (new) is a standalone field
-             that is no longer gated by drug-selection skip logic.
-         All three are idempotent (ADD COLUMN IF NOT EXISTS) so safe to re-run.
-         The old JSONB column is preserved on existing rows so view/edit can
-         still rehydrate legacy records via a frontend compatibility shim. -->
     <changeSet failOnError="false" author="Gamaliel" id="18-05-2026-split-drug-use-history">
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_screening
@@ -912,12 +830,6 @@
         </sql>
     </changeSet>
 
-    <!-- 21-05-2026 prophylaxis_screening cleanup:
-         * Drops client_hts_code and pregnancy_status — both are now resolved via
-           the hts_encounter_uuid link to hts_encounter (single source of truth).
-         * Drops the unused legacy 'extra' JSONB column carried over from the
-           original v2 CREATE TABLE; never read or written by the application.
-         Idempotent (DROP COLUMN IF EXISTS) so safe to re-run. -->
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prophylaxis-screening-legacy-cols">
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS client_hts_code;
@@ -926,20 +838,6 @@
         </sql>
     </changeSet>
 
-    <!-- 21-05-2026 prophylaxis_initiation cleanup:
-         * pregnancy_status / hiv_testing_point / date_of_hiv_test /
-           result_of_hiv_test — were carried inline on the v2 CREATE TABLE but
-           never mapped on the entity; values always wrote NULL. All four are
-           now resolved via the hts_encounter_uuid link to hts_encounter.
-         * breast_feeding — was entity-mapped but the initiation form no longer
-           collects it; pregnancy + breastfeeding state both come from
-           hts_encounter (the pregnancyStatus codeset on HTS encodes
-           Breastfeeding as a distinct value).
-         * status — was hard-coded to "ENROLLED"/"Enrolled" on every write and
-           never advanced; the only query that filtered on it
-           (findByPersonUuidAndArchived) used a malformed NOT IN (?) so the
-           predicate was a no-op. Actual enrollment state lives on is_interrupted.
-         Idempotent (DROP COLUMN IF EXISTS) so safe to re-run. -->
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prophylaxis-initiation-legacy-cols">
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS pregnancy_status;
@@ -951,12 +849,6 @@
         </sql>
     </changeSet>
 
-    <!-- 21-05-2026 prophylaxis_interruptions cleanup:
-         * Adds hts_encounter_uuid (mirrors the pattern on prophylaxis_screening
-           and prophylaxis_initiation). HIV result for the interruption is now
-           resolved by joining hts_encounter on this uuid.
-         * Drops the legacy hiv_result column it replaces.
-         Idempotent (ADD/DROP COLUMN IF [NOT] EXISTS), safe to re-run. -->
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-prophylaxis-interruptions-hts-uuid">
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_interruptions
@@ -965,15 +857,6 @@
         </sql>
     </changeSet>
 
-    <!-- 21-05-2026 backfill: previous_prep_status → previous_pep_status for
-         PEP rows. Before this change every interruption wrote the patient's
-         status into previous_prep_status regardless of arm. For rows whose
-         related initiation's enrollment_type matches a PEP value, move the
-         value into previous_pep_status and null out previous_prep_status so
-         each per-arm column only carries that arm's status.
-         Only acts on rows where the destination is still NULL (idempotent /
-         safe to re-run; won't clobber values already saved correctly by the
-         post-fix code path). -->
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-backfill-previous-pep-status">
         <sql>
             UPDATE prophylaxis_interruptions pi
@@ -991,20 +874,6 @@
         </sql>
     </changeSet>
 
-    <!-- 21-05-2026 prep_followup_visit cleanup — drops HTS-derived columns
-         (pregnant / hiv_test_result / hiv_test_result_date) that the
-         followup row used to store inline. These are now resolved via the
-         hts_encounter_uuid link to hts_encounter, matching the screening /
-         initiation pattern.
-
-         The remaining columns the user listed as no-longer-set are dropped
-         in a separate "23-05-2026-drop-prep-followup-visit-unused-cols"
-         changeset further below — per the updated directive, every column
-         listed in PrEP_DB_Adjustments_Summary_MAIN.xlsx as removed must be
-         physically dropped via a changeset, not just unmapped at the
-         entity/DTO level.
-
-         Idempotent (DROP COLUMN IF EXISTS); safe to re-run. -->
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prep-followup-visit-hts-derived-cols">
         <sql>
             ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS pregnant;
@@ -1013,22 +882,6 @@
         </sql>
     </changeSet>
 
-    <!-- 21-05-2026 pep_followup_visit cleanup:
-         * Adds hts_encounter_uuid (was missing from the original CREATE TABLE
-           and the add-hts-encounter-uuid-to-prep-tables changeset). HIV result
-           and pregnancy status are now resolved through this link.
-         * Drops the HTS-derived columns pregnant / hiv_test_result /
-           hiv_test_result_date.
-         * Drops visit_type per the user's directive — PEP follow-ups don't
-           branch on visit type the way PrEP follow-ups do.
-         The remaining columns the user listed as no-longer-set are dropped
-         in a separate "23-05-2026-drop-pep-followup-visit-unused-cols"
-         changeset further below — per the updated directive, every column
-         listed in PrEP_DB_Adjustments_Summary_MAIN.xlsx as removed must be
-         physically dropped via a changeset, not just unmapped at the
-         entity/DTO level.
-
-         Idempotent (ADD/DROP COLUMN IF [NOT] EXISTS); safe to re-run. -->
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-pep-followup-visit-cleanup">
         <sql>
             ALTER TABLE IF EXISTS pep_followup_visit
@@ -1039,24 +892,6 @@
             ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS visit_type;
         </sql>
     </changeSet>
-
-    <!-- 22-05-2026 archived column type backfill.
-
-         Root cause: the five new tables (prophylaxis_screening,
-         prophylaxis_initiation, prophylaxis_interruptions, prep_followup_visit,
-         pep_followup_visit) were first shipped with `archived INTEGER NOT NULL
-         DEFAULT 0`. A later commit edited those same CREATE TABLE changesets to
-         `archived BOOLEAN` and stamped them validCheckSum=ANY — but Liquibase
-         keys a changeset by id+author+file, not content, so the edited body
-         never re-runs on installs that booted before the edit. Those
-         environments still have `archived integer`, while the JPA entities map
-         it as Boolean, producing `operator does not exist: integer = boolean`.
-
-         This changeset has a NEW id, so it runs once on every environment. The
-         plpgsql block converts `archived` to boolean only where it is still a
-         numeric type, so it is a no-op on fresh installs (already boolean) and
-         idempotent on re-run. The integer default must be dropped before the
-         type change (0 cannot auto-cast to boolean) and re-added afterwards. -->
     <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-archived-column-type-backfill">
         <sql splitStatements="false">
             DO $$
@@ -1087,30 +922,6 @@
             END $$;
         </sql>
     </changeSet>
-
-    <!-- 23-05-2026 archived column type backfill — RE-DO.
-
-         The 22-05-2026 changeset above used failOnError="false" + a DO block,
-         which on some installs caused the EXECUTE format(...) chain to fail
-         silently. Liquibase marked the changeset as ran in databasechangelog
-         but the columns stayed `integer`, breaking the JPA entities that map
-         them as Boolean.
-
-         These per-table changesets do the same conversion the safe way:
-           - new ids, so Liquibase runs them again on every install
-           - failOnError defaults to true, so any DB error surfaces in logs
-           - a preCondition with onFail="MARK_RAN" gates execution: ALTER
-             runs only when the column is still numeric. Already-boolean
-             columns are skipped (no-op on fresh installs, idempotent on
-             re-run).
-           - straight DDL/DML, no DO/EXECUTE nested-quoting risk.
-
-         Pattern per table:
-           1. DROP DEFAULT  (integer's `0` cannot auto-cast to boolean)
-           2. ALTER TYPE    USING (COALESCE(archived, 0) &lt;&gt; 0)
-           3. SET DEFAULT false
-           4. NULL → false   (defensive — should be unreachable post-cast)
-           5. SET NOT NULL -->
 
     <!-- prophylaxis_screening -->
     <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-screening">
@@ -1207,26 +1018,6 @@
         </sql>
     </changeSet>
 
-    <!-- 22-05-2026 missing-column backfill.
-
-         Same root cause as the archived backfill above: is_interrupted and
-         prophylaxis_initiation_uuid were added INLINE to the precondition /
-         IF NOT EXISTS guarded CREATE TABLE changesets on 2026-05-08, a month
-         after those changesets first shipped (2026-04-04). Installs that
-         created the tables in that window never get the inline columns, so
-         the JPA entities (which map them) fail with `column ... does not
-         exist`.
-
-         New id, so it runs once everywhere. Each statement is idempotent
-         (ALTER TABLE IF EXISTS ... ADD COLUMN IF NOT EXISTS) — a no-op on
-         fresh installs that already have the columns.
-
-         is_interrupted is added with DEFAULT false so existing rows are
-         backfilled before NOT NULL applies. The prophylaxis_initiation_uuid
-         columns are added without the FK constraint: existing rows may hold
-         no link value, and the followup/interruption tables are already
-         joined in application queries — the constraint is a data-integrity
-         nicety, not required for the entities to load. -->
     <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-missing-column-backfill">
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_initiation
@@ -1240,11 +1031,6 @@
         </sql>
     </changeSet>
 
-    <!-- 22-05-2026 Adds received_prep_first_time_this_year to prophylaxis_screening.
-         Backs the new screening-form question "Received PrEP for the first time
-         this year?" (stores a YES_NO codeset code). Idempotent (ADD COLUMN IF
-         NOT EXISTS) so the column is created automatically on the next jar
-         update and the changeset is safe to re-run. -->
     <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-add-received-prep-first-time-this-year">
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_screening
@@ -1252,31 +1038,29 @@
         </sql>
     </changeSet>
 
-    <!-- 23-05-2026 Convert regimen_id from BIGINT to VARCHAR(255) on the three
-         tables that hold a selected PrEP/PEP regimen: prep_clinic,
-         prep_followup_visit, pep_followup_visit. Background: the regimen
-         dropdown was persisting the codeset's row id (long) instead of the
-         canonical codeset code (string). The frontend was switched to send
-         the code; these changesets align the column type and backfill
-         existing rows so legacy ids stop surfacing as raw numbers on the
-         History grid / dashboard summary.
-
-         Per table we run two changesets:
-           a) ALTER COLUMN TYPE VARCHAR(255) — gated by a precondition that
-              checks the current data_type is still numeric. If the column is
-              already varchar the precondition marks the changeset as ran and
-              we skip the ALTER (so re-runs are no-ops).
-           b) Backfill — maps legacy ids to canonical codes:
-                NULL / "0"       -> NULL
-                "1"..."4"        -> hardcoded PREP code (PrepRegimens table)
-                any other digits -> code looked up from base_application_codeset
-                                    (filtered to PREP_REGIMEN / PEP_REGIMEN)
-                unresolved value -> kept as-is; displayRegimen on the FE
-                                    still renders something readable via the
-                                    live codeset map at runtime.
-
-         Each statement uses failOnError=true (the default) so any DB-side
-         failure surfaces in startup logs instead of getting swallowed. -->
+    <changeSet author="Gamaliel" id="23-05-2026-drop-regimen-id-fk-before-varchar" failOnError="false">
+        <sql splitStatements="false">
+            DO $$
+            DECLARE r record;
+            BEGIN
+                FOR r IN
+                    SELECT rel.relname AS tbl, con.conname
+                    FROM pg_constraint con
+                    JOIN pg_class rel ON rel.oid = con.conrelid
+                    WHERE con.contype = 'f'
+                      AND rel.relname IN ('prep_clinic','prep_followup_visit','pep_followup_visit')
+                      AND EXISTS (
+                          SELECT 1
+                          FROM unnest(con.conkey) AS k(attnum)
+                          JOIN pg_attribute a ON a.attrelid = con.conrelid AND a.attnum = k.attnum
+                          WHERE a.attname = 'regimen_id'
+                      )
+                LOOP
+                    EXECUTE format('ALTER TABLE %I DROP CONSTRAINT %I', r.tbl, r.conname);
+                END LOOP;
+            END $$;
+        </sql>
+    </changeSet>
 
     <!-- prep_clinic: ALTER TYPE -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-prep-clinic-type">
@@ -1544,6 +1328,54 @@
             ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS referred;
             ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS date_referred;
             ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_pep_regimen;
+        </sql>
+    </changeSet>
+
+    <!-- 2026-05-23 Drop the prep_followup_visit -> prophylaxis_initiation
+         foreign key. Migrated follow-up records are missing the
+         prophylaxis_initiation_uuid relation, so the database-level FK rejects
+         their insertion. We remove the constraint and enforce the relation in
+         the application layer instead (see
+         PrepFollowupVisitService validation of prophylaxisInitiationUuid).
+
+         Conditional: the precondition only lets the DROP run when the FK
+         constraint actually exists. onFail="MARK_RAN" marks the changeset as
+         executed (rather than erroring) on databases where it was never
+         created, so the migration is safe to run everywhere and re-runnable. -->
+    <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prep-followup-initiation-fk">
+        <preConditions onFail="MARK_RAN" onFailMessage="fk_prep_followup_initiation does not exist — nothing to drop">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.table_constraints
+                WHERE table_name = 'prep_followup_visit'
+                  AND constraint_name = 'fk_prep_followup_initiation'
+                  AND constraint_type = 'FOREIGN KEY';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit DROP CONSTRAINT IF EXISTS fk_prep_followup_initiation;
+        </sql>
+    </changeSet>
+
+    <!-- 2026-06-03 Re-add liver_function_test_results to prep_followup_visit.
+         A "Liver Function Test" (Date + Result, mirroring the Syphilis/Hepatitis
+         test rows) is now captured on the PrEP follow-up visit form. The column
+         was dropped during the 23-05 cleanup; bring it back as JSONB so it can
+         hold { liverFunctionTest, testDate, result } exactly like the other
+         test columns. Idempotent (ADD COLUMN IF NOT EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="03-06-2026-prep-followup-add-liver-function">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
+        </sql>
+    </changeSet>
+
+    <!-- 2026-06-05 Add date_of_liver_function_test_results to prep_followup_visit.
+         The PrEP follow-up visit form now captures the date the liver function
+         test was conducted (a DATE row above the result dual list box), mirroring
+         the column already present on prep_clinic. Idempotent
+         (ADD COLUMN IF NOT EXISTS); safe to re-run. -->
+    <changeSet failOnError="false" author="Gamaliel" id="05-06-2026-prep-followup-add-date-liver-function">
+        <sql>
+            ALTER TABLE IF EXISTS prep_followup_visit ADD COLUMN IF NOT EXISTS date_of_liver_function_test_results DATE;
         </sql>
     </changeSet>
 

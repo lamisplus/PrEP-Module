@@ -25,6 +25,8 @@ import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 import { fetchInitialVisitCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
+import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import {
   fetchPrepRegimens,
   fetchPrepRegimenByType,
@@ -100,7 +102,15 @@ const PrEPInitialVisitForm = props => {
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = props.patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
-  const isFromHts = !!latestHts;
+  // "HTS found" is decided by whether the linked hts_encounter (resolved from
+  // htsEncounterUuid) is valid/properly structured — not merely present. A
+  // valid HTS record is REQUIRED, so when none can be resolved we hard-block
+  // with a modal (no "proceed"). Migrated records with a dangling uuid or a
+  // malformed encounter are treated as "no HTS" and blocked.
+  const isFromHts = isValidHtsEncounter(latestHts);
+  // The hard block only applies when creating a new initiation (no record id).
+  // Existing records can always be viewed/edited even if their HTS is missing.
+  const isCreateMode = !props.activeContent?.id;
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [prepRisk, setPrepRisk] = useState([]);
@@ -108,6 +118,21 @@ const PrEPInitialVisitForm = props => {
   const [patientDto, setPatientDto] = useState();
   const [disabledField, setSisabledField] = useState(false);
   const [codeset, setCodeset] = useState({});
+  // A candidate uuid whose encounter is still being fetched means HTS isn't
+  // resolved yet — wait (no timer) rather than hard-block prematurely.
+  const htsCandidateUuid =
+    objValues?.htsEncounterUuid
+    || patientDto?.htsEncounterUuid
+    || props.patientObj?.latestHtsResult?.uuid
+    || null;
+  const htsFetchPending =
+    !!htsCandidateUuid &&
+    props.patientObj?.latestHtsResult?.uuid !== htsCandidateUuid &&
+    loadedHts?.uuid !== htsCandidateUuid;
+  // Whether to hard-block the form. Computed synchronously (not via state set in
+  // an effect) so the form never paints for a blocked record — otherwise it
+  // would flash on screen for a frame before the effect hid it.
+  const htsBlocked = isCreateMode && !isFromHts && !htsFetchPending;
   // True once the patient is found to have a prior prophylaxis_initiation record.
   // Locks the Unique ID field so all initiations for the same client share one ID.
   const [hasExistingInitiation, setHasExistingInitiation] = useState(false);
@@ -356,16 +381,12 @@ const PrEPInitialVisitForm = props => {
       ? ""
       : "This field is required";
     // hivTestingPoint / dateOfHivTest / resultOfHivTest are sourced from the
-    // latest hts_encounter when present; auto-satisfied on the HTS path.
-    temp.hivTestingPoint = isFromHts || objValues.hivTestingPoint
-      ? ""
-      : "This field is required";
-    temp.dateOfHivTest = isFromHts || objValues.dateOfHivTest
-      ? ""
-      : "This field is required";
-    temp.resultOfHivTest = isFromHts || objValues.resultOfHivTest
-      ? ""
-      : "This field is required";
+    // linked hts_encounter. HTS is a soft dependency (migrated records may have
+    // no valid encounter), so these are never required — the user can save even
+    // when the HTS fields are empty. They were warned via the HTS modal.
+    temp.hivTestingPoint = "";
+    temp.dateOfHivTest = "";
+    temp.resultOfHivTest = "";
     // Conditional: supporter fields required if supporter name is provided (only for PrEP)
     if (objValues.enrollmentType !== 'PEP' && objValues.supporterName) {
       temp.supporterRelationshipType = objValues.supporterRelationshipType
@@ -404,16 +425,10 @@ const PrEPInitialVisitForm = props => {
       ? "" : "This field is required";
     temp.prepRegimen = objValues.prepRegimen
       ? "" : "This field is required";
-    // Pregnancy only applies to female patients; HTS may pre-populate it.
-    const isFemale =
-      props.patientObj?.gender?.toLowerCase() === "female" ||
-      props.patientObj?.sex?.toLowerCase() === "female";
-    if (isFemale) {
-      const pregVal = isFromHts
-        ? (htsObs.pregnancyStatus || objValues.pregnancyStatus)
-        : objValues.pregnancyStatus;
-      temp.pregnancyStatus = pregVal ? "" : "This field is required";
-    }
+    // Pregnancy status is sourced from the linked hts_encounter, so it is part
+    // of the soft HTS dependency — never block submission on it (migrated
+    // records may have no valid HTS to populate it from).
+    temp.pregnancyStatus = "";
     temp.historyOfDrugAllergies = objValues.historyOfDrugAllergies
       ? "" : "This field is required";
     temp.weight = objValues.weight ? "" : "This field is required";
@@ -436,6 +451,12 @@ const PrEPInitialVisitForm = props => {
 
   const handleSubmit = e => {
     e.preventDefault();
+    // Hard block: a valid HTS record is required to create a new initiation.
+    // Edits to existing records are allowed even without HTS. (In practice the
+    // form is not rendered when blocked, so this is a defensive guard.)
+    if (htsBlocked) {
+      return;
+    }
     // Block save if HIV result is Positive — show as toast, not inline
     if (objValues.resultOfHivTest === "Positive") {
       const typeLabel =
@@ -543,6 +564,25 @@ const PrEPInitialVisitForm = props => {
       });
     }
   };
+
+  // Hard block: when no valid HTS encounter can be resolved (create mode) the
+  // initiation form must not render at all. We return only the modal, which then
+  // overlays the patient dashboard (summary / recent activities) that
+  // PatientDetail keeps rendered behind it. "Return to Dashboard" navigates back
+  // to recent-history so the form route is exited entirely.
+  if (htsBlocked) {
+    return (
+      <HtsWarningModal
+        isOpen
+        onReturnToDashboard={() =>
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "recent-history",
+          })
+        }
+      />
+    );
+  }
 
   return (
       <Card className={classes.root}>
@@ -1116,6 +1156,49 @@ const PrEPInitialVisitForm = props => {
                       {codeset?.PREGNANCY_STATUS?.map(value => (
                         <option key={value.id} value={value.code}>
                           {value.display}
+                        </option>
+                      ))}
+                    </select>
+                  </FormGroup>
+                </div>
+              )}
+
+              {/* 16b. Breast Feeding — UI-only, autopopulated from the patient
+                  card's pregnancy status (`patientDetail.pregnant` is the
+                  PREGNANCY_STATUS display string resolved server-side). When
+                  the display reads "Breastfeeding" we show YES_NO_YES,
+                  otherwise YES_NO_NO. Always disabled, same female-only
+                  visibility rule as Pregnant. Not submitted to the backend. */}
+              {(props.patientObj?.gender?.toLowerCase() === "female" ||
+                props.patientObj?.sex?.toLowerCase() === "female") && (
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>Breast Feeding</Label>
+                    <select
+                      className="form-control"
+                      name="breastFeeding"
+                      id="breastFeeding"
+                      value={
+                        (props.patientDetail?.pregnant || "")
+                          .toString()
+                          .toLowerCase()
+                          .replace(/\s|-/g, "") === "breastfeeding"
+                          ? "YES_NO_YES"
+                          : "YES_NO_NO"
+                      }
+                      disabled
+                      title="Autopopulated from pregnancy status"
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                        padding: "0.5rem",
+                        backgroundColor: "#f1f3f5",
+                      }}
+                    >
+                      <option value="">Select</option>
+                      {(codeset?.YES_NO || []).map(item => (
+                        <option key={item.id} value={item.code}>
+                          {item.display}
                         </option>
                       ))}
                     </select>

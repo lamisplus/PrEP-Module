@@ -1037,6 +1037,8 @@ public class PrepService {
         prepClinic.setHepatitis(prepClinicRequestDto.getHepatitis());
         prepClinic.setSyphilis(prepClinicRequestDto.getSyphilis());
         prepClinic.setOtherTestsDone(prepClinicRequestDto.getOtherTestsDone());
+        prepClinic.setLiverFunctionTestResults(prepClinicRequestDto.getLiverFunctionTestResults());
+        prepClinic.setDateLiverFunctionTestResults(prepClinicRequestDto.getDateLiverFunctionTestResults());
         prepClinic.setSyndromicStiScreening(prepClinicRequestDto.getSyndromicStiScreening());
         prepClinic.setRiskReductionServices(prepClinicRequestDto.getRiskReductionServices());
         prepClinic.setDuration(prepClinicRequestDto.getDuration());
@@ -1083,6 +1085,8 @@ public class PrepService {
         prepClinicDto.setHepatitis(clinic.getHepatitis());
         prepClinicDto.setSyphilis(clinic.getSyphilis());
         prepClinicDto.setOtherTestsDone(clinic.getOtherTestsDone());
+        prepClinicDto.setLiverFunctionTestResults(clinic.getLiverFunctionTestResults());
+        prepClinicDto.setDateLiverFunctionTestResults(clinic.getDateLiverFunctionTestResults());
         prepClinicDto.setSyndromicStiScreening(clinic.getSyndromicStiScreening());
         prepClinicDto.setRiskReductionServices(clinic.getRiskReductionServices());
         prepClinicDto.setDuration(clinic.getDuration());

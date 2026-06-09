@@ -11,6 +11,8 @@ import { url as baseUrl, token } from "../../../api";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
+import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
 import AddIcon from "@mui/icons-material/Add";
@@ -63,12 +65,12 @@ const buildValidationSchema = (isFemalePatient, isFromHts) =>
     durationBeforePep: Yup.string().required("This field is required"),
     systolic: Yup.string().required("This field is required"),
     diastolic: Yup.string().required("This field is required"),
-    pregnant: isFemalePatient && !isFromHts
-      ? Yup.string().required("This field is required")
-      : Yup.string(),
-    hivStatusAtExposure: isFromHts
-      ? Yup.string()
-      : Yup.string().required("This field is required"),
+    // Pregnancy Status and HIV Status at Exposure are sourced from the linked
+    // hts_encounter — a soft dependency. Never block submission on them
+    // (migrated records may have no valid HTS); the user is warned via the
+    // HTS modal instead.
+    pregnant: Yup.string(),
+    hivStatusAtExposure: Yup.string(),
     riskReductionServices: Yup.string().required("This field is required"),
     adherenceLevel: Yup.string().required("This field is required"),
     pepRegimen: Yup.string().required("This field is required"),
@@ -128,7 +130,15 @@ const PEPFollowupVisit = props => {
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = props.patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
-  const isFromHts = !!latestHts;
+  // "HTS found" is decided by whether the linked hts_encounter resolved from
+  // htsEncounterUuid is valid/properly structured. Migrated records often have
+  // a dangling uuid or malformed encounter — HTS is then treated as absent
+  // (fields editable, not required) and a non-blocking modal is shown.
+  const isFromHts = isValidHtsEncounter(latestHts);
+  // The hard block only applies when creating a new visit (no record id).
+  // Existing records can always be viewed/edited even if their HTS is missing.
+  // (htsCandidateUuid / htsFetchPending are computed below.)
+  const isCreateMode = !props.activeContent?.id;
 
   const [hivTestEntries, setHivTestEntries] = useState([]);
   const [hivTestInput, setHivTestInput] = useState({ test: "", result: "" });
@@ -145,6 +155,22 @@ const PEPFollowupVisit = props => {
   });
 
   const formikRef = useRef(null);
+
+  // A candidate uuid whose encounter is still being fetched means HTS isn't
+  // resolved yet — wait (no timer) rather than hard-block prematurely.
+  const htsCandidateUuid =
+    formInitialValues?.htsEncounterUuid
+    || patientDto?.htsEncounterUuid
+    || props.patientObj?.latestHtsResult?.uuid
+    || null;
+  const htsFetchPending =
+    !!htsCandidateUuid &&
+    props.patientObj?.latestHtsResult?.uuid !== htsCandidateUuid &&
+    loadedHts?.uuid !== htsCandidateUuid;
+  // Whether to hard-block the form. Computed synchronously (not via state set in
+  // an effect) so the form never paints for a blocked record — otherwise it
+  // would flash on screen for a frame before the effect hid it.
+  const htsBlocked = isCreateMode && !isFromHts && !htsFetchPending;
 
   // ── API Calls ──
 
@@ -457,6 +483,13 @@ const PEPFollowupVisit = props => {
   }
 
   const handleFormSubmit = async values => {
+    // Hard block: a valid HTS record is required to create a PEP follow-up
+    // visit. Edits to existing records are allowed even without HTS. (In
+    // practice the form is not rendered when blocked, so this is a defensive
+    // guard.)
+    if (htsBlocked) {
+      return;
+    }
     // Manual validation for non-Formik fields
     const manualErrors = [];
     if (!notedSideEffects || notedSideEffects.length === 0) {
@@ -552,6 +585,25 @@ const PEPFollowupVisit = props => {
       }
     }
   };
+
+  // Hard block: when no valid HTS encounter can be resolved (create mode) the
+  // follow-up form must not render at all. We return only the modal, which then
+  // overlays the patient dashboard (summary / recent activities) that
+  // PatientDetail keeps rendered behind it. "Return to Dashboard" navigates back
+  // to recent-history so the form route is exited entirely.
+  if (htsBlocked) {
+    return (
+      <HtsWarningModal
+        isOpen
+        onReturnToDashboard={() =>
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "recent-history",
+          })
+        }
+      />
+    );
+  }
 
   return (
     <div className={`${classes.root} container-fluid`}>

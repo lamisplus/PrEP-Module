@@ -175,19 +175,16 @@ const PatientnHistory = props => {
         id: row.id,
         actionType: action,
       });
-    } else if (row.path === "prep-followup-visit") {
-      //prep-commencement
+    } else if (row.path === "prep-followup-visit" || row.path === "prep-commencement") {
+      // Legacy "PrEP Commencement" records live in the same prep_followup_visit
+      // table as regular follow-up visits (the standalone commencement form was
+      // removed). Route both to the consultation (PrEP follow-up) view so old
+      // commencement records can still be viewed/edited instead of rendering a
+      // missing component.
       props.setActiveContent({
         ...props.activeContent,
         route: "consultation",
         recentActivities,
-        id: row.id,
-        actionType: action,
-      });
-    } else if (row.path === "prep-commencement") {
-      props.setActiveContent({
-        ...props.activeContent,
-        route: "prep-commencement",
         id: row.id,
         actionType: action,
       });

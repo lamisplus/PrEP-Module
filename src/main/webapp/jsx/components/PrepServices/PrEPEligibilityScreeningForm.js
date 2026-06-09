@@ -16,6 +16,8 @@ import "react-phone-input-2/lib/style.css";
 import { fetchEligibilityScreeningCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
+import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
@@ -74,6 +76,7 @@ const SCREENING_POPULATION_TYPE_KEYWORDS = [
   "transgender",           // Transgender
   "other population",      // Other population
   "pregnant",              // At-risk pregnant & breastfeeding women
+  "anal sex",              // Individuals who engage in anal sex on a prolonged and regular basis
 ];
 const isAllowedScreeningPopulationType = item => {
   const text = `${item?.display || ""} ${item?.code || ""}`.toLowerCase();
@@ -221,7 +224,27 @@ const BasicInfo = props => {
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = patientObj?.latestHtsResult || loadedHts;
   const htsObs = latestHts?.observation || {};
-  const isFromHts = !!latestHts;
+  // "HTS found" is decided by whether the linked hts_encounter resolved from
+  // htsEncounterUuid is valid/properly structured. A valid HTS record is
+  // REQUIRED for screening, so when none can be resolved we hard-block with a
+  // modal (no "proceed"). Migrated records frequently have a dangling uuid or
+  // malformed encounter — those are treated as "no HTS" and blocked.
+  const isFromHts = isValidHtsEncounter(latestHts);
+  // The hard block only applies when creating a new screening (no record id).
+  // Existing records can always be viewed/edited even if their HTS is missing.
+  const isCreateMode = !props.activeContent?.id;
+  // A candidate uuid whose encounter is still being fetched means HTS isn't
+  // resolved yet — wait (no timer) rather than block prematurely.
+  const htsCandidateUuid =
+    objValues?.htsEncounterUuid || patientObj?.latestHtsResult?.uuid || null;
+  const htsFetchPending =
+    !!htsCandidateUuid &&
+    patientObj?.latestHtsResult?.uuid !== htsCandidateUuid &&
+    loadedHts?.uuid !== htsCandidateUuid;
+  // Whether to hard-block the form. Computed synchronously (not via state set in
+  // an effect) so the form never paints for a blocked record — otherwise it
+  // would flash on screen for a frame before the effect hid it.
+  const htsBlocked = isCreateMode && !isFromHts && !htsFetchPending;
   const [riskAssessment, setRiskAssessment] = useState({
     unprotectedVaginalSexCasual: "",
     unprotectedVaginalSexRegular: "",
@@ -417,19 +440,24 @@ const BasicInfo = props => {
           ...response.data,
           useDrugSexualPerformance: promotedUseDrugSexualPerformance,
         });
-        setRiskAssessment(personalHivRiskAssessment);
-        setRiskAssessmentPartner(sexPartnerRisk);
-        setStiScreening(stiScreening);
+        // Migrated records frequently carry null for these JSONB groups
+        // (assessmentForPepIndication, sexPartnerRisk, etc.). Merging onto the
+        // default-shaped state (functional update form) keeps every expected
+        // key present so the render-path Object.values(...) calls never receive
+        // null. Never replace the state with a raw null from the response.
+        setRiskAssessment(prev => ({ ...prev, ...(personalHivRiskAssessment || {}) }));
+        setRiskAssessmentPartner(prev => ({ ...prev, ...(sexPartnerRisk || {}) }));
+        setStiScreening(prev => ({ ...prev, ...(stiScreening || {}) }));
         setDrugUseHistory(normalizeLegacyDrugUseHistory(drugUseHistory));
         setHivTesting(extractLegacyHivTesting(drugUseHistory, hivTesting));
-        setAssessmentForPepIndication(assessmentForPepIndication);
-        setAssessmentForAcuteHivInfection(assessmentForAcuteHivInfection);
-        setServicesReceivedByClient(servicesReceivedByClient);
-        setAssessmentForPrepEligibility(assessmentForPrepEligibility);
+        setAssessmentForPepIndication(prev => ({ ...prev, ...(assessmentForPepIndication || {}) }));
+        setAssessmentForAcuteHivInfection(prev => ({ ...prev, ...(assessmentForAcuteHivInfection || {}) }));
+        setServicesReceivedByClient(prev => ({ ...prev, ...(servicesReceivedByClient || {}) }));
+        setAssessmentForPrepEligibility(prev => ({ ...prev, ...(assessmentForPrepEligibility || {}) }));
         if (considerationForInjections)
-          setConsiderationForInjections(considerationForInjections);
+          setConsiderationForInjections(prev => ({ ...prev, ...considerationForInjections }));
         if (reasonForDecliningPrep)
-          setReasonForDecliningPrep(reasonForDecliningPrep);
+          setReasonForDecliningPrep(prev => ({ ...prev, ...reasonForDecliningPrep }));
       })
       .catch(error => {
         console.error("Error fetching patient eligibility data:", error);
@@ -614,10 +642,10 @@ const BasicInfo = props => {
       ? ""
       : "This field is required";
     temp.sexPartner = objValues.sexPartner ? "" : "This field is required";
-    // HIV Test Result at Visit comes from HTS observation when available.
-    temp.hivTestResultAtvisit = isFromHts || hivTesting.hivTestResultAtvisit
-      ? ""
-      : "This field is required";
+    // HIV Test Result at Visit is sourced from the linked hts_encounter — a
+    // soft dependency. Never block submission on it (migrated records may have
+    // no valid HTS); the user was warned via the HTS modal.
+    temp.hivTestResultAtvisit = "";
     // useDrugSexualPerformance is its own standalone column now — it's no
     // longer gated by drug selection, so always required regardless of
     // whether any drug was checked.
@@ -650,6 +678,13 @@ const BasicInfo = props => {
 
   const handleSubmit = e => {
     e.preventDefault();
+
+    // Hard block: a valid HTS record is required to create a new screening.
+    // Edits to existing records are allowed even without HTS. (In practice the
+    // form is not rendered when blocked, so this is a defensive guard.)
+    if (htsBlocked) {
+      return;
+    }
 
     if (validate()) {
       setSaving(true);
@@ -882,6 +917,25 @@ const BasicInfo = props => {
       }));
     }
   }, [hivTesting.hivTestedBefore]);
+
+  // Hard block: when no valid HTS encounter can be resolved (create mode) the
+  // screening form must not render at all. We return only the modal, which then
+  // overlays the patient dashboard (summary / recent activities) that
+  // PatientDetail keeps rendered behind it. "Return to Dashboard" navigates back
+  // to recent-history so the form route is exited entirely.
+  if (htsBlocked) {
+    return (
+      <HtsWarningModal
+        isOpen
+        onReturnToDashboard={() =>
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "recent-history",
+          })
+        }
+      />
+    );
+  }
 
   return (
     <>
@@ -1262,7 +1316,7 @@ const BasicInfo = props => {
                     disabled={disabledField}
                   >
                     <option value={""}>Select</option>
-                    {(codeset?.SEX || []).map(item => (
+                    {(codeset?.SEX_PARTNERS || []).map(item => (
                       <option key={item.code} value={item.code}>{item.display}</option>
                     ))}
                   </select>

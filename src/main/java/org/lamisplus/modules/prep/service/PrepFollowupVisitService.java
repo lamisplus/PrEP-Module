@@ -44,6 +44,20 @@ public class PrepFollowupVisitService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
+    /**
+     * Application-level replacement for the dropped fk_prep_followup_initiation
+     * foreign key (see updates.xml changeset 23-05-2026-drop-prep-followup-initiation-fk).
+     * The DB no longer guards the prep_followup_visit -> prophylaxis_initiation
+     * relation, so we enforce it here: the uuid must be present and resolve to
+     * an existing initiation before any insert/update is persisted.
+     */
+    private void validateProphylaxisInitiationUuid(String prophylaxisInitiationUuid) {
+        if (prophylaxisInitiationUuid == null || prophylaxisInitiationUuid.trim().isEmpty()
+                || !prepPepInitiationRepository.findByUuid(prophylaxisInitiationUuid).isPresent()) {
+            throw PrepErrors.invalidProphylaxisInitiation();
+        }
+    }
+
     public PrepFollowupVisitDto saveCommencement(PrepFollowupVisitRequestDto requestDto) {
         Person person = this.getPerson(requestDto.getPersonId());
 
@@ -68,6 +82,7 @@ public class PrepFollowupVisitService {
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setIsCommencement(true);
         entity.setProphylaxisInitiationUuid(enrollmentUuid);
+        validateProphylaxisInitiationUuid(entity.getProphylaxisInitiationUuid());
         entity = prepFollowupVisitRepository.save(entity);
         entity.setPerson(person);
         PrepFollowupVisitDto dto = this.entityToDto(entity, null);
@@ -96,6 +111,7 @@ public class PrepFollowupVisitService {
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setIsCommencement(false);
         entity.setProphylaxisInitiationUuid(enrollmentUuid);
+        validateProphylaxisInitiationUuid(entity.getProphylaxisInitiationUuid());
         entity = prepFollowupVisitRepository.save(entity);
         entity.setPerson(person);
         PrepFollowupVisitDto dto = this.entityToDto(entity, null);
@@ -151,6 +167,7 @@ public class PrepFollowupVisitService {
         entity.setHtsEncounterUuid(dto.getHtsEncounterUuid());
         entity.setPreviousPrepStatus(dto.getPreviousPrepStatus());
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
+        validateProphylaxisInitiationUuid(entity.getProphylaxisInitiationUuid());
         return entityToDto(prepFollowupVisitRepository.save(entity), null);
     }
 
@@ -218,6 +235,8 @@ public class PrepFollowupVisitService {
         entity.setHepatitis(sanitizeJsonb(dto.getHepatitis()));
         entity.setSyphilis(sanitizeJsonb(dto.getSyphilis()));
         entity.setOtherTestsDone(sanitizeJsonb(dto.getOtherTestsDone()));
+        entity.setLiverFunctionTestResults(sanitizeJsonb(dto.getLiverFunctionTestResults()));
+        entity.setDateLiverFunctionTestResults(dto.getDateLiverFunctionTestResults());
         entity.setSyndromicStiScreening(sanitizeJsonb(dto.getSyndromicStiScreening()));
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
@@ -262,6 +281,8 @@ public class PrepFollowupVisitService {
         entity.setHepatitis(sanitizeJsonb(dto.getHepatitis()));
         entity.setSyphilis(sanitizeJsonb(dto.getSyphilis()));
         entity.setOtherTestsDone(sanitizeJsonb(dto.getOtherTestsDone()));
+        entity.setLiverFunctionTestResults(sanitizeJsonb(dto.getLiverFunctionTestResults()));
+        entity.setDateLiverFunctionTestResults(dto.getDateLiverFunctionTestResults());
         entity.setSyndromicStiScreening(sanitizeJsonb(dto.getSyndromicStiScreening()));
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
@@ -328,6 +349,8 @@ public class PrepFollowupVisitService {
         dto.setHepatitis(entity.getHepatitis());
         dto.setSyphilis(entity.getSyphilis());
         dto.setOtherTestsDone(entity.getOtherTestsDone());
+        dto.setLiverFunctionTestResults(entity.getLiverFunctionTestResults());
+        dto.setDateLiverFunctionTestResults(entity.getDateLiverFunctionTestResults());
         dto.setSyndromicStiScreening(entity.getSyndromicStiScreening());
         dto.setRiskReductionServices(entity.getRiskReductionServices());
         dto.setHealthCareWorkerSignature(entity.getHealthCareWorkerSignature());

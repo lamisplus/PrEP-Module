@@ -1,7 +1,6 @@
 package org.lamisplus.modules.prep.service.activity;
 
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.prep.domain.dto.PatientActivity;
 import org.lamisplus.modules.prep.domain.entity.PepFollowupVisit;
@@ -9,7 +8,9 @@ import org.lamisplus.modules.prep.repository.PepFollowupVisitRepository;
 import org.lamisplus.modules.prep.service.PatientActivityProvider;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -29,16 +30,22 @@ public class PepClinicActivityProvider implements PatientActivityProvider {
         return pepFollowupVisitRepository.findAllByPersonAndArchived(person, false)
                 .stream()
                 .map(this::buildPatientActivity)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    @NotNull
     private PatientActivity buildPatientActivity(PepFollowupVisit visit) {
         assert visit.getId() != null;
+        // Migrated rows may have a null encounter_date; fall back to dateCreated.
+        LocalDate date = PatientActivityProvider.resolveActivityDate(
+                visit.getEncounterDate(), visit.getDateCreated());
+        if (date == null) {
+            return null;
+        }
         return new PatientActivity(
                 visit.getId(),
                 "PEP Clinic",
-                visit.getEncounterDate(),
+                date,
                 "",
                 "pep-followup-visit");
     }

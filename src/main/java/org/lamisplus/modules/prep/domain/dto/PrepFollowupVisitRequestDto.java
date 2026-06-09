@@ -30,6 +30,8 @@ public class PrepFollowupVisitRequestDto implements Serializable {
     private Object hepatitis;
     private Object syphilis;
     private Object otherTestsDone;
+    private Object liverFunctionTestResults;
+    private LocalDate dateLiverFunctionTestResults;
     private Object syndromicStiScreening;
     private String riskReductionServices;
     private Object prepNotedSideEffects;

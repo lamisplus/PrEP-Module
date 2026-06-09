@@ -450,6 +450,7 @@ function PatientCard(props) {
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
+              patientDetail={patientDetail}
               PatientObject={() => onInitiationSaved()}
             />
           )}

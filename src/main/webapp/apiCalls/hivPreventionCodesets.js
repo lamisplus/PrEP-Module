@@ -69,6 +69,17 @@ function pruneEmpty(obj) {
 //            select).
 // ---------------------------------------------------------------------------
 
+// "When was your last test?" must show exactly these three options. The codeset
+// feed currently returns the wrong unarchived rows (<3 months / >6 months);
+// the desired rows (<1, 1-3, 4-6 months) exist in TIME_LAST_NEGATIVE_TEST_RESULT
+// but are archived, so we curate the list here using their real codes (so the
+// persisted payload still matches the codeset) rather than depend on the feed.
+const CURATED_TIME_LAST_NEGATIVE_TEST_RESULT = [
+  { id: 1, code: "TIME_LAST_NEGATIVE_TEST_RESULT_<1_MONTH", display: "<1 Month" },
+  { id: 2, code: "TIME_LAST_NEGATIVE_TEST_RESULT_1-3_MONTHS", display: "1-3 Months" },
+  { id: 3, code: "TIME_LAST_NEGATIVE_TEST_RESULT_4-6_MONTHS", display: "4-6 Months" },
+];
+
 export async function fetchEligibilityScreeningCodesets() {
   try {
     const data = await callApi([
@@ -82,9 +93,13 @@ export async function fetchEligibilityScreeningCodesets() {
       "TIME_LAST_NEGATIVE_TEST_RESULT",
       "HIV_TEST_RESULT",
       "PREP_SOURCE_REFERRAL",
-      "SEX",
+      "SEX_PARTNERS",
       "YES_NO",
     ]);
+
+    // Override with the curated three options regardless of what the feed
+    // returns for this group (see note above).
+    data.TIME_LAST_NEGATIVE_TEST_RESULT = CURATED_TIME_LAST_NEGATIVE_TEST_RESULT;
 
     // Convert PREP_SETTINGS to the { value, label } shape the form uses
     const settingOptions = (data.PREP_SETTINGS || []).map(item => ({
@@ -98,6 +113,7 @@ export async function fetchEligibilityScreeningCodesets() {
       hardcodedFallback(),
       hardcodedSettingOptions(),
     ]);
+    codeset.TIME_LAST_NEGATIVE_TEST_RESULT = CURATED_TIME_LAST_NEGATIVE_TEST_RESULT;
     return { codeset, settingOptions };
   }
 }
@@ -243,11 +259,39 @@ function withFallbackDiscontinuationTypes(data) {
   return { ...(data || {}), PREP_DISCONTINUATION_TYPE: merged };
 }
 
+// Fallback PREP_DISCONTINUATION_CAUSE_OF_DEATH entries for the "Cause of Death"
+// dropdown on the interruptions form. Used only when the codeset API returns
+// an empty array (or is unreachable) so the dropdown still works before the
+// server-side codeset is seeded. `code` is what gets persisted, e.g. picking
+// "Natural Cause" sends PREP_DISCONTINUATION_CAUSE_OF_DEATH_NATURAL_CAUSE.
+const FALLBACK_CAUSE_OF_DEATH = [
+  { code: "PREP_DISCONTINUATION_CAUSE_OF_DEATH_HIV_RELATED", display: "HIV-related (Cancer, parasitic disease)" },
+  { code: "PREP_DISCONTINUATION_CAUSE_OF_DEATH_NATURAL_CAUSE", display: "Natural Cause" },
+  { code: "PREP_DISCONTINUATION_CAUSE_OF_DEATH_NON_NATURAL_CAUSES", display: "Non-natural causes" },
+  { code: "PREP_DISCONTINUATION_CAUSE_OF_DEATH_OTHER_CAUSE_OF_DEATH", display: "Other cause of death" },
+  { code: "PREP_DISCONTINUATION_CAUSE_OF_DEATH_OTHER_HIV_DISEASE", display: "Other HIV disease resulting in other disease or conditions leading to death" },
+  { code: "PREP_DISCONTINUATION_CAUSE_OF_DEATH_SUSPECTED_ARV_SIDE_EFFECT", display: "Suspected ARV Side effect (Specify)" },
+  { code: "PREP_DISCONTINUATION_CAUSE_OF_DEATH_SUSPECTED_OPPORTUNISTIC_INFECTION", display: "Suspected Opportunistic Infection (Specify)" },
+  { code: "PREP_DISCONTINUATION_CAUSE_OF_DEATH_TUBERCULOSIS", display: "Tuberculosis" },
+  { code: "PREP_DISCONTINUATION_CAUSE_OF_DEATH_UNKNOWN", display: "Unknown" },
+];
+
+// Only fall back to the hardcoded list when the codeset returns an empty array
+// (or is missing), keeping the API as the source of truth once seeded.
+function withFallbackCauseOfDeath(data) {
+  const existing = Array.isArray(data?.PREP_DISCONTINUATION_CAUSE_OF_DEATH)
+    ? data.PREP_DISCONTINUATION_CAUSE_OF_DEATH : [];
+  if (existing.length > 0) return data || {};
+  const seeded = FALLBACK_CAUSE_OF_DEATH.map((fb, i) => ({ id: i + 1, ...fb }));
+  return { ...(data || {}), PREP_DISCONTINUATION_CAUSE_OF_DEATH: seeded };
+}
+
 export async function fetchDiscontinuationCodesets() {
   try {
     const data = await callApi([
       "PREP_DISCONTINUATION_TYPE",
       "PREP_DISCONTINUATION_REASON",
+      "PREP_DISCONTINUATION_CAUSE_OF_DEATH",
       "HIV_TEST_RESULT",
       "EARLY_DETECT_VIRAL_LOAD_RESULT",
       // Drives the PEP Completion select (Yes / No). We persist the codeset
@@ -255,9 +299,11 @@ export async function fetchDiscontinuationCodesets() {
       // strings without resorting to fuzzy ILIKE.
       "YES_NO",
     ]);
-    return withFallbackDiscontinuationTypes(data);
+    return withFallbackCauseOfDeath(withFallbackDiscontinuationTypes(data));
   } catch (_err) {
-    return withFallbackDiscontinuationTypes(await hardcodedFallback());
+    return withFallbackCauseOfDeath(
+      withFallbackDiscontinuationTypes(await hardcodedFallback())
+    );
   }
 }
 

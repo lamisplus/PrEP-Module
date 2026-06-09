@@ -162,6 +162,14 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "other_tests_done", columnDefinition = "jsonb")
     private Object otherTestsDone;
 
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "liver_function_test_results", columnDefinition = "jsonb")
+    private Object liverFunctionTestResults;
+
+    @Column(name = "date_of_liver_function_test_results")
+    private LocalDate dateLiverFunctionTestResults;
+
     @Column(name = "other_drugs")
     private String otherDrugs;
 

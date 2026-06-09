@@ -657,15 +657,25 @@ const PrEPDiscontinuationsInterruptions = props => {
                         Cause of Death{" "}
                         <span style={{ color: "red" }}>*</span>
                       </Label>
-                      <Input
-                        type="text"
+                      <select
+                        className="form-control"
                         name="causeOfDeath"
                         id="causeOfDeath"
-                        placeholder="Enter cause of death"
                         onChange={handleInputChange}
                         value={objValues.causeOfDeath}
                         disabled={disabledField}
-                      />
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.2rem",
+                        }}
+                      >
+                        <option value="">Select</option>
+                        {(codeset?.PREP_DISCONTINUATION_CAUSE_OF_DEATH || []).map(item => (
+                          <option key={item.code} value={item.code}>
+                            {item.display}
+                          </option>
+                        ))}
+                      </select>
                       {errors.causeOfDeath !== "" ? (
                         <span className={classes.error}>
                           {errors.causeOfDeath}
