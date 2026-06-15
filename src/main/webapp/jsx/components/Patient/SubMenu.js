@@ -93,8 +93,43 @@ function SubMenu(props) {
   const blockedByOtherArm =
     (isPrEP && isActivePep) || (isPEP && isActivePrep);
 
+  // Terminal / interrupted PrEP-PEP statuses. When the patient is in one of
+  // these states the dashboard must offer only (re)Eligibility screening — all
+  // service forms (Initiation, Follow-up, Discontinuation, Patient Visits) are
+  // hidden until a new eligibility screening re-opens the workflow.
+  const TERMINAL_PREP_STATUSES = [
+    "discontinued", "stopped", "seroconverted",
+    "dead", "referred", "default", "completed",
+  ];
+
   const renderMenuItems = () => {
     const isNegative = patientObj?.hivresultAtVisit === "Negative" || patientObj?.hivresultAtVisit === null;
+
+    // R2: client has discontinued/terminated PrEP or PEP.
+    const statusText = (patientDetail?.prepStatus || "").toLowerCase();
+    const isDiscontinued = TERMINAL_PREP_STATUSES.some(s => statusText.includes(s));
+    // R3: an HIV-positive client that nonetheless reached the grid.
+    const isPositive = patientObj?.hivresultAtVisit === "Positive";
+
+    // For both cases the only allowed action is eligibility screening; every
+    // other service form is removed so a discontinued or positive client cannot
+    // be (re)initiated or followed up without first re-screening.
+    if (isDiscontinued || isPositive) {
+      return (
+        <>
+          <Menu.Item onClick={onClickHome}>Home</Menu.Item>
+          <ProtectedComponent
+            isAuthorized={userPermissions.eligibility}
+            privateComponent={() => (
+              <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
+                {typeLabel} Eligibility Screening
+              </Menu.Item>
+            )}
+          />
+          <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
+        </>
+      );
+    }
 
     // If the patient is currently active on the OTHER arm, lock down this tab to
     // a notice + History only. The user must visit the other arm's tab and
