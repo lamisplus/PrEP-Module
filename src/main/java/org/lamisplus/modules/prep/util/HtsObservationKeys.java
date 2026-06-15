@@ -16,6 +16,13 @@ public final class HtsObservationKeys {
     public static final String KEY_HIV_EARLY_DETECT_RESULT = "hivEarlyDetectResult";
     public static final String KEY_TYPE_OF_HIV_TEST_DONE = "typeOfHivTestDone";
     public static final String KEY_PREGNANCY_STATUS = "pregnancyStatus";
+    /**
+     * Overall outcome of the HTS session. Records migrated from the old
+     * {@code hts_client} table carry the negative result here (as the plain
+     * literals below) rather than in {@link #KEY_INITIAL_HIV_TEST}, so the
+     * Patient-tab filter reads this key as well.
+     */
+    public static final String KEY_FINAL_HIV_TEST_RESULT = "finalHivTestResult";
 
     /**
      * STI_HIV_RESULT codeset values — used by {@link #KEY_INITIAL_HIV_TEST}.
@@ -23,6 +30,14 @@ public final class HtsObservationKeys {
      */
     public static final String INITIAL_HIV_TEST_NEGATIVE = "STI_HIV_RESULT_NEGATIVE";
     public static final String INITIAL_HIV_TEST_POSITIVE = "STI_HIV_RESULT_POSITIVE";
+
+    /**
+     * Plain-text values stored in {@link #KEY_FINAL_HIV_TEST_RESULT} by the
+     * legacy {@code hts_client} migration (not a codeset). Centralised here so
+     * the literal can be changed in one place if the migration mapping changes.
+     */
+    public static final String FINAL_HIV_TEST_RESULT_NEGATIVE = "Negative";
+    public static final String FINAL_HIV_TEST_RESULT_POSITIVE = "Positive";
 
     /**
      * HIV_CONFIRMATORY_TEST_RESULT codeset values — used by

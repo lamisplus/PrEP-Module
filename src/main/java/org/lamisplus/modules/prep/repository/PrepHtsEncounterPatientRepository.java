@@ -8,16 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import java.util.Optional;
 
-/**
- * Queries that drive the HIV Prevention "Patients" tab off of {@code hts_encounter}
- * rather than {@code prophylaxis_initiation}. Bound to {@link Person} because the
- * result rows are patient-shaped; this repo never touches the prophylaxis tables
- * directly except via LEFT JOINs to derive the existing status / counts the UI
- * still depends on.
- */
 public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person, Long> {
 
     String BASE_SELECT =
@@ -140,16 +132,6 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
             "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
-            // The form persists the type-specific date into its own column
-            // (date_defaulted for Default, date_client_died for Dead, etc.),
-            // so COALESCE these into a single effective_interruption_date that
-            // the main CASE compares against the latest encounter date. This
-            // is the same fix applied to findPersonPrepAndStatusByPatientUuid
-            // so the Patient tab and dashboard agree.
-            // DISTINCT ON picks the latest interruption per person, COALESCE
-            // over the type-specific date columns. Simpler + avoids the
-            // INNER-JOIN-on-MAX trap where rows silently disappear if the
-            // GROUP BY fingerprint doesn't round-trip.
             "LEFT JOIN (\n" +
             "    SELECT DISTINCT ON (pi.person_uuid) pi.id, pi.person_uuid, \n" +
             "           COALESCE(pi.interruption_date, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted) AS interruption_date, \n" +
@@ -163,42 +145,14 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
             "LEFT JOIN base_application_codeset preg_codeset\n" +
             "    ON preg_codeset.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n";
-
-    // Hard exclusion (highest precedence, AND-ed on top of the inclusion):
-    //   confirmatoryHivTest = STI_HIV_RESULT_POSITIVE  -> always exclude.
-    //
-    // NULL and empty-string both PASS this check — when the user records a
-    // negative initialHivTest they don't fill the confirmatory field at all,
-    // so observation->>'confirmatoryHivTest' comes back as NULL (key absent)
-    // or '' (key present but empty). Those rows are still candidates; only
-    // an explicit "STI_HIV_RESULT_POSITIVE" string disqualifies.
-    //
-    // Inclusion has two branches keyed on typeOfHivTestDone:
-    //   ── Branch A: TYPE_OF_HIV_TEST_RAPID_ANTIBODY (or unset / unknown) ──
-    //   Any one of:
-    //     1. confirmatoryHivTest = NEGATIVE
-    //     2. initialHivTest      = NEGATIVE
-    //     3. hivEarlyDetectResult IN (ANTIBODY_REACTIVE, ANTIGEN_REACTIVE,
-    //                                 ANTIGEN_+_ANTIBODY_REACTIVE)
-    //
-    //   ── Branch B: TYPE_OF_HIV_TEST_HIV_EARLY_DETECT ──
-    //   Must have hivEarlyDetectResult IN (ANTIBODY_REACTIVE, ANTIGEN_REACTIVE,
-    //   ANTIGEN_+_ANTIBODY_REACTIVE) AND confirmatoryHivTest = NEGATIVE.
-    //   When the early-detect result is antigen-only or antigen+antibody, the
-    //   row is still kept but the SELECT-side `pepOnly` flag tells the UI to
-    //   restrict enrollment to PEP only.
     String WHERE_FILTERS =
             "WHERE hts.archived = false\n" +
             "AND p.archived = CAST(?1 AS INTEGER)\n" +
             "AND hts.facility_id = ?2\n" +
-            // Hard exclusion: confirmed-positive is a permanent disqualifier.
-            // Reads as "confirmatoryHivTest is anything other than the literal
-            // POSITIVE code" — NULL and '' (both produced when the user didn't
-            // fill the field because initialHivTest was already negative)
-            // satisfy the check and the row stays.
             "AND COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "', '') <> '"
                     + HtsObservationKeys.CONFIRMATORY_HIV_TEST_POSITIVE + "'\n" +
-            // Two-branch inclusion.
+            "AND COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_FINAL_HIV_TEST_RESULT + "', '') <> '"
+                    + HtsObservationKeys.FINAL_HIV_TEST_RESULT_POSITIVE + "'\n" +
             "AND (\n" +
             // ── Branch A: rapid antibody (or unset) — OR of three positives ──
             "  ( (hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' IS NULL\n" +
@@ -214,16 +168,11 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
                     + HtsObservationKeys.EARLY_DETECT_ANTIBODY_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            "      OR hts.observation->>'" + HtsObservationKeys.KEY_FINAL_HIV_TEST_RESULT + "' = '"
+                    + HtsObservationKeys.FINAL_HIV_TEST_RESULT_NEGATIVE + "'\n" +
             "    )\n" +
             "  )\n" +
             "  OR\n" +
-            // ── Branch B: early-detect — reactive marker, confirmatory not positive ──
-            // We only require a reactive early-detect marker here; the
-            // "confirmatory is not positive" guarantee is already enforced
-            // by the hard-exclusion clause above (COALESCE(…) <> POSITIVE).
-            // This lets empty / unset confirmatoryHivTest (the common case for
-            // early-detect patients — the form doesn't always capture it)
-            // still pass.
             "  ( hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
                     + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE_VALUE_HIV_EARLY_DETECT + "'\n" +
             "    AND hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
@@ -284,14 +233,6 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
                     "     OR hts.client_code ILIKE ?3)",
             nativeQuery = true)
     Page<PrepHtsPatient> searchPatients(Boolean archived, Long facilityId, String search, Pageable pageable);
-
-    /**
-     * Fetches a single {@code hts_encounter} row by its uuid — used when a
-     * PrEP form (screening / initiation / followup / clinic) is loaded for
-     * view/edit and needs to rehydrate the HTS values it linked via
-     * {@code hts_encounter_uuid}. JSON columns are cast to text and parsed in the
-     * service layer.
-     */
     @Query(value =
             "SELECT hts.id              AS id,\n" +
             "       CAST(hts.uuid AS text)         AS uuid,\n" +
@@ -307,13 +248,6 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "  AND hts.archived = false",
             nativeQuery = true)
     Optional<HtsEncounterRow> findHtsEncounterByUuid(String uuid);
-
-    /**
-     * Returns the codeset display for the {@code pregnancyStatus} value on the
-     * patient's most recent non-archived hts_encounter. Used to keep the Patient
-     * Card on the dashboard populated now that {@code prophylaxis_initiation}
-     * no longer stores pregnancy status directly.
-     */
     @Query(value =
             "SELECT preg.display\n" +
             "FROM hts_encounter hts\n" +
