@@ -1266,32 +1266,95 @@
     </changeSet>
 
     <!--
-        Drop every grid index EXCEPT the single one we keep below
-        (idx_hts_encounter_latest_active). This removes the redundant
-        hts_encounter indexes earlier revisions created and the duplicate
-        PrEP-table indexes that overlapped the pre-existing patient-grid-perf-indexes
-        set. All guarded with IF EXISTS so it is a no-op where they were never
-        created. DROP INDEX CONCURRENTLY cannot run inside a transaction.
+        Grid indexes — built NON-concurrently and inside the normal changeset
+        transaction. Liquibase runs at startup before the app serves traffic, so
+        there is no live traffic to block; plain CREATE/DROP INDEX is fast and
+        reliable, whereas CONCURRENTLY can hang at startup waiting on the other
+        connections active during boot (Hibernate validation, the changelog-lock
+        session, other modules' migrations). New ids are used so they re-run
+        cleanly even if the earlier CONCURRENTLY revision was partially applied.
+
+        Drop every grid index EXCEPT the single one we keep
+        (idx_hts_encounter_latest_active): the redundant hts_encounter indexes
+        earlier revisions created plus the duplicate PrEP-table indexes that
+        overlapped the pre-existing patient-grid-perf-indexes set. IF EXISTS makes
+        it a no-op where they were never created.
     -->
-    <changeSet failOnError="false" runInTransaction="false" author="Gamaliel" id="16-06-2026-drop-grid-indexes">
+    <changeSet failOnError="false" author="Gamaliel" id="16-06-2026-drop-grid-indexes-v2">
         <sql splitStatements="true">
-            DROP INDEX CONCURRENTLY IF EXISTS idx_hts_encounter_patient_archived;
-            DROP INDEX CONCURRENTLY IF EXISTS idx_hts_encounter_patient_archived_date;
-            DROP INDEX CONCURRENTLY IF EXISTS idx_hts_encounter_latest;
-            DROP INDEX CONCURRENTLY IF EXISTS idx_hts_encounter_facility;
-            DROP INDEX CONCURRENTLY IF EXISTS idx_prophylaxis_initiation_person_arch;
-            DROP INDEX CONCURRENTLY IF EXISTS idx_prophylaxis_initiation_person_type_arch;
-            DROP INDEX CONCURRENTLY IF EXISTS idx_prophylaxis_screening_person_arch;
-            DROP INDEX CONCURRENTLY IF EXISTS idx_prep_followup_person_arch_date;
-            DROP INDEX CONCURRENTLY IF EXISTS idx_prophylaxis_interruptions_person_arch;
+            DROP INDEX IF EXISTS idx_hts_encounter_patient_archived;
+            DROP INDEX IF EXISTS idx_hts_encounter_patient_archived_date;
+            DROP INDEX IF EXISTS idx_hts_encounter_latest;
+            DROP INDEX IF EXISTS idx_hts_encounter_facility;
+            DROP INDEX IF EXISTS idx_prophylaxis_initiation_person_arch;
+            DROP INDEX IF EXISTS idx_prophylaxis_initiation_person_type_arch;
+            DROP INDEX IF EXISTS idx_prophylaxis_screening_person_arch;
+            DROP INDEX IF EXISTS idx_prep_followup_person_arch_date;
+            DROP INDEX IF EXISTS idx_prophylaxis_interruptions_person_arch;
         </sql>
     </changeSet>
 
-    <changeSet failOnError="false" runInTransaction="false" author="Gamaliel" id="16-06-2026-idx-hts-encounter-latest-active-concurrent">
+    <!--
+        The ONE index the patient grid needs on hts_encounter. Matches the
+        latest-encounter subquery exactly (WHERE archived = false GROUP BY
+        patient_id, MAX(COALESCE(date_of_visit, CAST(date_created AS date)))), so
+        it serves both that aggregation and the join-back. Partial keeps it small;
+        cast-to-date is IMMUTABLE because date_created is TIMESTAMP WITHOUT TIME
+        ZONE, so the expression index builds cleanly.
+    -->
+    <changeSet failOnError="false" author="Gamaliel" id="16-06-2026-idx-hts-encounter-latest-active-v2">
         <sql>
-            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_hts_encounter_latest_active
+            CREATE INDEX IF NOT EXISTS idx_hts_encounter_latest_active
                 ON hts_encounter (patient_id, (COALESCE(date_of_visit, CAST(date_created AS date))))
                 WHERE archived = false;
+        </sql>
+    </changeSet>
+
+    <!--
+        Fix for the failing hts-client-compat-view changeset ("hts_client is not a
+        view"): a legacy physical hts_client TABLE still exists, so CREATE OR
+        REPLACE VIEW can't take that name. The data was migrated to hts_encounter,
+        so we rename (not drop) the legacy table out of the way — preserving it as
+        hts_client_legacy_backup — then (re)create the compat view over
+        hts_encounter. The precondition runs the rename ONLY when hts_client is
+        actually a base table; otherwise it is marked ran and skipped (view already
+        exists / nothing to do).
+    -->
+    <changeSet failOnError="false" author="Gamaliel" id="16-06-2026-hts-client-rename-legacy-table">
+        <preConditions onFail="MARK_RAN" onFailMessage="hts_client is not a base table — no legacy table to rename">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_name = 'hts_client' AND table_type = 'BASE TABLE';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE hts_client RENAME TO hts_client_legacy_backup;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="16-06-2026-hts-client-compat-view-recreate">
+        <sql>
+            CREATE OR REPLACE VIEW hts_client AS
+            SELECT
+                hts.id,
+                CAST(pp.uuid AS text)               AS person_uuid,
+                hts.date_of_visit                   AS date_visit,
+                CASE
+                    WHEN hts.observation->>'confirmatoryHivTest' = 'STI_HIV_RESULT_POSITIVE'
+                        THEN 'Positive'
+                    WHEN hts.observation->>'initialHivTest' = 'STI_HIV_RESULT_POSITIVE'
+                         AND COALESCE(hts.observation->>'confirmatoryHivTest', '') = ''
+                        THEN 'Positive'
+                    WHEN hts.observation->>'confirmatoryHivTest' = 'STI_HIV_RESULT_NEGATIVE'
+                         OR hts.observation->>'initialHivTest'   = 'STI_HIV_RESULT_NEGATIVE'
+                        THEN 'Negative'
+                    ELSE ''
+                END                                 AS hiv_test_result,
+                hts.facility_id                     AS facility_id,
+                hts.archived                        AS archived
+            FROM hts_encounter hts
+            JOIN patient_person pp ON pp.id = hts.patient_id
+            WHERE hts.archived = false;
         </sql>
     </changeSet>
 
