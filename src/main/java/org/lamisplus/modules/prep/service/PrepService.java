@@ -512,8 +512,31 @@ public class PrepService {
     private boolean isActiveOnArm(String personUuid, String enrollmentType) {
         return prepPepInitiationRepository
                 .findLatestByPersonUuidAndEnrollmentType(personUuid, false, enrollmentType)
-                .map(initiation -> !Boolean.TRUE.equals(applyPepAutoExpiry(initiation)))
+                .map(initiation -> !Boolean.TRUE.equals(isEffectivelyInterrupted(initiation)))
                 .orElse(false);
+    }
+
+    /**
+     * Read-only twin of {@link #applyPepAutoExpiry}: returns the effective
+     * interrupted state (applying the 28-day PEP auto-expiry rule) WITHOUT
+     * persisting. Used by the grid page mapping — a list/read endpoint must never
+     * issue writes (the persisting variant could block behind table locks and
+     * stall the whole request). The actual expiry is persisted lazily the next
+     * time the single-patient dashboard loads via {@link #applyPepAutoExpiry}.
+     */
+    private Boolean isEffectivelyInterrupted(PrepPepInitiation initiation) {
+        if (initiation == null) return null;
+        Boolean interrupted = initiation.getIsInterrupted();
+        if (Boolean.TRUE.equals(interrupted)) return true;
+        if (EnrollmentType.isPep(initiation.getEnrollmentType())
+                && initiation.getDateEnrolled() != null) {
+            long daysSince = java.time.temporal.ChronoUnit.DAYS.between(
+                    initiation.getDateEnrolled(), java.time.LocalDate.now());
+            if (daysSince >= 28) {
+                return true;
+            }
+        }
+        return interrupted;
     }
 
     private LatestHtsResultDto toLatestHtsResultDto(PrepHtsPatient row) {
