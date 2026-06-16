@@ -69,7 +69,6 @@ public class PrepService {
         prepEligibility.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());
 
-        //Check if client eligibility on same date exist and throw an error
         prepEligibilityScreeningRepository
                 .findByVisitDateAndPersonUuidAndArchived(prepEligibilityRequestDto.getVisitDate(), person.getUuid(), false)
                 .ifPresent(prepEligibilityRec -> {
@@ -100,9 +99,6 @@ public class PrepService {
             throw PrepErrors.personMismatch("eligibility screening");
         }
 
-        // Clinical guard: PrEP is only available to clients aged 15 and above. Below that age,
-        // only PEP may be initiated. The frontend already disables the PrEP card for under-15s,
-        // but enforce here to prevent direct API misuse and bad data via syncs.
         String enrollmentType = EnrollmentType.toCanonical(prepEnrollmentRequestDto.getEnrollmentType());
         if (EnrollmentType.isPrep(enrollmentType) && person.getDateOfBirth() != null) {
             int age = Period.between(person.getDateOfBirth(), LocalDate.now()).getYears();
@@ -111,10 +107,6 @@ public class PrepService {
             }
         }
 
-        // Per-arm duplicate guard: a single eligibility screening can seed BOTH
-        // a PrEP and a PEP initiation (clients legitimately switch arms after
-        // re-screening). Only reject if an initiation of the SAME arm already
-        // exists for this screening.
         if (enrollmentType != null && !enrollmentType.isEmpty()) {
             if (this.prepPepInitiationRepository
                     .findByProphylaxisScreeningUuidAndEnrollmentTypeIgnoreCaseAndArchived(
@@ -129,8 +121,6 @@ public class PrepService {
         prepEnrollment.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());
 
-        // Same-date duplicate guard — arm-scoped so PEP and PrEP can both be
-        // initiated on the same calendar date.
         if (enrollmentType != null && !enrollmentType.isEmpty()) {
             prepPepInitiationRepository
                     .findByDateEnrolledAndPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(
@@ -222,9 +212,6 @@ public class PrepService {
                     }
                 });
 
-        // Resolve the matching prophylaxis_initiation (by enrollment type, latest first) and
-        // 1) link this interruption to it via prophylaxis_initiation_uuid; 2) flip is_interrupted
-        // on the initiation so the patient's current status is now "interrupted on that arm".
         String enrollmentType = EnrollmentType.toCanonical(interruptionRequestDto.getEnrollmentType());
         Optional<PrepPepInitiation> latestInitiation = (enrollmentType != null && !enrollmentType.isEmpty())
                 ? prepPepInitiationRepository.findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, enrollmentType)
@@ -463,15 +450,6 @@ public class PrepService {
         return mapEnrolledPage(resultPage, pageable);
     }
 
-    /**
-     * Re-uses the same projection mapper the Patient tab uses so enrollment-tab
-     * rows ship every property the dashboard expects (HTS encounter,
-     * pregnancyStatusDisplay, isInterrupted, counts, etc).
-     * <p>
-     * Pagination is preserved verbatim from the underlying {@code Page} —
-     * total elements + total pages come straight from the SQL count query;
-     * we only re-wrap the content list after DTO mapping.
-     */
     private Page<PrepHtsPatientDto> mapEnrolledPage(Page<PrepHtsPatient> resultPage, Pageable pageable) {
         List<PrepHtsPatientDto> dtos = resultPage.getContent().stream()
                 .map(this::toPrepHtsPatientDto)
@@ -531,12 +509,6 @@ public class PrepService {
                 .build();
     }
 
-    /**
-     * Whether the patient is currently active (not interrupted) on the given arm,
-     * using the same "latest initiation per arm + PEP auto-expiry" rule as the
-     * single-patient {@code getPrepDtos}. Folded into the grid page mapping so the
-     * Patient List never needs a per-row {@code prep/persons/{id}} request.
-     */
     private boolean isActiveOnArm(String personUuid, String enrollmentType) {
         return prepPepInitiationRepository
                 .findLatestByPersonUuidAndEnrollmentType(personUuid, false, enrollmentType)
@@ -561,12 +533,6 @@ public class PrepService {
                 .build();
     }
 
-    /**
-     * Rehydrate a single hts_encounter by uuid into {@link LatestHtsResultDto}
-     * — used by edit/view paths on prep forms (screening, initiation, followup,
-     * clinic) to fill the read-only HTS fields when the saved record links to
-     * an hts_encounter via {@code hts_encounter_uuid}.
-     */
     public LatestHtsResultDto findHtsEncounterByUuid(String htsEncounterUuid) {
         if (htsEncounterUuid == null || htsEncounterUuid.isEmpty()) {
             return null;
@@ -601,19 +567,6 @@ public class PrepService {
         }
     }
 
-    /**
-     * Read-time normalisation for HTS records migrated from the old hts_client
-     * table. Those store the HIV outcome only as a plain {@code finalHivTestResult}
-     * ("Negative"/"Positive") with {@code initialHivTest} left as the literal
-     * "No"/"Yes" — which the PrEP/PEP forms don't recognise as a valid,
-     * codeset-coded result, so they show the "HTS Record Required" block instead
-     * of autopopulating. We map the legacy outcome onto the canonical
-     * {@code initialHivTest} codeset value so the encounter is treated as valid
-     * and the forms autopopulate the HIV result + pregnancy status.
-     * <p>
-     * The source {@code hts_encounter} row is never mutated — this only shapes the
-     * DTO returned to the UI.
-     */
     private void normalizeMigratedHtsResult(JsonNode node) {
         if (node == null || !node.isObject()) {
             return;
@@ -636,39 +589,21 @@ public class PrepService {
             }
         }
 
-        // Pregnancy: migrated rows store a combined / misspelt value that matches
-        // no PREGNANCY_STATUS_* code, so the form dropdown can't render it. Map it
-        // onto the canonical single code the form (and codeset) expect.
         JsonNode pregnancy = observation.get(HtsObservationKeys.KEY_PREGNANCY_STATUS);
         if (pregnancy != null && pregnancy.isTextual()) {
-            String canonical = canonicalPregnancyStatus(pregnancy.asText());
-            if (canonical != null) {
-                observation.put(HtsObservationKeys.KEY_PREGNANCY_STATUS, canonical);
+            String code = firstPregnancyToken(pregnancy.asText());
+            if (code != null && !code.equals(pregnancy.asText())) {
+                observation.put(HtsObservationKeys.KEY_PREGNANCY_STATUS, code);
             }
         }
     }
 
-    /**
-     * Maps any pregnancyStatus value (legacy combined "PREGANACY_STATUS_X
-     * BREASTFEEDING_Y", misspelt, or already-canonical) onto a single canonical
-     * PREGNANCY_STATUS_* code. Mirrors the SQL CASE in
-     * {@code PrepHtsEncounterPatientRepository.PREGNANCY_STATUS_NORMALIZED_EXPR}
-     * so the form, grid and dashboard agree. Returns null for null input.
-     */
-    private String canonicalPregnancyStatus(String raw) {
+    private String firstPregnancyToken(String raw) {
         if (raw == null) {
             return null;
         }
-        if (raw.contains(HtsObservationKeys.LEGACY_PREGNANT_MARKER)) {
-            return HtsObservationKeys.PREGNANCY_STATUS_PREGNANT;
-        }
-        if (raw.contains(HtsObservationKeys.LEGACY_BREASTFEEDING_YES_MARKER)) {
-            return HtsObservationKeys.PREGNANCY_STATUS_BREASTFEEDING;
-        }
-        if (raw.contains(HtsObservationKeys.LEGACY_NOT_PREGNANT_MARKER)) {
-            return HtsObservationKeys.PREGNANCY_STATUS_NOT_PREGNANT;
-        }
-        return raw;
+        int sep = raw.indexOf(HtsObservationKeys.PREGNANCY_STATUS_TOKEN_SEPARATOR);
+        return sep < 0 ? raw : raw.substring(0, sep);
     }
 
     public Page<PrepClient> findOnlyPrepPersonPage(String searchValue, int pageNo, int pageSize) {
@@ -730,8 +665,7 @@ public class PrepService {
         if (!clients.isEmpty()) {
             prepDtos.setEnrollmentType(clients.get(0).getEnrollmentType());
         }
-        // Per-arm counts so the UI can decide what to show on each tab without
-        // re-querying. Always non-null (zero when the patient has no records).
+
         prepDtos.setInterruptionCount(
                 prophylaxisInterruptionRepository.countAllByPersonUuidAndArchived(person.getUuid(), false));
         prepDtos.setPrepInitiationCount(
@@ -740,17 +674,8 @@ public class PrepService {
         prepDtos.setPepInitiationCount(
                 prepPepInitiationRepository.countAllByPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(
                         person.getUuid(), EnrollmentType.PEP, false));
-        // Pregnancy display comes from the patient's latest hts_encounter
-        // (initiation no longer stores pregnancyStatus / breastFeeding — both are
-        // derived from the same hts pregnancyStatus codeset where Breastfeeding
-        // is one of the possible values). Patient Card reads this directly.
         prepDtos.setPregnant(
                 prepHtsEncounterPatientRepository.findLatestPregnancyStatusDisplay(person.getUuid()));
-
-        // Current regimen — display name from the patient's most recent
-        // prep_followup_visit (covers both initiation and ongoing visits).
-        // Patient Card renders this; falling back to the regimen code when an
-        // entry is not mapped in PrepRegimens.
         prepFollowupVisitRepository
                 .findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(
                         person.getUuid(), currentUserOrganizationService.getCurrentUserOrganization(),
@@ -762,11 +687,7 @@ public class PrepService {
                     if (regimenId == null || regimenId.isEmpty()) {
                         return;
                     }
-                    // After the bigint→varchar migration, regimen_id holds the
-                    // canonical codeset code (e.g. PREP_REGIMEN_TDF_FTC).
-                    // Legacy rows that survived the migration as a stringified
-                    // numeric id (no matching codeset row) fall through to
-                    // displayById so they still render a friendly name.
+
                     String display = PrepRegimens.displayByCode(regimenId);
                     if (display == null || display.equals(regimenId)) {
                         try {
@@ -777,10 +698,6 @@ public class PrepService {
                     }
                     prepDtos.setCurrentRegimen(display);
                 });
-        // If no follow-up exists yet (right after initiation), fall back to the
-        // latest initiation's prep_regimen so the dashboard never surfaces a
-        // raw numeric id. The form historically stored the numeric row id; we
-        // also handle the case where future writes use the codeset code.
         if (prepDtos.getCurrentRegimen() == null) {
             prepPepInitiationRepository
                     .findTopByPersonUuidAndArchived(person.getUuid(), false)
@@ -790,9 +707,6 @@ public class PrepService {
                             return;
                         }
                         String display = PrepRegimens.displayByCode(raw);
-                        // displayByCode returns the original string when the
-                        // code isn't mapped; treat that as a numeric-id legacy
-                        // value and re-resolve via displayById.
                         if (display == null || display.equals(raw)) {
                             try {
                                 display = PrepRegimens.displayById(Long.parseLong(raw));
@@ -805,13 +719,6 @@ public class PrepService {
                         }
                     });
         }
-
-        // isCurrentStatus* flags drive the Patient List "Enroll" modal and the
-        // SubMenu cross-arm lockouts. Compute PER ARM: a patient is "active on
-        // PrEP" only when their LATEST PrEP initiation row has is_interrupted
-        // != true (same for PEP). Falling back to findTopByPersonUuidAndArchived
-        // returned the lowest-id row regardless of arm, so a Stopped PrEP
-        // patient with an older PEP row could still appear active on PrEP.
         prepPepInitiationRepository
                 .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PREP)
                 .ifPresent(latestPrep -> {
@@ -836,19 +743,8 @@ public class PrepService {
             prepDtos.setPrepStatus(prepClient.getPrepStatus());
             prepDtos.setDateConfirmedHiv(prepClient.getDateConfirmedHiv());
             prepDtos.setCreatedBy(prepClient.getCreatedBy());
-            //prepDtos.setPrepEligibilityCount(prepClient.getEligibilityCount());
         }
 
-        // If the patient's latest initiation is PEP, override prepStatus with the
-        // PEP-specific status — the SQL above queries `prep_followup_visit`, which
-        // is empty for a PEP-only patient and resolves to "Not Commenced". The
-        // PEP Patients grid uses a dedicated PEP query (`findPepEnrolled` →
-        // PEP_STATUS_CASE) so the dashboard would disagree with the grid. We
-        // mirror that logic here in Java:
-        //   1. Latest PEP completion row with pep_completion = 'YES_NO_YES' → 'Completed'
-        //   2. No PEP follow-up visit yet → 'Enrolled'
-        //   3. >= 29 days since the anchor (date_start_pep, or encounter_date as
-        //      fallback) of the latest PEP visit → 'Completed'; else 'Active'.
         prepPepInitiationRepository
                 .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PEP)
                 .ifPresent(latestPepInit -> {
@@ -883,7 +779,6 @@ public class PrepService {
                         prepDtos.setPrepStatus(days >= 29 ? "Completed" : "Active");
                     }
                 });
-        // Compute previousProphylaxis by comparing latest PrEP and PEP followup visit dates
         LocalDate latestPrepVisit = prepFollowupVisitRepository
                 .findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(
                         person.getUuid(), currentUserOrganizationService.getCurrentUserOrganization(), false, false)
@@ -904,13 +799,6 @@ public class PrepService {
         return prepDtos;
     }
 
-    /**
-     * PEP courses auto-expire 28 days after the initiation/enrollment date. This
-     * helper is invoked whenever an initiation is read so the {@code is_interrupted}
-     * flag stays accurate without waiting for a scheduled job — the value is also
-     * persisted lazily so subsequent reads (and any direct DB queries) see it.
-     * Returns the effective interrupted state.
-     */
     private Boolean applyPepAutoExpiry(PrepPepInitiation initiation) {
         if (initiation == null) return null;
         Boolean interrupted = initiation.getIsInterrupted();
@@ -948,11 +836,6 @@ public class PrepService {
         return new PrepEnrollmentDto();
     }
 
-    /**
-     * Returns the most recent (by date_enrolled) initiation for the given person filtered
-     * by enrollment type (PrEP or PEP). Used by follow-up visit forms to compute duration
-     * on therapy and to validate that the visit date is after the enrollment date.
-     */
     public PrepEnrollmentDto getLatestInitiation(Long personId, String enrollmentType) {
         Person person = this.getPerson(personId);
         String canonicalType = EnrollmentType.toCanonical(enrollmentType);
@@ -1241,12 +1124,7 @@ public class PrepService {
         PrepDto prepDto = new PrepDto();
 
         prepDto.setId(prepEnrollment.getId());
-        //PersonResponseDto personResponseDto = personService.getDtoFromPerson(prepEnrollment.getPerson());
-        //prepDto.setPersonResponseDto(personResponseDto);
         prepDto.setDateStarted(prepEnrollment.getDateEnrolled());
-        // status column was removed from prophylaxis_initiation — initiation state
-        // is now signalled by is_interrupted (with the dashboard / patient grid
-        // queries deriving display labels).
         return prepDto;
     }
 

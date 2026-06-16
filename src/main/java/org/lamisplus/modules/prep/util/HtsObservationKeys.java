@@ -40,23 +40,15 @@ public final class HtsObservationKeys {
     public static final String FINAL_HIV_TEST_RESULT_POSITIVE = "Positive";
 
     /**
-     * Canonical PREGNANCY_STATUS codeset values — the single-valued codes the
-     * PrEP forms' dropdown and {@code base_application_codeset} use. Migrated
-     * {@code hts_client} rows store {@link #KEY_PREGNANCY_STATUS} as a combined,
-     * misspelt string (e.g. "PREGANACY_STATUS_NOT_PREGNANT BREASTFEEDING_NO"),
-     * which matches no codeset; we normalise onto one of these at read time.
+     * Separator the legacy {@code hts_client} migration used to concatenate the
+     * breastfeeding token onto {@link #KEY_PREGNANCY_STATUS}, e.g.
+     * "PREGANACY_STATUS_NOT_PREGNANT BREASTFEEDING_NO". The codeset only knows
+     * the first (pregnancy) token — note the codeset itself keeps the historical
+     * "PREGANACY" misspelling — so we keep just the part before this separator
+     * and leave it otherwise verbatim. Records that already hold a single token
+     * (e.g. "PREGANACY_STATUS_POST_PARTUM") are unaffected.
      */
-    public static final String PREGNANCY_STATUS_PREGNANT = "PREGNANCY_STATUS_PREGNANT";
-    public static final String PREGNANCY_STATUS_BREASTFEEDING = "PREGNANCY_STATUS_BREASTFEEDING";
-    public static final String PREGNANCY_STATUS_NOT_PREGNANT = "PREGNANCY_STATUS_NOT_PREGNANT";
-
-    /**
-     * Substring markers used to classify a legacy/combined pregnancyStatus value.
-     * "STATUS_PREGNANT" matches the pregnant token but NOT "STATUS_NOT_PREGNANT".
-     */
-    public static final String LEGACY_PREGNANT_MARKER = "STATUS_PREGNANT";
-    public static final String LEGACY_BREASTFEEDING_YES_MARKER = "BREASTFEEDING_YES";
-    public static final String LEGACY_NOT_PREGNANT_MARKER = "NOT_PREGNANT";
+    public static final String PREGNANCY_STATUS_TOKEN_SEPARATOR = " ";
 
     /**
      * HIV_CONFIRMATORY_TEST_RESULT codeset values — used by

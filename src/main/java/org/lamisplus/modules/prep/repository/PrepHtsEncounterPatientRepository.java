@@ -98,26 +98,17 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    END AS prepStatus\n";
 
     /**
-     * SQL expression that normalises the (possibly legacy / combined / misspelt)
-     * pregnancyStatus onto a single canonical PREGNANCY_STATUS_* code so the
-     * base_application_codeset join resolves a display. Mirrors
-     * {@code PrepService.canonicalPregnancyStatus} so form, grid and dashboard
-     * agree. Reads {@code hts.observation}, so callers must alias hts_encounter
-     * as {@code hts}.
+     * SQL expression yielding the pregnancy code that the base_application_codeset
+     * join resolves a display from. Legacy migrated rows concatenate a
+     * breastfeeding token ("PREGANACY_STATUS_NOT_PREGNANT BREASTFEEDING_NO"); we
+     * keep only the first token via split_part so it matches the codeset, while
+     * single-token values pass through unchanged. Mirrors
+     * {@code PrepService.firstPregnancyToken} so form, grid and dashboard agree.
+     * Reads {@code hts.observation}, so callers must alias hts_encounter as
+     * {@code hts}.
      */
-    String PREGNANCY_STATUS_NORMALIZED_EXPR =
-            "CASE\n" +
-            "  WHEN hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "' LIKE '%"
-                    + HtsObservationKeys.LEGACY_PREGNANT_MARKER + "%' THEN '"
-                    + HtsObservationKeys.PREGNANCY_STATUS_PREGNANT + "'\n" +
-            "  WHEN hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "' LIKE '%"
-                    + HtsObservationKeys.LEGACY_BREASTFEEDING_YES_MARKER + "%' THEN '"
-                    + HtsObservationKeys.PREGNANCY_STATUS_BREASTFEEDING + "'\n" +
-            "  WHEN hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "' LIKE '%"
-                    + HtsObservationKeys.LEGACY_NOT_PREGNANT_MARKER + "%' THEN '"
-                    + HtsObservationKeys.PREGNANCY_STATUS_NOT_PREGNANT + "'\n" +
-            "  ELSE hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n" +
-            "END";
+    String PREGNANCY_STATUS_CODE_EXPR =
+            "split_part(hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "', ' ', 1)";
 
     String FROM_AND_JOINS =
             "FROM hts_encounter hts\n" +
@@ -177,7 +168,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             ") prepi ON prepi.person_uuid = p.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
             "LEFT JOIN base_application_codeset preg_codeset\n" +
-            "    ON preg_codeset.code = " + PREGNANCY_STATUS_NORMALIZED_EXPR + "\n";
+            "    ON preg_codeset.code = " + PREGNANCY_STATUS_CODE_EXPR + "\n";
     String WHERE_FILTERS =
             "WHERE hts.archived = false\n" +
             "AND p.archived = CAST(?1 AS INTEGER)\n" +
@@ -290,7 +281,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "FROM hts_encounter hts\n" +
             "INNER JOIN patient_person p ON p.id = hts.patient_id\n" +
             "LEFT JOIN base_application_codeset preg\n" +
-            "    ON preg.code = " + PREGNANCY_STATUS_NORMALIZED_EXPR + "\n" +
+            "    ON preg.code = " + PREGNANCY_STATUS_CODE_EXPR + "\n" +
             "WHERE hts.archived = false\n" +
             "  AND CAST(p.uuid AS text) = ?1\n" +
             "ORDER BY hts.date_of_visit DESC NULLS LAST, hts.id DESC\n" +
