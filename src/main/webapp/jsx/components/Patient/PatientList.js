@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { token as token, url as baseUrl } from "./../../../api";
@@ -32,7 +32,6 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import IconButton from "@material-ui/core/IconButton";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import Tooltip from "@material-ui/core/Tooltip";
 import CloseIcon from "@material-ui/icons/Close";
 import { Icon } from "semantic-ui-react";
@@ -196,61 +195,15 @@ const EnrollPatientButton = ({ row }) => {
   // result). They must retake HTS before any PrEP/PEP service can begin.
   const [htsWarnOpen, setHtsWarnOpen] = useState(false);
   const htsNeedsRetake = !isValidHtsEncounter(row?.latestHtsResult);
-  const [activeStatus, setActiveStatus] = useState({
-    prep: false,
-    pep: false,
-    loaded: false,
-  });
-  const [loading, setLoading] = useState(false);
-  // True only when the user clicked before the prefetch landed — drives the
-  // button's transient "Checking…" state. Background prefetch never sets this,
-  // so row buttons don't all flash a spinner while the list loads.
-  const [awaitingOpen, setAwaitingOpen] = useState(false);
-  // Open intent, read inside the fetch's async callback without stale closures.
-  const openWhenLoadedRef = useRef(false);
-  // Guards against duplicate in-flight requests (prefetch vs. an early click).
-  const fetchingRef = useRef(false);
 
-  // Resolve active-enrollment status from the backend. Cached after the first
-  // success so the modal can open instantly in its final state — no jarring
-  // spinner→content (or picker→active) switch inside the dialog.
-  const fetchStatus = () => {
-    if (activeStatus.loaded || fetchingRef.current) return;
-    fetchingRef.current = true;
-    setLoading(true);
-    const personId = row?.personId || row?.id;
-    axios
-      .get(`${baseUrl}prep/persons/${personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((resp) => {
-        const d = resp?.data || {};
-        setActiveStatus({
-          prep: !!d.isCurrentStatusInterruptedPrep,
-          pep: !!d.isCurrentStatusInterruptedPep,
-          loaded: true,
-        });
-      })
-      .catch(() => {
-        setActiveStatus({ prep: false, pep: false, loaded: true });
-      })
-      .finally(() => {
-        fetchingRef.current = false;
-        setLoading(false);
-        if (openWhenLoadedRef.current) {
-          openWhenLoadedRef.current = false;
-          setAwaitingOpen(false);
-          setOpen(true);
-        }
-      });
-  };
-
-  // Prefetch on mount so an active patient shows the red-orange blocked modal
-  // the instant the user clicks — no visible state switch.
-  useEffect(() => {
-    fetchStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Active-enrollment status ships on the grid row itself (the paginated
+  // prep/persons/hts payload), so the modal opens instantly with no per-row
+  // prep/persons/{id} request. blockedArm hard-blocks BOTH arms when set.
+  const blockedArm = row?.isCurrentStatusInterruptedPrep
+    ? "PrEP"
+    : row?.isCurrentStatusInterruptedPep
+    ? "PEP"
+    : null;
 
   const handleOpen = () => {
     // Hard-stop before the picker: an incomplete/missing HTS record means the
@@ -259,21 +212,8 @@ const EnrollPatientButton = ({ row }) => {
       setHtsWarnOpen(true);
       return;
     }
-    if (activeStatus.loaded) {
-      setOpen(true);
-      return;
-    }
-    // Prefetch still in flight (or not yet started) — open as soon as it lands.
-    openWhenLoadedRef.current = true;
-    setAwaitingOpen(true);
-    fetchStatus();
+    setOpen(true);
   };
-
-  const blockedArm = activeStatus.prep
-    ? "PrEP"
-    : activeStatus.pep
-    ? "PEP"
-    : null;
 
   // PrEP minimum age is 15 — under-15 clients may only be enrolled into PEP.
   const ageNum = Number(row?.age);
@@ -307,7 +247,6 @@ const EnrollPatientButton = ({ row }) => {
         variant="contained"
         size="small"
         disableRipple
-        disabled={awaitingOpen}
         style={{
           backgroundColor: "rgb(153, 46, 98)",
           color: "#fff",
@@ -335,11 +274,7 @@ const EnrollPatientButton = ({ row }) => {
             borderRight: "0.0625rem solid rgba(255,255,255,0.4)",
           }}
         >
-          {awaitingOpen ? (
-            <CircularProgress size={15} style={{ color: "#fff" }} />
-          ) : (
-            <Icon name="user plus" style={{ margin: 0, fontSize: "0.95rem" }} />
-          )}
+          <Icon name="user plus" style={{ margin: 0, fontSize: "0.95rem" }} />
         </span>
         <span
           style={{
@@ -349,7 +284,7 @@ const EnrollPatientButton = ({ row }) => {
             whiteSpace: "nowrap",
           }}
         >
-          {awaitingOpen ? "Checking…" : "Enroll Patient"}
+          Enroll Patient
         </span>
       </MuiButton>
 
@@ -363,12 +298,7 @@ const EnrollPatientButton = ({ row }) => {
         <DialogTitle
           disableTypography
           style={{
-            background:
-              !activeStatus.loaded
-                ? "rgb(153, 46, 98)"
-                : blockedArm
-                ? "#F44336"
-                : "rgb(153, 46, 98)",
+            background: blockedArm ? "#F44336" : "rgb(153, 46, 98)",
             color: "#fff",
             padding: "0.75rem 1rem",
             display: "flex",
@@ -377,11 +307,7 @@ const EnrollPatientButton = ({ row }) => {
           }}
         >
           <span style={{ fontSize: "1rem", fontWeight: 600 }}>
-            {!activeStatus.loaded
-              ? "Loading…"
-              : blockedArm
-              ? "Active Enrollment"
-              : "Select Enrollment Type"}
+            {blockedArm ? "Active Enrollment" : "Select Enrollment Type"}
           </span>
           <IconButton
             size="small"
@@ -392,23 +318,7 @@ const EnrollPatientButton = ({ row }) => {
           </IconButton>
         </DialogTitle>
         <DialogContent style={{ padding: "1.25rem" }}>
-          {loading || !activeStatus.loaded ? (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.75rem",
-                padding: "1.5rem 0",
-                color: "#555",
-                fontSize: "0.9rem",
-              }}
-            >
-              <CircularProgress size={20} />
-              Checking enrollment status…
-            </div>
-          ) : (
-            <>
+          <>
               {/* One modal for both states: the two entry-point cards always
                   render. When the client is active on an arm we keep the cards
                   visible but disabled and surface a red-orange block notice
@@ -475,8 +385,7 @@ const EnrollPatientButton = ({ row }) => {
                   );
                 })}
               </div>
-            </>
-          )}
+          </>
         </DialogContent>
       </Dialog>
 
@@ -491,28 +400,12 @@ const EnrollPatientButton = ({ row }) => {
 
 const Patients = (props) => {
   const classes = useStyles();
-  const [patientList, setPatientList] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showPPI, setShowPPI] = useState(true);
 
-  useEffect(() => {
-    patients();
-  }, []);
-
-  async function patients() {
-    setLoading(true);
-    axios
-      .get(`${baseUrl}prep/persons/hts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setLoading(false);
-        setPatientList(response.data);
-      })
-      .catch((error) => {
-        setLoading(false);
-      });
-  }
+  // NOTE: the grid is driven entirely by MaterialTable's own paginated `data`
+  // function below. A previous unparameterised `prep/persons/hts` fetch on mount
+  // ran the heavy grid query for nothing (its result was never read), so it has
+  // been removed.
 
   const handleCheckBox = (e) => {
     if (e.target.checked) {

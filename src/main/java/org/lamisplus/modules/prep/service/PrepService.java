@@ -523,8 +523,23 @@ public class PrepService {
                 .isInterrupted(row.getIsInterrupted())
                 .pepOnly(row.getPepOnly())
                 .htsClientCode(row.getHtsClientCode())
+                .isCurrentStatusInterruptedPrep(isActiveOnArm(row.getPersonUuid(), EnrollmentType.PREP))
+                .isCurrentStatusInterruptedPep(isActiveOnArm(row.getPersonUuid(), EnrollmentType.PEP))
                 .latestHtsResult(toLatestHtsResultDto(row))
                 .build();
+    }
+
+    /**
+     * Whether the patient is currently active (not interrupted) on the given arm,
+     * using the same "latest initiation per arm + PEP auto-expiry" rule as the
+     * single-patient {@code getPrepDtos}. Folded into the grid page mapping so the
+     * Patient List never needs a per-row {@code prep/persons/{id}} request.
+     */
+    private boolean isActiveOnArm(String personUuid, String enrollmentType) {
+        return prepPepInitiationRepository
+                .findLatestByPersonUuidAndEnrollmentType(personUuid, false, enrollmentType)
+                .map(initiation -> !Boolean.TRUE.equals(applyPepAutoExpiry(initiation)))
+                .orElse(false);
     }
 
     private LatestHtsResultDto toLatestHtsResultDto(PrepHtsPatient row) {

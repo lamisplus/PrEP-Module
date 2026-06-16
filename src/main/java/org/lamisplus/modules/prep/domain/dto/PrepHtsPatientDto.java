@@ -35,6 +35,15 @@ public class PrepHtsPatientDto {
      */
     private Boolean pepOnly;
 
+    /**
+     * True when the patient is currently active on PrEP / PEP respectively (their
+     * latest initiation of that arm is not interrupted, after PEP auto-expiry).
+     * Returned on every grid row so the Patient List "Enroll" modal can decide
+     * the blocked arm WITHOUT a per-row {@code prep/persons/{id}} call.
+     */
+    private Boolean isCurrentStatusInterruptedPrep;
+    private Boolean isCurrentStatusInterruptedPep;
+
     private String htsClientCode;
     private LatestHtsResultDto latestHtsResult;
 }
