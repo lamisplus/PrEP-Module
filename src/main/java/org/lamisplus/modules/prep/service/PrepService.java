@@ -626,16 +626,49 @@ public class PrepService {
             return;
         }
         JsonNode finalResult = observation.get(HtsObservationKeys.KEY_FINAL_HIV_TEST_RESULT);
-        if (finalResult == null || !finalResult.isTextual()) {
-            return;
+        if (finalResult != null && finalResult.isTextual()) {
+            if (HtsObservationKeys.FINAL_HIV_TEST_RESULT_NEGATIVE.equalsIgnoreCase(finalResult.asText())) {
+                observation.put(HtsObservationKeys.KEY_INITIAL_HIV_TEST,
+                        HtsObservationKeys.INITIAL_HIV_TEST_NEGATIVE);
+            } else if (HtsObservationKeys.FINAL_HIV_TEST_RESULT_POSITIVE.equalsIgnoreCase(finalResult.asText())) {
+                observation.put(HtsObservationKeys.KEY_INITIAL_HIV_TEST,
+                        HtsObservationKeys.INITIAL_HIV_TEST_POSITIVE);
+            }
         }
-        if (HtsObservationKeys.FINAL_HIV_TEST_RESULT_NEGATIVE.equalsIgnoreCase(finalResult.asText())) {
-            observation.put(HtsObservationKeys.KEY_INITIAL_HIV_TEST,
-                    HtsObservationKeys.INITIAL_HIV_TEST_NEGATIVE);
-        } else if (HtsObservationKeys.FINAL_HIV_TEST_RESULT_POSITIVE.equalsIgnoreCase(finalResult.asText())) {
-            observation.put(HtsObservationKeys.KEY_INITIAL_HIV_TEST,
-                    HtsObservationKeys.INITIAL_HIV_TEST_POSITIVE);
+
+        // Pregnancy: migrated rows store a combined / misspelt value that matches
+        // no PREGNANCY_STATUS_* code, so the form dropdown can't render it. Map it
+        // onto the canonical single code the form (and codeset) expect.
+        JsonNode pregnancy = observation.get(HtsObservationKeys.KEY_PREGNANCY_STATUS);
+        if (pregnancy != null && pregnancy.isTextual()) {
+            String canonical = canonicalPregnancyStatus(pregnancy.asText());
+            if (canonical != null) {
+                observation.put(HtsObservationKeys.KEY_PREGNANCY_STATUS, canonical);
+            }
         }
+    }
+
+    /**
+     * Maps any pregnancyStatus value (legacy combined "PREGANACY_STATUS_X
+     * BREASTFEEDING_Y", misspelt, or already-canonical) onto a single canonical
+     * PREGNANCY_STATUS_* code. Mirrors the SQL CASE in
+     * {@code PrepHtsEncounterPatientRepository.PREGNANCY_STATUS_NORMALIZED_EXPR}
+     * so the form, grid and dashboard agree. Returns null for null input.
+     */
+    private String canonicalPregnancyStatus(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw.contains(HtsObservationKeys.LEGACY_PREGNANT_MARKER)) {
+            return HtsObservationKeys.PREGNANCY_STATUS_PREGNANT;
+        }
+        if (raw.contains(HtsObservationKeys.LEGACY_BREASTFEEDING_YES_MARKER)) {
+            return HtsObservationKeys.PREGNANCY_STATUS_BREASTFEEDING;
+        }
+        if (raw.contains(HtsObservationKeys.LEGACY_NOT_PREGNANT_MARKER)) {
+            return HtsObservationKeys.PREGNANCY_STATUS_NOT_PREGNANT;
+        }
+        return raw;
     }
 
     public Page<PrepClient> findOnlyPrepPersonPage(String searchValue, int pageNo, int pageSize) {
