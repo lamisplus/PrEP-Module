@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import axios from "axios";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { token as token, url as baseUrl } from "./../../../api";
@@ -169,7 +169,9 @@ const EntryPointCard = ({ entry, onSelect, disabled, disabledReason }) => {
       >
         {entry.label}
       </div>
-      <div style={{ fontSize: "0.85rem", color: "#333", marginBottom: "0.5rem" }}>
+      <div
+        style={{ fontSize: "0.85rem", color: "#333", marginBottom: "0.5rem" }}
+      >
         {entry.title}
       </div>
       <div style={{ fontSize: "0.75rem", color: "#666", lineHeight: 1.4 }}>
@@ -187,18 +189,11 @@ const EntryPointCard = ({ entry, onSelect, disabled, disabledReason }) => {
   return card;
 };
 
-const EnrollPatientButton = ({ row }) => {
+const EnrollPatientButton = React.memo(({ row }) => {
   const history = useHistory();
   const [open, setOpen] = useState(false);
-  // Shown instead of the enrollment picker when the client's latest HTS record
-  // is missing or incomplete (e.g. legacy migrated rows with no codeset HIV
-  // result). They must retake HTS before any PrEP/PEP service can begin.
   const [htsWarnOpen, setHtsWarnOpen] = useState(false);
   const htsNeedsRetake = !isValidHtsEncounter(row?.latestHtsResult);
-
-  // Active-enrollment status ships on the grid row itself (the paginated
-  // prep/persons/hts payload), so the modal opens instantly with no per-row
-  // prep/persons/{id} request. blockedArm hard-blocks BOTH arms when set.
   const blockedArm = row?.isCurrentStatusInterruptedPrep
     ? "PrEP"
     : row?.isCurrentStatusInterruptedPep
@@ -206,8 +201,6 @@ const EnrollPatientButton = ({ row }) => {
     : null;
 
   const handleOpen = () => {
-    // Hard-stop before the picker: an incomplete/missing HTS record means the
-    // client must be re-tested in the HTS module first.
     if (htsNeedsRetake) {
       setHtsWarnOpen(true);
       return;
@@ -215,18 +208,17 @@ const EnrollPatientButton = ({ row }) => {
     setOpen(true);
   };
 
-  // PrEP minimum age is 15 — under-15 clients may only be enrolled into PEP.
   const ageNum = Number(row?.age);
   const prepBlockedByAge = Number.isFinite(ageNum) && ageNum < 15;
-  // Backend flag: latest HTS encounter is early-detect with an antigen-only
-  // or antigen + antibody reactive result. PrEP is contra-indicated; only
-  // PEP may be initiated for these clients.
   const prepBlockedByEarlyDetect = !!row?.pepOnly;
 
   const handleEnroll = (screeningType) => {
-    if (blockedArm) return; // hard-block; banner explains it
-    if (screeningType === ENROLLMENT_LABEL_PREP
-        && (prepBlockedByAge || prepBlockedByEarlyDetect)) return;
+    if (blockedArm) return;
+    if (
+      screeningType === ENROLLMENT_LABEL_PREP &&
+      (prepBlockedByAge || prepBlockedByEarlyDetect)
+    )
+      return;
     setOpen(false);
     history.push({
       pathname: "/patient-dashboard",
@@ -236,12 +228,6 @@ const EnrollPatientButton = ({ row }) => {
 
   return (
     <>
-      {/*
-        Split-segment styling matching the Patient Dashboard button: a small icon
-        on the left, a vertical divider, then the label on the right. Both
-        segments share the same background; the divider is a translucent white
-        rule so the seam is subtle.
-      */}
       <MuiButton
         onClick={handleOpen}
         variant="contained"
@@ -319,72 +305,70 @@ const EnrollPatientButton = ({ row }) => {
         </DialogTitle>
         <DialogContent style={{ padding: "1.25rem" }}>
           <>
-              {/* One modal for both states: the two entry-point cards always
+            {/* One modal for both states: the two entry-point cards always
                   render. When the client is active on an arm we keep the cards
                   visible but disabled and surface a red-orange block notice
                   right below the header, instead of swapping to a separate
                   "Active Enrollment" view. */}
-              {blockedArm ? (
-                <div
-                  role="alert"
-                  style={{
-                    marginBottom: "1rem",
-                    fontSize: "0.95rem",
-                    color: "#444",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  <strong style={{ color: "#F44336" }}>
-                    {row?.firstName} {row?.surname}
-                  </strong>{" "}
-                  is currently initiated for{" "}
-                  <strong style={{ color: "#F44336" }}>{blockedArm}</strong>.
-                  Discontinue this active enrollment before starting another!
-                </div>
-              ) : (
-                <div
-                  style={{
-                    marginBottom: "1rem",
-                    fontSize: "0.875rem",
-                    color: "#444",
-                  }}
-                >
-                  Choose the service line to enroll{" "}
-                  <strong>
-                    {row?.firstName} {row?.surname}
-                  </strong>{" "}
-                  into.
-                </div>
-              )}
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                {ENTRY_POINTS.map((entry) => {
-                  const isPrepDisabledByAge =
-                    entry.code === "PrEP" && prepBlockedByAge;
-                  const isPrepDisabledByEarlyDetect =
-                    entry.code === "PrEP" && prepBlockedByEarlyDetect;
-                  const isPrepDisabled =
-                    isPrepDisabledByAge || isPrepDisabledByEarlyDetect;
-                  // Active enrollment hard-blocks BOTH arms; the PrEP-only
-                  // age / early-detect rules still apply when not blocked.
-                  const disabled = !!blockedArm || isPrepDisabled;
-                  const disabledReason = blockedArm
-                    ? `Client is currently active on ${blockedArm}. Discontinue it before enrolling.`
-                    : isPrepDisabledByEarlyDetect
-                    ? "Latest HTS encounter indicates a reactive antigen result — only PEP can be initiated."
-                    : isPrepDisabledByAge
-                    ? "Not available for clients under 15. Please use PEP."
-                    : null;
-                  return (
-                    <EntryPointCard
-                      key={entry.code}
-                      entry={entry}
-                      onSelect={handleEnroll}
-                      disabled={disabled}
-                      disabledReason={disabledReason}
-                    />
-                  );
-                })}
+            {blockedArm ? (
+              <div
+                role="alert"
+                style={{
+                  marginBottom: "1rem",
+                  fontSize: "0.95rem",
+                  color: "#444",
+                  lineHeight: 1.5,
+                }}
+              >
+                <strong style={{ color: "#F44336" }}>
+                  {row?.firstName} {row?.surname}
+                </strong>{" "}
+                is currently initiated for{" "}
+                <strong style={{ color: "#F44336" }}>{blockedArm}</strong>.
+                Discontinue this active enrollment before starting another!
               </div>
+            ) : (
+              <div
+                style={{
+                  marginBottom: "1rem",
+                  fontSize: "0.875rem",
+                  color: "#444",
+                }}
+              >
+                Choose the service line to enroll{" "}
+                <strong>
+                  {row?.firstName} {row?.surname}
+                </strong>{" "}
+                into.
+              </div>
+            )}
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              {ENTRY_POINTS.map((entry) => {
+                const isPrepDisabledByAge =
+                  entry.code === "PrEP" && prepBlockedByAge;
+                const isPrepDisabledByEarlyDetect =
+                  entry.code === "PrEP" && prepBlockedByEarlyDetect;
+                const isPrepDisabled =
+                  isPrepDisabledByAge || isPrepDisabledByEarlyDetect;
+                const disabled = !!blockedArm || isPrepDisabled;
+                const disabledReason = blockedArm
+                  ? `Client is currently active on ${blockedArm}. Discontinue it before enrolling.`
+                  : isPrepDisabledByEarlyDetect
+                  ? "Latest HTS encounter indicates a reactive antigen result — only PEP can be initiated."
+                  : isPrepDisabledByAge
+                  ? "Not available for clients under 15. Please use PEP."
+                  : null;
+                return (
+                  <EntryPointCard
+                    key={entry.code}
+                    entry={entry}
+                    onSelect={handleEnroll}
+                    disabled={disabled}
+                    disabledReason={disabledReason}
+                  />
+                );
+              })}
+            </div>
           </>
         </DialogContent>
       </Dialog>
@@ -396,16 +380,36 @@ const EnrollPatientButton = ({ row }) => {
       />
     </>
   );
-};
+});
 
 const Patients = (props) => {
   const classes = useStyles();
   const [showPPI, setShowPPI] = useState(true);
+  const pageCacheRef = useRef(new Map());
+  const PAGE_CACHE_TTL_MS = 60000;
 
-  // NOTE: the grid is driven entirely by MaterialTable's own paginated `data`
-  // function below. A previous unparameterised `prep/persons/hts` fetch on mount
-  // ran the heavy grid query for nothing (its result was never read), so it has
-  // been removed.
+  const fetchHtsPage = useCallback((query) => {
+    const search = query.search || "";
+    const key = `${query.pageSize}|${query.page}|${search}`;
+    const cache = pageCacheRef.current;
+    const hit = cache.get(key);
+    if (hit && Date.now() - hit.ts < PAGE_CACHE_TTL_MS) {
+      return Promise.resolve(hit.payload);
+    }
+    return axios
+      .get(
+        `${baseUrl}prep/persons/hts?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${search}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((result) => {
+        const payload = {
+          records: result?.data?.records || [],
+          totalCount: result?.data?.totalRecords || 0,
+        };
+        cache.set(key, { ts: Date.now(), payload });
+        return payload;
+      });
+  }, []);
 
   const handleCheckBox = (e) => {
     if (e.target.checked) {
@@ -432,27 +436,19 @@ const Patients = (props) => {
           { title: "Actions", field: "actions", filtering: false },
         ]}
         data={(query) =>
-          new Promise((resolve, reject) => {
-            axios
-              .get(
-                `${baseUrl}prep/persons/hts?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-              )
-              .then((response) => response)
-              .then((result) => {
-                resolve({
-                  data: result?.data?.records?.map?.((row) => ({
-                    name: row.firstName + " " + row.surname,
-                    hospital_number: row.hospitalNumber,
-                    gender: row && row.gender ? row.gender : "",
-                    age: row.age,
-                    actions: <EnrollPatientButton row={row} />,
-                  })),
-                  page: query.page,
-                  totalCount: result.data.totalRecords,
-                });
-              });
-          })
+          fetchHtsPage(query)
+            .then((payload) => ({
+              data: (payload.records || []).map((row) => ({
+                name: row.firstName + " " + row.surname,
+                hospital_number: row.hospitalNumber,
+                gender: row && row.gender ? row.gender : "",
+                age: row.age,
+                actions: <EnrollPatientButton row={row} />,
+              })),
+              page: query.page,
+              totalCount: payload.totalCount,
+            }))
+            .catch(() => ({ data: [], page: query.page, totalCount: 0 }))
         }
         options={{
           headerStyle: {

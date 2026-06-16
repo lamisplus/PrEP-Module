@@ -2,6 +2,7 @@ package org.lamisplus.modules.prep.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
@@ -22,6 +23,7 @@ import org.lamisplus.modules.prep.repository.PrepHtsEncounterPatientRepository;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
 import org.lamisplus.modules.prep.repository.ProphylaxisInterruptionRepository;
 import org.lamisplus.modules.prep.util.EnrollmentType;
+import org.lamisplus.modules.prep.util.HtsObservationKeys;
 import org.lamisplus.modules.prep.util.PrepErrors;
 import org.lamisplus.modules.prep.util.PrepRegimens;
 import org.springframework.data.domain.Page;
@@ -590,10 +592,49 @@ public class PrepService {
             return null;
         }
         try {
-            return objectMapper.readTree(observationJson);
+            JsonNode node = objectMapper.readTree(observationJson);
+            normalizeMigratedHtsResult(node);
+            return node;
         } catch (Exception e) {
             log.warn("Failed to parse hts_encounter observation JSON: {}", e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Read-time normalisation for HTS records migrated from the old hts_client
+     * table. Those store the HIV outcome only as a plain {@code finalHivTestResult}
+     * ("Negative"/"Positive") with {@code initialHivTest} left as the literal
+     * "No"/"Yes" — which the PrEP/PEP forms don't recognise as a valid,
+     * codeset-coded result, so they show the "HTS Record Required" block instead
+     * of autopopulating. We map the legacy outcome onto the canonical
+     * {@code initialHivTest} codeset value so the encounter is treated as valid
+     * and the forms autopopulate the HIV result + pregnancy status.
+     * <p>
+     * The source {@code hts_encounter} row is never mutated — this only shapes the
+     * DTO returned to the UI.
+     */
+    private void normalizeMigratedHtsResult(JsonNode node) {
+        if (node == null || !node.isObject()) {
+            return;
+        }
+        ObjectNode observation = (ObjectNode) node;
+        JsonNode initial = observation.get(HtsObservationKeys.KEY_INITIAL_HIV_TEST);
+        boolean alreadyCoded = initial != null && initial.isTextual()
+                && initial.asText().startsWith("STI_HIV_RESULT_");
+        if (alreadyCoded) {
+            return;
+        }
+        JsonNode finalResult = observation.get(HtsObservationKeys.KEY_FINAL_HIV_TEST_RESULT);
+        if (finalResult == null || !finalResult.isTextual()) {
+            return;
+        }
+        if (HtsObservationKeys.FINAL_HIV_TEST_RESULT_NEGATIVE.equalsIgnoreCase(finalResult.asText())) {
+            observation.put(HtsObservationKeys.KEY_INITIAL_HIV_TEST,
+                    HtsObservationKeys.INITIAL_HIV_TEST_NEGATIVE);
+        } else if (HtsObservationKeys.FINAL_HIV_TEST_RESULT_POSITIVE.equalsIgnoreCase(finalResult.asText())) {
+            observation.put(HtsObservationKeys.KEY_INITIAL_HIV_TEST,
+                    HtsObservationKeys.INITIAL_HIV_TEST_POSITIVE);
         }
     }
 

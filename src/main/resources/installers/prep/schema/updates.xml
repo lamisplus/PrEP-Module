@@ -291,13 +291,6 @@
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel Dashua" id="prep-regimen-update-v4-08-20-25">
-        <!-- Accept any prior checksum: the two ADD COLUMN statements below were
-             changed to IF NOT EXISTS after deployment. prep_regimen.prep_type and
-             prep_clinic.prep_distribution_setting are also added by the earlier
-             add-missing-prep-regimen-cols-082025 changeset, so a bare ADD COLUMN
-             here fails with "column already exists". IF NOT EXISTS makes the DDL a
-             no-op when the column is already present; the UPDATE/INSERT data steps
-             are unchanged and remain guarded by the MARK_RAN precondition. -->
         <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="1">
@@ -346,7 +339,6 @@
         </sql>
     </changeSet>
 
-    <!-- Phase 1D: Add missing columns to prep_enrollment -->
     <changeSet failOnError="true" author="Gamaliel" id="25-02-2026-02">
         <sql>
             ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS enrollment_type VARCHAR(255);
@@ -370,7 +362,6 @@
         </sql>
     </changeSet>
 
-    <!-- Phase 2B: Add missing columns to prep_interruption -->
     <changeSet failOnError="true" author="Gamaliel" id="25-02-2026-03">
         <sql>
             ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS why VARCHAR(255);
@@ -381,7 +372,6 @@
         </sql>
     </changeSet>
 
-    <!-- Add missing columns to prep_clinic for adherence/side-effect/STI details -->
     <changeSet failOnError="false" author="Gamaliel" id="03-03-2026-03">
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS why_adherence_level_poor VARCHAR(255);
@@ -391,7 +381,6 @@
         </sql>
     </changeSet>
 
-    <!-- 2.1 prophylaxis_screening (must be created before tables that reference it) -->
     <changeSet failOnError="false" author="Gamaliel" id="create-prophylaxis-screening-v2">
         <validCheckSum>ANY</validCheckSum>
         <sql>
@@ -438,7 +427,6 @@
         </sql>
     </changeSet>
 
-    <!-- 2.1b Add category column if table already existed without it -->
     <changeSet failOnError="false" author="Gamaliel" id="add-category-to-prophylaxis-screening-v2">
         <sql>
             ALTER TABLE prophylaxis_screening ADD COLUMN IF NOT EXISTS category VARCHAR(255);
@@ -492,7 +480,6 @@
         </sql>
     </changeSet>
 
-    <!-- 1.3 prep_followup_visit (replaces prep_clinic) -->
     <changeSet failOnError="true" author="Gamaliel" id="04-03-2026-03">
         <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
@@ -673,7 +660,6 @@
         </sql>
     </changeSet>
 
-    <!-- 3.0 Create prophylaxis_interruptions table -->
     <changeSet failOnError="false" author="Gamaliel" id="create-prophylaxis-interruptions-v1">
         <validCheckSum>ANY</validCheckSum>
         <sql>
@@ -777,8 +763,6 @@
         </sql>
     </changeSet>
 
-    <!-- Indexes covering the Patient-tab + Enrollment-tab joins. Each is an
-         additive CREATE INDEX IF NOT EXISTS, so safe on every boot. -->
     <changeSet failOnError="false" author="Gamaliel" id="patient-grid-perf-indexes">
         <sql>
             CREATE INDEX IF NOT EXISTS idx_hts_encounter_patient_archived_date
@@ -926,7 +910,6 @@
         </sql>
     </changeSet>
 
-    <!-- prophylaxis_screening -->
     <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-screening">
         <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_screening.archived is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
@@ -945,7 +928,6 @@
         </sql>
     </changeSet>
 
-    <!-- prophylaxis_initiation -->
     <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-initiation">
         <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_initiation.archived is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
@@ -964,7 +946,6 @@
         </sql>
     </changeSet>
 
-    <!-- prophylaxis_interruptions -->
     <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-interruptions">
         <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_interruptions.archived is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
@@ -983,7 +964,6 @@
         </sql>
     </changeSet>
 
-    <!-- prep_followup_visit -->
     <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prep-followup">
         <preConditions onFail="MARK_RAN" onFailMessage="prep_followup_visit.archived is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
@@ -1002,7 +982,6 @@
         </sql>
     </changeSet>
 
-    <!-- pep_followup_visit -->
     <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-pep-followup">
         <preConditions onFail="MARK_RAN" onFailMessage="pep_followup_visit.archived is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
@@ -1065,7 +1044,6 @@
         </sql>
     </changeSet>
 
-    <!-- prep_clinic: ALTER TYPE -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-prep-clinic-type">
         <preConditions onFail="MARK_RAN" onFailMessage="prep_clinic.regimen_id is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
@@ -1084,7 +1062,6 @@
         </sql>
     </changeSet>
 
-    <!-- prep_clinic: backfill -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-prep-clinic">
         <sql>
             UPDATE prep_clinic SET regimen_id = NULL                        WHERE regimen_id = '0';
@@ -1101,7 +1078,6 @@
         </sql>
     </changeSet>
 
-    <!-- prep_followup_visit: ALTER TYPE -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-prep-followup-type">
         <preConditions onFail="MARK_RAN" onFailMessage="prep_followup_visit.regimen_id is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
@@ -1120,7 +1096,6 @@
         </sql>
     </changeSet>
 
-    <!-- prep_followup_visit: backfill -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-prep-followup">
         <sql>
             UPDATE prep_followup_visit SET regimen_id = NULL                        WHERE regimen_id = '0';
@@ -1137,7 +1112,6 @@
         </sql>
     </changeSet>
 
-    <!-- pep_followup_visit: ALTER TYPE -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-pep-followup-type">
         <preConditions onFail="MARK_RAN" onFailMessage="pep_followup_visit.regimen_id is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
@@ -1156,7 +1130,6 @@
         </sql>
     </changeSet>
 
-    <!-- pep_followup_visit: backfill -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-pep-followup">
         <sql>
             UPDATE pep_followup_visit SET regimen_id = NULL                        WHERE regimen_id = '0';
@@ -1289,6 +1262,27 @@
     <changeSet failOnError="false" author="Gamaliel" id="05-06-2026-prep-followup-add-date-liver-function">
         <sql>
             ALTER TABLE IF EXISTS prep_followup_visit ADD COLUMN IF NOT EXISTS date_of_liver_function_test_results DATE;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Gamaliel" id="16-06-2026-prep-grid-performance-indexes">
+        <sql splitStatements="true">
+            CREATE INDEX IF NOT EXISTS idx_hts_encounter_patient_archived
+                ON hts_encounter (patient_id, archived);
+            CREATE INDEX IF NOT EXISTS idx_hts_encounter_latest
+                ON hts_encounter (patient_id, (COALESCE(date_of_visit, CAST(date_created AS date))));
+            CREATE INDEX IF NOT EXISTS idx_hts_encounter_facility
+                ON hts_encounter (facility_id);
+            CREATE INDEX IF NOT EXISTS idx_prophylaxis_initiation_person_arch
+                ON prophylaxis_initiation (person_uuid, archived);
+            CREATE INDEX IF NOT EXISTS idx_prophylaxis_initiation_person_type_arch
+                ON prophylaxis_initiation (person_uuid, enrollment_type, archived);
+            CREATE INDEX IF NOT EXISTS idx_prophylaxis_screening_person_arch
+                ON prophylaxis_screening (person_uuid, archived);
+            CREATE INDEX IF NOT EXISTS idx_prep_followup_person_arch_date
+                ON prep_followup_visit (person_uuid, archived, encounter_date);
+            CREATE INDEX IF NOT EXISTS idx_prophylaxis_interruptions_person_arch
+                ON prophylaxis_interruptions (person_uuid, archived);
         </sql>
     </changeSet>
 
