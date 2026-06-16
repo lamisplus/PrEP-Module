@@ -39,6 +39,8 @@ import { Icon } from "semantic-ui-react";
 import "@reach/menu-button/styles.css";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
+import HtsWarningModal from "../../../Reusables/HtsWarningModal";
+import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
 
 Moment.locale("en");
 momentLocalizer();
@@ -189,6 +191,11 @@ const EntryPointCard = ({ entry, onSelect, disabled, disabledReason }) => {
 const EnrollPatientButton = ({ row }) => {
   const history = useHistory();
   const [open, setOpen] = useState(false);
+  // Shown instead of the enrollment picker when the client's latest HTS record
+  // is missing or incomplete (e.g. legacy migrated rows with no codeset HIV
+  // result). They must retake HTS before any PrEP/PEP service can begin.
+  const [htsWarnOpen, setHtsWarnOpen] = useState(false);
+  const htsNeedsRetake = !isValidHtsEncounter(row?.latestHtsResult);
   const [activeStatus, setActiveStatus] = useState({
     prep: false,
     pep: false,
@@ -246,6 +253,12 @@ const EnrollPatientButton = ({ row }) => {
   }, []);
 
   const handleOpen = () => {
+    // Hard-stop before the picker: an incomplete/missing HTS record means the
+    // client must be re-tested in the HTS module first.
+    if (htsNeedsRetake) {
+      setHtsWarnOpen(true);
+      return;
+    }
     if (activeStatus.loaded) {
       setOpen(true);
       return;
@@ -466,6 +479,12 @@ const EnrollPatientButton = ({ row }) => {
           )}
         </DialogContent>
       </Dialog>
+
+      <HtsWarningModal
+        isOpen={htsWarnOpen}
+        onReturnToDashboard={() => setHtsWarnOpen(false)}
+        dismissLabel="Close"
+      />
     </>
   );
 };

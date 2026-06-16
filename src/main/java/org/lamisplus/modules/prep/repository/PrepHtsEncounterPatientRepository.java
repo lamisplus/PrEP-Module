@@ -33,10 +33,14 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    CAST(hts.uuid AS text) AS latestHtsUuid,\n" +
             "    hts.patient_id AS latestHtsPatientId,\n" +
             "    CAST(hts.patient_uuid AS text) AS latestHtsPatientUuid,\n" +
-            "    hts.date_of_visit AS latestHtsDateOfVisit,\n" +
+            // Legacy migrated rows may have a NULL date_of_visit / facility_id.
+            // Coalesce at read time (date_created is a NOT-NULL audit column; the
+            // patient's facility is the natural fallback) so we never mutate the
+            // source hts_encounter rows just to make them displayable.
+            "    COALESCE(hts.date_of_visit, hts.date_created::date) AS latestHtsDateOfVisit,\n" +
             "    hts.setting AS latestHtsSetting,\n" +
             "    CAST(hts.observation AS text) AS latestHtsObservation,\n" +
-            "    hts.facility_id AS latestHtsFacilityId,\n" +
+            "    COALESCE(hts.facility_id, p.facility_id) AS latestHtsFacilityId,\n" +
             "    preg_codeset.display AS pregnancyStatusDisplay,\n" +
             // PEP-only flag: true when the early-detect result indicates acute
             // infection (antigen reactive or antigen + antibody reactive) AND
@@ -95,13 +99,18 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
 
     String FROM_AND_JOINS =
             "FROM hts_encounter hts\n" +
+            // Pick the latest encounter per patient on the effective visit date
+            // COALESCE(date_of_visit, date_created::date). A NULL date_of_visit
+            // would otherwise drop the row entirely (MAX skips NULLs and the
+            // self-join NULL = NULL is never true), so legacy migrated rows would
+            // vanish. Coalescing makes the match robust without touching the data.
             "INNER JOIN (\n" +
-            "    SELECT patient_id, MAX(date_of_visit) AS max_date\n" +
+            "    SELECT patient_id, MAX(COALESCE(date_of_visit, date_created::date)) AS max_date\n" +
             "    FROM hts_encounter\n" +
             "    WHERE archived = false\n" +
             "    GROUP BY patient_id\n" +
             ") latest_hts ON latest_hts.patient_id = hts.patient_id\n" +
-            "          AND latest_hts.max_date = hts.date_of_visit\n" +
+            "          AND latest_hts.max_date = COALESCE(hts.date_of_visit, hts.date_created::date)\n" +
             "INNER JOIN patient_person p ON p.id = hts.patient_id\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
@@ -148,7 +157,10 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
     String WHERE_FILTERS =
             "WHERE hts.archived = false\n" +
             "AND p.archived = CAST(?1 AS INTEGER)\n" +
-            "AND hts.facility_id = ?2\n" +
+            // Fall back to the patient's facility when the encounter's own
+            // facility_id is NULL (legacy migrated rows), so they still match the
+            // logged-in facility without a data backfill.
+            "AND COALESCE(hts.facility_id, p.facility_id) = ?2\n" +
             "AND COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "', '') <> '"
                     + HtsObservationKeys.CONFIRMATORY_HIV_TEST_POSITIVE + "'\n" +
             "AND COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_FINAL_HIV_TEST_RESULT + "', '') <> '"
@@ -193,7 +205,8 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    prepc.status, he.person_uuid,\n" +
             "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled,\n" +
             "    hts.client_code, hts.id, hts.uuid, hts.patient_id, hts.patient_uuid,\n" +
-            "    hts.date_of_visit, hts.setting, hts.observation, hts.facility_id,\n" +
+            "    hts.date_of_visit, hts.date_created, hts.setting, hts.observation,\n" +
+            "    hts.facility_id, p.facility_id,\n" +
             "    preg_codeset.display\n";
 
     @Query(value =

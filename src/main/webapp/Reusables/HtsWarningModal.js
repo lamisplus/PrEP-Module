@@ -14,9 +14,16 @@ const SCHEME_LIGHT_BLUE = "#03A9F4";
  * HTS service yet). Per the bootcamp requirement a valid HTS record is required
  * for PrEP/PEP screening, so there is no "Proceed" — the user must go to the
  * HTS module, provide HTS service, and come back. The single action dismisses
- * the modal and leaves them on the dashboard.
+ * the modal and leaves them where they were (the dashboard on the form routes,
+ * the patient list on the Enroll step). `dismissLabel` lets the caller match the
+ * wording to that context; it defaults to "Return to Dashboard".
  */
-const HtsWarningModal = ({ isOpen, onReturnToDashboard, message }) => (
+const HtsWarningModal = ({
+  isOpen,
+  onReturnToDashboard,
+  message,
+  dismissLabel = "Return to Dashboard",
+}) => (
   <Modal isOpen={isOpen} centered backdrop="static" keyboard={false}>
     <ModalHeader style={{ backgroundColor: SCHEME_RED_ORANGE }}>
       {/* Colour the text on the title element itself; setting it on the header
@@ -35,7 +42,7 @@ const HtsWarningModal = ({ isOpen, onReturnToDashboard, message }) => (
         onClick={onReturnToDashboard}
         style={{ backgroundColor: SCHEME_LIGHT_BLUE, borderColor: SCHEME_LIGHT_BLUE }}
       >
-        Return to Dashboard
+        {dismissLabel}
       </Button>
     </ModalFooter>
   </Modal>
