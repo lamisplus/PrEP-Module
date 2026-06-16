@@ -1266,61 +1266,32 @@
     </changeSet>
 
     <!--
-        Grid performance indexes, built with CREATE INDEX CONCURRENTLY so they
-        never take a write-blocking lock on a live database. CONCURRENTLY cannot
-        run inside a transaction, so each is its own changeSet with
-        runInTransaction="false". IF NOT EXISTS keeps them idempotent;
-        failOnError="false" so a transient concurrent-build failure (which can
-        leave an INVALID index to be reindexed manually) never blocks startup.
-
-        These only add the indexes the optimised grid query needs ON TOP OF the
-        existing "patient-grid-perf-indexes" changeset above — namely the
-        expression index matching the latest-encounter pick, the per-arm
-        initiation lookup, and hts_encounter.facility_id. The duplicate-named
-        indexes a previous non-concurrent revision of this changelog may have
-        created are dropped below.
-
-        NB: idx_hts_encounter_latest indexes COALESCE(date_of_visit,
-        CAST(date_created AS date)). This requires date_created to be a plain
-        TIMESTAMP (cast-to-date is IMMUTABLE). If date_created is TIMESTAMPTZ the
-        build is rejected (non-immutable) and harmlessly skipped via
-        failOnError="false"; the (patient_id, archived, date_of_visit) index from
-        patient-grid-perf-indexes still covers the common path.
+        Drop every grid index EXCEPT the single one we keep below
+        (idx_hts_encounter_latest_active). This removes the redundant
+        hts_encounter indexes earlier revisions created and the duplicate
+        PrEP-table indexes that overlapped the pre-existing patient-grid-perf-indexes
+        set. All guarded with IF EXISTS so it is a no-op where they were never
+        created. DROP INDEX CONCURRENTLY cannot run inside a transaction.
     -->
-    <changeSet failOnError="false" runInTransaction="false" author="Gamaliel" id="16-06-2026-idx-hts-encounter-latest-concurrent">
-        <sql>
-            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_hts_encounter_latest
-                ON hts_encounter (patient_id, (COALESCE(date_of_visit, CAST(date_created AS date))));
-        </sql>
-    </changeSet>
-
-    <changeSet failOnError="false" runInTransaction="false" author="Gamaliel" id="16-06-2026-idx-prophylaxis-initiation-person-type-arch-concurrent">
-        <sql>
-            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_prophylaxis_initiation_person_type_arch
-                ON prophylaxis_initiation (person_uuid, enrollment_type, archived);
-        </sql>
-    </changeSet>
-
-    <changeSet failOnError="false" runInTransaction="false" author="Gamaliel" id="16-06-2026-idx-hts-encounter-facility-concurrent">
-        <sql>
-            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_hts_encounter_facility
-                ON hts_encounter (facility_id);
-        </sql>
-    </changeSet>
-
-    <!--
-        Drop the duplicate non-concurrent indexes a previous revision of this
-        changelog created; each is already covered by an equivalently-shaped
-        index in the patient-grid-perf-indexes changeset above. DROP INDEX
-        CONCURRENTLY also cannot run in a transaction.
-    -->
-    <changeSet failOnError="false" runInTransaction="false" author="Gamaliel" id="16-06-2026-drop-duplicate-grid-indexes">
+    <changeSet failOnError="false" runInTransaction="false" author="Gamaliel" id="16-06-2026-drop-grid-indexes">
         <sql splitStatements="true">
             DROP INDEX CONCURRENTLY IF EXISTS idx_hts_encounter_patient_archived;
+            DROP INDEX CONCURRENTLY IF EXISTS idx_hts_encounter_patient_archived_date;
+            DROP INDEX CONCURRENTLY IF EXISTS idx_hts_encounter_latest;
+            DROP INDEX CONCURRENTLY IF EXISTS idx_hts_encounter_facility;
             DROP INDEX CONCURRENTLY IF EXISTS idx_prophylaxis_initiation_person_arch;
+            DROP INDEX CONCURRENTLY IF EXISTS idx_prophylaxis_initiation_person_type_arch;
             DROP INDEX CONCURRENTLY IF EXISTS idx_prophylaxis_screening_person_arch;
             DROP INDEX CONCURRENTLY IF EXISTS idx_prep_followup_person_arch_date;
             DROP INDEX CONCURRENTLY IF EXISTS idx_prophylaxis_interruptions_person_arch;
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" runInTransaction="false" author="Gamaliel" id="16-06-2026-idx-hts-encounter-latest-active-concurrent">
+        <sql>
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_hts_encounter_latest_active
+                ON hts_encounter (patient_id, (COALESCE(date_of_visit, CAST(date_created AS date))))
+                WHERE archived = false;
         </sql>
     </changeSet>
 

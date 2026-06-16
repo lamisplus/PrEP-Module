@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.TransactionManager;
@@ -16,6 +17,7 @@ import javax.sql.DataSource;
 @RequiredArgsConstructor
 @Slf4j
 @Configuration
+@EnableScheduling
 @EnableJpaRepositories(
         transactionManagerRef = "prepTransactionManger",
         basePackages = {"org.lamisplus.modules.prep.repository"}

@@ -82,6 +82,7 @@ public class PrepService {
         PrepEligibilityDto prepEligibilityDto = this.prepEligibilityToPrepEligibilityDto(prepEligibility);
         prepEligibilityDto.setPrepEligibilityCount(prepEligibilityScreeningRepository
                 .findAllByPersonUuid(person.getUuid()).size());
+        evictGridCacheForFacility(prepEligibility.getFacilityId());
         return prepEligibilityDto;
     }
 
@@ -135,6 +136,7 @@ public class PrepService {
         prepEnrollment.setPerson(prepEligibility.getPerson());
         PrepEnrollmentDto prepEnrollmentDto = this.enrollmentToEnrollmentDto(prepEnrollment);
         prepEnrollmentDto.setStatus("Enrolled");
+        evictGridCacheForFacility(prepEnrollment.getFacilityId());
         return prepEnrollmentDto;
     }
 
@@ -161,6 +163,7 @@ public class PrepService {
         prepClinic = prepFollowupVisitRepository.save(prepClinic);
         prepClinic.setPerson(person);
         PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic);
+        evictGridCacheForFacility(prepClinic.getFacilityId());
         return prepClinicDto;
     }
 
@@ -194,6 +197,7 @@ public class PrepService {
         prepClinic.setHtsEncounterUuid(clinicRequestDto.getHtsEncounterUuid());
         prepClinic.setPerson(person);
         PrepClinicDto prepClinicDto = this.clinicToClinicDto(prepClinic);
+        evictGridCacheForFacility(prepClinic.getFacilityId());
         return prepClinicDto;
     }
 
@@ -238,6 +242,7 @@ public class PrepService {
         }
 
         interruption.setPerson(person);
+        evictGridCacheForFacility(interruption.getFacilityId());
         return interruptionEntityToDto(interruption);
     }
 
@@ -457,11 +462,88 @@ public class PrepService {
         return new PageImpl<>(dtos, pageable, resultPage.getTotalElements());
     }
 
+    // ── Patient-grid result cache + scheduled pre-warm ───────────────────────
+    // The grid query scans hts_encounter (large, incl. migrated records) and is
+    // identical for every user hitting the same facility / search / page. We add
+    // NO index to hts_encounter (it is the HTS module's table); instead we cache
+    // the assembled page in-JVM for a short TTL, AND a scheduled job re-runs the
+    // recently-accessed keys just under the TTL so the working set never expires
+    // — the first real user of each minute hits a warm cache. Staleness is
+    // bounded by the TTL (a new enrollment/screening surfaces within it).
+    //
+    // TTL (90s) is deliberately longer than the pre-warm interval (60s) so a
+    // refresh always lands before an entry expires.
+    private static final long GRID_CACHE_TTL_MS = 90_000L;
+    private static final int GRID_CACHE_MAX_ENTRIES = 512;
+    // Only keys requested within this window are kept warm by the scheduler.
+    private static final long GRID_ACTIVE_WINDOW_MS = 15 * 60_000L;
+
+    private final java.util.concurrent.ConcurrentMap<String, GridCacheEntry> gridCache =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    // Recently-requested grid keys (the working set the scheduler keeps warm).
+    private final java.util.concurrent.ConcurrentMap<String, GridAccess> gridAccess =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static final class GridCacheEntry {
+        final long timestamp = System.currentTimeMillis();
+        final List<PrepHtsPatientDto> content;
+        final long total;
+        GridCacheEntry(List<PrepHtsPatientDto> content, long total) {
+            this.content = content;
+            this.total = total;
+        }
+        boolean isFresh() {
+            return System.currentTimeMillis() - timestamp < GRID_CACHE_TTL_MS;
+        }
+    }
+
+    private static final class GridAccess {
+        final Long facilityId;
+        final String searchValue;
+        final int pageNo;
+        final int pageSize;
+        volatile long lastAccessMillis;
+        GridAccess(Long facilityId, String searchValue, int pageNo, int pageSize) {
+            this.facilityId = facilityId;
+            this.searchValue = searchValue;
+            this.pageNo = pageNo;
+            this.pageSize = pageSize;
+            this.lastAccessMillis = System.currentTimeMillis();
+        }
+    }
+
+    private static String gridKey(Long facilityId, String searchValue, int pageNo, int pageSize) {
+        return facilityId + "|" + searchValue + "|" + pageNo + "|" + pageSize;
+    }
+
     public Page<PrepHtsPatientDto> findAllHtsEncounterPatientPage(String searchValue, int pageNo, int pageSize) {
         Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<PrepHtsPatient> resultPage;
+        String cacheKey = gridKey(facilityId, searchValue, pageNo, pageSize);
 
+        // Record the access so the scheduler keeps this key warm.
+        gridAccess.compute(cacheKey, (k, a) -> {
+            if (a == null) {
+                return new GridAccess(facilityId, searchValue, pageNo, pageSize);
+            }
+            a.lastAccessMillis = System.currentTimeMillis();
+            return a;
+        });
+
+        GridCacheEntry cached = gridCache.get(cacheKey);
+        if (cached != null && cached.isFresh()) {
+            return new PageImpl<>(cached.content, pageable, cached.total);
+        }
+        return computeAndCacheGridPage(facilityId, searchValue, pageNo, pageSize, pageable);
+    }
+
+    /**
+     * Runs the grid query for an explicit facility (no security context needed —
+     * so it is safe from the scheduler thread) and stores the result in the cache.
+     */
+    private Page<PrepHtsPatientDto> computeAndCacheGridPage(
+            Long facilityId, String searchValue, int pageNo, int pageSize, Pageable pageable) {
+        Page<PrepHtsPatient> resultPage;
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
             String queryParam = "%" + searchValue.replaceAll("\\s", "") + "%";
             resultPage = prepHtsEncounterPatientRepository
@@ -476,7 +558,64 @@ public class PrepService {
                 .map(this::toPrepHtsPatientDto)
                 .collect(Collectors.toList());
 
+        cacheGridPage(gridKey(facilityId, searchValue, pageNo, pageSize), dtos, resultPage.getTotalElements());
         return new PageImpl<>(dtos, pageable, resultPage.getTotalElements());
+    }
+
+    private void cacheGridPage(String key, List<PrepHtsPatientDto> content, long total) {
+        // Opportunistic bound: drop expired entries first; if still at the cap,
+        // clear the map rather than let it grow unbounded.
+        if (gridCache.size() >= GRID_CACHE_MAX_ENTRIES) {
+            gridCache.values().removeIf(e -> !e.isFresh());
+            if (gridCache.size() >= GRID_CACHE_MAX_ENTRIES) {
+                gridCache.clear();
+            }
+        }
+        gridCache.put(key, new GridCacheEntry(content, total));
+    }
+
+    /**
+     * Scheduled pre-warm: every minute, re-run the grid keys that have been
+     * accessed within the active window and refresh their cache entries. Because
+     * the interval (60s) is below the cache TTL (90s), the working set never goes
+     * cold, so real users always hit a warm cache. Runs off the request thread
+     * with explicit facility ids (no security context required). Each key is
+     * isolated so one failure can't abort the rest.
+     */
+    @org.springframework.scheduling.annotation.Scheduled(
+            fixedDelayString = "${prep.grid.prewarm-interval-ms:60000}",
+            initialDelayString = "${prep.grid.prewarm-initial-delay-ms:60000}")
+    public void prewarmPatientGrids() {
+        long now = System.currentTimeMillis();
+        gridAccess.values().removeIf(a -> now - a.lastAccessMillis > GRID_ACTIVE_WINDOW_MS);
+        for (GridAccess a : gridAccess.values()) {
+            if (a.facilityId == null) {
+                continue;
+            }
+            try {
+                computeAndCacheGridPage(a.facilityId, a.searchValue, a.pageNo, a.pageSize,
+                        PageRequest.of(a.pageNo, a.pageSize));
+            } catch (Exception e) {
+                log.warn("Patient-grid pre-warm failed for facility {} (search='{}', page={}): {}",
+                        a.facilityId, a.searchValue, a.pageNo, e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Drops every cached grid page for a facility so a just-saved
+     * eligibility/enrollment/commencement/clinic/interruption is reflected on the
+     * patient grid immediately, rather than after the cache TTL. Keys are
+     * "facilityId|search|pageNo|pageSize"; the trailing '|' makes the prefix match
+     * exact (facility 18 won't match 1852). gridAccess is left intact so the
+     * scheduler re-warms the facility on its next tick.
+     */
+    private void evictGridCacheForFacility(Long facilityId) {
+        if (facilityId == null) {
+            return;
+        }
+        String prefix = facilityId + "|";
+        gridCache.keySet().removeIf(k -> k.startsWith(prefix));
     }
 
     private PrepHtsPatientDto toPrepHtsPatientDto(PrepHtsPatient row) {
