@@ -37,7 +37,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             // Coalesce at read time (date_created is a NOT-NULL audit column; the
             // patient's facility is the natural fallback) so we never mutate the
             // source hts_encounter rows just to make them displayable.
-            "    COALESCE(hts.date_of_visit, hts.date_created::date) AS latestHtsDateOfVisit,\n" +
+            "    COALESCE(hts.date_of_visit, CAST(hts.date_created AS date)) AS latestHtsDateOfVisit,\n" +
             "    hts.setting AS latestHtsSetting,\n" +
             "    CAST(hts.observation AS text) AS latestHtsObservation,\n" +
             "    COALESCE(hts.facility_id, p.facility_id) AS latestHtsFacilityId,\n" +
@@ -100,17 +100,19 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
     String FROM_AND_JOINS =
             "FROM hts_encounter hts\n" +
             // Pick the latest encounter per patient on the effective visit date
-            // COALESCE(date_of_visit, date_created::date). A NULL date_of_visit
-            // would otherwise drop the row entirely (MAX skips NULLs and the
-            // self-join NULL = NULL is never true), so legacy migrated rows would
-            // vanish. Coalescing makes the match robust without touching the data.
+            // COALESCE(date_of_visit, CAST(date_created AS date)). A NULL
+            // date_of_visit would otherwise drop the row entirely (MAX skips
+            // NULLs and the self-join NULL = NULL is never true), so legacy
+            // migrated rows would vanish. Coalescing makes the match robust
+            // without touching the data. NB: use CAST, not the `::` operator —
+            // Hibernate reads `:` in a native query as a named-parameter prefix.
             "INNER JOIN (\n" +
-            "    SELECT patient_id, MAX(COALESCE(date_of_visit, date_created::date)) AS max_date\n" +
+            "    SELECT patient_id, MAX(COALESCE(date_of_visit, CAST(date_created AS date))) AS max_date\n" +
             "    FROM hts_encounter\n" +
             "    WHERE archived = false\n" +
             "    GROUP BY patient_id\n" +
             ") latest_hts ON latest_hts.patient_id = hts.patient_id\n" +
-            "          AND latest_hts.max_date = COALESCE(hts.date_of_visit, hts.date_created::date)\n" +
+            "          AND latest_hts.max_date = COALESCE(hts.date_of_visit, CAST(hts.date_created AS date))\n" +
             "INNER JOIN patient_person p ON p.id = hts.patient_id\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
