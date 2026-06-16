@@ -33,19 +33,11 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    CAST(hts.uuid AS text) AS latestHtsUuid,\n" +
             "    hts.patient_id AS latestHtsPatientId,\n" +
             "    CAST(hts.patient_uuid AS text) AS latestHtsPatientUuid,\n" +
-            // Legacy migrated rows may have a NULL date_of_visit / facility_id.
-            // Coalesce at read time (date_created is a NOT-NULL audit column; the
-            // patient's facility is the natural fallback) so we never mutate the
-            // source hts_encounter rows just to make them displayable.
             "    COALESCE(hts.date_of_visit, CAST(hts.date_created AS date)) AS latestHtsDateOfVisit,\n" +
             "    hts.setting AS latestHtsSetting,\n" +
             "    CAST(hts.observation AS text) AS latestHtsObservation,\n" +
             "    COALESCE(hts.facility_id, p.facility_id) AS latestHtsFacilityId,\n" +
             "    preg_codeset.display AS pregnancyStatusDisplay,\n" +
-            // PEP-only flag: true when the early-detect result indicates acute
-            // infection (antigen reactive or antigen + antibody reactive) AND
-            // the test type is HIV early detect. Drives the frontend Enroll
-            // modal to hide the PrEP option for these patients.
             "    CASE WHEN hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
                     + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE_VALUE_HIV_EARLY_DETECT + "'\n" +
             "         AND hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
@@ -96,29 +88,10 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "            END\n" +
             "        ELSE prepc.status\n" +
             "    END AS prepStatus\n";
-
-    /**
-     * SQL expression yielding the pregnancy code that the base_application_codeset
-     * join resolves a display from. Legacy migrated rows concatenate a
-     * breastfeeding token ("PREGANACY_STATUS_NOT_PREGNANT BREASTFEEDING_NO"); we
-     * keep only the first token via split_part so it matches the codeset, while
-     * single-token values pass through unchanged. Mirrors
-     * {@code PrepService.firstPregnancyToken} so form, grid and dashboard agree.
-     * Reads {@code hts.observation}, so callers must alias hts_encounter as
-     * {@code hts}.
-     */
     String PREGNANCY_STATUS_CODE_EXPR =
             "split_part(hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "', ' ', 1)";
-
-    String FROM_AND_JOINS =
+    String LATEST_HTS_JOIN =
             "FROM hts_encounter hts\n" +
-            // Pick the latest encounter per patient on the effective visit date
-            // COALESCE(date_of_visit, CAST(date_created AS date)). A NULL
-            // date_of_visit would otherwise drop the row entirely (MAX skips
-            // NULLs and the self-join NULL = NULL is never true), so legacy
-            // migrated rows would vanish. Coalescing makes the match robust
-            // without touching the data. NB: use CAST, not the `::` operator —
-            // Hibernate reads `:` in a native query as a named-parameter prefix.
             "INNER JOIN (\n" +
             "    SELECT patient_id, MAX(COALESCE(date_of_visit, CAST(date_created AS date))) AS max_date\n" +
             "    FROM hts_encounter\n" +
@@ -126,7 +99,9 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    GROUP BY patient_id\n" +
             ") latest_hts ON latest_hts.patient_id = hts.patient_id\n" +
             "          AND latest_hts.max_date = COALESCE(hts.date_of_visit, CAST(hts.date_created AS date))\n" +
-            "INNER JOIN patient_person p ON p.id = hts.patient_id\n" +
+            "INNER JOIN patient_person p ON p.id = hts.patient_id\n";
+    String FROM_AND_JOINS =
+            LATEST_HTS_JOIN +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
@@ -172,16 +147,12 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
     String WHERE_FILTERS =
             "WHERE hts.archived = false\n" +
             "AND p.archived = CAST(?1 AS INTEGER)\n" +
-            // Fall back to the patient's facility when the encounter's own
-            // facility_id is NULL (legacy migrated rows), so they still match the
-            // logged-in facility without a data backfill.
             "AND COALESCE(hts.facility_id, p.facility_id) = ?2\n" +
             "AND COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "', '') <> '"
                     + HtsObservationKeys.CONFIRMATORY_HIV_TEST_POSITIVE + "'\n" +
             "AND COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_FINAL_HIV_TEST_RESULT + "', '') <> '"
                     + HtsObservationKeys.FINAL_HIV_TEST_RESULT_POSITIVE + "'\n" +
             "AND (\n" +
-            // ── Branch A: rapid antibody (or unset) — OR of three positives ──
             "  ( (hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' IS NULL\n" +
             "      OR hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = ''\n" +
             "      OR hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
@@ -208,20 +179,15 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
             "  )\n" +
             ")\n";
-
     String GROUP_BY =
             "GROUP BY\n" +
-            "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
-            "    p.date_of_registration,\n" +
+            "    p.id, hts.id,\n" +
             "    init_count.enrollment_count, el.eligibility_count,\n" +
-            "    p.id, p.uuid, p.first_name, p.surname,\n" +
-            "    pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
-            "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
-            "    prepc.status, he.person_uuid,\n" +
-            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled,\n" +
-            "    hts.client_code, hts.id, hts.uuid, hts.patient_id, hts.patient_uuid,\n" +
-            "    hts.date_of_visit, hts.date_created, hts.setting, hts.observation,\n" +
-            "    hts.facility_id, p.facility_id,\n" +
+            "    prepi.interruption_date, prepi.interruption_type,\n" +
+            "    prepc.encounter_date, prepc.status, prepc.visit_type, prepc.prep_type,\n" +
+            "    prepc.previous_prep_status, prepc.duration, prepc.person_uuid,\n" +
+            "    bac.display, he.person_uuid,\n" +
+            "    pet.id, pet.person_uuid, pet.date_created, pet.date_enrolled,\n" +
             "    preg_codeset.display\n";
 
     @Query(value =
@@ -232,7 +198,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "ORDER BY p.id, hts.date_of_visit DESC NULLS LAST",
             countQuery =
                     "SELECT COUNT(DISTINCT p.id)\n" +
-                    FROM_AND_JOINS +
+                    LATEST_HTS_JOIN +
                     WHERE_FILTERS,
             nativeQuery = true)
     Page<PrepHtsPatient> findAllPatients(Boolean archived, Long facilityId, Pageable pageable);
@@ -251,7 +217,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "ORDER BY p.id, hts.date_of_visit DESC NULLS LAST",
             countQuery =
                     "SELECT COUNT(DISTINCT p.id)\n" +
-                    FROM_AND_JOINS +
+                    LATEST_HTS_JOIN +
                     WHERE_FILTERS +
                     "AND (p.first_name ILIKE ?3\n" +
                     "     OR p.full_name ILIKE ?3\n" +
