@@ -11,9 +11,16 @@
 import { isRecognizedHivResultCode } from "./htsResultMapper";
 
 // Canonical PREGNANCY_STATUS codeset values used by the HIV Prevention forms.
-const PREGNANCY_STATUS_PREGNANT = "PREGNANCY_STATUS_PREGNANT";
-const PREGNANCY_STATUS_BREASTFEEDING = "PREGNANCY_STATUS_BREASTFEEDING";
-const PREGNANCY_STATUS_NOT_PREGNANT = "PREGNANCY_STATUS_NOT_PREGNANT";
+// NB: the live codeset stores these with the legacy "PREGANACY" misspelling
+// (group PREGNANCY_STATUS, codes PREGANACY_STATUS_*), and so does the
+// hts_encounter observation the backend joins on. The form dropdown renders its
+// option values straight from that codeset, so the normalised value MUST use
+// the same (misspelled) code — otherwise the <select> value matches no <option>
+// and the field silently renders blank (which is exactly why pregnancy status
+// failed to auto-populate while the correctly-spelled HIV result did).
+const PREGNANCY_STATUS_PREGNANT = "PREGANACY_STATUS_PREGNANT";
+const PREGNANCY_STATUS_BREASTFEEDING = "PREGANACY_STATUS_BREASTFEEDING";
+const PREGNANCY_STATUS_NOT_PREGNANT = "PREGANACY_STATUS_NOT_PREGNANT";
 
 /**
  * A "valid" HTS encounter is a non-null, non-array object that carries a

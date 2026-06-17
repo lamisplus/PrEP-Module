@@ -32,10 +32,15 @@ export function getVisitTypeOptions() {
 }
 
 export function getPregnancyStatusOptions() {
+  // Codes mirror the live PREGNANCY_STATUS codeset, which stores the legacy
+  // "PREGANACY" misspelling. Keep them identical so values picked from this
+  // network-error fallback still match the codeset, and so HTS auto-population
+  // (which emits the same misspelled codes) resolves to a real <option>.
   return [
-    { value: "PREGNANCY_STATUS_PREGNANT", label: "Pregnant" },
-    { value: "PREGNANCY_STATUS_BREASTFEEDING", label: "Breastfeeding" },
-    { value: "PREGNANCY_STATUS_NOT_PREGNANT", label: "Non-Pregnant" },
+    { value: "PREGANACY_STATUS_NOT_PREGNANT", label: "Not Pregnant" },
+    { value: "PREGANACY_STATUS_PREGNANT", label: "Pregnant" },
+    { value: "PREGANACY_STATUS_POST_PARTUM", label: "Post Partum" },
+    { value: "PREGANACY_STATUS_BREASTFEEDING", label: "Breastfeeding" },
   ];
 }
 
