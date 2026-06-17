@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Form,
   Row,
@@ -25,7 +25,7 @@ import { LiverFunctionTest } from "./PrEPEligibilityScreeningForm";
 import { fetchInitialVisitCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
-import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import { isValidHtsEncounter, normalizeHtsObservation } from "../../../Utils/htsEncounter";
 import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import {
   fetchPrepRegimens,
@@ -101,7 +101,14 @@ const PrEPInitialVisitForm = props => {
   // disable logic applies on every render path.
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = props.patientObj?.latestHtsResult || loadedHts;
-  const htsObs = latestHts?.observation || {};
+  // Normalised once per HTS record (keyed on uuid) so migrated/community
+  // encounters auto-populate the same as natively-captured ones — the raw
+  // observation stores the HIV result on finalHivTestResult and a space-joined
+  // pregnancy/breastfeeding string the form fields can't read directly.
+  const htsObs = useMemo(
+    () => normalizeHtsObservation(latestHts?.observation),
+    [latestHts?.uuid]
+  );
   // "HTS found" is decided by whether the linked hts_encounter (resolved from
   // htsEncounterUuid) is valid/properly structured — not merely present. A
   // valid HTS record is REQUIRED, so when none can be resolved we hard-block

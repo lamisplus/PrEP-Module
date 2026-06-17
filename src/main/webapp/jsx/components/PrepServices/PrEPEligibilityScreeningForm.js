@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { FormGroup, Label, CardBody, Spinner, Input } from "reactstrap";
 import DualListBox from "react-dual-listbox";
@@ -16,7 +16,7 @@ import "react-phone-input-2/lib/style.css";
 import { fetchEligibilityScreeningCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
-import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import { isValidHtsEncounter, normalizeHtsObservation } from "../../../Utils/htsEncounter";
 import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
@@ -223,7 +223,14 @@ const BasicInfo = props => {
   // auto-populate / disable logic applies on every render path.
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = patientObj?.latestHtsResult || loadedHts;
-  const htsObs = latestHts?.observation || {};
+  // Normalised once per HTS record (keyed on uuid) so migrated/community
+  // encounters auto-populate the same as natively-captured ones — the raw
+  // observation stores the HIV result on finalHivTestResult and a space-joined
+  // pregnancy/breastfeeding string the form fields can't read directly.
+  const htsObs = useMemo(
+    () => normalizeHtsObservation(latestHts?.observation),
+    [latestHts?.uuid]
+  );
   // "HTS found" is decided by whether the linked hts_encounter resolved from
   // htsEncounterUuid is valid/properly structured. A valid HTS record is
   // REQUIRED for screening, so when none can be resolved we hard-block with a

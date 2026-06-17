@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Grid, Segment, Label } from "semantic-ui-react";
 import {
   FormGroup,
@@ -11,7 +11,7 @@ import { url as baseUrl, token } from "../../../api";
 import { ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
-import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import { isValidHtsEncounter, normalizeHtsObservation } from "../../../Utils/htsEncounter";
 import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
@@ -215,7 +215,14 @@ const ClinicVisit = props => {
   // disable logic applies on every render path.
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = props.patientObj?.latestHtsResult || loadedHts;
-  const htsObs = latestHts?.observation || {};
+  // Normalised once per HTS record (keyed on uuid) so migrated/community
+  // encounters auto-populate the same as natively-captured ones — the raw
+  // observation stores the HIV result on finalHivTestResult and a space-joined
+  // pregnancy/breastfeeding string the form fields can't read directly.
+  const htsObs = useMemo(
+    () => normalizeHtsObservation(latestHts?.observation),
+    [latestHts?.uuid]
+  );
   // "HTS found" is decided by whether the linked hts_encounter resolved from
   // htsEncounterUuid is valid/properly structured — migrated records often have
   // a dangling uuid or malformed encounter, in which case HTS is treated as
