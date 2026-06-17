@@ -93,6 +93,29 @@ function SubMenu(props) {
   const blockedByOtherArm =
     (isPrEP && isActivePep) || (isPEP && isActivePrep);
 
+  // A client who has discontinued/interrupted PrEP or completed/interrupted PEP
+  // should only be able to re-screen for eligibility — every other form is
+  // hidden until a new eligibility screening is recorded. The prepStatus string
+  // is the computed terminal state shown in the STATUS chip; these are the
+  // values that represent a discontinued/interrupted (non-active) enrollment.
+  const DISCONTINUED_STATUSES = [
+    "discontinued",
+    "stopped",
+    "default",
+    "defaulted",
+    "dead",
+    "referred",
+    "seroconverted",
+    "completed",
+    "pep completion",
+    "pep completed",
+  ];
+  const prepStatusValue = (patientDetail?.prepStatus || patientObj?.prepStatus || "")
+    .toString()
+    .trim()
+    .toLowerCase();
+  const hasDiscontinued = DISCONTINUED_STATUSES.includes(prepStatusValue);
+
   const renderMenuItems = () => {
     const isNegative = patientObj?.hivresultAtVisit === "Negative" || patientObj?.hivresultAtVisit === null;
 
@@ -108,6 +131,29 @@ function SubMenu(props) {
             Patient is currently on {activeArm}. Discontinue {activeArm} before
             using {typeLabel} forms.
           </Menu.Item>
+          <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
+        </>
+      );
+    }
+
+    // Restrict to Eligibility Screening only when:
+    //  1) the client has discontinued/interrupted PrEP or completed/interrupted PEP, or
+    //  2) the client is HIV positive (the HTS result auto-populated at eligibility
+    //     screening). In both cases every other form (Initiation, Follow-up,
+    //     Discontinuation, Patient Visits) is hidden — only a fresh eligibility
+    //     screening may be recorded.
+    if (hasDiscontinued || !isNegative) {
+      return (
+        <>
+          <Menu.Item onClick={onClickHome}>Home</Menu.Item>
+          <ProtectedComponent
+            isAuthorized={userPermissions.eligibility}
+            privateComponent={() => (
+              <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
+                {typeLabel} Eligibility Screening
+              </Menu.Item>
+            )}
+          />
           <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
         </>
       );
