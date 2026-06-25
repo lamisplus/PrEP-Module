@@ -78,26 +78,15 @@ function SubMenu(props) {
     enrollmentType: patientDetailCopy.enrollmentType || "",
   };
 
-  // Effective type: screeningType from Patient Tab takes priority, then fall back to enrollmentType
   const effectiveType = screeningType || patientObj?.enrollmentType || "";
   const isPEP = effectiveType === "PEP";
   const isPrEP = effectiveType === "PrEP";
   const typeLabel = isPEP ? "PEP" : "PrEP";
-
-  // Cross-arm exclusivity. The two flags arrive on patientDetail; "true" means the
-  // patient is currently active on that arm. If the user is browsing the OTHER arm's
-  // tab, hide all PrEP/PEP service entry points so they can't accidentally start work
-  // on a wrong-arm form. (Discontinuation stays available so the user can interrupt.)
   const isActivePrep = !!patientDetail?.isCurrentStatusInterruptedPrep;
   const isActivePep = !!patientDetail?.isCurrentStatusInterruptedPep;
   const blockedByOtherArm =
     (isPrEP && isActivePep) || (isPEP && isActivePrep);
 
-  // A client who has discontinued/interrupted PrEP or completed/interrupted PEP
-  // should only be able to re-screen for eligibility — every other form is
-  // hidden until a new eligibility screening is recorded. The prepStatus string
-  // is the computed terminal state shown in the STATUS chip; these are the
-  // values that represent a discontinued/interrupted (non-active) enrollment.
   const DISCONTINUED_STATUSES = [
     "discontinued",
     "stopped",
@@ -119,9 +108,6 @@ function SubMenu(props) {
   const renderMenuItems = () => {
     const isNegative = patientObj?.hivresultAtVisit === "Negative" || patientObj?.hivresultAtVisit === null;
 
-    // If the patient is currently active on the OTHER arm, lock down this tab to
-    // a notice + History only. The user must visit the other arm's tab and
-    // discontinue first.
     if (blockedByOtherArm) {
       const activeArm = isActivePrep ? "PrEP" : "PEP";
       return (
@@ -136,12 +122,6 @@ function SubMenu(props) {
       );
     }
 
-    // Restrict to Eligibility Screening only when:
-    //  1) the client has discontinued/interrupted PrEP or completed/interrupted PEP, or
-    //  2) the client is HIV positive (the HTS result auto-populated at eligibility
-    //     screening). In both cases every other form (Initiation, Follow-up,
-    //     Discontinuation, Patient Visits) is hidden — only a fresh eligibility
-    //     screening may be recorded.
     if (hasDiscontinued || !isNegative) {
       return (
         <>
@@ -159,7 +139,6 @@ function SubMenu(props) {
       );
     }
 
-    // Fresh workflow (came from Patient Tab): walk the user through Screening -> Initiation -> All forms
     if (freshWorkflow && sessionStage === "screening") {
       return (
         <>
@@ -194,7 +173,6 @@ function SubMenu(props) {
       );
     }
 
-    // sessionStage === "all" OR returning client (not fresh workflow): show full menu
     return (
       <>
         <Menu.Item onClick={onClickHome}>Home</Menu.Item>
@@ -207,8 +185,8 @@ function SubMenu(props) {
             </Menu.Item>
           )}
         />
-
-        {isNegative && (freshWorkflow || hasOpenScreening) && (
+        
+        {isNegative && hasOpenScreening && (
           <ProtectedComponent
             isAuthorized={userPermissions.enrollment}
             privateComponent={() => (

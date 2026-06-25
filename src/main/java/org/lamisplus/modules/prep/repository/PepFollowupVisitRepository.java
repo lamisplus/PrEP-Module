@@ -20,6 +20,16 @@ public interface PepFollowupVisitRepository extends JpaRepository<PepFollowupVis
     List<PepFollowupVisit> findAllByProphylaxisInitiationUuidAndArchived(String uuid, Boolean archived);
     Optional<PepFollowupVisit> findByEncounterDateAndPersonUuidAndArchived(
             LocalDate encounterDate, String personUuid, Boolean archived);
+            
+    @Query(value = "SELECT pfv.* FROM pep_followup_visit pfv " +
+            "JOIN prophylaxis_initiation pi ON pi.uuid = pfv.prophylaxis_initiation_uuid " +
+            "WHERE pfv.person_uuid = ?1 AND pfv.facility_id = ?2 " +
+            "AND CAST(pfv.archived AS BOOLEAN) = false " +
+            "AND LOWER(pi.enrollment_type) = LOWER(?3) " +
+            "ORDER BY pfv.encounter_date DESC NULLS LAST, pfv.id DESC LIMIT 1",
+            nativeQuery = true)
+    Optional<PepFollowupVisit> findLatestByPersonUuidAndEnrollmentType(
+            String personUuid, Long facilityId, String enrollmentType);
     Optional<PepFollowupVisit> findByUuid(String uuid);
     Integer countAllByPersonUuid(String personUuid);
     List<PepFollowupVisit> findAllByFacilityId(Long facilityId);

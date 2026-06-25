@@ -33,8 +33,6 @@ import {
   fetchPepRegimens,
 } from "../Consultation/codesets";
 
-// Map between the canonical PREP_PEP_ENROLLMENT_TYPE codeset codes and the short
-// labels ("PrEP" / "PEP") that the rest of the form's UI logic compares against.
 const ENROLLMENT_TYPE_PREP_CODE = "PREP_PEP_ENROLLMENT_TYPE_PREP";
 const ENROLLMENT_TYPE_PEP_CODE = "PREP_PEP_ENROLLMENT_TYPE_PEP";
 const toEnrollmentTypeCode = (value) => {
@@ -52,11 +50,7 @@ const fromEnrollmentTypeCode = (value) => {
 const PrEPInitialVisitForm = props => {
   const [entryPoint, setEntryPoint] = useState([]);
   const classes = useStyles();
-  // Get screeningType passed from Patient Tab via activeContent
   const screeningType = props.activeContent?.screeningType || '';
-  // Effective enrollment type label used in headers and toasts. Prefer the
-  // loaded record's enrollmentType (after normalization) over the nav hint
-  // so view/update never shows the joint "PrEP/PEP" label.
   const resolveTypeLabel = (val) => {
     const normalized = fromEnrollmentTypeCode(val) || val;
     return normalized === 'PEP' ? 'PEP' : normalized === 'PrEP' ? 'PrEP' : '';
@@ -91,32 +85,13 @@ const PrEPInitialVisitForm = props => {
     monthsOfRefill: "",
   });
 
-  // The Patient tab now ships the latest HTS encounter with each row. When
-  // present, HIV Testing Point / Date of HIV Test / Result of HIV Test /
-  // Pregnant are sourced from it (not collected on this form), and `htsEncounterUuid`
-  // is what we persist server-side.
-  //
-  // On edit/view the saved record carries a `htsEncounterUuid` — fetched via
-  // GET /prep/hts-encounter/{uuid} into `loadedHts` so the same auto-pop /
-  // disable logic applies on every render path.
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = props.patientObj?.latestHtsResult || loadedHts;
-  // Normalised once per HTS record (keyed on uuid) so migrated/community
-  // encounters auto-populate the same as natively-captured ones — the raw
-  // observation stores the HIV result on finalHivTestResult and a space-joined
-  // pregnancy/breastfeeding string the form fields can't read directly.
   const htsObs = useMemo(
     () => normalizeHtsObservation(latestHts?.observation),
     [latestHts?.uuid]
   );
-  // "HTS found" is decided by whether the linked hts_encounter (resolved from
-  // htsEncounterUuid) is valid/properly structured — not merely present. A
-  // valid HTS record is REQUIRED, so when none can be resolved we hard-block
-  // with a modal (no "proceed"). Migrated records with a dangling uuid or a
-  // malformed encounter are treated as "no HTS" and blocked.
   const isFromHts = isValidHtsEncounter(latestHts);
-  // The hard block only applies when creating a new initiation (no record id).
-  // Existing records can always be viewed/edited even if their HTS is missing.
   const isCreateMode = !props.activeContent?.id;
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -125,8 +100,6 @@ const PrEPInitialVisitForm = props => {
   const [patientDto, setPatientDto] = useState();
   const [disabledField, setSisabledField] = useState(false);
   const [codeset, setCodeset] = useState({});
-  // A candidate uuid whose encounter is still being fetched means HTS isn't
-  // resolved yet — wait (no timer) rather than hard-block prematurely.
   const htsCandidateUuid =
     objValues?.htsEncounterUuid
     || patientDto?.htsEncounterUuid
@@ -136,12 +109,7 @@ const PrEPInitialVisitForm = props => {
     !!htsCandidateUuid &&
     props.patientObj?.latestHtsResult?.uuid !== htsCandidateUuid &&
     loadedHts?.uuid !== htsCandidateUuid;
-  // Whether to hard-block the form. Computed synchronously (not via state set in
-  // an effect) so the form never paints for a blocked record — otherwise it
-  // would flash on screen for a frame before the effect hid it.
   const htsBlocked = isCreateMode && !isFromHts && !htsFetchPending;
-  // True once the patient is found to have a prior prophylaxis_initiation record.
-  // Locks the Unique ID field so all initiations for the same client share one ID.
   const [hasExistingInitiation, setHasExistingInitiation] = useState(false);
   const [prepRegimen, setPrepRegimen] = useState([]);
   const [pepRegimenOptions, setPepRegimenOptions] = useState([]);
@@ -168,11 +136,6 @@ const PrEPInitialVisitForm = props => {
     });
   }, []);
 
-  // Filter the regimen dropdown to match the chosen PrEP Type at Start.
-  //   PREP_TYPE_ORAL          -> TDF/FTC, TDF/3TC
-  //   PREP_TYPE_INJECTIBLES   -> Cabotegravir, Lenacapavir
-  //   PREP_TYPE_OTHERS / ED   -> all regimens
-  //   (no selection)          -> all regimens
   useEffect(() => {
     const prepType = objValues.prepTypeAtStart;
     if (!prepType
@@ -197,14 +160,6 @@ const PrEPInitialVisitForm = props => {
       );
     }
   }, []);
-
-  // Fetch the linked hts_encounter so the read-only HTS fields can populate.
-  // Picks a target uuid in priority order:
-  //   1. Saved initiation record's `htsEncounterUuid` (edit/view path)
-  //   2. Eligibility's `htsEncounterUuid` from `patientDto` (when entering
-  //      from the dashboard the screening record is loaded by
-  //      `GetPatientDTOObj` — its linked HTS encounter is the right source
-  //      for pregnancy / HTS test result on the new initiation).
   useEffect(() => {
     const targetUuid =
       objValues?.htsEncounterUuid || patientDto?.htsEncounterUuid;
@@ -223,10 +178,6 @@ const PrEPInitialVisitForm = props => {
     props.patientObj?.latestHtsResult?.uuid,
   ]);
 
-  // Auto-populate fields sourced from the latest hts_encounter. Runs on both
-  // create (latestHtsResult from the row) and edit/view (loadedHts from the
-  // GET /hts-encounter/{uuid} call) so the disabled fields always reflect the
-  // canonical HTS values.
   useEffect(() => {
     if (!isFromHts) return;
     setObjValues(prev => ({
@@ -234,8 +185,6 @@ const PrEPInitialVisitForm = props => {
       htsEncounterUuid: prev.htsEncounterUuid || latestHts.uuid || "",
       hivTestingPoint: latestHts.setting || prev.hivTestingPoint,
       dateOfHivTest: latestHts.dateOfVisit || prev.dateOfHivTest,
-      // HTS observation stores STI_HIV_RESULT_* codes; the initiation form's
-      // dropdown is on HIV_TEST_RESULT_*, so translate.
       resultOfHivTest:
         toHivTestResultCode(
           htsObs.confirmatoryHivTest || htsObs.initialHivTest,
@@ -254,22 +203,15 @@ const PrEPInitialVisitForm = props => {
       )
       .then(response => {
         setPatientDto(response.data);
-        // Auto-populate non-HTS fields from the latest screening (eligibility)
-        // record. HTS-sourced fields (resultOfHivTest, dateOfHivTest,
-        // hivTestingPoint, pregnancyStatus) are owned by the hts_encounter
-        // useEffect above — eligibility no longer stores them.
         if (response.data) {
           setObjValues(prev => ({
             ...prev,
-            // category arrives as a PREP_PEP_ENROLLMENT_TYPE code; normalize to short label
-            // so the rest of the UI's PrEP/PEP comparisons keep working.
             enrollmentType:
               fromEnrollmentTypeCode(response.data.category) || prev.enrollmentType,
             uniqueId: response.data.uniqueClientId || prev.uniqueId,
             populationType: response.data.populationType || prev.populationType,
           }));
         }
-        // Fetch previous initiation records for returning clients
         axios
           .get(`${baseUrl}prep-pep-initiation/person/${personId}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -326,9 +268,6 @@ const PrEPInitialVisitForm = props => {
 
   const handleInputChange = e => {
     setErrors({ ...errors, [e.target.name]: "" });
-    // Switching prepTypeAtStart should clear the regimen — the filtered
-    // dropdown is about to change shape and the previous selection may no
-    // longer be one of the valid options for the new type.
     if (e.target.name === "prepTypeAtStart") {
       setObjValues({ ...objValues, prepTypeAtStart: e.target.value, prepRegimen: "" });
       return;
@@ -387,14 +326,9 @@ const PrEPInitialVisitForm = props => {
     temp.populationType = objValues.populationType
       ? ""
       : "This field is required";
-    // hivTestingPoint / dateOfHivTest / resultOfHivTest are sourced from the
-    // linked hts_encounter. HTS is a soft dependency (migrated records may have
-    // no valid encounter), so these are never required — the user can save even
-    // when the HTS fields are empty. They were warned via the HTS modal.
     temp.hivTestingPoint = "";
     temp.dateOfHivTest = "";
     temp.resultOfHivTest = "";
-    // Conditional: supporter fields required if supporter name is provided (only for PrEP)
     if (objValues.enrollmentType !== 'PEP' && objValues.supporterName) {
       temp.supporterRelationshipType = objValues.supporterRelationshipType
         ? ""
@@ -422,25 +356,19 @@ const PrEPInitialVisitForm = props => {
     ) {
       temp.dateOfHivTest = "Date of HIV Test must be on or before Date Enrolled";
     }
-    // Additional required fields per spec.
     temp.dateOfInitialAdherenceCounseling = objValues.dateOfInitialAdherenceCounseling
       ? "" : "This field is required";
     temp.datePrepStarted = objValues.datePrepStarted
       ? "" : "This field is required";
-    // PrEP/PEP type at start: same JSX field today, label changes per arm.
     temp.prepTypeAtStart = objValues.prepTypeAtStart
       ? "" : "This field is required";
     temp.prepRegimen = objValues.prepRegimen
       ? "" : "This field is required";
-    // Pregnancy status is sourced from the linked hts_encounter, so it is part
-    // of the soft HTS dependency — never block submission on it (migrated
-    // records may have no valid HTS to populate it from).
     temp.pregnancyStatus = "";
     temp.historyOfDrugAllergies = objValues.historyOfDrugAllergies
       ? "" : "This field is required";
     temp.weight = objValues.weight ? "" : "This field is required";
     temp.height = objValues.height ? "" : "This field is required";
-    // BMI is derived from weight + height; require both as a proxy.
     if (!objValues.weight || !objValues.height) {
       temp.bmi = "Weight and height are required to compute BMI";
     } else {
@@ -458,13 +386,9 @@ const PrEPInitialVisitForm = props => {
 
   const handleSubmit = e => {
     e.preventDefault();
-    // Hard block: a valid HTS record is required to create a new initiation.
-    // Edits to existing records are allowed even without HTS. (In practice the
-    // form is not rendered when blocked, so this is a defensive guard.)
     if (htsBlocked) {
       return;
     }
-    // Block save if HIV result is Positive — show as toast, not inline
     if (objValues.resultOfHivTest === "Positive") {
       const typeLabel =
         objValues.enrollmentType === 'PEP'
@@ -479,11 +403,8 @@ const PrEPInitialVisitForm = props => {
     }
     if (validate()) {
       objValues.personId = props.patientObj.personId || props.patientObj.id;
-      // The new column is `prophylaxis_screening_uuid`; the legacy field on the
-      // PrepEnrollmentRequestDto is still `prepEligibilityUuid`, so we set both.
       objValues.prophylaxisScreeningUuid = patientDto.uuid;
       objValues.prepEligibilityUuid = patientDto.uuid;
-      // Persist the canonical PREP_PEP_ENROLLMENT_TYPE code instead of the short label.
       objValues.enrollmentType = toEnrollmentTypeCode(objValues.enrollmentType);
       setSaving(true);
       if (props.activeContent && props.activeContent.actionType) {
@@ -558,7 +479,7 @@ const PrEPInitialVisitForm = props => {
         height: "Height",
         bmi: "BMI",
         urinalysisResult: "Urinalysis Result",
-        liverFunctionTestResults: "Liver Function Test",
+        liverFunctionTestResults: "Liver Function Test Result",
       };
       const missing = Object.keys(errors)
         .filter(k => errors[k])
@@ -572,11 +493,6 @@ const PrEPInitialVisitForm = props => {
     }
   };
 
-  // Hard block: when no valid HTS encounter can be resolved (create mode) the
-  // initiation form must not render at all. We return only the modal, which then
-  // overlays the patient dashboard (summary / recent activities) that
-  // PatientDetail keeps rendered behind it. "Return to Dashboard" navigates back
-  // to recent-history so the form route is exited entirely.
   if (htsBlocked) {
     return (
       <HtsWarningModal
@@ -612,12 +528,6 @@ const PrEPInitialVisitForm = props => {
               >
                 {resolveTypeLabel(objValues.enrollmentType) || resolveTypeLabel(screeningType) || 'PrEP'} Initial Visit
               </div>
-
-              {/* 1. Unique ID — always read-only on the initiation form. The
-                  value is assigned at screening time (uniqueClientId on the
-                  latest prophylaxis_screening) and the initiation form just
-                  surfaces it. We auto-populate from the open eligibility
-                  record in GetPatientDTOObj(), then lock to that value. */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label for="uniqueId">
@@ -746,9 +656,6 @@ const PrEPInitialVisitForm = props => {
                     name="hivTestingPoint"
                     id="hivTestingPoint"
                     onChange={handleInputChange}
-                    // When isFromHts, render directly from HTS to bypass the
-                    // race where the edit-mode loader wipes formik state after
-                    // the HTS auto-pop ran.
                     value={isFromHts
                       ? (latestHts?.setting || "")
                       : (objValues.hivTestingPoint || "")}
@@ -815,9 +722,6 @@ const PrEPInitialVisitForm = props => {
                     name="resultOfHivTest"
                     id="resultOfHivTest"
                     onChange={handleInputChange}
-                    // On the HTS path the result is mapped through the codeset
-                    // helper (STI/CONFIRMATORY -> HIV_TEST_RESULT, and
-                    // typeOfHivTestDone forces Early Detect when applicable).
                     value={isFromHts
                       ? (toHivTestResultCode(
                           htsObs.confirmatoryHivTest || htsObs.initialHivTest,
@@ -1169,13 +1073,6 @@ const PrEPInitialVisitForm = props => {
                   </FormGroup>
                 </div>
               )}
-
-              {/* 16b. Breast Feeding — UI-only, autopopulated from the patient
-                  card's pregnancy status (`patientDetail.pregnant` is the
-                  PREGNANCY_STATUS display string resolved server-side). When
-                  the display reads "Breastfeeding" we show YES_NO_YES,
-                  otherwise YES_NO_NO. Always disabled, same female-only
-                  visibility rule as Pregnant. Not submitted to the backend. */}
               {(props.patientObj?.gender?.toLowerCase() === "female" ||
                 props.patientObj?.sex?.toLowerCase() === "female") && (
                 <div className="form-group mb-3 col-md-4">
@@ -1213,10 +1110,6 @@ const PrEPInitialVisitForm = props => {
                 </div>
               )}
 
-              {/* 17. PrEP/PEP Type at Start — shown for both arms. PrEP uses
-                  the PrEP_TYPE codeset (Oral/Injectibles/etc.); PEP has a
-                  small hardcoded list (Oral/Others) that the joint regimen
-                  list keys off when filtering the regimen dropdown. */}
               <>
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
@@ -1397,7 +1290,7 @@ const PrEPInitialVisitForm = props => {
               {/* 22. Liver Function Test (DualListBox) */}
               <div className="form-group mb-3 col-md-12">
                 <FormGroup>
-                  <Label>Liver Function Test <span style={{ color: "red" }}> *</span></Label>
+                  <Label>Liver Function Test Result <span style={{ color: "red" }}> *</span></Label>
                   <LiverFunctionTest
                     objValues={objValues}
                     handleInputChange={handleLftInputChange}

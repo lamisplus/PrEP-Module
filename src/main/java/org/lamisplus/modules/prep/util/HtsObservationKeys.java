@@ -18,6 +18,16 @@ public final class HtsObservationKeys {
     public static final String KEY_PREGNANCY_STATUS = "pregnancyStatus";
 
     /**
+     * PMTCT-HTS variant keys. Records captured on the PMTCT HTS form store the
+     * early-detect result and the test type under different property names than
+     * the standalone HTS module ({@code hivEarlyDetect} / {@code typeOfHivTest}
+     * vs {@code hivEarlyDetectResult} / {@code typeOfHivTestDone}). The codeset
+     * VALUES are identical, only the keys differ.
+     */
+    public static final String KEY_HIV_EARLY_DETECT_PMTCT = "hivEarlyDetect";
+    public static final String KEY_TYPE_OF_HIV_TEST_PMTCT = "typeOfHivTest";
+
+    /**
      * STI_HIV_RESULT codeset values — used by {@link #KEY_INITIAL_HIV_TEST}.
      * The HTS form saves the initial-test field with these codes.
      */

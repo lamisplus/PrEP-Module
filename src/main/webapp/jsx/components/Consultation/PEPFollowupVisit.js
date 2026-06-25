@@ -121,6 +121,11 @@ const PEPFollowupVisit = props => {
   const [notedSideEffects, setNotedSideEffects] = useState([]);
   const [syndromicStiSelected, setSyndromicStiSelected] = useState([]);
   const [patientDto, setPatientDto] = useState();
+  // The patient's most recent PRIOR PEP follow-up visit (excluding the record
+  // currently being edited). Source for the carry-forward read-only fields
+  // that aren't stored on the initiation record — Mode of Exposure, Duration
+  // before PEP provided, Date of Stop of PEP, Duration of PEP.
+  const [latestPepFollowup, setLatestPepFollowup] = useState(null);
 
   // Pregnancy Status and HIV Status at Exposure are sourced from the latest
   // hts_encounter linked to the patient's PEP initiation. `loadedHts` carries
@@ -146,6 +151,10 @@ const PEPFollowupVisit = props => {
   // Existing records can always be viewed/edited even if their HTS is missing.
   // (htsCandidateUuid / htsFetchPending are computed below.)
   const isCreateMode = !props.activeContent?.id;
+  // A prior follow-up exists → the carry-forward fields are locked (read-only)
+  // to its values. On the very first follow-up (no prior) they stay editable so
+  // the user can supply them; from then on they're inherited and read-only.
+  const hasPriorFollowup = !!latestPepFollowup;
 
   const [hivTestEntries, setHivTestEntries] = useState([]);
   const [hivTestInput, setHivTestInput] = useState({ test: "", result: "" });
@@ -199,6 +208,31 @@ const PEPFollowupVisit = props => {
         setPatientDto(response.data);
       })
       .catch(error => {});
+  };
+
+  // Fetch the patient's most recent PEP follow-up visit (of the PEP enrollment
+  // type) via the dedicated, type-aware endpoint so its Mode of Exposure /
+  // Duration before PEP / Date of Stop of PEP / Duration values can be carried
+  // forward (read-only) onto a new follow-up. Only used on create, where the
+  // latest record IS the prior; on edit we keep the record's own values.
+  const getLatestPriorFollowup = () => {
+    const personId = props.patientObj.personId || props.patientObj.id;
+    axios
+      .get(
+        `${baseUrl}pep-followup-visit/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PEP}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then(response => {
+        const row = response?.data || null;
+        // Guard against carrying the in-edit record forward onto itself.
+        const currentId = props.activeContent?.id;
+        if (row && currentId && String(row.id) === String(currentId)) {
+          setLatestPepFollowup(null);
+        } else {
+          setLatestPepFollowup(row);
+        }
+      })
+      .catch(() => setLatestPepFollowup(null));
   };
 
   const getPatientVisit = async () => {
@@ -361,10 +395,35 @@ const PEPFollowupVisit = props => {
 
   useEffect(() => {
     getPatientVisit();
+    getLatestPriorFollowup();
     setDisabledField(
       !["update", undefined].includes(props.activeContent.actionType)
     );
   }, [props.activeContent]);
+
+  // Auto-populate the read-only "original PEP course" fields when creating a
+  // new follow-up. PEP Regimen + Date of Start of PEP come from the latest PEP
+  // initiation (matched on enrollment type via getPatientDtoObj). Mode of
+  // Exposure, Duration before PEP, Date of Stop of PEP and Duration of PEP are
+  // not stored on the initiation, so they carry forward from the most recent
+  // prior follow-up. Only runs on create — edits keep the record's own values.
+  useEffect(() => {
+    if (!isCreateMode || !formikRef.current) return;
+    const setF = formikRef.current.setFieldValue;
+    if (patientDto?.prepRegimen) setF("pepRegimen", patientDto.prepRegimen);
+    if (patientDto?.datePrepStarted)
+      setF("dateStartPep", moment(patientDto.datePrepStarted).format("YYYY-MM-DD"));
+    if (latestPepFollowup) {
+      if (latestPepFollowup.modeOfExposure)
+        setF("modeOfExposure", latestPepFollowup.modeOfExposure);
+      if (latestPepFollowup.durationBeforePep)
+        setF("durationBeforePep", latestPepFollowup.durationBeforePep);
+      if (latestPepFollowup.dateStopPep)
+        setF("dateStopPep", moment(latestPepFollowup.dateStopPep).format("YYYY-MM-DD"));
+      if (latestPepFollowup.duration !== undefined && latestPepFollowup.duration !== null)
+        setF("duration", latestPepFollowup.duration);
+    }
+  }, [patientDto, latestPepFollowup, isCreateMode]);
 
   // Pull the linked hts_encounter when the Patient grid didn't already ship one
   // (i.e. edit/view path). Prefer the htsEncounterUuid stored on THIS follow-up
@@ -471,9 +530,13 @@ const PEPFollowupVisit = props => {
     const encounterDate = e.target.value;
     setFieldValue("encounterDate", encounterDate);
     // Duration on PEP — months elapsed since enrollment, read-only field.
-    const computedDuration = calculateDurationOnPep(encounterDate);
-    if (computedDuration !== "") {
-      setFieldValue("duration", computedDuration);
+    // Skip the recompute when a prior follow-up exists: the value is carried
+    // forward read-only from that follow-up and must not be overwritten.
+    if (!hasPriorFollowup) {
+      const computedDuration = calculateDurationOnPep(encounterDate);
+      if (computedDuration !== "") {
+        setFieldValue("duration", computedDuration);
+      }
     }
     // Next Appointment is always visit + 28 days for PEP follow-ups.
     const nextAppt = addDaysIso(encounterDate, 28);
@@ -686,7 +749,8 @@ const PEPFollowupVisit = props => {
                           onChange={handleChange}
                           value={values.modeOfExposure}
                           style={inputStyle}
-                          disabled={disabledField}
+                          disabled={disabledField || hasPriorFollowup}
+                          title={hasPriorFollowup ? "Carried from the previous follow-up visit" : undefined}
                         >
                           <option value="">Select</option>
                           {codeset?.PEP_MODE_OF_EXPOSURE?.map(value => (
@@ -717,7 +781,8 @@ const PEPFollowupVisit = props => {
                           onChange={handleChange}
                           value={values.durationBeforePep}
                           style={inputStyle}
-                          disabled={disabledField}
+                          disabled={disabledField || hasPriorFollowup}
+                          title={hasPriorFollowup ? "Carried from the previous follow-up visit" : undefined}
                         >
                           <option value="">Select</option>
                           {codeset?.PEP_DURATION_BEFORE_PEP?.map(value => (
@@ -1098,7 +1163,8 @@ const PEPFollowupVisit = props => {
                           onChange={handleChange}
                           value={values.pepRegimen}
                           style={inputStyle}
-                          disabled={disabledField}
+                          disabled={disabledField || !!patientDto?.prepRegimen}
+                          title={patientDto?.prepRegimen ? "Sourced from the latest PEP initiation" : undefined}
                         >
                           <option value="">Select</option>
                           {codeset?.PEP_REGIMEN?.map(value => (
@@ -1132,7 +1198,8 @@ const PEPFollowupVisit = props => {
                           style={inputStyle}
                           onChange={handleChange}
                           max={moment(new Date()).format("YYYY-MM-DD")}
-                          disabled={disabledField}
+                          disabled={disabledField || !!patientDto?.datePrepStarted}
+                          title={patientDto?.datePrepStarted ? "Sourced from the latest PEP initiation" : undefined}
                         />
                         {getError("dateStartPep") && (
                           <span className={classes.error}>
@@ -1159,7 +1226,8 @@ const PEPFollowupVisit = props => {
                           style={inputStyle}
                           onChange={handleChange}
                           min={values.dateStartPep}
-                          disabled={disabledField}
+                          disabled={disabledField || hasPriorFollowup}
+                          title={hasPriorFollowup ? "Carried from the previous follow-up visit" : undefined}
                         />
                         {getError("dateStopPep") && (
                           <span className={classes.error}>
@@ -1169,7 +1237,9 @@ const PEPFollowupVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* 12b. Duration on PEP (Months) — auto-computed from latest initiation */}
+                    {/* 12b. Duration on PEP (Months) — read-only: carried from the
+                        previous follow-up when one exists, otherwise computed
+                        from months elapsed since enrollment. */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>Duration on PEP (Months)</FormLabelName>

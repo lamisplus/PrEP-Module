@@ -45,4 +45,13 @@ public class PepFollowupVisitController {
     public ResponseEntity<List<PepFollowupVisitDto>> getByPersonId(@PathVariable Long personId) {
         return ResponseEntity.ok(pepFollowupVisitService.getByPersonId(personId));
     }
+
+    @GetMapping("/latest/{personId}")
+    @ApiOperation(value = "Get latest PEP Follow-up Visit by Person ID and enrollment type")
+    public ResponseEntity<PepFollowupVisitDto> getLatest(
+            @PathVariable Long personId,
+            @RequestParam(value = "enrollmentType", required = false) String enrollmentType) {
+        return ResponseEntity.ok(
+                pepFollowupVisitService.getLatestByEnrollmentType(personId, enrollmentType));
+    }
 }

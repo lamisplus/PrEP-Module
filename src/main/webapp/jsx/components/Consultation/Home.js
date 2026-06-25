@@ -2318,7 +2318,7 @@ const ClinicVisit = props => {
                         checked={showLiverFunctionTest}
                         disabled={disabledField}
                       />{" "}
-                      Liver Function Test
+                      Liver Function Test Result
                     </h4>
                   </Label>
                   <br />
@@ -2327,7 +2327,7 @@ const ClinicVisit = props => {
                     <>
                       <div className="mb-3 col-md-12">
                         <FormGroup>
-                          <FormLabelName>Date of Liver Function Test</FormLabelName>
+                          <FormLabelName>Date of Liver Function Test Result</FormLabelName>
                           <Input
                             type="date"
                             onKeyDown={e => e.preventDefault()}

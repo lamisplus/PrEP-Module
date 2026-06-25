@@ -1343,11 +1343,6 @@ const BasicInfo = props => {
                       className="form-control"
                       name="pregnancyStatus"
                       id="pregnancyStatus"
-                      // When isFromHts the field is read-only and its value is
-                      // the HTS observation directly. This avoids a race where
-                      // a server-side fetch (which no longer carries
-                      // pregnancyStatus) wipes the formik value after the HTS
-                      // auto-pop has set it.
                       value={
                         isFromHts && htsObs.pregnancyStatus
                           ? htsObs.pregnancyStatus
@@ -1357,9 +1352,6 @@ const BasicInfo = props => {
                       style={{
                         border: "1px solid #014D88",
                         borderRadius: "0.2rem",
-                        // Only grey out when HTS actually provided the value.
-                        // If HTS has no pregnancyStatus, leave the field
-                        // editable so the user can supply it.
                         backgroundColor:
                           isFromHts && htsObs.pregnancyStatus ? "#f1f3f5" : undefined,
                       }}
@@ -1385,7 +1377,41 @@ const BasicInfo = props => {
                   </FormGroup>
                 </div>
               )}
-              {/* ===== Main Header: Pre-Test Counselling / Risk Assessment ===== */}
+              {isFemale() && (
+                <div className="form-group col-md-4 p-2">
+                  <FormGroup className="p-2">
+                    <Label>Breast Feeding</Label>
+                    <select
+                      className="form-control"
+                      name="breastFeeding"
+                      id="breastFeeding"
+                      value={
+                        (props.patientDetail?.pregnant || "")
+                          .toString()
+                          .toLowerCase()
+                          .replace(/\s|-/g, "") === "breastfeeding"
+                          ? "YES_NO_YES"
+                          : "YES_NO_NO"
+                      }
+                      disabled
+                      title="Autopopulated from pregnancy status"
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                        padding: "0.5rem",
+                        backgroundColor: "#f1f3f5",
+                      }}
+                    >
+                      <option value="">Select</option>
+                      {(codeset?.YES_NO || []).map(item => (
+                        <option key={item.id} value={item.code}>
+                          {item.display}
+                        </option>
+                      ))}
+                    </select>
+                  </FormGroup>
+                </div>
+              )}
               <div
                 className="form-group my-4 col-md-12 text-center pt-2 mb-4"
                 style={{
@@ -1398,8 +1424,6 @@ const BasicInfo = props => {
               >
                 Pre-Test Counselling / Risk Assessment
               </div>
-
-              {/* --- Subsection: Sex Partner Risk --- */}
               <div
                 style={{
                   width: "100%",
@@ -1591,7 +1615,6 @@ const BasicInfo = props => {
 
               <hr />
 
-              {/* --- Subsection: Personal HIV Risk Assessment (Last 3 months) --- */}
               <div
                 style={{
                   width: "100%",
@@ -1760,7 +1783,6 @@ const BasicInfo = props => {
 
               <hr />
 
-              {/* --- Subsection: Drug Use History --- */}
               <div
                 style={{
                   width: "100%",
@@ -1972,9 +1994,6 @@ const BasicInfo = props => {
                   </div>
                 )}
               </div>
-
-              {/* useDrugSexualPerformance is its own column now — no longer
-                  gated by drug selection, so it always renders. */}
               <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>
@@ -2014,7 +2033,6 @@ const BasicInfo = props => {
 
               {screeningType !== 'PrEP' && (
               <>
-              {/* --- Subsection: Assessment for PEP Indication --- */}
               <div
                 style={{
                   width: "100%",
@@ -2126,7 +2144,6 @@ const BasicInfo = props => {
               </>
               )}
 
-              {/* --- Subsection: Assessment Acute HIV Infection --- */}
               <div
                 style={{
                   width: "100%",
@@ -2227,7 +2244,6 @@ const BasicInfo = props => {
 
               <hr />
 
-              {/* --- Subsection: STI Screening --- */}
               <div
                 style={{
                   width: "100%",

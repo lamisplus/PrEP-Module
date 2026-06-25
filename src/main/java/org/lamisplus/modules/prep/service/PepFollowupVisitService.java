@@ -83,6 +83,24 @@ public class PepFollowupVisitService {
                 .map(this::entityToDto)
                 .collect(Collectors.toList());
     }
+    
+    public PepFollowupVisitDto getLatestByEnrollmentType(Long personId, String enrollmentType) {
+        Person person = getPerson(personId);
+        Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
+        if (enrollmentType == null || enrollmentType.trim().isEmpty()) {
+            return pepFollowupVisitRepository
+                    .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
+                            person.getUuid(), facilityId, false)
+                    .stream()
+                    .findFirst()
+                    .map(this::entityToDto)
+                    .orElse(null);
+        }
+        return pepFollowupVisitRepository
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), facilityId, enrollmentType)
+                .map(this::entityToDto)
+                .orElse(null);
+    }
 
     public PepFollowupVisitDto update(Long id, PepFollowupVisitDto dto) {
         PepFollowupVisit entity = pepFollowupVisitRepository
