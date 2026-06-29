@@ -17,9 +17,9 @@ public class ViralLoadController {
 
     private final ViralLoadService viralLoadService;
 
-    @GetMapping("/latest/{personUuid}")
+    @GetMapping("/latest/{personId}")
     @ApiOperation("Get the patient's latest viral load and its interpreted label")
-    public ResponseEntity<ViralLoadResultDto> getLatest(@PathVariable String personUuid) {
-        return ResponseEntity.ok(viralLoadService.getLatestViralLoad(personUuid));
+    public ResponseEntity<ViralLoadResultDto> getLatest(@PathVariable Long personId) {
+        return ResponseEntity.ok(viralLoadService.getLatestViralLoad(personId));
     }
 }

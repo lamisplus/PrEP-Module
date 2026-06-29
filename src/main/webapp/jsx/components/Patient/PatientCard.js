@@ -124,25 +124,8 @@ function PatientCard(props) {
                         </ButtonMui>
                       </Link>
                       {(patientDetail?.currentRegimen ||
-                        (isFemale && patientDetail?.pregnant) ||
-                        props.viralLoad?.viralLoadResult) && (
+                        (isFemale && patientDetail?.pregnant)) && (
                         <div className="mt-2" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                          {/* Latest viral load — shown for every PrEP/PEP patient
-                              that has a VL result. Wording comes from the shared
-                              viralLoad constants. */}
-                          {props.viralLoad?.viralLoadResult && (
-                            <Label
-                              color={
-                                isTargetDetected(props.viralLoad.viralLoadResult)
-                                  ? "red"
-                                  : "green"
-                              }
-                              size={"small"}
-                            >
-                              Viral Load:&nbsp;
-                              <b>{viralLoadDisplay(props.viralLoad.viralLoadResult)}</b>
-                            </Label>
-                          )}
                           {isFemale && patientDetail?.pregnant && (
                             <Label color={"pink"} size={"small"}>
                               Pregnancy Status:&nbsp;<b>{patientDetail.pregnant}</b>
@@ -176,6 +159,26 @@ function PatientCard(props) {
                               .replace(/\s|-/g, "") === "breastfeeding"
                               ? "Yes"
                               : "No"}
+                          </b>
+                        </span>
+                      </Col>
+                    )}
+                    {/* Latest viral load — shown for every PrEP/PEP patient that
+                        has a VL result. Sits just over Age and Phone Number.
+                        Wording comes from the shared viralLoad constants. */}
+                    {props.viralLoad?.viralLoadResult && (
+                      <Col md={4} className={classes.root2}>
+                        <span>
+                          {" "}
+                          Viral Load :{" "}
+                          <b
+                            style={{
+                              color: isTargetDetected(props.viralLoad.viralLoadResult)
+                                ? "#dc3545"
+                                : "#28a745",
+                            }}
+                          >
+                            {viralLoadDisplay(props.viralLoad.viralLoadResult)}
                           </b>
                         </span>
                       </Col>

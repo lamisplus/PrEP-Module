@@ -1,6 +1,8 @@
 package org.lamisplus.modules.prep.service;
 
 import lombok.RequiredArgsConstructor;
+import org.lamisplus.modules.patient.domain.entity.Person;
+import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.lamisplus.modules.prep.domain.dto.ViralLoadResultDto;
 import org.lamisplus.modules.prep.repository.ViralLoadRepository;
 import org.lamisplus.modules.prep.util.ViralLoadConstants;
@@ -11,13 +13,20 @@ import org.springframework.stereotype.Service;
 public class ViralLoadService {
 
     private final ViralLoadRepository viralLoadRepository;
+    private final PersonRepository personRepository;
 
     /**
-     * Returns the patient's latest viral load and its interpreted label. When no
-     * viral load exists the DTO fields are null. The label is derived here (not
-     * in SQL) so the wording stays governed by {@link ViralLoadConstants}.
+     * Returns the patient's latest viral load (looked up by person id, resolving
+     * the uuid server-side so callers don't need to carry it) and its
+     * interpreted label. When no viral load exists the DTO fields are null.
      */
-    public ViralLoadResultDto getLatestViralLoad(String personUuid) {
+    public ViralLoadResultDto getLatestViralLoad(Long personId) {
+        String personUuid = personRepository.findById(personId)
+                .map(Person::getUuid)
+                .orElse(null);
+        if (personUuid == null) {
+            return ViralLoadResultDto.builder().build();
+        }
         return viralLoadRepository.findLatestViralLoad(personUuid)
                 .map(vl -> ViralLoadResultDto.builder()
                         .viralLoad(vl.getViralLoad())

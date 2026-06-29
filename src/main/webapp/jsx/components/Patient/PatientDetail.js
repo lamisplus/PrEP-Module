@@ -124,11 +124,10 @@ function PatientCard(props) {
   }, []);
 
   function ViralLoadObject() {
-    const personUuid =
-      patientObjLocation?.personUuid || patientObjLocation?.uuid;
-    if (!personUuid) return;
+    const personId = patientObjLocation?.personId || patientObjLocation?.id;
+    if (!personId) return;
     return axios
-      .get(`${baseUrl}prep/viral-load/latest/${personUuid}`, {
+      .get(`${baseUrl}prep/viral-load/latest/${personId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => setViralLoad(response.data))

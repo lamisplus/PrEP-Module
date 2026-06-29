@@ -141,11 +141,15 @@ const PrEPDiscontinuationsInterruptions = props => {
       return "";
     }
     const wantDetected = isTargetDetected(viralLoadResult);
-    const isNotDetected = display => /not?\s*detected|no\s*detect/i.test(display);
+    // Match against display AND code so this still works whether the codeset
+    // labels read "Target Detected"/"Target Not Detected", "Detected"/
+    // "Undetected", etc.
+    const isNotDetected = s => /not[\s_]*detect|no[\s_]*detect|undetect/i.test(s);
+    const hasDetect = s => /detect/i.test(s);
     const match = options.find(opt => {
-      const display = (opt.display || "").toLowerCase();
-      if (!display.includes("detect")) return false;
-      return wantDetected ? !isNotDetected(display) : isNotDetected(display);
+      const hay = `${opt.display || ""} ${opt.code || ""}`;
+      if (!hasDetect(hay)) return false;
+      return wantDetected ? !isNotDetected(hay) : isNotDetected(hay);
     });
     return match?.code || "";
   };
