@@ -153,6 +153,10 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "AND hts.facility_id = ?2\n" +
             "AND COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "', '') <> '"
                     + HtsObservationKeys.CONFIRMATORY_HIV_TEST_POSITIVE + "'\n" +
+            // Hard-exclude community/migrated records confirmed positive via the
+            // plain-string finalHivTestResult field too (case-insensitive).
+            "AND LOWER(TRIM(COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_FINAL_HIV_TEST_RESULT + "', ''))) <> LOWER('"
+                    + HtsObservationKeys.FINAL_HIV_TEST_RESULT_POSITIVE + "')\n" +
             "AND (\n" +
             "  ( (hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' IS NULL\n" +
             "      OR hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = ''\n" +
@@ -181,6 +185,16 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "  ( hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_PMTCT + "' IN ('"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            "  )\n" +
+            "  OR\n" +
+            // ── Branch D: community / migrated — plain-string negative result ──
+            // The negative result lives only on finalHivTestResult (the coded
+            // initial/confirmatory fields are empty or carry "No"). A negative
+            // here qualifies regardless of test type; positives are already
+            // excluded by the hard filter above. Acute-infection markers, when
+            // present, still set the pepOnly flag on the SELECT side.
+            "  ( LOWER(TRIM(hts.observation->>'" + HtsObservationKeys.KEY_FINAL_HIV_TEST_RESULT + "')) = LOWER('"
+                    + HtsObservationKeys.FINAL_HIV_TEST_RESULT_NEGATIVE + "')\n" +
             "  )\n" +
             ")\n";
 

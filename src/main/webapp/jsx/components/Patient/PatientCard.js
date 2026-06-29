@@ -148,19 +148,6 @@ function PatientCard(props) {
                               Pregnancy Status:&nbsp;<b>{patientDetail.pregnant}</b>
                             </Label>
                           )}
-                          {isFemale && patientDetail?.pregnant && (
-                            <Label color={"purple"} size={"small"}>
-                              Breast Feeding:&nbsp;
-                              <b>
-                                {(patientDetail.pregnant || "")
-                                  .toString()
-                                  .toLowerCase()
-                                  .replace(/\s|-/g, "") === "breastfeeding"
-                                  ? "Yes"
-                                  : "No"}
-                              </b>
-                            </Label>
-                          )}
                         </div>
                       )}
                     </Col>
@@ -175,15 +162,24 @@ function PatientCard(props) {
                       </span>
                     </Col>
 
-                    <Col md={4} className={classes.root2}>
-                      <span>
-                        Date Of Birth :{" "}
-                        <b style={{ color: "#0B72AA" }}>
-                          {patientObj?.dateOfBirth ||
-                            getDateOfBirth(props?.patientDetail)}
-                        </b>
-                      </span>
-                    </Col>
+                    {/* Breast Feeding sits in the second column directly above
+                        Date Of Birth (female patients with a pregnancy status). */}
+                    {isFemale && patientDetail?.pregnant && (
+                      <Col md={4} className={classes.root2}>
+                        <span>
+                          {" "}
+                          Breast Feeding :{" "}
+                          <b style={{ color: "#0B72AA" }}>
+                            {(patientDetail.pregnant || "")
+                              .toString()
+                              .toLowerCase()
+                              .replace(/\s|-/g, "") === "breastfeeding"
+                              ? "Yes"
+                              : "No"}
+                          </b>
+                        </span>
+                      </Col>
+                    )}
                     <Col md={4} className={classes.root2}>
                       <span>
                         {" "}
@@ -204,6 +200,15 @@ function PatientCard(props) {
                         Gender :{" "}
                         <b style={{ color: "#0B72AA" }}>
                           {patientObj?.gender || getSex(props?.patientDetail)}
+                        </b>
+                      </span>
+                    </Col>
+                    <Col md={4} className={classes.root2}>
+                      <span>
+                        Date Of Birth :{" "}
+                        <b style={{ color: "#0B72AA" }}>
+                          {patientObj?.dateOfBirth ||
+                            getDateOfBirth(props?.patientDetail)}
                         </b>
                       </span>
                     </Col>

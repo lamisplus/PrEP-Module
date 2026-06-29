@@ -28,6 +28,18 @@ public final class HtsObservationKeys {
     public static final String KEY_TYPE_OF_HIV_TEST_PMTCT = "typeOfHivTest";
 
     /**
+     * Community / migrated HTS records store the HIV result as a plain
+     * "Negative" / "Positive" string on {@code finalHivTestResult}, leaving the
+     * coded {@code initialHivTest} / {@code confirmatoryHivTest} fields empty or
+     * carrying a non-result value (e.g. "No"). This is the same fallback the
+     * frontend's {@code normalizeHtsObservation} relies on. Matched
+     * case-insensitively in SQL.
+     */
+    public static final String KEY_FINAL_HIV_TEST_RESULT = "finalHivTestResult";
+    public static final String FINAL_HIV_TEST_RESULT_NEGATIVE = "Negative";
+    public static final String FINAL_HIV_TEST_RESULT_POSITIVE = "Positive";
+
+    /**
      * STI_HIV_RESULT codeset values — used by {@link #KEY_INITIAL_HIV_TEST}.
      * The HTS form saves the initial-test field with these codes.
      */

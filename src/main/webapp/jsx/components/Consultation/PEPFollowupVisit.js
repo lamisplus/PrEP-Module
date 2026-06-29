@@ -437,6 +437,16 @@ const PEPFollowupVisit = props => {
     resolveFollowupHivCode(r.htsObservation).toLowerCase().includes("positive")
   );
 
+  // Labels for the Visit column — the same PEP_FOLLOWUP_HIV_TEST_RESULT codeset
+  // (timepoints like "3 weeks", "6 weeks"…) the manual "Test" dropdown used,
+  // minus the "refer" options. Slot 1 → 1st option, slot 2 → 2nd, slot 3 → 3rd.
+  const followupVisitLabels = (codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT || []).filter(
+    v => !v.display?.toLowerCase()?.includes("refer")
+  );
+  const visitLabelFor = slot =>
+    followupVisitLabels[slot - 1]?.display ||
+    `${slot === 1 ? "1st" : slot === 2 ? "2nd" : "3rd"} Follow-up Visit`;
+
   // ── Codeset fetch ──
 
   useEffect(() => {
@@ -482,7 +492,20 @@ const PEPFollowupVisit = props => {
       if (latestPepFollowup.duration !== undefined && latestPepFollowup.duration !== null)
         setF("duration", latestPepFollowup.duration);
     }
-  }, [patientDto, latestPepFollowup, isCreateMode]);
+    // Auto-populate the Visit Date with the latest HTS date floor; the user may
+    // still pick a later date (the input's `min` blocks earlier ones). Don't
+    // override a date the user already chose. Mirror the date-change side
+    // effects so Next Appointment / Duration stay consistent.
+    if (visitDateMin && !formikRef.current.values?.encounterDate) {
+      setF("encounterDate", visitDateMin);
+      const nextAppt = addDaysIso(visitDateMin, 28);
+      if (nextAppt) setF("nextAppointment", nextAppt);
+      if (!hasPriorFollowup) {
+        const dur = calculateDurationOnPep(visitDateMin);
+        if (dur !== "") setF("duration", dur);
+      }
+    }
+  }, [patientDto, latestPepFollowup, isCreateMode, visitDateMin, hasPriorFollowup]);
 
   // Pull the linked hts_encounter when the Patient grid didn't already ship one
   // (i.e. edit/view path). Prefer the htsEncounterUuid stored on THIS follow-up
@@ -638,11 +661,18 @@ const PEPFollowupVisit = props => {
     const payload = { ...values };
     payload.pepNotedSideEffects = notedSideEffects;
     payload.syndromicStiScreening = syndromicStiSelected;
-    // Save only the hts_encounter uuids of the (up to) first three follow-up
-    // visits after the latest PEP initiation — the 1st/2nd/3rd HIV results.
-    payload.followupHivTestResults = initialFollowupHtsResults
+    // Save the hts_encounter uuids of the follow-up visits after the latest PEP
+    // initiation, INCLUDING the visit being saved now, capped at the first
+    // three. So the 1st follow-up stores 1 uuid, the 2nd stores 2, the 3rd
+    // stores 3, and the 4th+ keep the first three.
+    const followupUuids = initialFollowupHtsResults
       .map(r => r.htsEncounterUuid)
       .filter(Boolean);
+    const currentHtsUuid = latestHts?.uuid;
+    if (currentHtsUuid && !followupUuids.includes(currentHtsUuid)) {
+      followupUuids.push(currentHtsUuid);
+    }
+    payload.followupHivTestResults = followupUuids.slice(0, 3);
     payload.enrollmentType = ENROLLMENT_TYPE_PEP;
     // Persist the link to the patient's HTS encounter; HIV result and
     // pregnancy status are dereferenced from hts_encounter at read time.
@@ -1331,16 +1361,6 @@ const PEPFollowupVisit = props => {
                       </Label>
                       <br />
                       <br />
-                      {/* Auto-populated from the HIV result captured at the 1st,
-                          2nd and 3rd PEP follow-up visits after the latest PEP
-                          initiation (resolved from each visit's HTS encounter).
-                          No manual entry — the list is saved with this form. A
-                          slot without a recorded visit shows as pending. */}
-                      <p style={{ color: "#6c757d", fontSize: "0.85rem", marginTop: "-0.5rem" }}>
-                        Auto-populated from the 1st, 2nd and 3rd PEP follow-up
-                        visits after the latest PEP initiation. Saved automatically
-                        with this form.
-                      </p>
                       <table className="table table-bordered table-sm mb-3">
                         <thead style={{ backgroundColor: "#014d88", color: "#fff" }}>
                           <tr>
@@ -1359,12 +1379,12 @@ const PEPFollowupVisit = props => {
                             if (!entry) {
                               return (
                                 <tr key={slot}>
-                                  <td>{ordinal} Follow-up Visit</td>
+                                  <td>{visitLabelFor(slot)}</td>
                                   <td
                                     colSpan={2}
                                     style={{ color: "#6c757d", fontStyle: "italic" }}
                                   >
-                                    {ordinal} visit pending — not recorded yet
+                                    {ordinal} visit pending
                                   </td>
                                 </tr>
                               );
@@ -1377,7 +1397,7 @@ const PEPFollowupVisit = props => {
                               .includes("positive");
                             return (
                               <tr key={slot}>
-                                <td>{ordinal} Follow-up Visit</td>
+                                <td>{visitLabelFor(slot)}</td>
                                 <td>
                                   {entry.encounterDate
                                     ? moment(entry.encounterDate).format("YYYY-MM-DD")
