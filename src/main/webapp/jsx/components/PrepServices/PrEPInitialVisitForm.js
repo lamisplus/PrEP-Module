@@ -921,6 +921,9 @@ const PrEPInitialVisitForm = props => {
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",
                     }}
+                    // Not earlier than the latest HTS date that auto-populates
+                    // this form.
+                    min={latestHts?.dateOfVisit || ""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     disabled={disabledField}
                   />

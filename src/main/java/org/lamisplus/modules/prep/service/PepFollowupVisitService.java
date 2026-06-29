@@ -5,18 +5,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
+import org.lamisplus.modules.prep.domain.dto.FollowupHtsResultDto;
 import org.lamisplus.modules.prep.domain.dto.PepFollowupVisitDto;
 import org.lamisplus.modules.prep.domain.dto.PepFollowupVisitRequestDto;
+import org.lamisplus.modules.prep.domain.entity.FollowupHtsResult;
 import org.lamisplus.modules.prep.domain.entity.PepFollowupVisit;
 import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.prep.repository.PepFollowupVisitRepository;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
+import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.lamisplus.modules.prep.util.PrepErrors;
 import org.springframework.stereotype.Service;
 
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Slf4j
@@ -100,6 +106,38 @@ public class PepFollowupVisitService {
                 .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), facilityId, enrollmentType)
                 .map(this::entityToDto)
                 .orElse(null);
+    }
+
+    /**
+     * The first three PEP follow-up visits after the patient's latest PEP
+     * initiation, each carrying the HTS encounter used to resolve its HIV
+     * result. Returned in chronological order and numbered 1..3. Fewer than
+     * three entries means the remaining slots are still pending.
+     */
+    public List<FollowupHtsResultDto> getInitialFollowupHtsResults(Long personId) {
+        Person person = getPerson(personId);
+        PrepPepInitiation initiation = prepPepInitiationRepository
+                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PEP)
+                .orElseGet(() -> prepPepInitiationRepository
+                        .findTopByPersonUuidAndArchived(person.getUuid(), false)
+                        .orElse(null));
+        if (initiation == null) {
+            return Collections.emptyList();
+        }
+        List<FollowupHtsResult> rows = pepFollowupVisitRepository
+                .findFirstThreeFollowupHtsResults(initiation.getUuid());
+        List<FollowupHtsResultDto> result = new ArrayList<>();
+        IntStream.range(0, rows.size()).forEach(i -> {
+            FollowupHtsResult row = rows.get(i);
+            result.add(FollowupHtsResultDto.builder()
+                    .visitNumber(i + 1)
+                    .followupId(row.getFollowupId())
+                    .encounterDate(row.getEncounterDate())
+                    .htsEncounterUuid(row.getHtsEncounterUuid())
+                    .htsObservation(row.getHtsObservation())
+                    .build());
+        });
+        return result;
     }
 
     public PepFollowupVisitDto update(Long id, PepFollowupVisitDto dto) {

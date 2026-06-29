@@ -126,6 +126,11 @@ const PEPFollowupVisit = props => {
   // that aren't stored on the initiation record — Mode of Exposure, Duration
   // before PEP provided, Date of Stop of PEP, Duration of PEP.
   const [latestPepFollowup, setLatestPepFollowup] = useState(null);
+  // The first three PEP follow-up visits after the latest PEP initiation, each
+  // with its HTS observation — used to auto-populate the 1st/2nd/3rd follow-up
+  // HIV result rows (replaces the manual add/edit list). Persisted (as the list
+  // of hts_encounter uuids) when this form is saved.
+  const [initialFollowupHtsResults, setInitialFollowupHtsResults] = useState([]);
 
   // Pregnancy Status and HIV Status at Exposure are sourced from the latest
   // hts_encounter linked to the patient's PEP initiation. `loadedHts` carries
@@ -155,6 +160,16 @@ const PEPFollowupVisit = props => {
   // to its values. On the very first follow-up (no prior) they stay editable so
   // the user can supply them; from then on they're inherited and read-only.
   const hasPriorFollowup = !!latestPepFollowup;
+
+  // Visit date floor: never earlier than enrollment AND never earlier than the
+  // latest HTS date that auto-populates this form (whichever is later). ISO
+  // YYYY-MM-DD sorts chronologically.
+  const visitDateMin =
+    [patientDto?.dateEnrolled, latestHts?.dateOfVisit]
+      .filter(Boolean)
+      .map(d => moment(d).format("YYYY-MM-DD"))
+      .sort()
+      .pop() || "";
 
   const [hivTestEntries, setHivTestEntries] = useState([]);
   const [hivTestInput, setHivTestInput] = useState({ test: "", result: "" });
@@ -375,8 +390,51 @@ const PEPFollowupVisit = props => {
     }
   };
 
-  const hasPositiveHivResult = hivTestEntries.some(
-    entry => entry.result?.toLowerCase().includes("positive")
+  // Fetch the 1st/2nd/3rd follow-up visits (with HTS) after the latest PEP
+  // initiation. Their HIV results auto-populate the read-only list below.
+  const getInitialFollowupHtsResults = () => {
+    const personId = props.patientObj.personId || props.patientObj.id;
+    axios
+      .get(`${baseUrl}pep-followup-visit/initial-hts-results/${personId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(response => {
+        setInitialFollowupHtsResults(
+          Array.isArray(response.data) ? response.data : []
+        );
+      })
+      .catch(() => setInitialFollowupHtsResults([]));
+  };
+
+  // Resolve a follow-up visit's HTS observation (raw JSON text) to its HIV
+  // result code, reusing the same mapping the rest of the form uses.
+  const resolveFollowupHivCode = htsObservation => {
+    let obs = htsObservation;
+    if (typeof obs === "string") {
+      try {
+        obs = JSON.parse(obs);
+      } catch (e) {
+        obs = null;
+      }
+    }
+    const norm = normalizeHtsObservation(obs);
+    return (
+      toHivTestResultCode(
+        norm.confirmatoryHivTest || norm.initialHivTest,
+        norm.typeOfHivTestDone
+      ) || ""
+    );
+  };
+
+  const resolveFollowupHivDisplay = htsObservation => {
+    const code = resolveFollowupHivCode(htsObservation);
+    return (
+      codeset?.HIV_TEST_RESULT?.find(v => v.code === code)?.display || code || ""
+    );
+  };
+
+  const hasPositiveHivResult = initialFollowupHtsResults.some(r =>
+    resolveFollowupHivCode(r.htsObservation).toLowerCase().includes("positive")
   );
 
   // ── Codeset fetch ──
@@ -396,6 +454,7 @@ const PEPFollowupVisit = props => {
   useEffect(() => {
     getPatientVisit();
     getLatestPriorFollowup();
+    getInitialFollowupHtsResults();
     setDisabledField(
       !["update", undefined].includes(props.activeContent.actionType)
     );
@@ -568,9 +627,8 @@ const PEPFollowupVisit = props => {
     if (!syndromicStiSelected || syndromicStiSelected.length === 0) {
       manualErrors.push("Syndromic STI Screening is required");
     }
-    if (!hivTestEntries || hivTestEntries.length === 0) {
-      manualErrors.push("At least one HIV Test entry is required");
-    }
+    // The 1st/2nd/3rd follow-up HIV results are auto-populated, not entered, so
+    // there's no "at least one entry" requirement any more.
     if (manualErrors.length > 0) {
       manualErrors.forEach(msg => toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER }));
       return;
@@ -580,7 +638,11 @@ const PEPFollowupVisit = props => {
     const payload = { ...values };
     payload.pepNotedSideEffects = notedSideEffects;
     payload.syndromicStiScreening = syndromicStiSelected;
-    payload.followupHivTestResults = hivTestEntries;
+    // Save only the hts_encounter uuids of the (up to) first three follow-up
+    // visits after the latest PEP initiation — the 1st/2nd/3rd HIV results.
+    payload.followupHivTestResults = initialFollowupHtsResults
+      .map(r => r.htsEncounterUuid)
+      .filter(Boolean);
     payload.enrollmentType = ENROLLMENT_TYPE_PEP;
     // Persist the link to the patient's HTS encounter; HIV result and
     // pregnancy status are dereferenced from hts_encounter at read time.
@@ -723,7 +785,7 @@ const PEPFollowupVisit = props => {
                           value={values.encounterDate}
                           style={inputStyle}
                           onChange={e => handleEncounterDateChangeForAppt(e, setFieldValue, values.duration)}
-                          min={patientDto?.dateEnrolled || ""}
+                          min={visitDateMin || patientDto?.dateEnrolled || ""}
                           max={moment(new Date()).format("YYYY-MM-DD")}
                           disabled={disabledField}
                         />
@@ -1269,166 +1331,97 @@ const PEPFollowupVisit = props => {
                       </Label>
                       <br />
                       <br />
-                      {!disabledField && (
-                        <div className="row mb-3">
-                          <div className="mb-1 col-md-5">
-                            <FormGroup>
-                              <FormLabelName>Test</FormLabelName>
-                              <Input
-                                type="select"
-                                name="test"
-                                id="hivTestEntryTest"
-                                value={hivTestInput.test}
-                                onChange={handleHivTestInputChange}
-                                style={inputStyle}
-                              >
-                                <option value="">Select</option>
-                                {codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.filter(
-                                  v => !v.display?.toLowerCase()?.includes("refer")
-                                ).map(value => (
-                                  <option key={value.id} value={value.code}>
-                                    {value.display}
-                                  </option>
-                                ))}
-                              </Input>
-                            </FormGroup>
-                          </div>
-                          <div className="mb-1 col-md-5">
-                            <FormGroup>
-                              <FormLabelName>Result</FormLabelName>
-                              <Input
-                                type="select"
-                                name="result"
-                                id="hivTestEntryResult"
-                                value={hivTestInput.result}
-                                onChange={handleHivTestInputChange}
-                                style={inputStyle}
-                              >
-                                <option value="">Select</option>
-                                {/* Result options come from HIV_TEST_RESULT;
-                                    the Test column above uses
-                                    PEP_FOLLOWUP_HIV_TEST_RESULT. */}
-                                {(codeset?.HIV_TEST_RESULT || []).map(item => (
-                                  <option key={item.code} value={item.code}>{item.display}</option>
-                                ))}
-                              </Input>
-                            </FormGroup>
-                          </div>
-                          <div className="mb-1 col-md-2 d-flex align-items-end">
-                            <MatButton
-                              type="button"
-                              variant="contained"
-                              color="primary"
-                              startIcon={<AddIcon />}
-                              style={{ backgroundColor: "#014d88" }}
-                              onClick={handleAddHivTestEntry}
-                              disabled={!hivTestInput.test || !hivTestInput.result}
-                            >
-                              <span style={{ textTransform: "capitalize", color: (!hivTestInput.test || !hivTestInput.result) ? "rgba(255,255,255,0.5)" : "#fff" }}>
-                                {editingHivTestIndex !== null ? "Update" : "Add"}
-                              </span>
-                            </MatButton>
-                          </div>
-                        </div>
-                      )}
-
-                      {hivTestEntries.length > 0 && (
-                        <table className="table table-bordered table-sm mb-3">
-                          <thead style={{ backgroundColor: "#014d88", color: "#fff" }}>
-                            <tr>
-                              <th>S/N</th>
-                              <th>Test</th>
-                              <th>Result</th>
-                              {!disabledField && <th>Actions</th>}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {hivTestEntries.map((entry, index) => (
-                              <tr key={index}>
-                                <td>{index + 1}</td>
-                                <td>{codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.find(v => v.code === entry.test)?.display || entry.test}</td>
-                                <td>
-                                  {(() => {
-                                    // entry.result is now an HIV_TEST_RESULT
-                                    // code; render its display, fall back to
-                                    // related codesets, and colour by whether
-                                    // the resolved label contains "positive".
-                                    const resolved =
-                                      codeset?.HIV_TEST_RESULT?.find(v => v.code === entry.result)?.display ||
-                                      codeset?.PEP_FOLLOWUP_HIV_TEST_RESULT?.find(v => v.code === entry.result)?.display ||
-                                      codeset?.HTS_RESULT?.find(v => v.code === entry.result)?.display ||
-                                      entry.result;
-                                    const isPositive = (resolved || "")
-                                      .toLowerCase()
-                                      .includes("positive");
-                                    return (
-                                      <span
-                                        style={{
-                                          color: isPositive ? "red" : "green",
-                                          fontWeight: "bold",
-                                        }}
-                                      >
-                                        {resolved}
-                                      </span>
-                                    );
-                                  })()}
-                                </td>
-                                {!disabledField && (
-                                  <td>
-                                    <button
-                                      type="button"
-                                      className="btn btn-sm btn-primary mr-2"
-                                      style={{ marginRight: "5px" }}
-                                      onClick={() => handleEditHivTestEntry(index)}
-                                    >
-                                      Edit
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="btn btn-sm btn-danger"
-                                      onClick={() => handleDeleteHivTestEntry(index)}
-                                    >
-                                      Delete
-                                    </button>
+                      {/* Auto-populated from the HIV result captured at the 1st,
+                          2nd and 3rd PEP follow-up visits after the latest PEP
+                          initiation (resolved from each visit's HTS encounter).
+                          No manual entry — the list is saved with this form. A
+                          slot without a recorded visit shows as pending. */}
+                      <p style={{ color: "#6c757d", fontSize: "0.85rem", marginTop: "-0.5rem" }}>
+                        Auto-populated from the 1st, 2nd and 3rd PEP follow-up
+                        visits after the latest PEP initiation. Saved automatically
+                        with this form.
+                      </p>
+                      <table className="table table-bordered table-sm mb-3">
+                        <thead style={{ backgroundColor: "#014d88", color: "#fff" }}>
+                          <tr>
+                            <th>Visit</th>
+                            <th>Visit Date</th>
+                            <th>HIV Result</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[1, 2, 3].map(slot => {
+                            const ordinal =
+                              slot === 1 ? "1st" : slot === 2 ? "2nd" : "3rd";
+                            const entry = initialFollowupHtsResults.find(
+                              r => r.visitNumber === slot
+                            );
+                            if (!entry) {
+                              return (
+                                <tr key={slot}>
+                                  <td>{ordinal} Follow-up Visit</td>
+                                  <td
+                                    colSpan={2}
+                                    style={{ color: "#6c757d", fontStyle: "italic" }}
+                                  >
+                                    {ordinal} visit pending — not recorded yet
                                   </td>
-                                )}
+                                </tr>
+                              );
+                            }
+                            const resolved = resolveFollowupHivDisplay(
+                              entry.htsObservation
+                            );
+                            const isPositive = (resolved || "")
+                              .toLowerCase()
+                              .includes("positive");
+                            return (
+                              <tr key={slot}>
+                                <td>{ordinal} Follow-up Visit</td>
+                                <td>
+                                  {entry.encounterDate
+                                    ? moment(entry.encounterDate).format("YYYY-MM-DD")
+                                    : "—"}
+                                </td>
+                                <td>
+                                  <span
+                                    style={{
+                                      color: isPositive ? "red" : "green",
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    {resolved || "—"}
+                                  </span>
+                                </td>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
+                            );
+                          })}
+                        </tbody>
+                      </table>
 
-                      {hivTestEntries.length === 0 && (
-                        <span className={classes.error}>
-                          At least 1 HIV test result is required
+                      {/* Refer (If positive) Summary — based on the autopopulated results */}
+                      <div
+                        className="p-3 mb-3"
+                        style={{
+                          borderLeft: "5px solid #992E62",
+                          backgroundColor: "#f0f4f8",
+                        }}
+                      >
+                        <span style={{ fontWeight: "bold", fontSize: "1rem" }}>
+                          Refer (If positive):{" "}
                         </span>
-                      )}
-
-                      {/* Refer (If positive) Summary */}
-                      {hivTestEntries.length > 0 && (
-                        <div
-                          className="p-3 mb-3"
+                        <span
                           style={{
-                            borderLeft: "5px solid #992E62",
-                            backgroundColor: "#f0f4f8",
+                            padding: "4px 12px",
+                            borderRadius: "4px",
+                            fontWeight: "bold",
+                            color: "#fff",
+                            backgroundColor: hasPositiveHivResult ? "#dc3545" : "#28a745",
                           }}
                         >
-                          <span style={{ fontWeight: "bold", fontSize: "1rem" }}>
-                            Refer (If positive):{" "}
-                          </span>
-                          <span
-                            style={{
-                              padding: "4px 12px",
-                              borderRadius: "4px",
-                              fontWeight: "bold",
-                              color: "#fff",
-                              backgroundColor: hasPositiveHivResult ? "#dc3545" : "#28a745",
-                            }}
-                          >
-                            {hasPositiveHivResult ? "Yes" : "No"}
-                          </span>
-                        </div>
-                      )}
+                          {hasPositiveHivResult ? "Yes" : "No"}
+                        </span>
+                      </div>
                     </div>
 
                     {/* 14. Next Appointment Date */}

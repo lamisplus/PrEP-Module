@@ -113,9 +113,27 @@ function PatientCard(props) {
 
   const { userPermissions } = useAuth();
 
+  // Latest viral load for this patient — fetched once on dashboard entry and
+  // shared with the PatientCard (chip display) and SubMenu (hides PEP service
+  // forms when Target Detected). Shape: { viralLoad, viralLoadResult }.
+  const [viralLoad, setViralLoad] = useState(null);
+
   useEffect(() => {
     PatientObject();
+    ViralLoadObject();
   }, []);
+
+  function ViralLoadObject() {
+    const personUuid =
+      patientObjLocation?.personUuid || patientObjLocation?.uuid;
+    if (!personUuid) return;
+    return axios
+      .get(`${baseUrl}prep/viral-load/latest/${personUuid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(response => setViralLoad(response.data))
+      .catch(() => setViralLoad(null));
+  }
 
   // Once patientDetail loads, derive screeningType from enrollmentType ONLY if not set from route
   // (route-passed screeningType always wins so PrEP enrollment tab shows PrEP forms even if patient is also enrolled in PEP)
@@ -355,6 +373,7 @@ function PatientCard(props) {
             setActiveContent={setActiveContent}
             activeContent={activeContent}
             patientDetail={patientDetail}
+            viralLoad={viralLoad}
           />
           <SubMenu
             patientObj={patientObjLocation}
@@ -364,6 +383,7 @@ function PatientCard(props) {
             freshWorkflow={freshWorkflow}
             sessionStage={sessionStage}
             hasOpenScreening={hasOpenScreening}
+            viralLoad={viralLoad}
           />
           <br />
 
@@ -415,6 +435,7 @@ function PatientCard(props) {
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
+              viralLoad={viralLoad}
               PatientObject={() => PatientObject()}
             />
           )}

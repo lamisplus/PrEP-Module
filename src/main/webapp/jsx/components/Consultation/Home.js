@@ -228,6 +228,14 @@ const ClinicVisit = props => {
   // a dangling uuid or malformed encounter, in which case HTS is treated as
   // absent (fields editable, not required) and a non-blocking modal is shown.
   const isFromHts = isValidHtsEncounter(latestHts);
+  // Visit date floor: never earlier than enrollment AND never earlier than the
+  // latest HTS date that auto-populates this form (whichever is later).
+  const visitDateMin =
+    [patientDto?.dateEnrolled, latestHts?.dateOfVisit]
+      .filter(Boolean)
+      .map(d => moment(d).format("YYYY-MM-DD"))
+      .sort()
+      .pop() || "";
   // The hard block only applies when creating a new visit (no record id).
   // Existing records can always be viewed/edited even if their HTS is missing.
   // (htsCandidateUuid / htsFetchPending are computed below, after the state
@@ -1350,9 +1358,10 @@ const ClinicVisit = props => {
                             calculateDurationOnPrep(newDate);
                           }}
                           min={
-                            patientDto && patientDto.dateEnrolled
+                            visitDateMin ||
+                            (patientDto && patientDto.dateEnrolled
                               ? patientDto.dateEnrolled
-                              : ""
+                              : "")
                           }
                           max={moment(new Date()).format("YYYY-MM-DD")}
                           disabled={disabledField}

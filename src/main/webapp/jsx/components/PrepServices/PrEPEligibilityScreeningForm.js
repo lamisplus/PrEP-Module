@@ -396,6 +396,9 @@ const BasicInfo = props => {
         patientObj?.htsClientCode || latestHts.clientCode || prev.clientHtsCode,
       htsEncounterUuid: prev.htsEncounterUuid || latestHts.uuid || "",
       pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
+      // Default the visit date to the latest HTS date; the user may still pick a
+      // later date (the input's `min` enforces "not earlier").
+      visitDate: prev.visitDate || latestHts.dateOfVisit || prev.visitDate,
     }));
     setHivTesting(prev => ({
       ...prev,

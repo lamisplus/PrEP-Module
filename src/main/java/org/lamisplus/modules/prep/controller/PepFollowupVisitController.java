@@ -2,6 +2,7 @@ package org.lamisplus.modules.prep.controller;
 
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.lamisplus.modules.prep.domain.dto.FollowupHtsResultDto;
 import org.lamisplus.modules.prep.domain.dto.PepFollowupVisitDto;
 import org.lamisplus.modules.prep.domain.dto.PepFollowupVisitRequestDto;
 import org.lamisplus.modules.prep.service.PepFollowupVisitService;
@@ -53,5 +54,12 @@ public class PepFollowupVisitController {
             @RequestParam(value = "enrollmentType", required = false) String enrollmentType) {
         return ResponseEntity.ok(
                 pepFollowupVisitService.getLatestByEnrollmentType(personId, enrollmentType));
+    }
+
+    @GetMapping("/initial-hts-results/{personId}")
+    @ApiOperation(value = "Get the 1st/2nd/3rd PEP follow-up visits (with HTS) after the latest PEP initiation")
+    public ResponseEntity<List<FollowupHtsResultDto>> getInitialFollowupHtsResults(
+            @PathVariable Long personId) {
+        return ResponseEntity.ok(pepFollowupVisitService.getInitialFollowupHtsResults(personId));
     }
 }

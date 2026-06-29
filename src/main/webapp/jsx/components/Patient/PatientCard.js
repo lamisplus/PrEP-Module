@@ -20,6 +20,10 @@ import useGetPhoneNumber from "../../../hooks/patientCard/useGetPhoneNumber";
 import useCalculateAge from "../../../hooks/patientCard/useCalculateAge";
 import useGetReminderAlert from "../../../hooks/patientCard/useGetReminderAlert";
 import useBasicPatientDetails from "../../../hooks/patientCard/useBasicPatientDetails";
+import {
+  isTargetDetected,
+  viralLoadDisplay,
+} from "../../constants/viralLoad";
 Moment.locale("en");
 momentLocalizer();
 
@@ -120,8 +124,25 @@ function PatientCard(props) {
                         </ButtonMui>
                       </Link>
                       {(patientDetail?.currentRegimen ||
-                        (isFemale && patientDetail?.pregnant)) && (
+                        (isFemale && patientDetail?.pregnant) ||
+                        props.viralLoad?.viralLoadResult) && (
                         <div className="mt-2" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                          {/* Latest viral load — shown for every PrEP/PEP patient
+                              that has a VL result. Wording comes from the shared
+                              viralLoad constants. */}
+                          {props.viralLoad?.viralLoadResult && (
+                            <Label
+                              color={
+                                isTargetDetected(props.viralLoad.viralLoadResult)
+                                  ? "red"
+                                  : "green"
+                              }
+                              size={"small"}
+                            >
+                              Viral Load:&nbsp;
+                              <b>{viralLoadDisplay(props.viralLoad.viralLoadResult)}</b>
+                            </Label>
+                          )}
                           {isFemale && patientDetail?.pregnant && (
                             <Label color={"pink"} size={"small"}>
                               Pregnancy Status:&nbsp;<b>{patientDetail.pregnant}</b>

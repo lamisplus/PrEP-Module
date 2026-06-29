@@ -3,6 +3,7 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { Menu, Popup } from "semantic-ui-react";
 import ProtectedComponent from "../PrepServices/ProtectedComponent";
 import { useAuth } from "../../../context/AuthProvider/AuthProvider";
+import { isTargetDetected } from "../../constants/viralLoad";
 
 function SubMenu(props) {
   const { userPermissions } = useAuth();
@@ -105,6 +106,12 @@ function SubMenu(props) {
     .toLowerCase();
   const hasDiscontinued = DISCONTINUED_STATUSES.includes(prepStatusValue);
 
+  // Latest viral load (shared with the dashboard chip). When Target Detected we
+  // hide the PEP service forms — a client with a detectable viral load should
+  // not be continuing PEP. Only affects the PEP arm; PrEP entries are unaffected.
+  const viralLoadTargetDetected = isTargetDetected(props.viralLoad?.viralLoadResult);
+  const hidePepServiceForms = isPEP && viralLoadTargetDetected;
+
   const renderMenuItems = () => {
     const isNegative = patientObj?.hivresultAtVisit === "Negative" || patientObj?.hivresultAtVisit === null;
 
@@ -186,7 +193,7 @@ function SubMenu(props) {
           )}
         />
         
-        {isNegative && hasOpenScreening && (
+        {isNegative && hasOpenScreening && !hidePepServiceForms && (
           <ProtectedComponent
             isAuthorized={userPermissions.enrollment}
             privateComponent={() => (
@@ -207,7 +214,7 @@ function SubMenu(props) {
             )}
           />
         )}
-        {isNegative && isPEP && (
+        {isNegative && isPEP && !hidePepServiceForms && (
           <ProtectedComponent
             isAuthorized={userPermissions.visit}
             privateComponent={() => (
@@ -218,7 +225,7 @@ function SubMenu(props) {
           />
         )}
 
-        {isNegative && (
+        {isNegative && !hidePepServiceForms && (
           <ProtectedComponent
             isAuthorized={userPermissions.discontinuation}
             privateComponent={() => (

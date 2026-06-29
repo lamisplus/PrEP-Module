@@ -1,9 +1,11 @@
 package org.lamisplus.modules.prep.repository;
 
+import org.lamisplus.modules.prep.domain.entity.FollowupHtsResult;
 import org.lamisplus.modules.prep.domain.entity.PepFollowupVisit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import org.lamisplus.modules.patient.domain.entity.Person;
 
@@ -30,6 +32,25 @@ public interface PepFollowupVisitRepository extends JpaRepository<PepFollowupVis
             nativeQuery = true)
     Optional<PepFollowupVisit> findLatestByPersonUuidAndEnrollmentType(
             String personUuid, Long facilityId, String enrollmentType);
+
+    /**
+     * The first three PEP follow-up visits (chronologically) anchored to the
+     * given initiation, with the HTS encounter attached to each. Drives the
+     * auto-populated 1st/2nd/3rd follow-up HIV result list.
+     */
+    @Query(nativeQuery = true, value =
+            "SELECT pfv.id AS followupId,\n" +
+            "       pfv.encounter_date AS encounterDate,\n" +
+            "       pfv.hts_encounter_uuid AS htsEncounterUuid,\n" +
+            "       CAST(hts.observation AS text) AS htsObservation\n" +
+            "FROM pep_followup_visit pfv\n" +
+            "LEFT JOIN hts_encounter hts ON CAST(hts.uuid AS text) = pfv.hts_encounter_uuid\n" +
+            "WHERE pfv.prophylaxis_initiation_uuid = :initiationUuid\n" +
+            "  AND CAST(pfv.archived AS BOOLEAN) = false\n" +
+            "ORDER BY pfv.encounter_date ASC NULLS LAST, pfv.id ASC\n" +
+            "LIMIT 3")
+    List<FollowupHtsResult> findFirstThreeFollowupHtsResults(
+            @Param("initiationUuid") String initiationUuid);
     Optional<PepFollowupVisit> findByUuid(String uuid);
     Integer countAllByPersonUuid(String personUuid);
     List<PepFollowupVisit> findAllByFacilityId(Long facilityId);
