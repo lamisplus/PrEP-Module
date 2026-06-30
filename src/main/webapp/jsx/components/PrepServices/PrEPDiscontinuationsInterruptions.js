@@ -133,20 +133,35 @@ const PrEPDiscontinuationsInterruptions = props => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objValues.pepCompletion, latestHts?.uuid]);
 
-  // Map the passed-down latest viral load onto the EARLY_DETECT_VIRAL_LOAD_RESULT
-  // codeset option (matched by display text). Only auto-populates while the
-  // Early Detect field is shown.
+  // Map the viral-load API result ("Target Detected" / "Target NO Detected")
+  // onto an EARLY_DETECT_VIRAL_LOAD_RESULT codeset option. Robust to wording
+  // differences: normalizes case/spacing/underscores and treats "NOT" === "NO",
+  // so "Target NO Detected", "Target Not Detected" and "TARGET_NOT_DETECTED"
+  // all compare equal. Tries an exact (normalized) match on display OR code
+  // first, then falls back to a detected / not-detected heuristic.
+  const normalizeVl = s =>
+    (s || "")
+      .toString()
+      .toLowerCase()
+      .replace(/[_\s]+/g, " ")
+      .replace(/\bnot\b/g, "no") // unify NOT/NO
+      .trim();
+
   const earlyDetectVlCodeFromViralLoad = (viralLoadResult, options) => {
     if (!viralLoadResult || !Array.isArray(options) || options.length === 0) {
       return "";
     }
+    const target = normalizeVl(viralLoadResult); // e.g. "target no detected"
+    // 1) exact normalized match against display or code
+    let match = options.find(
+      opt => normalizeVl(opt.display) === target || normalizeVl(opt.code) === target
+    );
+    if (match) return match.code;
+    // 2) detected / not-detected heuristic
     const wantDetected = isTargetDetected(viralLoadResult);
-    // Match against display AND code so this still works whether the codeset
-    // labels read "Target Detected"/"Target Not Detected", "Detected"/
-    // "Undetected", etc.
-    const isNotDetected = s => /not[\s_]*detect|no[\s_]*detect|undetect/i.test(s);
-    const hasDetect = s => /detect/i.test(s);
-    const match = options.find(opt => {
+    const isNotDetected = s => /\bno\b.*detect|undetect/.test(normalizeVl(s));
+    const hasDetect = s => /detect/.test(normalizeVl(s));
+    match = options.find(opt => {
       const hay = `${opt.display || ""} ${opt.code || ""}`;
       if (!hasDetect(hay)) return false;
       return wantDetected ? !isNotDetected(hay) : isNotDetected(hay);
@@ -171,6 +186,21 @@ const PrEPDiscontinuationsInterruptions = props => {
     props.viralLoad?.viralLoadResult,
     codeset?.EARLY_DETECT_VIRAL_LOAD_RESULT,
   ]);
+
+  // When the latest viral load is detected (> 1000 → "Target Detected"), the
+  // client has not completed PEP successfully, so PEP Completion auto-populates
+  // to YES. Only on a new record (don't override a saved value on view/edit);
+  // the user can still change it afterwards.
+  useEffect(() => {
+    if (props.activeContent?.id) return; // edit/view — keep the saved value
+    if (!isTargetDetected(props.viralLoad?.viralLoadResult)) return;
+    setObjValues(prev =>
+      prev.pepCompletion === "YES_NO_YES"
+        ? prev
+        : { ...prev, pepCompletion: "YES_NO_YES" }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.viralLoad?.viralLoadResult]);
 
   const GetPatientDTOObj = () => {
     axios
