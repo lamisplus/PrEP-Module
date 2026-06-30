@@ -131,6 +131,21 @@ function PatientCard(props) {
                               Pregnancy Status:&nbsp;<b>{patientDetail.pregnant}</b>
                             </Label>
                           )}
+                          {/* Breast Feeding — a chip alongside Pregnancy Status
+                              (same row/height, second position). */}
+                          {isFemale && patientDetail?.pregnant && (
+                            <Label color={"purple"} size={"small"}>
+                              Breast Feeding:&nbsp;
+                              <b>
+                                {(patientDetail.pregnant || "")
+                                  .toString()
+                                  .toLowerCase()
+                                  .replace(/\s|-/g, "") === "breastfeeding"
+                                  ? "Yes"
+                                  : "No"}
+                              </b>
+                            </Label>
+                          )}
                         </div>
                       )}
                     </Col>
@@ -145,24 +160,15 @@ function PatientCard(props) {
                       </span>
                     </Col>
 
-                    {/* Breast Feeding sits in the second column directly above
-                        Date Of Birth (female patients with a pregnancy status). */}
-                    {isFemale && patientDetail?.pregnant && (
-                      <Col md={4} className={classes.root2}>
-                        <span>
-                          {" "}
-                          Breast Feeding :{" "}
-                          <b style={{ color: "#0B72AA" }}>
-                            {(patientDetail.pregnant || "")
-                              .toString()
-                              .toLowerCase()
-                              .replace(/\s|-/g, "") === "breastfeeding"
-                              ? "Yes"
-                              : "No"}
-                          </b>
-                        </span>
-                      </Col>
-                    )}
+                    <Col md={4} className={classes.root2}>
+                      <span>
+                        Date Of Birth :{" "}
+                        <b style={{ color: "#0B72AA" }}>
+                          {patientObj?.dateOfBirth ||
+                            getDateOfBirth(props?.patientDetail)}
+                        </b>
+                      </span>
+                    </Col>
                     {/* Latest viral load — shown for every PrEP/PEP patient that
                         has a VL result. Sits just over Age and Phone Number.
                         Wording comes from the shared viralLoad constants. */}
@@ -203,15 +209,6 @@ function PatientCard(props) {
                         Gender :{" "}
                         <b style={{ color: "#0B72AA" }}>
                           {patientObj?.gender || getSex(props?.patientDetail)}
-                        </b>
-                      </span>
-                    </Col>
-                    <Col md={4} className={classes.root2}>
-                      <span>
-                        Date Of Birth :{" "}
-                        <b style={{ color: "#0B72AA" }}>
-                          {patientObj?.dateOfBirth ||
-                            getDateOfBirth(props?.patientDetail)}
                         </b>
                       </span>
                     </Col>

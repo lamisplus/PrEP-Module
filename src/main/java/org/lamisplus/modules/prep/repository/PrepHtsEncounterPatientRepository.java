@@ -171,6 +171,12 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
                     + HtsObservationKeys.EARLY_DETECT_ANTIBODY_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            // Community / migrated records keep the negative result on the
+            // plain-string finalHivTestResult (coded fields empty or "No"). This
+            // sits inside Branch A so it only applies to the rapid/untyped shape
+            // those records use — not as a blanket match over every row.
+            "      OR LOWER(TRIM(hts.observation->>'" + HtsObservationKeys.KEY_FINAL_HIV_TEST_RESULT + "')) = LOWER('"
+                    + HtsObservationKeys.FINAL_HIV_TEST_RESULT_NEGATIVE + "')\n" +
             "    )\n" +
             "  )\n" +
             "  OR\n" +
@@ -186,17 +192,23 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
             "  )\n" +
-            "  OR\n" +
-            // ── Branch D: community / migrated — plain-string negative result ──
-            // The negative result lives only on finalHivTestResult (the coded
-            // initial/confirmatory fields are empty or carry "No"). A negative
-            // here qualifies regardless of test type; positives are already
-            // excluded by the hard filter above. Acute-infection markers, when
-            // present, still set the pepOnly flag on the SELECT side.
-            "  ( LOWER(TRIM(hts.observation->>'" + HtsObservationKeys.KEY_FINAL_HIV_TEST_RESULT + "')) = LOWER('"
-                    + HtsObservationKeys.FINAL_HIV_TEST_RESULT_NEGATIVE + "')\n" +
-            "  )\n" +
             ")\n";
+
+    // Lean FROM for the COUNT queries. COUNT(DISTINCT p.id) only needs the
+    // tables referenced by WHERE_FILTERS / the search clause (hts, latest_hts,
+    // p). The full FROM_AND_JOINS adds many LEFT JOINs + grouped subqueries that
+    // never affect which p.id match (they're all LEFT JOINs), so running them in
+    // the count is pure waste — and becomes a hang once the filter set widens.
+    String COUNT_FROM =
+            "FROM hts_encounter hts\n" +
+            "INNER JOIN (\n" +
+            "    SELECT patient_id, MAX(date_of_visit) AS max_date\n" +
+            "    FROM hts_encounter\n" +
+            "    WHERE archived = false\n" +
+            "    GROUP BY patient_id\n" +
+            ") latest_hts ON latest_hts.patient_id = hts.patient_id\n" +
+            "          AND latest_hts.max_date = hts.date_of_visit\n" +
+            "INNER JOIN patient_person p ON p.id = hts.patient_id\n";
 
     String GROUP_BY =
             "GROUP BY\n" +
@@ -220,7 +232,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "ORDER BY p.id, hts.date_of_visit DESC NULLS LAST",
             countQuery =
                     "SELECT COUNT(DISTINCT p.id)\n" +
-                    FROM_AND_JOINS +
+                    COUNT_FROM +
                     WHERE_FILTERS,
             nativeQuery = true)
     Page<PrepHtsPatient> findAllPatients(Boolean archived, Long facilityId, Pageable pageable);
@@ -239,7 +251,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "ORDER BY p.id, hts.date_of_visit DESC NULLS LAST",
             countQuery =
                     "SELECT COUNT(DISTINCT p.id)\n" +
-                    FROM_AND_JOINS +
+                    COUNT_FROM +
                     WHERE_FILTERS +
                     "AND (p.first_name ILIKE ?3\n" +
                     "     OR p.full_name ILIKE ?3\n" +
