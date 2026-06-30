@@ -28,7 +28,12 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    CAST(EXTRACT(YEAR FROM AGE(NOW(), p.date_of_birth)) AS INTEGER) AS age,\n" +
             "    INITCAP(p.sex) AS gender,\n" +
             "    p.date_of_birth AS dateOfBirth,\n" +
-            "    CAST(COUNT(pet.person_uuid) AS INTEGER) AS prepCount,\n" +
+            // prepCount == number of non-archived initiations, which init_count
+            // already computes per person. Sourcing it from there (instead of
+            // COUNT(pet.person_uuid)) removes the ONLY aggregate in this SELECT,
+            // which lets us drop the GROUP BY over ~30 columns incl. the
+            // hts.observation JSONB — the main cost of the content query.
+            "    CAST(COALESCE(init_count.enrollment_count, 0) AS INTEGER) AS prepCount,\n" +
             "    hts.client_code AS htsClientCode,\n" +
             "    hts.id AS latestHtsId,\n" +
             "    CAST(hts.uuid AS text) AS latestHtsUuid,\n" +
@@ -228,7 +233,10 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             BASE_SELECT +
             FROM_AND_JOINS +
             WHERE_FILTERS +
-            GROUP_BY +
+            // No GROUP BY — there are no aggregates left in BASE_SELECT, so
+            // DISTINCT ON (p.id) alone dedupes to one row per patient. This
+            // avoids grouping/sorting over the full ~30-column key (incl. the
+            // jsonb observation); the only sort key is (p.id, date_of_visit).
             "ORDER BY p.id, hts.date_of_visit DESC NULLS LAST",
             countQuery =
                     "SELECT COUNT(DISTINCT p.id)\n" +
@@ -247,7 +255,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "     OR p.other_name ILIKE ?3\n" +
             "     OR p.hospital_number ILIKE ?3\n" +
             "     OR hts.client_code ILIKE ?3)\n" +
-            GROUP_BY +
+            // No GROUP BY — DISTINCT ON (p.id) dedupes (see findAllPatients).
             "ORDER BY p.id, hts.date_of_visit DESC NULLS LAST",
             countQuery =
                     "SELECT COUNT(DISTINCT p.id)\n" +
