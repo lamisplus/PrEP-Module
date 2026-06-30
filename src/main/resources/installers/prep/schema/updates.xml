@@ -1383,4 +1383,46 @@
         </sql>
     </changeSet>
 
+    <!--
+      Companion to the backfill: keep NEW community / migrated HTS records
+      normalized at write time, so they keep appearing on the patient tab via
+      the unchanged query (no read-time widening). Same rule as the backfill —
+      when confirmatoryHivTest is empty, derive it from finalHivTestResult:
+        Negative -> ..._NEGATIVE, Positive -> ..._POSITIVE. Non-destructive.
+
+      Trade-off: this is a BEFORE trigger on hts_encounter (the HTS module's
+      table) that fires on every insert/update. It is cheap (a couple of jsonb
+      checks) and only mutates an EMPTY field, but it is a behavioural change to
+      another module's table — validate against HTS-module expectations.
+    -->
+    <changeSet failOnError="false" author="Gamaliel" id="30-06-2026-trigger-normalize-hts-final-result">
+        <!-- Function body is dollar-quoted and contains semicolons, so it must
+             NOT be split on ';'. -->
+        <sql splitStatements="false" stripComments="false">
+            CREATE OR REPLACE FUNCTION prep_normalize_hts_final_result()
+            RETURNS trigger AS $$
+            BEGIN
+                IF NEW.observation IS NOT NULL
+                   AND COALESCE(NEW.observation->>'confirmatoryHivTest', '') = '' THEN
+                    IF lower(trim(NEW.observation->>'finalHivTestResult')) = 'negative' THEN
+                        NEW.observation := jsonb_set(NEW.observation, '{confirmatoryHivTest}',
+                            '"HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE"', true);
+                    ELSIF lower(trim(NEW.observation->>'finalHivTestResult')) = 'positive' THEN
+                        NEW.observation := jsonb_set(NEW.observation, '{confirmatoryHivTest}',
+                            '"HIV_CONFIRMATORY_TEST_RESULT_POSITIVE"', true);
+                    END IF;
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+        </sql>
+        <sql splitStatements="true" endDelimiter=";">
+            DROP TRIGGER IF EXISTS trg_prep_normalize_hts_final_result ON hts_encounter;
+            CREATE TRIGGER trg_prep_normalize_hts_final_result
+                BEFORE INSERT OR UPDATE ON hts_encounter
+                FOR EACH ROW
+                EXECUTE PROCEDURE prep_normalize_hts_final_result();
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
