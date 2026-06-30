@@ -472,28 +472,13 @@ const EnrollPatientButton = ({ row }) => {
 
 const Patients = (props) => {
   const classes = useStyles();
-  const [patientList, setPatientList] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showPPI, setShowPPI] = useState(true);
 
-  useEffect(() => {
-    patients();
-  }, []);
-
-  async function patients() {
-    setLoading(true);
-    axios
-      .get(`${baseUrl}prep/persons/hts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setLoading(false);
-        setPatientList(response.data);
-      })
-      .catch((error) => {
-        setLoading(false);
-      });
-  }
+  // NOTE: the on-mount `prep/persons/hts` fetch was removed. It hit the heavy
+  // patient-tab query a SECOND time (its result was stored in unused state),
+  // doubling DB load every time the tab opened. The MaterialTable `data`
+  // function below already fetches the (paginated) list — that is the only
+  // call needed.
 
   const handleCheckBox = (e) => {
     if (e.target.checked) {
@@ -524,9 +509,13 @@ const Patients = (props) => {
             axios
               .get(
                 `${baseUrl}prep/persons/hts?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                  // Fail fast instead of hanging until the OS suspends the
+                  // socket (the ERR_NETWORK_IO_SUSPENDED seen after ~5 min).
+                  timeout: 120000,
+                }
               )
-              .then((response) => response)
               .then((result) => {
                 resolve({
                   data: result?.data?.records?.map?.((row) => ({
@@ -535,10 +524,16 @@ const Patients = (props) => {
                     gender: row && row.gender ? row.gender : "",
                     age: row.age,
                     actions: <EnrollPatientButton row={row} />,
-                  })),
+                  })) || [],
                   page: query.page,
-                  totalCount: result.data.totalRecords,
+                  totalCount: result?.data?.totalRecords || 0,
                 });
+              })
+              // Without this catch the promise never settled on error, so the
+              // table spun forever even after the request failed/timed out.
+              // Reject so MaterialTable shows its error state + a retry.
+              .catch((error) => {
+                reject(error);
               });
           })
         }
