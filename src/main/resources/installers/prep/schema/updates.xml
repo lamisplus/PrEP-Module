@@ -1342,4 +1342,45 @@
         </sql>
     </changeSet>
 
+    <!--
+      Backfill community / migrated HTS records into the canonical shape the
+      HIV-Prevention patient-tab query already understands, so they get pulled
+      WITHOUT widening that (hot, heavy) query.
+
+      These records store the result only on observation->>'finalHivTestResult'
+      ("Negative"/"Positive") while the coded confirmatoryHivTest is empty — the
+      exact case the frontend's normalizeHtsObservation already treats as the
+      result. We persist that same interpretation:
+        • Negative -> confirmatoryHivTest = ..._NEGATIVE  → matched by Branch A
+        • Positive -> confirmatoryHivTest = ..._POSITIVE  → dropped by the
+                                                            existing hard-exclusion
+      Non-destructive: only fills the coded field when it is currently empty;
+      never overwrites an existing coded confirmatory result. One-time work at
+      backfill (write) time — zero added cost on every grid load.
+
+      NOTE: this only covers existing rows. New community records need the same
+      normalization at write time (HTS-side, or a trigger) to keep appearing.
+    -->
+    <changeSet failOnError="false" author="Gamaliel" id="30-06-2026-backfill-final-hiv-result-to-confirmatory">
+        <sql splitStatements="true" endDelimiter=";">
+            UPDATE hts_encounter
+            SET observation = jsonb_set(
+                  observation, '{confirmatoryHivTest}',
+                  '"HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE"', true)
+            WHERE archived = false
+              AND observation IS NOT NULL
+              AND lower(trim(observation->>'finalHivTestResult')) = 'negative'
+              AND COALESCE(observation->>'confirmatoryHivTest', '') = '';
+
+            UPDATE hts_encounter
+            SET observation = jsonb_set(
+                  observation, '{confirmatoryHivTest}',
+                  '"HIV_CONFIRMATORY_TEST_RESULT_POSITIVE"', true)
+            WHERE archived = false
+              AND observation IS NOT NULL
+              AND lower(trim(observation->>'finalHivTestResult')) = 'positive'
+              AND COALESCE(observation->>'confirmatoryHivTest', '') = '';
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
