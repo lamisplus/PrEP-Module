@@ -68,13 +68,13 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped'\n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_SEROCONVERTED' THEN 'Seroconverted'\n" +
-            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
+            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTABLES' THEN\n" +
             "            CASE\n" +
             "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 59 THEN 'Discontinued'\n" +
             "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 37 THEN 'Delayed Injection'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
-            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
+            "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTABLES' THEN\n" +
             "            CASE\n" +
             "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 89 THEN 'Discontinued'\n" +
             "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > 67 THEN 'Delayed Injection'\n" +
@@ -186,6 +186,10 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "  ( hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_PMTCT + "' IN ('"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            "  )\n" +
+            "  OR\n" +
+            "  -- NEW: Accept finalHivTestResult = 'Negative' as valid when other fields are missing/null\n" +
+            "  ( hts.observation->>'finalHivTestResult' = 'Negative'\n" +
             "  )\n" +
             ")\n";
 
