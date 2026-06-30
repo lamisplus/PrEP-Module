@@ -1292,4 +1292,54 @@
         </sql>
     </changeSet>
 
+    <!--
+      Performance indexes for the three HIV-Prevention patient tabs
+      (Patients / PrEP Patients / PEP Patients). These cover the join keys and
+      filter columns the list queries hit on every page load — the latest-HTS,
+      latest-follow-up and latest-interruption subqueries plus the enrollment
+      filters. Without them the planner falls back to sequential scans / nested
+      loops (O(n^2) at scale); with them the joins stay hash/merge (O(n log n)).
+      IF NOT EXISTS keeps this idempotent; failOnError=false so a pre-existing
+      equivalent index never blocks startup.
+    -->
+    <changeSet failOnError="false" author="Gamaliel" id="30-06-2026-prep-patient-tab-perf-indexes">
+        <sql splitStatements="true" endDelimiter=";">
+            -- prophylaxis_initiation: tab 2/3 driver + every pip_*.uuid join + filters
+            CREATE INDEX IF NOT EXISTS idx_prep_init_facility_arm
+                ON prophylaxis_initiation (facility_id, enrollment_type);
+            CREATE INDEX IF NOT EXISTS idx_prep_init_person_uuid
+                ON prophylaxis_initiation (person_uuid);
+            CREATE INDEX IF NOT EXISTS idx_prep_init_uuid
+                ON prophylaxis_initiation (uuid);
+
+            -- prophylaxis_screening: eligibility-count subquery
+            CREATE INDEX IF NOT EXISTS idx_prep_screening_person_uuid
+                ON prophylaxis_screening (person_uuid);
+
+            -- prep_followup_visit: latest-follow-up (MAX encounter_date) subquery
+            CREATE INDEX IF NOT EXISTS idx_prep_followup_person_date
+                ON prep_followup_visit (person_uuid, encounter_date);
+            CREATE INDEX IF NOT EXISTS idx_prep_followup_init_uuid
+                ON prep_followup_visit (prophylaxis_initiation_uuid);
+
+            -- prophylaxis_interruptions: latest-interruption + PEP completion subqueries
+            CREATE INDEX IF NOT EXISTS idx_prep_interruptions_person_date
+                ON prophylaxis_interruptions (person_uuid, interruption_date);
+            CREATE INDEX IF NOT EXISTS idx_prep_interruptions_person_fuv_date
+                ON prophylaxis_interruptions (person_uuid, follow_up_visit_date);
+            CREATE INDEX IF NOT EXISTS idx_prep_interruptions_init_uuid
+                ON prophylaxis_interruptions (prophylaxis_initiation_uuid);
+
+            -- pep_followup_visit: latest-PEP-visit subquery
+            CREATE INDEX IF NOT EXISTS idx_pep_followup_person_uuid
+                ON pep_followup_visit (person_uuid);
+
+            -- hts_encounter: tab 1 driver + latest-HTS (MAX date_of_visit) subquery
+            CREATE INDEX IF NOT EXISTS idx_hts_patient_date
+                ON hts_encounter (patient_id, date_of_visit);
+            CREATE INDEX IF NOT EXISTS idx_hts_facility
+                ON hts_encounter (facility_id);
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

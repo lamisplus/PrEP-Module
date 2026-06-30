@@ -1756,6 +1756,32 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
 
     String ORDER_BY = "ORDER BY p.id, pet.date_enrolled DESC NULLS LAST";
 
+    // Lean FROM for the enrolled COUNT queries. COUNT(DISTINCT p.id) only needs
+    // the driver (pet ⋈ p) plus the one join the WHERE actually references —
+    // `prepi` (the latest-interruption subquery used by the Seroconverted
+    // exclusion in ENROLLED_WHERE). Every other join in ENROLLED_JOINS /
+    // PEP_LATEST_VISIT_JOIN is a LEFT JOIN feeding only the SELECT, so it can't
+    // change which p.id match and is pure waste in the count. Dropping them
+    // removes a full O(n·log n) pass from each enrolled tab's page load.
+    String ENROLLED_COUNT_FROM =
+            "FROM prophylaxis_initiation pet\n" +
+            "INNER JOIN patient_person p ON p.uuid = pet.person_uuid\n" +
+            "LEFT JOIN (\n" +
+            "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
+            "    FROM prophylaxis_interruptions pi\n" +
+            "    JOIN prophylaxis_initiation pip_i ON pip_i.uuid = pi.prophylaxis_initiation_uuid\n" +
+            "    INNER JOIN (\n" +
+            "        SELECT MAX(pi2.interruption_date) AS interruption_date, pi2.person_uuid\n" +
+            "        FROM prophylaxis_interruptions pi2\n" +
+            "        JOIN prophylaxis_initiation pip_i2 ON pip_i2.uuid = pi2.prophylaxis_initiation_uuid\n" +
+            "        WHERE CAST(pi2.archived AS BOOLEAN) = false\n" +
+            "          AND pip_i2.enrollment_type = ?3\n" +
+            "        GROUP BY pi2.person_uuid\n" +
+            "    ) max_pi ON max_pi.interruption_date = pi.interruption_date AND max_pi.person_uuid = pi.person_uuid\n" +
+            "    WHERE CAST(pi.archived AS BOOLEAN) = false\n" +
+            "      AND pip_i.enrollment_type = ?3\n" +
+            ") prepi ON prepi.person_uuid = pet.person_uuid\n";
+
     // ── PrEP-Enrolled tab ─────────────────────────────────────────────────────
     @Query(value =
             COMMON_SELECT_HEAD + PREP_STATUS_CASE +
@@ -1763,7 +1789,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ENROLLED_WHERE + ORDER_BY,
             countQuery =
                     "SELECT COUNT(DISTINCT p.id) " +
-                    ENROLLED_JOINS + ENROLLED_WHERE,
+                    ENROLLED_COUNT_FROM + ENROLLED_WHERE,
             nativeQuery = true)
     Page<PrepHtsPatient> findPrepEnrolled(
             Boolean archived, Long facilityId, String enrollmentType, Pageable pageable);
@@ -1774,7 +1800,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ENROLLED_WHERE + SEARCH_PREDICATE + ORDER_BY,
             countQuery =
                     "SELECT COUNT(DISTINCT p.id) " +
-                    ENROLLED_JOINS + ENROLLED_WHERE + SEARCH_PREDICATE,
+                    ENROLLED_COUNT_FROM + ENROLLED_WHERE + SEARCH_PREDICATE,
             nativeQuery = true)
     Page<PrepHtsPatient> findPrepEnrolledBySearchParam(
             Boolean archived, Long facilityId, String enrollmentType, String search, Pageable pageable);
@@ -1786,7 +1812,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ENROLLED_WHERE + ORDER_BY,
             countQuery =
                     "SELECT COUNT(DISTINCT p.id) " +
-                    ENROLLED_JOINS + PEP_LATEST_VISIT_JOIN + ENROLLED_WHERE,
+                    ENROLLED_COUNT_FROM + ENROLLED_WHERE,
             nativeQuery = true)
     Page<PrepHtsPatient> findPepEnrolled(
             Boolean archived, Long facilityId, String enrollmentType, Pageable pageable);
@@ -1797,7 +1823,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             ENROLLED_WHERE + SEARCH_PREDICATE + ORDER_BY,
             countQuery =
                     "SELECT COUNT(DISTINCT p.id) " +
-                    ENROLLED_JOINS + PEP_LATEST_VISIT_JOIN + ENROLLED_WHERE + SEARCH_PREDICATE,
+                    ENROLLED_COUNT_FROM + ENROLLED_WHERE + SEARCH_PREDICATE,
             nativeQuery = true)
     Page<PrepHtsPatient> findPepEnrolledBySearchParam(
             Boolean archived, Long facilityId, String enrollmentType, String search, Pageable pageable);
