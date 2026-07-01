@@ -482,13 +482,16 @@ public class PrepService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<PrepHtsPatient> resultPage;
 
+        // Lean grid query (findAllPatientsLite/searchPatientsLite): latest-HTS
+        // CTE + patient_person only, no prepStatus/interruption/follow-up joins.
+        // Revert by swapping these back to searchPatients/findAllPatients.
         if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
             String queryParam = "%" + searchValue.replaceAll("\\s", "") + "%";
             resultPage = prepHtsEncounterPatientRepository
-                    .searchPatients(false, facilityId, queryParam, pageable);
+                    .searchPatientsLite(false, facilityId, queryParam, pageable);
         } else {
             resultPage = prepHtsEncounterPatientRepository
-                    .findAllPatients(false, facilityId, pageable);
+                    .findAllPatientsLite(false, facilityId, pageable);
         }
 
         List<PrepHtsPatientDto> dtos = resultPage.getContent().stream()
