@@ -106,11 +106,11 @@ function SubMenu(props) {
     .toLowerCase();
   const hasDiscontinued = DISCONTINUED_STATUSES.includes(prepStatusValue);
 
-  // Latest viral load (shared with the dashboard chip). When Target Detected we
-  // hide the PEP service forms — a client with a detectable viral load should
-  // not be continuing PEP. Only affects the PEP arm; PrEP entries are unaffected.
+  // Latest viral load (shared with the dashboard chip). When it's Detected
+  // (> 1000) for a PEP client, PEP was not completed successfully — the menu
+  // surfaces ONLY the PEP Completion form (handled in renderMenuItems), which
+  // auto-fills PEP Completion = YES and the HIV Result from the latest HTS.
   const viralLoadTargetDetected = isTargetDetected(props.viralLoad?.viralLoadResult);
-  const hidePepServiceForms = isPEP && viralLoadTargetDetected;
 
   const renderMenuItems = () => {
     const isNegative = patientObj?.hivresultAtVisit === "Negative" || patientObj?.hivresultAtVisit === null;
@@ -124,6 +124,27 @@ function SubMenu(props) {
             Patient is currently on {activeArm}. Discontinue {activeArm} before
             using {typeLabel} forms.
           </Menu.Item>
+          <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
+        </>
+      );
+    }
+
+    // PEP client with a Detected viral load (> 1000): PEP was not completed
+    // successfully. Surface ONLY the PEP Completion form (it auto-fills PEP
+    // Completion = YES and the HIV Result). Takes precedence over the
+    // positive/discontinued "eligibility only" branch below.
+    if (isPEP && viralLoadTargetDetected) {
+      return (
+        <>
+          <Menu.Item onClick={onClickHome}>Home</Menu.Item>
+          <ProtectedComponent
+            isAuthorized={userPermissions.discontinuation}
+            privateComponent={() => (
+              <Menu.Item onClick={loadPrEPDiscontinuationsInterruptions}>
+                PEP Completion
+              </Menu.Item>
+            )}
+          />
           <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
         </>
       );
@@ -193,7 +214,7 @@ function SubMenu(props) {
           )}
         />
         
-        {isNegative && hasOpenScreening && !hidePepServiceForms && (
+        {isNegative && hasOpenScreening && (
           <ProtectedComponent
             isAuthorized={userPermissions.enrollment}
             privateComponent={() => (
@@ -214,7 +235,7 @@ function SubMenu(props) {
             )}
           />
         )}
-        {isNegative && isPEP && !hidePepServiceForms && (
+        {isNegative && isPEP && (
           <ProtectedComponent
             isAuthorized={userPermissions.visit}
             privateComponent={() => (
@@ -225,7 +246,7 @@ function SubMenu(props) {
           />
         )}
 
-        {isNegative && !hidePepServiceForms && (
+        {isNegative && (
           <ProtectedComponent
             isAuthorized={userPermissions.discontinuation}
             privateComponent={() => (
