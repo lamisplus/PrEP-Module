@@ -1643,56 +1643,41 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             // (hiv_enrollment join removed — 'Enrolled into HIV' status branch
             //  has been dropped from both PREP_STATUS_CASE and PEP_STATUS_CASE.)
             // Latest followup visit on the SAME arm as ?3.
+            // Latest follow-up per person in ONE scan: DISTINCT ON picks the most
+            // recent row; a window COUNT keeps commencementCount. Replaces the old
+            // MAX-self-join (which scanned prep_followup_visit twice).
             "LEFT JOIN (\n" +
-            "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
+            "    SELECT DISTINCT ON (pc.person_uuid)\n" +
+            "           pc.person_uuid,\n" +
+            "           COUNT(*) OVER (PARTITION BY pc.person_uuid) AS commencementCount,\n" +
             "           pc.encounter_date AS encounter_date, pc.duration,\n" +
             "           pc.visit_type, pc.prep_type, pc.previous_prep_status,\n" +
             "           CASE WHEN (pc.encounter_date + pc.duration) > CURRENT_DATE THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
             "    JOIN prophylaxis_initiation pip_c ON pip_c.uuid = pc.prophylaxis_initiation_uuid\n" +
-            "    INNER JOIN (\n" +
-            "        SELECT MAX(pc2.encounter_date) AS encounter_date, pc2.person_uuid\n" +
-            "        FROM prep_followup_visit pc2\n" +
-            "        JOIN prophylaxis_initiation pip_c2 ON pip_c2.uuid = pc2.prophylaxis_initiation_uuid\n" +
-            "        WHERE CAST(pc2.archived AS BOOLEAN) = false\n" +
-            "          AND pip_c2.enrollment_type = ?3\n" +
-            "        GROUP BY pc2.person_uuid\n" +
-            "    ) max_pc ON max_pc.encounter_date = pc.encounter_date AND max_pc.person_uuid = pc.person_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
             "      AND pip_c.enrollment_type = ?3\n" +
-            // Add pc.encounter_date to GROUP BY so the status CASE that references
-            // it is GROUP-BY-valid (the INNER JOIN to max_pc already constrains
-            // it to one date per person, so grouping by it doesn't change rows).
-            "    GROUP BY pc.person_uuid, pc.encounter_date, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status\n" +
+            "    ORDER BY pc.person_uuid, pc.encounter_date DESC NULLS LAST, pc.id DESC\n" +
             ") prepc ON prepc.person_uuid = pet.person_uuid\n" +
             // Latest interruption on the SAME arm as ?3.
+            // Latest interruption per person in ONE scan (was a MAX-self-join).
             "LEFT JOIN (\n" +
-            "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
+            "    SELECT DISTINCT ON (pi.person_uuid)\n" +
+            "           pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             "    FROM prophylaxis_interruptions pi\n" +
             "    JOIN prophylaxis_initiation pip_i ON pip_i.uuid = pi.prophylaxis_initiation_uuid\n" +
-            "    INNER JOIN (\n" +
-            "        SELECT MAX(pi2.interruption_date) AS interruption_date, pi2.person_uuid\n" +
-            "        FROM prophylaxis_interruptions pi2\n" +
-            "        JOIN prophylaxis_initiation pip_i2 ON pip_i2.uuid = pi2.prophylaxis_initiation_uuid\n" +
-            "        WHERE CAST(pi2.archived AS BOOLEAN) = false\n" +
-            "          AND pip_i2.enrollment_type = ?3\n" +
-            "        GROUP BY pi2.person_uuid\n" +
-            "    ) max_pi ON max_pi.interruption_date = pi.interruption_date AND max_pi.person_uuid = pi.person_uuid\n" +
             "    WHERE CAST(pi.archived AS BOOLEAN) = false\n" +
             "      AND pip_i.enrollment_type = ?3\n" +
+            "    ORDER BY pi.person_uuid, pi.interruption_date DESC NULLS LAST, pi.id DESC\n" +
             ") prepi ON prepi.person_uuid = pet.person_uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
             // Latest hts_encounter for this patient (for the new HTS fields)
+            // Latest HTS per patient in ONE scan (was a MAX-self-join).
             "LEFT JOIN (\n" +
-            "    SELECT he2.*\n" +
+            "    SELECT DISTINCT ON (he2.patient_id) he2.*\n" +
             "    FROM hts_encounter he2\n" +
-            "    INNER JOIN (\n" +
-            "        SELECT patient_id, MAX(date_of_visit) AS max_date\n" +
-            "        FROM hts_encounter\n" +
-            "        WHERE archived = false\n" +
-            "        GROUP BY patient_id\n" +
-            "    ) lh ON lh.patient_id = he2.patient_id AND lh.max_date = he2.date_of_visit\n" +
             "    WHERE he2.archived = false\n" +
+            "    ORDER BY he2.patient_id, he2.date_of_visit DESC NULLS LAST, he2.id DESC\n" +
             ") latest_hts ON latest_hts.patient_id = p.id\n" +
             "LEFT JOIN base_application_codeset preg_codeset\n" +
             "    ON preg_codeset.code = latest_hts.observation->>'pregnancyStatus'\n";
@@ -1712,25 +1697,16 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    WHERE CAST(pv.archived AS BOOLEAN) = false\n" +
             "    GROUP BY pv.person_uuid\n" +
             ") latest_pep_visit ON latest_pep_visit.person_uuid = pet.person_uuid\n" +
+            // Latest PEP interruption per person in ONE scan (was a MAX-self-join),
+            // keyed off follow_up_visit_date — the date the client was actually
+            // seen for the completion entry.
             "LEFT JOIN (\n" +
-            "    SELECT pi.person_uuid, pi.pep_completion\n" +
+            "    SELECT DISTINCT ON (pi.person_uuid) pi.person_uuid, pi.pep_completion\n" +
             "    FROM prophylaxis_interruptions pi\n" +
             "    JOIN prophylaxis_initiation pip_pep_i ON pip_pep_i.uuid = pi.prophylaxis_initiation_uuid\n" +
-            "    INNER JOIN (\n" +
-            // Latest PEP interruption is keyed off follow_up_visit_date — that
-            // is the date the patient was actually seen for the discontinuation
-            // / completion entry (interruption_date can be an older record
-            // date in some flows).
-            "        SELECT MAX(pi2.follow_up_visit_date) AS follow_up_visit_date, pi2.person_uuid\n" +
-            "        FROM prophylaxis_interruptions pi2\n" +
-            "        JOIN prophylaxis_initiation pip_pep_i2 ON pip_pep_i2.uuid = pi2.prophylaxis_initiation_uuid\n" +
-            "        WHERE CAST(pi2.archived AS BOOLEAN) = false\n" +
-            "          AND pip_pep_i2.enrollment_type = ?3\n" +
-            "        GROUP BY pi2.person_uuid\n" +
-            "    ) max_pep_i ON max_pep_i.follow_up_visit_date = pi.follow_up_visit_date\n" +
-            "               AND max_pep_i.person_uuid = pi.person_uuid\n" +
             "    WHERE CAST(pi.archived AS BOOLEAN) = false\n" +
             "      AND pip_pep_i.enrollment_type = ?3\n" +
+            "    ORDER BY pi.person_uuid, pi.follow_up_visit_date DESC NULLS LAST, pi.id DESC\n" +
             ") latest_pep_interruption ON latest_pep_interruption.person_uuid = pet.person_uuid\n";
 
     String ENROLLED_WHERE =
@@ -1766,20 +1742,15 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     String ENROLLED_COUNT_FROM =
             "FROM prophylaxis_initiation pet\n" +
             "INNER JOIN patient_person p ON p.uuid = pet.person_uuid\n" +
+            // Latest interruption per person in ONE scan (was a MAX-self-join).
             "LEFT JOIN (\n" +
-            "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
+            "    SELECT DISTINCT ON (pi.person_uuid)\n" +
+            "           pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
             "    FROM prophylaxis_interruptions pi\n" +
             "    JOIN prophylaxis_initiation pip_i ON pip_i.uuid = pi.prophylaxis_initiation_uuid\n" +
-            "    INNER JOIN (\n" +
-            "        SELECT MAX(pi2.interruption_date) AS interruption_date, pi2.person_uuid\n" +
-            "        FROM prophylaxis_interruptions pi2\n" +
-            "        JOIN prophylaxis_initiation pip_i2 ON pip_i2.uuid = pi2.prophylaxis_initiation_uuid\n" +
-            "        WHERE CAST(pi2.archived AS BOOLEAN) = false\n" +
-            "          AND pip_i2.enrollment_type = ?3\n" +
-            "        GROUP BY pi2.person_uuid\n" +
-            "    ) max_pi ON max_pi.interruption_date = pi.interruption_date AND max_pi.person_uuid = pi.person_uuid\n" +
             "    WHERE CAST(pi.archived AS BOOLEAN) = false\n" +
             "      AND pip_i.enrollment_type = ?3\n" +
+            "    ORDER BY pi.person_uuid, pi.interruption_date DESC NULLS LAST, pi.id DESC\n" +
             ") prepi ON prepi.person_uuid = pet.person_uuid\n";
 
     // ── PrEP-Enrolled tab ─────────────────────────────────────────────────────
