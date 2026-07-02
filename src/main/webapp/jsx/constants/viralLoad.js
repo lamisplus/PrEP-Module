@@ -2,7 +2,7 @@
 // (the API returns these exact strings in `viralLoadResult`). Change the wording
 // here in one place if the display text ever needs to change.
 export const VIRAL_LOAD_TARGET_DETECTED = "Target Detected";
-export const VIRAL_LOAD_TARGET_NOT_DETECTED = "Target NO Detected";
+export const VIRAL_LOAD_TARGET_NOT_DETECTED = "Target Not Detected";
 
 // True when the latest VL result indicates target detected (the trigger for
 // hiding PEP service forms on the dashboard menu).
