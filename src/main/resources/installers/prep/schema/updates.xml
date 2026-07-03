@@ -11,7 +11,7 @@
             </sqlCheck>
         </preConditions>
         <sql>
-            ALTER TABLE IF EXISTS prep_interruption ADD COLUMN reason_stopped character varying;
+            ALTER TABLE IF EXISTS prep_interruption ADD COLUMN IF NOT EXISTS reason_stopped character varying;
         </sql>
     </changeSet>
 
@@ -23,7 +23,7 @@
             </sqlCheck>
         </preConditions>
         <sql>
-            ALTER TABLE IF EXISTS prep_interruption ADD COLUMN reason_stopped_others character varying;
+            ALTER TABLE IF EXISTS prep_interruption ADD COLUMN IF NOT EXISTS reason_stopped_others character varying;
         </sql>
     </changeSet>
 
@@ -108,7 +108,7 @@
             </not>
         </preConditions>
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN history_of_drug_allergies VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS history_of_drug_allergies VARCHAR(255);
         </sql>
     </changeSet>
 
@@ -128,85 +128,85 @@
             </not>
         </preConditions>
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN risk_reduction_services VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS risk_reduction_services VARCHAR(255);
         </sql>
     </changeSet>
 
     <changeSet failOnError="true" author="Gamaliel" id="31-08-2024-2">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN visit_type VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS visit_type VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-3">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN reason_for_switch VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS reason_for_switch VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="06-11-2024-1">
         <sql>
-            ALTER TABLE prep_eligibility ADD COLUMN reason_for_switch VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS reason_for_switch VARCHAR(255);
         </sql>
     </changeSet>
 
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-4">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN other_prep_given VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_prep_given VARCHAR(255);
         </sql>
     </changeSet>
 
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-5">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN was_prep_administered VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS was_prep_administered VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-6">
         <sql>
-            ALTER TABLE prep_eligibility ADD COLUMN date_of_liver_function_test_results DATE;
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS date_of_liver_function_test_results DATE;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-7">
         <sql>
-            ALTER TABLE prep_eligibility ADD COLUMN liver_function_test_results JSONB;
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-80">
         <sql>
-            ALTER TABLE prep_eligibility ADD COLUMN lft_conducted VARCHAR(255);
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS lft_conducted VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-9">
         <sql>
-            ALTER TABLE prep_interruption ADD COLUMN reason_for_prep_discontinuation VARCHAR(255);
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS reason_for_prep_discontinuation VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="25-10-2024-10">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN other_prep_type VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_prep_type VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="25-10-2024-11">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN other_regimen_id VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_regimen_id VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-71">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN liver_function_test_results JSONB;
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-711">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN creatinine JSONB;
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS creatinine JSONB;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-712">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN creatinine_result JSONB;
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS creatinine_result JSONB;
         </sql>
     </changeSet>
     <changeSet author="Gamaliel" id="24-10-2024-713" failOnError="true">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN creatinine_result_varchar VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS creatinine_result_varchar VARCHAR(255);
 
             UPDATE prep_clinic SET creatinine_result_varchar = creatinine_result::text;
 
@@ -217,22 +217,22 @@
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="28-10-2024-01">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN prep_noted_side_effects JSONB;
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS prep_noted_side_effects JSONB;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="11-24-2024-1">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN comment VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS comment VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="11-12-2024-1">
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN previous_prep_status VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS previous_prep_status VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="22-01-2025-1">
         <sql>
-            ALTER TABLE prep_interruption ADD COLUMN previous_prep_status VARCHAR(255);
+            ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS previous_prep_status VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="08-01-2024-02">
@@ -294,7 +294,7 @@
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel Dashua" id="prep-regimen-update-v4-08-20-25">
-        <!-- Accept any prior checksum: the two ADD COLUMN statements below were
+        <!-- Accept any prior checksum: the two ADD COLUMN IF NOT EXISTS statements below were
              changed to IF NOT EXISTS after deployment. prep_regimen.prep_type and
              prep_clinic.prep_distribution_setting are also added by the earlier
              add-missing-prep-regimen-cols-082025 changeset, so a bare ADD COLUMN
@@ -325,7 +325,7 @@
             </not>
         </preConditions>
         <sql>
-            ALTER TABLE prep_eligibility ADD COLUMN consideration_for_injections JSONB;
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS consideration_for_injections JSONB;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-02-2026-02">
@@ -335,7 +335,7 @@
             </not>
         </preConditions>
         <sql>
-            ALTER TABLE prep_eligibility ADD COLUMN reason_for_declining_prep JSONB;
+            ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS reason_for_declining_prep JSONB;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="25-02-2026-01">
@@ -739,7 +739,7 @@
             </sqlCheck>
         </preConditions>
         <sql>
-            ALTER TABLE base_application_user ADD COLUMN uuid VARCHAR(64);
+            ALTER TABLE base_application_user ADD COLUMN IF NOT EXISTS uuid VARCHAR(64);
             UPDATE base_application_user SET uuid = gen_random_uuid()::text WHERE uuid IS NULL;
             ALTER TABLE base_application_user ADD CONSTRAINT uq_base_application_user_uuid UNIQUE (uuid);
         </sql>
