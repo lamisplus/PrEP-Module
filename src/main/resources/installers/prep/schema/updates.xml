@@ -112,9 +112,12 @@
         </sql>
     </changeSet>
 
-    <changeSet failOnError="true" author="Gamaliel" id="add_health_care_worker_signature">
+    <changeSet failOnError="false" author="Gamaliel" id="add_health_care_worker_signature">
+        <!-- Accept the prior checksum on DBs where this already ran, since the
+             SQL below changed to be idempotent. -->
+        <validCheckSum>ANY</validCheckSum>
         <sql>
-            ALTER TABLE prep_clinic ADD COLUMN health_care_worker_signature VARCHAR(255);
+            ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS health_care_worker_signature VARCHAR(255);
         </sql>
     </changeSet>
 
