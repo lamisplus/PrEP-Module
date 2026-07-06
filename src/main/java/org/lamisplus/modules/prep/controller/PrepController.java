@@ -174,8 +174,9 @@ public class PrepController {
 
     @GetMapping(PREP_URL_VERSION_ONE + "/persons/{personId}")
     @ApiOperation("Get Prep Client by person Id")
-    public ResponseEntity<PrepDtos> getPrepByPersonId(@PathVariable Long personId) {
-        return ResponseEntity.ok(this.prepService.getPrepByPersonId(personId));
+    public ResponseEntity<PrepDtos> getPrepByPersonId(@PathVariable Long personId,
+            @RequestParam(required = false) String enrollmentType) {
+        return ResponseEntity.ok(this.prepService.getPrepByPersonId(personId, enrollmentType));
     }
 
     @GetMapping(PREP_URL_VERSION_ONE + "/activities/patients/{patientId}")

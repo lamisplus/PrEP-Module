@@ -243,14 +243,20 @@ function PatientCard(props) {
                         </b>
                       </span>
                     </Col>
-                    {patientObj?.prepStatus !== null && (
+                    {(patientObj?.prepStatus || patientDetail?.prepStatus) && (
                       <Col md={12}>
                         <div>
                           <Typography variant="caption">
                             <Label color={"teal"} size={"mini"}>
                               STATUS :{" "}
-                              {patientDetail?.prepStatus ||
-                                patientObj?.prepStatus}
+                              {/* Prefer the grid's status (patientObj) — it is
+                                  arm-specific (PrEP vs PEP), matching the grid.
+                                  patientDetail's status mixes arms, so it can
+                                  disagree (e.g. shows "Default" for a PrEP-active
+                                  client who completed PEP). Fall back to it only
+                                  when the grid didn't ship a status. */}
+                              {patientObj?.prepStatus ||
+                                patientDetail?.prepStatus}
                             </Label>
                           </Typography>
                         </div>

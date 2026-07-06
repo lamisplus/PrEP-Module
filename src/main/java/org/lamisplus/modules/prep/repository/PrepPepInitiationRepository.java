@@ -1799,4 +1799,34 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     Page<PrepHtsPatient> findPepEnrolledBySearchParam(
             Boolean archived, Long facilityId, String enrollmentType, String search, Pageable pageable);
 
+    // ── Single-person, arm-specific status (dashboard == grid) ─────────────────
+    // Same SELECT / STATUS CASE / joins the PrEP and PEP grids use, but scoped to
+    // one person (?4) and one arm (?3). Lets the dashboard (prep/persons/{id})
+    // show the exact status the grid shows, instead of the arm-mixed
+    // findPersonPrepAndStatusByPatientUuid. No Seroconverted exclusion here — the
+    // dashboard must show that status, not hide the row.
+    @Query(value =
+            COMMON_SELECT_HEAD + PREP_STATUS_CASE +
+            ENROLLED_JOINS +
+            "WHERE CAST(pet.archived AS BOOLEAN) = ?1\n" +
+            "  AND pet.facility_id = ?2\n" +
+            "  AND pet.enrollment_type = ?3\n" +
+            "  AND CAST(p.uuid AS text) = ?4\n" +
+            "ORDER BY p.id, pet.date_enrolled DESC NULLS LAST",
+            nativeQuery = true)
+    Optional<PrepHtsPatient> findPrepEnrolledStatusForPerson(
+            Boolean archived, Long facilityId, String enrollmentType, String personUuid);
+
+    @Query(value =
+            COMMON_SELECT_HEAD + PEP_STATUS_CASE +
+            ENROLLED_JOINS + PEP_LATEST_VISIT_JOIN +
+            "WHERE CAST(pet.archived AS BOOLEAN) = ?1\n" +
+            "  AND pet.facility_id = ?2\n" +
+            "  AND pet.enrollment_type = ?3\n" +
+            "  AND CAST(p.uuid AS text) = ?4\n" +
+            "ORDER BY p.id, pet.date_enrolled DESC NULLS LAST",
+            nativeQuery = true)
+    Optional<PrepHtsPatient> findPepEnrolledStatusForPerson(
+            Boolean archived, Long facilityId, String enrollmentType, String personUuid);
+
 }

@@ -100,7 +100,10 @@ function SubMenu(props) {
     "pep completion",
     "pep completed",
   ];
-  const prepStatusValue = (patientDetail?.prepStatus || patientObj?.prepStatus || "")
+  // Prefer the grid's arm-specific status (patientObj) over patientDetail's
+  // arm-mixed one, so the menu's discontinued/eligibility gating matches the
+  // status shown on the grid and the patient card.
+  const prepStatusValue = (patientObj?.prepStatus || patientDetail?.prepStatus || "")
     .toString()
     .trim()
     .toLowerCase();

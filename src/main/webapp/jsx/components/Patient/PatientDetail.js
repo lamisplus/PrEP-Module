@@ -298,9 +298,11 @@ function PatientCard(props) {
     // a discontinuation save.
     return axios
       .get(
+        // Pass the arm being viewed so the backend computes the SAME
+        // arm-specific status the grid shows (PrEP vs PEP), not an arm-mixed one.
         `${baseUrl}prep/persons/${
           patientObjLocation.personId || patientObjLocation.id
-        }`,
+        }?enrollmentType=${encodeURIComponent(screeningType || "")}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
