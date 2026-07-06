@@ -31,6 +31,7 @@
 
 
     <changeSet failOnError="true" author="Taiwo Gboyegun" id="family-planning-update">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="prep_clinic" columnName="family_planning"/>
@@ -42,6 +43,7 @@
     </changeSet>
 
     <changeSet failOnError="true" author="Peter Abiodun" id="update-other-tests-fix-distr-sett-FP">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="prep_clinic" columnName="date_of_family_planning"/>
@@ -62,6 +64,7 @@
     </changeSet>
 
     <changeSet failOnError="true" author="Peter Abiodun" id="update-prep-eligibility-cabla">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="prep_eligibility" columnName="assessment_for_pep_indication"/>
@@ -78,6 +81,7 @@
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Peter Abiodun" id="update-prep-clinic-population-type">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="prep_clinic" columnName="date_of_liver_function_test_results"/>
@@ -93,6 +97,7 @@
     </changeSet>
 
     <changeSet failOnError="true" id="adding-hiv-test-result-date-col" author="HafizDanmanu">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="prep_clinic" columnName="hiv_test_result_date"/>
@@ -116,9 +121,9 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="add_health_care_worker_signature">
+        <validCheckSum>ANY</validCheckSum>
         <!-- Accept the prior checksum on DBs where this already ran, since the
              SQL below changed to be idempotent. -->
-        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS health_care_worker_signature VARCHAR(255);
         </sql>
@@ -137,78 +142,93 @@
     </changeSet>
 
     <changeSet failOnError="true" author="Gamaliel" id="31-08-2024-2">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS visit_type VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-3">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS reason_for_switch VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="06-11-2024-1">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS reason_for_switch VARCHAR(255);
         </sql>
     </changeSet>
 
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-4">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_prep_given VARCHAR(255);
         </sql>
     </changeSet>
 
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-5">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS was_prep_administered VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-6">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS date_of_liver_function_test_results DATE;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-7">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-80">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS lft_conducted VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-9">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS reason_for_prep_discontinuation VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="25-10-2024-10">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_prep_type VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="25-10-2024-11">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_regimen_id VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-71">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-711">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS creatinine JSONB;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-10-2024-712">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS creatinine_result JSONB;
         </sql>
     </changeSet>
     <changeSet author="Gamaliel" id="24-10-2024-713" failOnError="true">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS creatinine_result_varchar VARCHAR(255);
 
@@ -220,26 +240,31 @@
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="28-10-2024-01">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS prep_noted_side_effects JSONB;
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="11-24-2024-1">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS comment VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="11-12-2024-1">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS previous_prep_status VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="22-01-2025-1">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS previous_prep_status VARCHAR(255);
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="08-01-2024-02">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             UPDATE prep_clinic
             SET visit_type = (
@@ -256,6 +281,7 @@
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="09-01-2025-02">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             UPDATE prep_clinic
             SET duration = CASE
@@ -265,6 +291,7 @@
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="04-07-2025-01">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             UPDATE prep_clinic
             SET pregnant = 'PREGANACY_STATUS_PREGNANT'
@@ -272,6 +299,7 @@
         </sql>
     </changeSet>
     <changeSet id="add-missing-prep-regimen-cols-082025" author="Gamaliel Dashua" failOnError="true">
+        <validCheckSum>ANY</validCheckSum>
 
         <preConditions onFail="CONTINUE">
             <not>
@@ -298,6 +326,7 @@
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel Dashua" id="prep-regimen-update-v4-08-20-25">
+        <validCheckSum>ANY</validCheckSum>
         <!-- Accept any prior checksum: the two ADD COLUMN IF NOT EXISTS statements below were
              changed to IF NOT EXISTS after deployment. prep_regimen.prep_type and
              prep_clinic.prep_distribution_setting are also added by the earlier
@@ -305,7 +334,6 @@
              here fails with "column already exists". IF NOT EXISTS makes the DDL a
              no-op when the column is already present; the UPDATE/INSERT data steps
              are unchanged and remain guarded by the MARK_RAN precondition. -->
-        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM prep_regimen WHERE regimen = 'TDF(300mg)+3TC(150mg)';
@@ -323,6 +351,7 @@
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-02-2026-01">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="prep_eligibility" columnName="consideration_for_injections"/>
@@ -333,6 +362,7 @@
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="24-02-2026-02">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="prep_eligibility" columnName="reason_for_declining_prep"/>
@@ -343,6 +373,7 @@
         </sql>
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel" id="25-02-2026-01">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS unique_client_id VARCHAR(255);
             ALTER TABLE prep_eligibility ADD COLUMN IF NOT EXISTS client_hts_code VARCHAR(255);
@@ -355,6 +386,7 @@
 
     <!-- Phase 1D: Add missing columns to prep_enrollment -->
     <changeSet failOnError="true" author="Gamaliel" id="25-02-2026-02">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS enrollment_type VARCHAR(255);
             ALTER TABLE prep_enrollment ADD COLUMN IF NOT EXISTS population_type VARCHAR(255);
@@ -379,6 +411,7 @@
 
     <!-- Phase 2B: Add missing columns to prep_interruption -->
     <changeSet failOnError="true" author="Gamaliel" id="25-02-2026-03">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS why VARCHAR(255);
             ALTER TABLE prep_interruption ADD COLUMN IF NOT EXISTS pep_completion VARCHAR(255);
@@ -390,6 +423,7 @@
 
     <!-- Add missing columns to prep_clinic for adherence/side-effect/STI details -->
     <changeSet failOnError="false" author="Gamaliel" id="03-03-2026-03">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS why_adherence_level_poor VARCHAR(255);
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS other_reason_for_poor_fair_adherence VARCHAR(255);
@@ -447,6 +481,7 @@
 
     <!-- 2.1b Add category column if table already existed without it -->
     <changeSet failOnError="false" author="Gamaliel" id="add-category-to-prophylaxis-screening-v2">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE prophylaxis_screening ADD COLUMN IF NOT EXISTS category VARCHAR(255);
         </sql>
@@ -724,18 +759,21 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-prep-clinic">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prep_clinic DROP COLUMN IF EXISTS extra;
         </sql>
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="drop-extra-from-prep-interruption">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prep_interruption DROP COLUMN IF EXISTS extra;
         </sql>
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="add-uuid-to-base-application-user">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(*) FROM information_schema.columns
@@ -750,6 +788,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="add-hts-encounter-uuid-to-prep-tables">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_screening   ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
             ALTER TABLE IF EXISTS prophylaxis_initiation  ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
@@ -759,6 +798,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="hts-client-compat-view">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             CREATE OR REPLACE VIEW hts_client AS
             SELECT
@@ -787,6 +827,7 @@
     <!-- Indexes covering the Patient-tab + Enrollment-tab joins. Each is an
          additive CREATE INDEX IF NOT EXISTS, so safe on every boot. -->
     <changeSet failOnError="false" author="Gamaliel" id="patient-grid-perf-indexes">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             CREATE INDEX IF NOT EXISTS idx_hts_encounter_patient_archived_date
                 ON hts_encounter (patient_id, archived, date_of_visit DESC);
@@ -815,6 +856,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="add-client-hts-code-and-pregnancy-to-prophylaxis-screening">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_screening
                 ADD COLUMN IF NOT EXISTS client_hts_code  VARCHAR(64);
@@ -825,6 +867,7 @@
 
 
     <changeSet failOnError="false" author="Gamaliel" id="add-date-defaulted-to-prophylaxis-interruptions">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_interruptions
                 ADD COLUMN IF NOT EXISTS date_defaulted DATE;
@@ -832,6 +875,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="18-05-2026-split-drug-use-history">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_screening
                 ADD COLUMN IF NOT EXISTS hiv_testing JSONB;
@@ -841,6 +885,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prophylaxis-screening-legacy-cols">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS client_hts_code;
             ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS pregnancy_status;
@@ -849,6 +894,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prophylaxis-initiation-legacy-cols">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS pregnancy_status;
             ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS hiv_testing_point;
@@ -860,6 +906,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-prophylaxis-interruptions-hts-uuid">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_interruptions
                 ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
@@ -868,6 +915,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-backfill-previous-pep-status">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             UPDATE prophylaxis_interruptions pi
             SET previous_pep_status  = pi.previous_prep_status,
@@ -885,6 +933,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-drop-prep-followup-visit-hts-derived-cols">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS pregnant;
             ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS hiv_test_result;
@@ -893,6 +942,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="21-05-2026-pep-followup-visit-cleanup">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS pep_followup_visit
                 ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
@@ -903,6 +953,7 @@
         </sql>
     </changeSet>
     <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-archived-column-type-backfill">
+        <validCheckSum>ANY</validCheckSum>
         <sql splitStatements="false">
             DO $$
             DECLARE
@@ -935,6 +986,7 @@
 
     <!-- prophylaxis_screening -->
     <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-screening">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_screening.archived is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM information_schema.columns
@@ -954,6 +1006,7 @@
 
     <!-- prophylaxis_initiation -->
     <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-initiation">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_initiation.archived is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM information_schema.columns
@@ -973,6 +1026,7 @@
 
     <!-- prophylaxis_interruptions -->
     <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prophylaxis-interruptions">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN" onFailMessage="prophylaxis_interruptions.archived is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM information_schema.columns
@@ -992,6 +1046,7 @@
 
     <!-- prep_followup_visit -->
     <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-prep-followup">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN" onFailMessage="prep_followup_visit.archived is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM information_schema.columns
@@ -1011,6 +1066,7 @@
 
     <!-- pep_followup_visit -->
     <changeSet author="Gamaliel" id="23-05-2026-archived-to-boolean-pep-followup">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN" onFailMessage="pep_followup_visit.archived is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM information_schema.columns
@@ -1029,6 +1085,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-missing-column-backfill">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_initiation
                 ADD COLUMN IF NOT EXISTS is_interrupted BOOLEAN NOT NULL DEFAULT false;
@@ -1042,6 +1099,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="22-05-2026-add-received-prep-first-time-this-year">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_screening
                 ADD COLUMN IF NOT EXISTS received_prep_first_time_this_year VARCHAR(255);
@@ -1049,6 +1107,7 @@
     </changeSet>
 
     <changeSet author="Gamaliel" id="23-05-2026-drop-regimen-id-fk-before-varchar" failOnError="false">
+        <validCheckSum>ANY</validCheckSum>
         <sql splitStatements="false">
             DO $$
             DECLARE r record;
@@ -1074,6 +1133,7 @@
 
     <!-- prep_clinic: ALTER TYPE -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-prep-clinic-type">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN" onFailMessage="prep_clinic.regimen_id is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM information_schema.columns
@@ -1093,6 +1153,7 @@
 
     <!-- prep_clinic: backfill -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-prep-clinic">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             UPDATE prep_clinic SET regimen_id = NULL                        WHERE regimen_id = '0';
             UPDATE prep_clinic SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
@@ -1110,6 +1171,7 @@
 
     <!-- prep_followup_visit: ALTER TYPE -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-prep-followup-type">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN" onFailMessage="prep_followup_visit.regimen_id is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM information_schema.columns
@@ -1129,6 +1191,7 @@
 
     <!-- prep_followup_visit: backfill -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-prep-followup">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             UPDATE prep_followup_visit SET regimen_id = NULL                        WHERE regimen_id = '0';
             UPDATE prep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
@@ -1146,6 +1209,7 @@
 
     <!-- pep_followup_visit: ALTER TYPE -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-to-varchar-pep-followup-type">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN" onFailMessage="pep_followup_visit.regimen_id is not numeric — skipping ALTER">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM information_schema.columns
@@ -1165,6 +1229,7 @@
 
     <!-- pep_followup_visit: backfill -->
     <changeSet author="Gamaliel" id="23-05-2026-regimen-id-backfill-pep-followup">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             UPDATE pep_followup_visit SET regimen_id = NULL                        WHERE regimen_id = '0';
             UPDATE pep_followup_visit SET regimen_id = 'PREP_REGIMEN_TDF_FTC'      WHERE regimen_id = '1';
@@ -1181,6 +1246,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-add-prophylaxis-interruptions-new-cols">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_interruptions
                 ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
@@ -1188,6 +1254,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-add-pep-followup-visit-new-cols">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS pep_followup_visit
                 ADD COLUMN IF NOT EXISTS hts_encounter_uuid VARCHAR(36);
@@ -1195,6 +1262,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-screening-unused-cols">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS client_hts_code;
             ALTER TABLE IF EXISTS prophylaxis_screening DROP COLUMN IF EXISTS pregnancy_status;
@@ -1203,6 +1271,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-initiation-unused-cols">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS pregnancy_status;
             ALTER TABLE IF EXISTS prophylaxis_initiation DROP COLUMN IF EXISTS hiv_testing_point;
@@ -1214,12 +1283,14 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prophylaxis-interruptions-unused-cols">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prophylaxis_interruptions DROP COLUMN IF EXISTS hiv_result;
         </sql>
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prep-followup-visit-unused-cols">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS noted_side_effects;
             ALTER TABLE IF EXISTS prep_followup_visit DROP COLUMN IF EXISTS urinalysis_result;
@@ -1248,6 +1319,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-pep-followup-visit-unused-cols">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS noted_side_effects;
             ALTER TABLE IF EXISTS pep_followup_visit DROP COLUMN IF EXISTS other_noted_side_effects;
@@ -1274,6 +1346,7 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="23-05-2026-drop-prep-followup-initiation-fk">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN" onFailMessage="fk_prep_followup_initiation does not exist — nothing to drop">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM information_schema.table_constraints
@@ -1288,12 +1361,14 @@
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="03-06-2026-prep-followup-add-liver-function">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prep_followup_visit ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
         </sql>
     </changeSet>
 
     <changeSet failOnError="false" author="Gamaliel" id="05-06-2026-prep-followup-add-date-liver-function">
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             ALTER TABLE IF EXISTS prep_followup_visit ADD COLUMN IF NOT EXISTS date_of_liver_function_test_results DATE;
         </sql>
@@ -1310,6 +1385,7 @@
       equivalent index never blocks startup.
     -->
     <changeSet failOnError="false" author="Gamaliel" id="30-06-2026-prep-patient-tab-perf-indexes">
+        <validCheckSum>ANY</validCheckSum>
         <sql splitStatements="true" endDelimiter=";">
             -- prophylaxis_initiation: tab 2/3 driver + every pip_*.uuid join + filters
             CREATE INDEX IF NOT EXISTS idx_prep_init_facility_arm
@@ -1355,6 +1431,7 @@
       so they only add what's missing and never fail on already-present columns.
     -->
     <changeSet failOnError="false" author="Gamaliel" id="2026-07-06-ensure-prep-columns">
+        <validCheckSum>ANY</validCheckSum>
         <sql splitStatements="true" endDelimiter=";">
             ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS visit_type VARCHAR(255);
             ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS history_of_drug_allergies VARCHAR(255);
