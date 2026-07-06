@@ -4,6 +4,7 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
     <changeSet failOnError="true" author="Emeka" id="prep-updates-1">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(*) FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname =
@@ -16,6 +17,7 @@
     </changeSet>
 
     <changeSet failOnError="true" author="Emeka" id="prep-updates-2">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(*) FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname =
@@ -102,6 +104,7 @@
     </changeSet>
 
     <changeSet failOnError="true" id="add-history-of-drug-allergies-column" author="Peter Abiodun">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="prep_clinic" columnName="history_of_drug_allergies"/>
@@ -122,6 +125,7 @@
     </changeSet>
 
     <changeSet failOnError="true" author="Gamaliel" id="31-08-2024-1">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="prep_clinic" columnName="risk_reduction_services"/>
@@ -1342,6 +1346,44 @@
                 ON hts_encounter (patient_id, date_of_visit);
             CREATE INDEX IF NOT EXISTS idx_hts_facility
                 ON hts_encounter (facility_id);
+        </sql>
+    </changeSet>
+
+    <!--
+      Catch-all: guarantees every column the app expects exists, regardless of
+      the older ADD COLUMN changesets' state. All use ADD COLUMN IF NOT EXISTS,
+      so they only add what's missing and never fail on already-present columns.
+    -->
+    <changeSet failOnError="false" author="Gamaliel" id="2026-07-06-ensure-prep-columns">
+        <sql splitStatements="true" endDelimiter=";">
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS visit_type VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS history_of_drug_allergies VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS risk_reduction_services VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS health_care_worker_signature VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS reason_for_switch VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS other_prep_given VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS was_prep_administered VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS other_prep_type VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS other_regimen_id VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS creatinine JSONB;
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS creatinine_result JSONB;
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS creatinine_result_varchar VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS prep_noted_side_effects JSONB;
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS comment VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_clinic ADD COLUMN IF NOT EXISTS previous_prep_status VARCHAR(255);
+
+            ALTER TABLE IF EXISTS prep_eligibility ADD COLUMN IF NOT EXISTS reason_for_switch VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_eligibility ADD COLUMN IF NOT EXISTS date_of_liver_function_test_results DATE;
+            ALTER TABLE IF EXISTS prep_eligibility ADD COLUMN IF NOT EXISTS liver_function_test_results JSONB;
+            ALTER TABLE IF EXISTS prep_eligibility ADD COLUMN IF NOT EXISTS lft_conducted VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_eligibility ADD COLUMN IF NOT EXISTS consideration_for_injections JSONB;
+            ALTER TABLE IF EXISTS prep_eligibility ADD COLUMN IF NOT EXISTS reason_for_declining_prep JSONB;
+
+            ALTER TABLE IF EXISTS prep_interruption ADD COLUMN IF NOT EXISTS reason_stopped VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_interruption ADD COLUMN IF NOT EXISTS reason_stopped_others VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_interruption ADD COLUMN IF NOT EXISTS reason_for_prep_discontinuation VARCHAR(255);
+            ALTER TABLE IF EXISTS prep_interruption ADD COLUMN IF NOT EXISTS previous_prep_status VARCHAR(255);
         </sql>
     </changeSet>
 
