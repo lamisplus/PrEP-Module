@@ -153,7 +153,15 @@ function SubMenu(props) {
       );
     }
 
-    if (hasDiscontinued || !isNegative) {
+    // Restrict to Eligibility Screening only when:
+    //   • the client is HIV-positive (can never be provided PrEP/PEP), OR
+    //   • the client is discontinued/stopped/defaulted/completed AND has not yet
+    //     re-screened. A discontinued client is allowed to RESTART: once they
+    //     fill a fresh Eligibility Screening (hasOpenScreening becomes true), we
+    //     fall through to the normal menu so Initiation and the service forms
+    //     appear again. This applies to every such client, not just one.
+    const needsReScreenBeforeRestart = hasDiscontinued && !hasOpenScreening;
+    if (!isNegative || needsReScreenBeforeRestart) {
       return (
         <>
           <Menu.Item onClick={onClickHome}>Home</Menu.Item>
