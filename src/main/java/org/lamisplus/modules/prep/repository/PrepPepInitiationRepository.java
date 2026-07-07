@@ -610,6 +610,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' \n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped' \n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_SEROCONVERTED' THEN 'Seroconverted' \n" +
+            // Worst-case on null: a followup exists but the date/duration needed to
+            // compute a real status is missing — don't fall through to 'Active'.
+            "        WHEN prepc.encounter_date IS NULL OR prepc.duration IS NULL THEN 'Defaulted' \n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN \n" +
             "            CASE \n" +
             "                WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '29' DAY THEN 'Discontinued' \n" +
@@ -1527,6 +1530,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
             // ── No followup visit yet
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
+            // ── Worst-case on null: a followup row exists but the visit date it
+            //    needs to compute a real status is missing. Never let a null
+            //    comparison fall through to a falsely-optimistic 'Active'.
+            "        WHEN prepc.encounter_date IS NULL THEN 'Defaulted'\n" +
 
             // ── INJECTIBLES: Early bands ─────────────────────────────────────
             //   Visits: Initiation, Restart, Transfer In
@@ -1596,6 +1603,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             //   for everything else.
             "        WHEN prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
+            // Missing duration → unknown supply window → cannot prove the client
+            // is still covered, so assume worst case instead of 'Active'.
+            "                WHEN prepc.duration IS NULL THEN 'Defaulted'\n" +
             "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER))\n" +
             "                     AND prepc.visit_type IN ('PREP_VISIT_TYPE_METHOD_SWITCH', 'PREP_VISIT_TYPE_DISCONTINUATION') THEN 'Discontinued'\n" +
             "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +

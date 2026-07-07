@@ -821,6 +821,14 @@ public class PrepService {
                         }
                     });
         }
+
+        // Final safety net: if every path above left the status null/blank (a
+        // record we read came back null and nothing set a value), never leave it
+        // empty — assume the worst case rather than an implied-active blank.
+        if (prepDtos.getPrepStatus() == null || prepDtos.getPrepStatus().trim().isEmpty()) {
+            prepDtos.setPrepStatus("Defaulted");
+        }
+
         // Compute previousProphylaxis by comparing latest PrEP and PEP followup visit dates
         LocalDate latestPrepVisit = prepFollowupVisitRepository
                 .findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(
