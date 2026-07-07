@@ -610,6 +610,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced' \n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_STOPPED' THEN 'Stopped' \n" +
             "        WHEN prepi.interruption_type = 'PREP_STATUS_SEROCONVERTED' THEN 'Seroconverted' \n" +
+            // Re-initiation: latest initiation newer than the latest follow-up →
+            // fresh course with no follow-up yet → 'Not Commenced' (not 'Stopped').
+            "        WHEN pet.date_enrolled IS NOT NULL AND pet.date_enrolled > prepc.encounter_date THEN 'Not Commenced' \n" +
             // Worst-case on null: a followup exists but the date/duration needed to
             // compute a real status is missing — don't fall through to 'Active'.
             "        WHEN prepc.encounter_date IS NULL OR prepc.duration IS NULL THEN 'Defaulted' \n" +
@@ -1530,6 +1533,13 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHEN prepc.previous_prep_status = 'Stopped' OR prepc.previous_prep_status = 'Discontinued' THEN 'Restart'\n" +
             // ── No followup visit yet
             "        WHEN prepc.person_uuid IS NULL THEN 'Not Commenced'\n" +
+            // ── Re-initiation: the latest initiation (pet.date_enrolled) is newer
+            //    than the latest follow-up visit (prepc.encounter_date). The client
+            //    was freshly re-initiated and has no follow-up on the NEW course
+            //    yet, so the old follow-up must NOT make them look 'Stopped'. They
+            //    are 'Not Commenced' until the first follow-up of the new course —
+            //    this keeps the screening → initiation → follow-up flow open.
+            "        WHEN pet.date_enrolled IS NOT NULL AND pet.date_enrolled > prepc.encounter_date THEN 'Not Commenced'\n" +
             // ── Worst-case on null: a followup row exists but the visit date it
             //    needs to compute a real status is missing. Never let a null
             //    comparison fall through to a falsely-optimistic 'Active'.
