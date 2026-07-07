@@ -41,25 +41,25 @@ public class PepFollowupVisitController {
         pepFollowupVisitService.delete(id);
     }
 
-    @GetMapping("/person/{personId}")
-    @ApiOperation(value = "Get PEP Follow-up Visits by Person ID")
-    public ResponseEntity<List<PepFollowupVisitDto>> getByPersonId(@PathVariable Long personId) {
-        return ResponseEntity.ok(pepFollowupVisitService.getByPersonId(personId));
+    @GetMapping("/person/{personUuid}")
+    @ApiOperation(value = "Get PEP Follow-up Visits by Person UUID")
+    public ResponseEntity<List<PepFollowupVisitDto>> getByPersonUuid(@PathVariable String personUuid) {
+        return ResponseEntity.ok(pepFollowupVisitService.getByPersonUuid(personUuid));
     }
 
-    @GetMapping("/latest/{personId}")
-    @ApiOperation(value = "Get latest PEP Follow-up Visit by Person ID and enrollment type")
+    @GetMapping("/latest/{personUuid}")
+    @ApiOperation(value = "Get latest PEP Follow-up Visit by Person UUID and enrollment type")
     public ResponseEntity<PepFollowupVisitDto> getLatest(
-            @PathVariable Long personId,
+            @PathVariable String personUuid,
             @RequestParam(value = "enrollmentType", required = false) String enrollmentType) {
         return ResponseEntity.ok(
-                pepFollowupVisitService.getLatestByEnrollmentType(personId, enrollmentType));
+                pepFollowupVisitService.getLatestByEnrollmentType(personUuid, enrollmentType));
     }
 
-    @GetMapping("/initial-hts-results/{personId}")
+    @GetMapping("/initial-hts-results/{personUuid}")
     @ApiOperation(value = "Get the 1st/2nd/3rd PEP follow-up visits (with HTS) after the latest PEP initiation")
     public ResponseEntity<List<FollowupHtsResultDto>> getInitialFollowupHtsResults(
-            @PathVariable Long personId) {
-        return ResponseEntity.ok(pepFollowupVisitService.getInitialFollowupHtsResults(personId));
+            @PathVariable String personUuid) {
+        return ResponseEntity.ok(pepFollowupVisitService.getInitialFollowupHtsResults(personUuid));
     }
 }

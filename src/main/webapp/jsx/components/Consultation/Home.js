@@ -468,7 +468,7 @@ const ClinicVisit = props => {
     axios
       .get(
         `${baseUrl}prep/initiation/latest/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }?enrollmentType=${ENROLLMENT_TYPE_PREP}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -482,7 +482,7 @@ const ClinicVisit = props => {
     axios
       .get(
         `${baseUrl}prep/eligibility/open/patients/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -498,7 +498,7 @@ const ClinicVisit = props => {
     try {
       const response = await axios.get(
         `${baseUrl}prep-eligibility-screening/person/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -1190,7 +1190,7 @@ const ClinicVisit = props => {
       try {
         const latest = await axios.get(
           `${baseUrl}prep/initiation/latest/${
-            props.patientObj.personId || props.patientObj.id
+            props.patientObj.personUuid || props.patientObj.uuid
           }?enrollmentType=${ENROLLMENT_TYPE_PREP}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -1209,6 +1209,8 @@ const ClinicVisit = props => {
     payload.prepNotedSideEffects = notedSideEffects;
     payload.syndromicStiScreening = syndromicStiSelected;
     payload.previousPrepStatus = props.patientObj?.prepStatus;
+    // Prefer the stable person UUID for backend person resolution on save.
+    payload.personUuid = props.patientObj.personUuid || props.patientObj.uuid;
     // Derive stiScreening from syndromicStiScreening for API compatibility
     payload.stiScreening = syndromicStiSelected.length > 0 ? "true" : "false";
     // Map otherDrugsPrescribed back to otherDrugs for API compatibility.

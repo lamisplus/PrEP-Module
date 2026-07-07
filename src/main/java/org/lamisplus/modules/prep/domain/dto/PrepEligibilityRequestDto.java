@@ -22,6 +22,8 @@ public class PrepEligibilityRequestDto implements Serializable {
     private Object sexPartnerRisk;
     @NotNull(message = "personId is mandatory")
     private Long personId;
+    /** Stable person UUID (preferred over personId for robust person resolution). */
+    private String personUuid;
     private String sexPartner;
     @NotNull(message = "firstTimeVisit is mandatory")
     private Boolean firstTimeVisit;

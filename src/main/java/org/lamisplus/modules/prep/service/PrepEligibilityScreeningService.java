@@ -38,8 +38,18 @@ public class PrepEligibilityScreeningService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
+    /** Prefer the stable person UUID over the bigint id when resolving for a write. */
+    private Person resolvePersonForWrite(String personUuid, Long personId) {
+        if (personUuid != null && !personUuid.trim().isEmpty()) {
+            java.util.Optional<Person> byUuid = personRepository.findByUuidAndFacilityId(
+                    personUuid, currentUserOrganizationService.getCurrentUserOrganization());
+            if (byUuid.isPresent()) return byUuid.get();
+        }
+        return getPerson(personId);
+    }
+
     public PrepEligibilityScreeningDto save(PrepEligibilityScreeningRequestDto requestDto) {
-        Person person = this.getPerson(requestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(requestDto.getPersonUuid(), requestDto.getPersonId());
         PrepEligibilityScreening entity = requestDtoToEntity(requestDto, person.getUuid());
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setUuid(UUID.randomUUID().toString());
@@ -87,9 +97,12 @@ public class PrepEligibilityScreeningService {
         return entityToDto(entity);
     }
 
-    public List<PrepEligibilityScreeningDto> getByPersonId(Long personId) {
+    public List<PrepEligibilityScreeningDto> getByPersonUuid(String personUuid) {
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
         List<PrepEligibilityScreening> list = prepEligibilityScreeningRepository
-                .findAllByPersonUuidAndFacilityIdAndArchived(getPerson(personId).getUuid(),
+                .findAllByPersonUuidAndFacilityIdAndArchived(personUuid,
                         currentUserOrganizationService.getCurrentUserOrganization(), false);
         return list.stream().map(this::entityToDto).collect(Collectors.toList());
     }

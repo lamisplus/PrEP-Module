@@ -180,11 +180,10 @@ function PatientCard(props) {
                         </b>
                       </span>
                     </Col>
-                    {/* Latest viral load — shown for every PrEP/PEP patient once
-                        the VL lookup has run. When there is no result, we show
-                        "No record found" (grey) rather than hiding it or implying
-                        a result. Wording comes from the shared viralLoad constants. */}
-                    {props.viralLoad && (
+                    {/* Latest viral load — a PEP-only feature. Shown only on the
+                        PEP arm once the VL lookup has run; when there is no result
+                        we show "No record found" (grey). Hidden entirely for PrEP. */}
+                    {props.screeningType === "PEP" && props.viralLoad && (
                       <Col md={4} className={classes.root2}>
                         <span>
                           {" "}
@@ -278,23 +277,6 @@ function PatientCard(props) {
                         </div>
                       </Col>
                     )}
-                    {/* PEP due-for-completion warning: past 28 days since the last
-                        PEP visit with no completion form. The client is NOT auto-
-                        completed — this just reminds staff to fill the PEP
-                        Completion form. Only shown on the PEP arm. */}
-                    {patientDetail?.pepDueForCompletion &&
-                      props.screeningType === "PEP" && (
-                        <Col md={12}>
-                          <div>
-                            <Typography variant="caption">
-                              <Label color={"orange"} size={"mini"}>
-                                ⚠ PEP completion due — 28+ days since last visit;
-                                fill the PEP Completion form.
-                              </Label>
-                            </Typography>
-                          </div>
-                        </Col>
-                      )}
                   </Row>
                 </>
               ) : (

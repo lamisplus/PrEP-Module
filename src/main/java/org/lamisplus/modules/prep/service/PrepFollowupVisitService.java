@@ -44,6 +44,16 @@ public class PrepFollowupVisitService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
+    /** Prefer the stable person UUID over the bigint id when resolving for a write. */
+    private Person resolvePersonForWrite(String personUuid, Long personId) {
+        if (personUuid != null && !personUuid.trim().isEmpty()) {
+            Optional<Person> byUuid = personRepository.findByUuidAndFacilityId(
+                    personUuid, currentUserOrganizationService.getCurrentUserOrganization());
+            if (byUuid.isPresent()) return byUuid.get();
+        }
+        return getPerson(personId);
+    }
+
     /**
      * Application-level replacement for the dropped fk_prep_followup_initiation
      * foreign key (see updates.xml changeset 23-05-2026-drop-prep-followup-initiation-fk).
@@ -59,7 +69,7 @@ public class PrepFollowupVisitService {
     }
 
     public PrepFollowupVisitDto saveCommencement(PrepFollowupVisitRequestDto requestDto) {
-        Person person = this.getPerson(requestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(requestDto.getPersonUuid(), requestDto.getPersonId());
 
         // Always anchor to the patient's latest PrEP initiation, ignoring whatever the
         // frontend sent. This guarantees prophylaxis_initiation_uuid is correct for every
@@ -90,7 +100,7 @@ public class PrepFollowupVisitService {
     }
 
     public PrepFollowupVisitDto saveClinic(PrepFollowupVisitRequestDto requestDto) {
-        Person person = this.getPerson(requestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(requestDto.getPersonUuid(), requestDto.getPersonId());
 
         // Same anchoring rule as saveCommencement.
         PrepPepInitiation initiation = prepPepInitiationRepository
@@ -133,16 +143,21 @@ public class PrepFollowupVisitService {
         return entityToDto(entity, null);
     }
 
-    public List<PrepFollowupVisitDto> getByPersonId(Long personId, Boolean isCommenced, Boolean last) {
+    public List<PrepFollowupVisitDto> getByPersonUuid(String personUuid, Boolean isCommenced, Boolean last) {
+        // Keyed directly by person UUID (stable, always present on grid rows) so a
+        // stale/absent bigint person id can no longer 404 this read.
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
         List<PrepFollowupVisit> list;
         if (!last) {
             list = prepFollowupVisitRepository
-                    .findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(getPerson(personId).getUuid(),
+                    .findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(personUuid,
                             currentUserOrganizationService.getCurrentUserOrganization(),
                             false, isCommenced);
         } else {
             list = prepFollowupVisitRepository
-                    .findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(getPerson(personId).getUuid(),
+                    .findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(personUuid,
                             currentUserOrganizationService.getCurrentUserOrganization(),
                             false, isCommenced);
         }

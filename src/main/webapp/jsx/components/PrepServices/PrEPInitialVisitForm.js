@@ -195,10 +195,10 @@ const PrEPInitialVisitForm = props => {
   }, [latestHts?.uuid]);
 
   const GetPatientDTOObj = () => {
-    const personId = props.patientObj.personId || props.patientObj.id;
+    const personUuid = props.patientObj.personUuid || props.patientObj.uuid;
     axios
       .get(
-        `${baseUrl}prep/eligibility/open/patients/${personId}`,
+        `${baseUrl}prep/eligibility/open/patients/${personUuid}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -213,7 +213,7 @@ const PrEPInitialVisitForm = props => {
           }));
         }
         axios
-          .get(`${baseUrl}prep-pep-initiation/person/${personId}`, {
+          .get(`${baseUrl}prep-pep-initiation/person/${personUuid}`, {
             headers: { Authorization: `Bearer ${token}` },
           })
           .then(initResponse => {
@@ -245,7 +245,7 @@ const PrEPInitialVisitForm = props => {
     axios
       .get(
         `${baseUrl}prep/enrollment/person/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -403,6 +403,8 @@ const PrEPInitialVisitForm = props => {
     }
     if (validate()) {
       objValues.personId = props.patientObj.personId || props.patientObj.id;
+      // Prefer the stable person UUID for backend person resolution.
+      objValues.personUuid = props.patientObj.personUuid || props.patientObj.uuid;
       objValues.prophylaxisScreeningUuid = patientDto.uuid;
       objValues.prepEligibilityUuid = patientDto.uuid;
       objValues.enrollmentType = toEnrollmentTypeCode(objValues.enrollmentType);

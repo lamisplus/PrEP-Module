@@ -34,10 +34,10 @@ public class PrepCompletionController {
         return ResponseEntity.ok(prepCompletionService.getById(id));
     }
 
-    @GetMapping("/person/{personId}")
-    @ApiOperation(value = "Get PrEP Completions by Person ID")
-    public ResponseEntity<List<PrepCompletionDto>> getByPersonId(@PathVariable Long personId) {
-        return ResponseEntity.ok(prepCompletionService.getByPersonId(personId));
+    @GetMapping("/person/{personUuid}")
+    @ApiOperation(value = "Get PrEP Completions by Person UUID")
+    public ResponseEntity<List<PrepCompletionDto>> getByPersonUuid(@PathVariable String personUuid) {
+        return ResponseEntity.ok(prepCompletionService.getByPersonUuid(personUuid));
     }
 
     @DeleteMapping("/{id}")

@@ -198,8 +198,10 @@ function PatientCard(props) {
   // left mid-flow (screening saved, initiation not yet entered) can pick up where they
   // stopped when they navigate back to the patient.
   useEffect(() => {
-    const personId = patientObjLocation?.personId || patientObjLocation?.id;
-    if (!personId) return;
+    // Person UUID keys the read endpoints below (stable on every grid row); the
+    // bigint person id could be stale/absent and 404 the person lookup.
+    const personUuid = patientObjLocation?.personUuid || patientObjLocation?.uuid;
+    if (!personUuid) return;
     let cancelled = false;
 
     // Normalize either short labels ("PrEP"/"PEP") or canonical codeset codes
@@ -245,7 +247,7 @@ function PatientCard(props) {
           });
 
         const initsResp = await axios
-          .get(`${baseUrl}prep-pep-initiation/person/${personId}`, {
+          .get(`${baseUrl}prep-pep-initiation/person/${personUuid}`, {
             headers: { Authorization: `Bearer ${token}` },
           })
           .catch(() => ({ data: [] }));
@@ -261,7 +263,7 @@ function PatientCard(props) {
         }
 
         const screeningsResp = await axios
-          .get(`${baseUrl}prep-eligibility-screening/person/${personId}`, {
+          .get(`${baseUrl}prep-eligibility-screening/person/${personUuid}`, {
             headers: { Authorization: `Bearer ${token}` },
           })
           .catch(() => ({ data: [] }));
@@ -292,7 +294,7 @@ function PatientCard(props) {
     return () => {
       cancelled = true;
     };
-  }, [freshWorkflow, screeningType, patientObjLocation?.personId, patientObjLocation?.id]);
+  }, [freshWorkflow, screeningType, patientObjLocation?.personUuid, patientObjLocation?.uuid]);
 
   // Callbacks to advance the workflow stage after each form is saved
   const onScreeningSaved = () => {
@@ -339,8 +341,9 @@ function PatientCard(props) {
 
   return (
     <div className={classes.root}>
+      {/* Viral load is a PEP-only feature — only warn on the PEP arm. */}
       <ViralLoadWarningModal
-        isOpen={showVlWarning}
+        isOpen={showVlWarning && screeningType === "PEP"}
         onClose={() => setShowVlWarning(false)}
       />
       <Dialog

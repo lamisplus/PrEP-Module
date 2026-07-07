@@ -20,7 +20,7 @@ const ClinicVisitPage = props => {
     axios
       .get(
         `${baseUrl}prep-followup-visit/person/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }?isCommenced=false&last=false`,
         { headers: { Authorization: `Bearer ${token}` } }
       )

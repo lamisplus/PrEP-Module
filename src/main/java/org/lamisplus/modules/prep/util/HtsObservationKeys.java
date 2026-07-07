@@ -10,10 +10,6 @@ public final class HtsObservationKeys {
     public static final String KEY_TYPE_OF_HIV_TEST_DONE = "typeOfHivTestDone";
     public static final String KEY_PREGNANCY_STATUS = "pregnancyStatus";
 
-    // PMTCT-entered HTS records now use the same observation keys as HTS
-    // (hivEarlyDetectResult / typeOfHivTestDone), so the old PMTCT-only keys
-    // ("hivEarlyDetect" / "typeOfHivTest") are no longer referenced.
-
     public static final String INITIAL_HIV_TEST_NEGATIVE = "STI_HIV_RESULT_NEGATIVE";
     public static final String INITIAL_HIV_TEST_POSITIVE = "STI_HIV_RESULT_POSITIVE";
 

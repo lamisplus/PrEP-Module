@@ -44,13 +44,13 @@ public class PrepFollowupVisitController {
         return ResponseEntity.ok(prepFollowupVisitService.getById(id));
     }
 
-    @GetMapping("/person/{personId}")
-    @ApiOperation(value = "Get PrEP Follow-up Visits by Person ID")
-    public ResponseEntity<List<PrepFollowupVisitDto>> getByPersonId(
-            @PathVariable Long personId,
+    @GetMapping("/person/{personUuid}")
+    @ApiOperation(value = "Get PrEP Follow-up Visits by Person UUID")
+    public ResponseEntity<List<PrepFollowupVisitDto>> getByPersonUuid(
+            @PathVariable String personUuid,
             @RequestParam(defaultValue = "false") Boolean isCommenced,
             @RequestParam(defaultValue = "false") Boolean last) {
-        return ResponseEntity.ok(prepFollowupVisitService.getByPersonId(personId, isCommenced, last));
+        return ResponseEntity.ok(prepFollowupVisitService.getByPersonUuid(personUuid, isCommenced, last));
     }
 
     @DeleteMapping("/{id}")

@@ -88,7 +88,13 @@ function SubMenu(props) {
   const blockedByOtherArm =
     (isPrEP && isActivePep) || (isPEP && isActivePrep);
 
-  const DISCONTINUED_STATUSES = [
+  // Statuses that end the current course and restrict the menu to Eligibility
+  // Screening (until a fresh screening re-opens the workflow → re-initiation).
+  //   • PrEP: discontinuation/interruption outcomes, incl. Default/Defaulted.
+  //   • PEP: ONLY 'Completed'. PEP 'Default' is a TRANSIENT "overdue for next
+  //     visit" state (toggles back to Active once seen) — it must NOT lock the
+  //     client out of the PEP Follow-up form, so it is intentionally excluded.
+  const DISCONTINUED_STATUSES_PREP = [
     "discontinued",
     "stopped",
     "default",
@@ -100,6 +106,15 @@ function SubMenu(props) {
     "pep completion",
     "pep completed",
   ];
+  const DISCONTINUED_STATUSES_PEP = [
+    "completed",
+    "pep completion",
+    "pep completed",
+    "seroconverted",
+    "dead",
+    "referred",
+    "stopped",
+  ];
   // Prefer patientDetail (re-fetched after every form save, and arm-aware so it
   // matches the grid) so the menu's gating updates immediately post-save. The
   // grid row (patientObj) is only a fallback until patientDetail loads.
@@ -107,7 +122,8 @@ function SubMenu(props) {
     .toString()
     .trim()
     .toLowerCase();
-  const hasDiscontinued = DISCONTINUED_STATUSES.includes(prepStatusValue);
+  const hasDiscontinued = (isPEP ? DISCONTINUED_STATUSES_PEP : DISCONTINUED_STATUSES_PREP)
+    .includes(prepStatusValue);
 
   // Latest viral load (shared with the dashboard chip). When it's Detected
   // (> 1000) for a PEP client, PEP was not completed successfully — the menu

@@ -38,8 +38,18 @@ public class PepFollowupVisitService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
+    /** Prefer the stable person UUID over the bigint id when resolving for a write. */
+    private Person resolvePersonForWrite(String personUuid, Long personId) {
+        if (personUuid != null && !personUuid.trim().isEmpty()) {
+            java.util.Optional<Person> byUuid = personRepository.findByUuidAndFacilityId(
+                    personUuid, currentUserOrganizationService.getCurrentUserOrganization());
+            if (byUuid.isPresent()) return byUuid.get();
+        }
+        return getPerson(personId);
+    }
+
     public PepFollowupVisitDto saveClinicVisit(PepFollowupVisitRequestDto requestDto) {
-        Person person = this.getPerson(requestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(requestDto.getPersonUuid(), requestDto.getPersonId());
 
         // Always anchor to the patient's latest PEP initiation so prophylaxis_initiation_uuid
         // is correctly populated for every PEP follow-up.
@@ -78,32 +88,38 @@ public class PepFollowupVisitService {
         return entityToDto(entity);
     }
 
-    public List<PepFollowupVisitDto> getByPersonId(Long personId) {
-        Person person = getPerson(personId);
+    public List<PepFollowupVisitDto> getByPersonUuid(String personUuid) {
+        // Keyed by person UUID (stable on grid rows); avoids the bigint person-id
+        // lookup that 404'd when the id was stale/absent.
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
         List<PepFollowupVisit> list = pepFollowupVisitRepository
                 .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
-                        person.getUuid(),
+                        personUuid,
                         currentUserOrganizationService.getCurrentUserOrganization(),
                         false);
         return list.stream()
                 .map(this::entityToDto)
                 .collect(Collectors.toList());
     }
-    
-    public PepFollowupVisitDto getLatestByEnrollmentType(Long personId, String enrollmentType) {
-        Person person = getPerson(personId);
+
+    public PepFollowupVisitDto getLatestByEnrollmentType(String personUuid, String enrollmentType) {
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return null;
+        }
         Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
         if (enrollmentType == null || enrollmentType.trim().isEmpty()) {
             return pepFollowupVisitRepository
                     .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
-                            person.getUuid(), facilityId, false)
+                            personUuid, facilityId, false)
                     .stream()
                     .findFirst()
                     .map(this::entityToDto)
                     .orElse(null);
         }
         return pepFollowupVisitRepository
-                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), facilityId, enrollmentType)
+                .findLatestByPersonUuidAndEnrollmentType(personUuid, facilityId, enrollmentType)
                 .map(this::entityToDto)
                 .orElse(null);
     }
@@ -114,12 +130,14 @@ public class PepFollowupVisitService {
      * result. Returned in chronological order and numbered 1..3. Fewer than
      * three entries means the remaining slots are still pending.
      */
-    public List<FollowupHtsResultDto> getInitialFollowupHtsResults(Long personId) {
-        Person person = getPerson(personId);
+    public List<FollowupHtsResultDto> getInitialFollowupHtsResults(String personUuid) {
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
         PrepPepInitiation initiation = prepPepInitiationRepository
-                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PEP)
+                .findLatestByPersonUuidAndEnrollmentType(personUuid, false, EnrollmentType.PEP)
                 .orElseGet(() -> prepPepInitiationRepository
-                        .findTopByPersonUuidAndArchived(person.getUuid(), false)
+                        .findTopByPersonUuidAndArchived(personUuid, false)
                         .orElse(null));
         if (initiation == null) {
             return Collections.emptyList();

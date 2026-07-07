@@ -34,9 +34,9 @@ public class ProphylaxisInterruptionController {
         return ResponseEntity.ok(service.getById(id));
     }
 
-    @GetMapping("/api/v1/prophylaxis-interruption/person/{personId}")
-    public ResponseEntity<List<ProphylaxisInterruptionDto>> getByPersonId(@PathVariable Long personId) {
-        return ResponseEntity.ok(service.getByPersonId(personId));
+    @GetMapping("/api/v1/prophylaxis-interruption/person/{personUuid}")
+    public ResponseEntity<List<ProphylaxisInterruptionDto>> getByPersonUuid(@PathVariable String personUuid) {
+        return ResponseEntity.ok(service.getByPersonUuid(personUuid));
     }
 
     @DeleteMapping("/api/v1/prophylaxis-interruption/{id}")

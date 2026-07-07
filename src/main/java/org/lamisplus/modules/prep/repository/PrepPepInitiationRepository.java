@@ -1616,21 +1616,25 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    END AS prepStatus\n";
 
     // PEP status precedence (per spec):
-    //   1. Completed — ONLY when a PEP completion form exists (latest PEP
-    //      interruption has pep_completion = 'YES_NO_YES') AND that completion is
-    //      the latest event (on/after the latest PEP follow-up visit). Same
-    //      pattern the PrEP status uses for discontinuation. Time alone (28 days)
-    //      never completes a client — it only makes them *due* for completion,
-    //      which the UI surfaces as a warning.
-    //   2. No PEP follow-up visit at all  → 'Enrolled'.
-    //   3. Otherwise → 'Active'.
+    //   1. Completed — a PEP completion form exists (latest PEP interruption has
+    //      pep_completion = 'YES_NO_YES') AND that completion is on/after the
+    //      latest PEP follow-up visit. When the completion is later than the last
+    //      visit the course is closed; re-screening starts a fresh cycle.
+    //   2. No PEP follow-up visit yet → 'Not Commenced' (before first visit).
+    //   3. Latest PEP visit's next_appointment is in the past (and not completed)
+    //      → 'Default'. The client is overdue for their next PEP visit.
+    //   4. Otherwise → 'Active'.
+    // So a not-yet-completed client toggles Active ⇄ Default purely on
+    // next_appointment vs CURRENT_DATE until a completion form is filled.
     String PEP_STATUS_CASE =
             "    CASE\n" +
             "        WHEN latest_pep_interruption.pep_completion = 'YES_NO_YES'\n" +
             "             AND (latest_pep_visit.visit_date IS NULL\n" +
             "                  OR latest_pep_interruption.completion_date IS NULL\n" +
             "                  OR latest_pep_interruption.completion_date >= latest_pep_visit.visit_date) THEN 'Completed'\n" +
-            "        WHEN latest_pep_visit.pep_start_date IS NULL THEN 'Enrolled'\n" +
+            "        WHEN latest_pep_visit.visit_date IS NULL THEN 'Not Commenced'\n" +
+            "        WHEN latest_pep_visit.next_appointment IS NOT NULL\n" +
+            "             AND latest_pep_visit.next_appointment < CURRENT_DATE THEN 'Default'\n" +
             "        ELSE 'Active'\n" +
             "    END AS prepStatus\n";
 
@@ -1703,13 +1707,17 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     //       PEP interruption row so the CASE can short-circuit to 'Completed'
     //       when pep_completion = 'YES_NO_YES'.
     String PEP_LATEST_VISIT_JOIN =
+            // Latest PEP follow-up visit per person (DISTINCT ON the latest
+            // encounter_date), exposing that visit's next_appointment — the date
+            // the PEP status uses to decide Active vs Default.
             "LEFT JOIN (\n" +
-            "    SELECT pv.person_uuid,\n" +
-            "           MAX(COALESCE(pv.date_start_pep, pv.encounter_date)) AS pep_start_date,\n" +
-            "           MAX(pv.encounter_date) AS visit_date\n" +
+            "    SELECT DISTINCT ON (pv.person_uuid) pv.person_uuid,\n" +
+            "           COALESCE(pv.date_start_pep, pv.encounter_date) AS pep_start_date,\n" +
+            "           pv.encounter_date AS visit_date,\n" +
+            "           pv.next_appointment AS next_appointment\n" +
             "    FROM pep_followup_visit pv\n" +
             "    WHERE CAST(pv.archived AS BOOLEAN) = false\n" +
-            "    GROUP BY pv.person_uuid\n" +
+            "    ORDER BY pv.person_uuid, pv.encounter_date DESC NULLS LAST, pv.id DESC\n" +
             ") latest_pep_visit ON latest_pep_visit.person_uuid = pet.person_uuid\n" +
             // Latest PEP interruption per person in ONE scan (was a MAX-self-join),
             // keyed off follow_up_visit_date — the date the client was actually

@@ -206,7 +206,7 @@ const PrEPDiscontinuationsInterruptions = props => {
     axios
       .get(
         `${baseUrl}prep/enrollment/open/patients/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -443,7 +443,7 @@ const PrEPDiscontinuationsInterruptions = props => {
     try {
       const latest = await axios.get(
         `${baseUrl}prep/initiation/latest/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }?enrollmentType=${encodeURIComponent(canonicalEnrollmentType)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -460,6 +460,8 @@ const PrEPDiscontinuationsInterruptions = props => {
       return;
     }
     objValues.prepEnrollmentUuid = resolvedEnrollmentUuid;
+    // Prefer the stable person UUID for backend person resolution on save.
+    objValues.personUuid = props.patientObj.personUuid || props.patientObj.uuid;
 
     if (props.activeContent && props.activeContent.actionType === "update") {
       axios

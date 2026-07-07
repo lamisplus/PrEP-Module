@@ -211,12 +211,14 @@ const PEPFollowupVisit = props => {
   };
 
   const getPatientDtoObj = () => {
-    const personId = props.patientObj.personId || props.patientObj.id;
+    const personUuid = props.patientObj.personUuid || props.patientObj.uuid;
     // Use the type-aware latest-initiation endpoint so this PEP follow-up form
     // anchors to the patient's latest PEP initiation (not their PrEP record).
+    // Keyed by person UUID (stable on every grid row) — the bigint person id
+    // could be absent/stale and 404 the person lookup.
     axios
       .get(
-        `${baseUrl}prep/initiation/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PEP}`,
+        `${baseUrl}prep/initiation/latest/${personUuid}?enrollmentType=${ENROLLMENT_TYPE_PEP}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -231,10 +233,10 @@ const PEPFollowupVisit = props => {
   // forward (read-only) onto a new follow-up. Only used on create, where the
   // latest record IS the prior; on edit we keep the record's own values.
   const getLatestPriorFollowup = () => {
-    const personId = props.patientObj.personId || props.patientObj.id;
+    const personUuid = props.patientObj.personUuid || props.patientObj.uuid;
     axios
       .get(
-        `${baseUrl}pep-followup-visit/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PEP}`,
+        `${baseUrl}pep-followup-visit/latest/${personUuid}?enrollmentType=${ENROLLMENT_TYPE_PEP}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(response => {
@@ -393,9 +395,9 @@ const PEPFollowupVisit = props => {
   // Fetch the 1st/2nd/3rd follow-up visits (with HTS) after the latest PEP
   // initiation. Their HIV results auto-populate the read-only list below.
   const getInitialFollowupHtsResults = () => {
-    const personId = props.patientObj.personId || props.patientObj.id;
+    const personUuid = props.patientObj.personUuid || props.patientObj.uuid;
     axios
-      .get(`${baseUrl}pep-followup-visit/initial-hts-results/${personId}`, {
+      .get(`${baseUrl}pep-followup-visit/initial-hts-results/${personUuid}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(response => {
@@ -685,7 +687,7 @@ const PEPFollowupVisit = props => {
       try {
         const latest = await axios.get(
           `${baseUrl}prep/initiation/latest/${
-            props.patientObj.personId || props.patientObj.id
+            props.patientObj.personUuid || props.patientObj.uuid
           }?enrollmentType=${ENROLLMENT_TYPE_PEP}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -702,6 +704,8 @@ const PEPFollowupVisit = props => {
     }
     payload.prepEnrollmentUuid = resolvedEnrollmentUuid;
     payload.previousPrepStatus = props.patientObj?.prepStatus;
+    // Prefer the stable person UUID for backend person resolution on save.
+    payload.personUuid = props.patientObj.personUuid || props.patientObj.uuid;
 
     if (props.activeContent && props.activeContent.actionType === "update") {
       try {

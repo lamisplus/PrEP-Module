@@ -56,8 +56,18 @@ public class PrepEligibilityService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
+    /** Prefer the stable person UUID over the bigint id when resolving for a write. */
+    private Person resolvePersonForWrite(String personUuid, Long personId) {
+        if (personUuid != null && !personUuid.trim().isEmpty()) {
+            java.util.Optional<Person> byUuid = personRepository.findByUuidAndFacilityId(
+                    personUuid, currentUserOrganizationService.getCurrentUserOrganization());
+            if (byUuid.isPresent()) return byUuid.get();
+        }
+        return getPerson(personId);
+    }
+
     public PrepEligibilityDto save(PrepEligibilityRequestDto prepEligibilityRequestDto) {
-        Person person = this.getPerson(prepEligibilityRequestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(prepEligibilityRequestDto.getPersonUuid(), prepEligibilityRequestDto.getPersonId());
         PrepEligibility prepEligibility = eligibilityRequestDtoToEligibility(prepEligibilityRequestDto, person.getUuid());
         prepEligibility.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());

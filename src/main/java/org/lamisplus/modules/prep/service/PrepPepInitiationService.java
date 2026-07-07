@@ -97,9 +97,12 @@ public class PrepPepInitiationService {
         return entityToDto(entity);
     }
 
-    public List<PrepPepInitiationDto> getByPersonId(Long personId) {
+    public List<PrepPepInitiationDto> getByPersonUuid(String personUuid) {
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
         List<PrepPepInitiation> list = prepPepInitiationRepository
-                .findAllByPersonUuidAndFacilityIdAndArchived(getPerson(personId).getUuid(),
+                .findAllByPersonUuidAndFacilityIdAndArchived(personUuid,
                         currentUserOrganizationService.getCurrentUserOrganization(), false);
         return list.stream()
                 .map(entity -> entityToDto(entity))

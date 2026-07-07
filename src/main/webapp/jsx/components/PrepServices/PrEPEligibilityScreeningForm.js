@@ -712,6 +712,9 @@ const BasicInfo = props => {
       objValues.sexPartnerRisk = riskAssessmentPartner;
       objValues.stiScreening = stiScreening;
       objValues.personId = props?.patientObj?.personId || props?.patientObj?.id;
+      // Prefer the stable person UUID — the backend resolves the person by this,
+      // so a missing/stale person id can no longer break the save.
+      objValues.personUuid = props?.patientObj?.personUuid || props?.patientObj?.uuid;
       objValues.assessmentForAcuteHivInfection = assessmentForAcuteHivInfection;
       // Only include PEP indication if screening type is not PrEP
       objValues.assessmentForPepIndication = screeningType !== 'PrEP' ? assessmentForPepIndication : {};
@@ -900,11 +903,11 @@ const BasicInfo = props => {
   // getPatientPrepEligibility) and when the user has already typed something.
   useEffect(() => {
     if (props.activeContent?.id) return;
-    const personId = props.patientObj?.personId || props.patientObj?.id;
-    if (!personId) return;
+    const personUuid = props.patientObj?.personUuid || props.patientObj?.uuid;
+    if (!personUuid) return;
     if (objValues.uniqueClientId) return;
     axios
-      .get(`${baseUrl}prep-eligibility-screening/person/${personId}`, {
+      .get(`${baseUrl}prep-eligibility-screening/person/${personUuid}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(resp => {
@@ -918,7 +921,7 @@ const BasicInfo = props => {
         }
       })
       .catch(() => {});
-  }, [props.patientObj?.personId, props.patientObj?.id, props.activeContent?.id]);
+  }, [props.patientObj?.personUuid, props.patientObj?.uuid, props.activeContent?.id]);
   useEffect(() => {
     if (isNo(hivTesting.hivTestedBefore)) {
       setHivTesting(prev => ({

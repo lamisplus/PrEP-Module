@@ -24,6 +24,8 @@ public class PrepInterruptionRequestDto implements Serializable {
     private String interruptionReason;
     //@NotNull(message = "PersonId is mandatory")
     private Long personId;
+    /** Stable person UUID (preferred over personId for robust person resolution). */
+    private String personUuid;
     private LocalDate dateSeroConverted;
     private LocalDate dateRestartPlacedBackMedication;
     private Boolean linkToArt;

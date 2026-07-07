@@ -34,10 +34,10 @@ public class PrepPepInitiationController {
         return ResponseEntity.ok(prepPepInitiationService.getById(id));
     }
 
-    @GetMapping("/person/{personId}")
-    @ApiOperation(value = "Get PrEP/PEP Initiations by Person ID")
-    public ResponseEntity<List<PrepPepInitiationDto>> getByPersonId(@PathVariable Long personId) {
-        return ResponseEntity.ok(prepPepInitiationService.getByPersonId(personId));
+    @GetMapping("/person/{personUuid}")
+    @ApiOperation(value = "Get PrEP/PEP Initiations by Person UUID")
+    public ResponseEntity<List<PrepPepInitiationDto>> getByPersonUuid(@PathVariable String personUuid) {
+        return ResponseEntity.ok(prepPepInitiationService.getByPersonUuid(personUuid));
     }
 
     @DeleteMapping("/{id}")

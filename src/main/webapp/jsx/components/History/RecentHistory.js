@@ -58,7 +58,9 @@ const RecentHistory = props => {
   };
   console.log("props.patientObj recent history: ", props.patientObj.id);
   const Summary = () => {
-    const personId = props.patientObj.personId || props.patientObj.id;
+    // Person UUID (stable on every grid row) keys all these reads now — the
+    // bigint person id could be stale/absent and 404 the person lookup.
+    const personUuid = props.patientObj.personUuid || props.patientObj.uuid;
     const headers = { Authorization: `Bearer ${token}` };
 
     // Pull the latest PrEP/PEP follow-up visit AND the latest PrEP/PEP initiation.
@@ -66,10 +68,10 @@ const RecentHistory = props => {
     // when no follow-up exists, and merging fields so a missing weight/regimen on
     // the latest follow-up is still served from the initiation.
     Promise.all([
-      axios.get(`${baseUrl}prep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
-      axios.get(`${baseUrl}pep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
-      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PREP}`, { headers }).catch(() => ({ data: {} })),
-      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PEP}`, { headers }).catch(() => ({ data: {} })),
+      axios.get(`${baseUrl}prep-followup-visit/person/${personUuid}?full=true`, { headers }).catch(() => ({ data: [] })),
+      axios.get(`${baseUrl}pep-followup-visit/person/${personUuid}?full=true`, { headers }).catch(() => ({ data: [] })),
+      axios.get(`${baseUrl}prep/initiation/latest/${personUuid}?enrollmentType=${ENROLLMENT_TYPE_PREP}`, { headers }).catch(() => ({ data: {} })),
+      axios.get(`${baseUrl}prep/initiation/latest/${personUuid}?enrollmentType=${ENROLLMENT_TYPE_PEP}`, { headers }).catch(() => ({ data: {} })),
     ]).then(([prepFollowupRes, pepFollowupRes, prepInitRes, pepInitRes]) => {
       const prepVisit = prepFollowupRes.data[0];
       const pepVisit = pepFollowupRes.data[0];

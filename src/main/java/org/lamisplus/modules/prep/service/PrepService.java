@@ -60,9 +60,24 @@ public class PrepService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
+    /**
+     * Resolves the Person for a write, PREFERRING the stable person UUID (always
+     * shipped on every grid row) over the bigint person id. Falls back to the id
+     * only when no uuid was sent, so older payloads keep working. This is what
+     * makes every CRUD path robust against a stale/absent person id.
+     */
+    public Person resolvePersonForWrite(String personUuid, Long personId) {
+        if (personUuid != null && !personUuid.trim().isEmpty()) {
+            Optional<Person> byUuid = personRepository.findByUuidAndFacilityId(
+                    personUuid, currentUserOrganizationService.getCurrentUserOrganization());
+            if (byUuid.isPresent()) return byUuid.get();
+        }
+        return getPerson(personId);
+    }
+
     public PrepEligibilityDto saveEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto) {
         Person person;
-        person = this.getPerson(prepEligibilityRequestDto.getPersonId());
+        person = this.resolvePersonForWrite(prepEligibilityRequestDto.getPersonUuid(), prepEligibilityRequestDto.getPersonId());
         PrepEligibilityScreening prepEligibility = this.prepEligibilityRequestDtoToPrepEligibility(prepEligibilityRequestDto, person.getUuid());
         prepEligibility.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());
@@ -92,7 +107,7 @@ public class PrepService {
                 .findByUuid(eligibilityUuid)
                 .orElseThrow(() -> new EntityNotFoundException(PrepEligibilityScreening.class, "Eligibility ", eligibilityUuid));
 
-        Person person = this.getPerson(prepEnrollmentRequestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(prepEnrollmentRequestDto.getPersonUuid(), prepEnrollmentRequestDto.getPersonId());
 
         if (!prepEligibility.getPersonUuid().equals(person.getUuid())) {
             throw PrepErrors.personMismatch("eligibility screening");
@@ -147,7 +162,7 @@ public class PrepService {
     }
 
     public PrepClinicDto saveCommencement(PrepClinicRequestDto commencementRequestDto) {
-        Person person = this.getPerson(commencementRequestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(commencementRequestDto.getPersonUuid(), commencementRequestDto.getPersonId());
         if (commencementRequestDto.getDatePrepStart() != null && commencementRequestDto.getEncounterDate() == null) {
             commencementRequestDto.setEncounterDate(commencementRequestDto.getDatePrepStart());
         }
@@ -173,7 +188,7 @@ public class PrepService {
     }
 
     public PrepClinicDto saveClinic(PrepClinicRequestDto clinicRequestDto) {
-        Person person = this.getPerson(clinicRequestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(clinicRequestDto.getPersonUuid(), clinicRequestDto.getPersonId());
 
         String enrollmentUuid = resolveEnrollmentUuid(clinicRequestDto, person.getUuid());
         clinicRequestDto.setPrepEnrollmentUuid(enrollmentUuid);
@@ -207,7 +222,7 @@ public class PrepService {
 
 
     public PrepInterruptionDto saveInterruption(PrepInterruptionRequestDto interruptionRequestDto) {
-        Person person = this.getPerson(interruptionRequestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(interruptionRequestDto.getPersonUuid(), interruptionRequestDto.getPersonId());
         ProphylaxisInterruption interruption = interruptionRequestDtoToEntity(interruptionRequestDto, person.getUuid());
         interruption.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         interruption.setPreviousPrepStatus(interruptionRequestDto.getPreviousPrepStatus());
@@ -334,8 +349,9 @@ public class PrepService {
                 prepPepInitiationRepository.findFirstByPersonOrderByIdDesc(person), enrollmentType);
     }
 
-    public List<PrepEnrollmentDto> getEnrollmentByPersonId(Long personId) {
-        Person person = this.getPerson(personId);
+    public List<PrepEnrollmentDto> getEnrollmentByPersonUuid(String personUuid) {
+        Person person = resolvePersonByUuid(personUuid);
+        if (person == null) return new ArrayList<>();
         List<PrepEnrollmentDto> prepEnrollmentDtos = new ArrayList<>();
         List<PrepPepInitiation> prepEnrollments = prepPepInitiationRepository.findAllByPerson(person);
         prepEnrollments.forEach(prepEnrollment -> {
@@ -344,14 +360,27 @@ public class PrepService {
         return prepEnrollmentDtos;
     }
 
-    public List<PrepClinicDto> getCommencementByPersonId(Long personId) {
-        Person person = this.getPerson(personId);
+    public List<PrepClinicDto> getCommencementByPersonUuid(String personUuid) {
+        Person person = resolvePersonByUuid(personUuid);
+        if (person == null) return new ArrayList<>();
         List<PrepClinicDto> prepClinicDtos = new ArrayList<>();
         List<PrepFollowupVisit> prepClinics = prepFollowupVisitRepository.findAllByPersonAndIsCommencement(person, true);
         prepClinics.forEach(prepClinic -> {
             prepClinicDtos.add(clinicToClinicDto(prepClinic));
         });
         return prepClinicDtos;
+    }
+
+    /**
+     * Resolves the Person entity from a person UUID (stable identifier shipped on
+     * every grid row), scoped to the current facility. Returns null instead of
+     * throwing when absent, so read endpoints degrade to empty rather than 500.
+     */
+    private Person resolvePersonByUuid(String personUuid) {
+        if (personUuid == null || personUuid.trim().isEmpty()) return null;
+        return personRepository
+                .findByUuidAndFacilityId(personUuid, currentUserOrganizationService.getCurrentUserOrganization())
+                .orElse(null);
     }
 
     private Long getPersonId(PrepPepInitiation prepEnrollment) {
@@ -783,45 +812,17 @@ public class PrepService {
                     .ifPresent(prepDtos::setPrepStatus);
         } else {
             // Legacy (no arm supplied): if the patient's latest initiation is PEP,
-            // override prepStatus with the PEP-specific status (the SQL above
-            // queries prep_followup_visit, empty for a PEP-only patient →
-            // "Not Commenced"). Mirrors PEP_STATUS_CASE in Java.
+            // reuse the EXACT PEP grid status query (PEP_STATUS_CASE) so the
+            // fallback matches the grid — Completed only via a completion form,
+            // otherwise Active/Default on next_appointment, Not Commenced pre-visit.
             prepPepInitiationRepository
                     .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PEP)
-                    .ifPresent(latestPepInit -> {
-                        boolean explicitCompletion = prophylaxisInterruptionRepository
-                                .findAllByPersonUuidAndFacilityIdAndArchived(
-                                        person.getUuid(),
-                                        currentUserOrganizationService.getCurrentUserOrganization(),
-                                        false)
-                                .stream()
-                                .filter(i -> latestPepInit.getUuid()
-                                        .equals(i.getProphylaxisInitiationUuid()))
-                                .anyMatch(i -> "YES_NO_YES".equalsIgnoreCase(i.getPepCompletion()));
-                        if (explicitCompletion) {
-                            prepDtos.setPrepStatus("Completed");
-                            return;
-                        }
-                        LocalDate anchor = pepFollowupVisitRepository
-                                .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
-                                        person.getUuid(),
-                                        currentUserOrganizationService.getCurrentUserOrganization(),
-                                        false)
-                                .stream()
-                                .findFirst()
-                                .map(v -> v.getDateStartPep() != null
-                                        ? v.getDateStartPep() : v.getEncounterDate())
-                                .orElse(null);
-                        if (anchor == null) {
-                            prepDtos.setPrepStatus("Enrolled");
-                        } else {
-                            // Time alone never completes PEP — only a completion
-                            // form does (the explicitCompletion check above). Past
-                            // 28 days the client is merely *due* for completion,
-                            // which the UI surfaces as a warning, not a status.
-                            prepDtos.setPrepStatus("Active");
-                        }
-                    });
+                    .ifPresent(latestPepInit -> prepPepInitiationRepository
+                            .findPepEnrolledStatusForPerson(false,
+                                    currentUserOrganizationService.getCurrentUserOrganization(),
+                                    EnrollmentType.PEP, person.getUuid())
+                            .map(PrepHtsPatient::getPrepStatus)
+                            .ifPresent(prepDtos::setPrepStatus));
         }
 
         // Final safety net: if every path above left the status null/blank (a
@@ -829,26 +830,6 @@ public class PrepService {
         // empty — assume the worst case rather than an implied-active blank.
         if (prepDtos.getPrepStatus() == null || prepDtos.getPrepStatus().trim().isEmpty()) {
             prepDtos.setPrepStatus("Defaulted");
-        }
-
-        // PEP "due for completion" warning flag: a PEP client is past the 28-day
-        // window since their latest PEP visit but has NOT been marked Completed
-        // (no completion form). We flag them so the UI can warn — but the status
-        // stays as-is; only a completion form completes them.
-        if (!"Completed".equalsIgnoreCase(prepDtos.getPrepStatus())) {
-            pepFollowupVisitRepository
-                    .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
-                            person.getUuid(),
-                            currentUserOrganizationService.getCurrentUserOrganization(), false)
-                    .stream().findFirst()
-                    .ifPresent(latestPep -> {
-                        LocalDate anchor = latestPep.getDateStartPep() != null
-                                ? latestPep.getDateStartPep() : latestPep.getEncounterDate();
-                        if (anchor != null && java.time.temporal.ChronoUnit.DAYS
-                                .between(anchor, java.time.LocalDate.now()) >= 28) {
-                            prepDtos.setPepDueForCompletion(true);
-                        }
-                    });
         }
 
         // Compute previousProphylaxis by comparing latest PrEP and PEP followup visit dates
@@ -900,17 +881,20 @@ public class PrepService {
         return interrupted;
     }
 
-    public PrepEligibilityDto getOpenEligibility(Long personId) {
-        Person person = this.getPerson(personId);
+    public PrepEligibilityDto getOpenEligibility(String personUuid) {
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return new PrepEligibilityDto();
+        }
         return prepEligibilityToPrepEligibilityDto(prepEligibilityScreeningRepository
-                .findByPersonUuidAndArchived(person.getUuid(), false));
+                .findByPersonUuidAndArchived(personUuid, false));
     }
 
-    public PrepEnrollmentDto getOpenEnrollment(Long personId) {
-        Person person = this.getPerson(personId);
-
+    public PrepEnrollmentDto getOpenEnrollment(String personUuid) {
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return new PrepEnrollmentDto();
+        }
         Optional<PrepPepInitiation> prepEnrollmentOptional = prepPepInitiationRepository
-                .findByPersonUuidAndArchived(person.getUuid(), false, currentUserOrganizationService.getCurrentUserOrganization());
+                .findByPersonUuidAndArchived(personUuid, false, currentUserOrganizationService.getCurrentUserOrganization());
         if (prepEnrollmentOptional.isPresent())
             return enrollmentToEnrollmentDto(prepEnrollmentOptional.get());
         return new PrepEnrollmentDto();
@@ -921,11 +905,17 @@ public class PrepService {
      * by enrollment type (PrEP or PEP). Used by follow-up visit forms to compute duration
      * on therapy and to validate that the visit date is after the enrollment date.
      */
-    public PrepEnrollmentDto getLatestInitiation(Long personId, String enrollmentType) {
-        Person person = this.getPerson(personId);
+    public PrepEnrollmentDto getLatestInitiation(String personUuid, String enrollmentType) {
+        // Keyed by the person UUID (stable, always shipped on every grid row)
+        // rather than the bigint person id, which could be stale/absent on a row
+        // and threw EntityNotFound. No person lookup needed — the repository
+        // filters directly on person_uuid.
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return new PrepEnrollmentDto();
+        }
         String canonicalType = EnrollmentType.toCanonical(enrollmentType);
         Optional<PrepPepInitiation> latest = prepPepInitiationRepository
-                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, canonicalType);
+                .findLatestByPersonUuidAndEnrollmentType(personUuid, false, canonicalType);
         return latest.map(this::enrollmentToEnrollmentDto).orElseGet(PrepEnrollmentDto::new);
     }
 
