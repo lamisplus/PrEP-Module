@@ -120,4 +120,20 @@ public final class PrepErrors {
                 "PrEP is only available for clients aged " + minimumAge + " and above. "
                         + "Initiate this client on PEP instead.");
     }
+
+    // ── PEP follow-up HTS ordering ─────────────────────────────────────────
+
+    public static ResponseStatusException htsNotAfterInitiation(LocalDate initiationDate) {
+        return new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "The selected HTS result must be dated later than the PEP initiation ("
+                        + fmt(initiationDate) + "). A follow-up visit happens after initiation — "
+                        + "please register a new HTS with a later date and select it.");
+    }
+
+    public static ResponseStatusException htsNotAfterPreviousVisit(LocalDate previousHtsDate) {
+        return new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "The selected HTS result must be dated later than the previous follow-up visit's "
+                        + "HTS result (" + fmt(previousHtsDate) + "). Please register a new HTS with a "
+                        + "later date and select it.");
+    }
 }

@@ -941,6 +941,31 @@ public class PrepService {
         return getLatestInitiationUuid(personUuid, enrollmentType);
     }
 
+    /**
+     * Dedicated, lightweight status endpoint: returns the SAME arm-specific status
+     * the grid shows (PrEP or PEP), for one person, keyed by person UUID. Used by
+     * the dashboard to refresh the patient card's status immediately after a form
+     * submission — without re-fetching the full person payload.
+     */
+    public String getEnrollmentStatus(String personUuid, String enrollmentType) {
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return "Not Available";
+        }
+        String canonicalArm = EnrollmentType.toCanonical(enrollmentType);
+        Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
+        if (EnrollmentType.PEP.equals(canonicalArm)) {
+            return prepPepInitiationRepository
+                    .findPepEnrolledStatusForPerson(false, facilityId, EnrollmentType.PEP, personUuid)
+                    .map(PrepHtsPatient::getPrepStatus)
+                    .orElse("Not Available");
+        }
+        // Default to PrEP for any non-PEP arm.
+        return prepPepInitiationRepository
+                .findPrepEnrolledStatusForPerson(false, facilityId, EnrollmentType.PREP, personUuid)
+                .map(PrepHtsPatient::getPrepStatus)
+                .orElse("Not Available");
+    }
+
     public PrepEligibilityScreening prepEligibilityRequestDtoToPrepEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto, String personUuid) {
         if (prepEligibilityRequestDto == null) {
             return null;

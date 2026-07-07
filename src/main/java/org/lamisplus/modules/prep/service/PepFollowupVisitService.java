@@ -72,6 +72,29 @@ public class PepFollowupVisitService {
                     throw PrepErrors.pepFollowupAlreadyExists(requestDto.getEncounterDate());
                 });
 
+        // HTS ordering guard rails (a follow-up visit must occur AFTER initiation,
+        // and each subsequent visit's HTS must be later than the previous one's):
+        //   1. the selected HTS must be dated strictly after the PEP initiation;
+        //   2. it must be dated strictly after the latest existing follow-up's HTS.
+        // So the 1st follow-up result is the 1st HTS after initiation, the 2nd is
+        // the next, and so on. Same-day or earlier HTS is rejected.
+        String htsUuid = requestDto.getHtsEncounterUuid();
+        if (htsUuid != null && !htsUuid.trim().isEmpty()) {
+            java.sql.Date htsSqlDate = pepFollowupVisitRepository.findHtsVisitDate(htsUuid);
+            java.time.LocalDate htsDate = htsSqlDate == null ? null : htsSqlDate.toLocalDate();
+            if (htsDate != null) {
+                java.time.LocalDate initiationDate = initiation.getDateEnrolled();
+                if (initiationDate != null && !htsDate.isAfter(initiationDate)) {
+                    throw PrepErrors.htsNotAfterInitiation(initiationDate);
+                }
+                java.sql.Date priorSql = pepFollowupVisitRepository.findLatestFollowupHtsDate(enrollmentUuid);
+                java.time.LocalDate priorHtsDate = priorSql == null ? null : priorSql.toLocalDate();
+                if (priorHtsDate != null && !htsDate.isAfter(priorHtsDate)) {
+                    throw PrepErrors.htsNotAfterPreviousVisit(priorHtsDate);
+                }
+            }
+        }
+
         PepFollowupVisit entity = requestDtoToEntity(requestDto, person.getUuid());
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setIsCommencement(false);

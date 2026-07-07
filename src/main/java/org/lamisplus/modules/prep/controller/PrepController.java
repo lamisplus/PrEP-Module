@@ -221,4 +221,14 @@ public class PrepController {
         body.put("prepEnrollmentUuid", uuid);
         return ResponseEntity.ok(body);
     }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/status/{personUuid}")
+    @ApiOperation("Get the arm-specific (PrEP/PEP) enrollment status for a person — same as the grid")
+    public ResponseEntity<Map<String, String>> getEnrollmentStatus(
+            @PathVariable String personUuid,
+            @RequestParam(value = "enrollmentType", defaultValue = EnrollmentType.PREP) String enrollmentType) {
+        Map<String, String> body = new HashMap<>();
+        body.put("status", prepService.getEnrollmentStatus(personUuid, enrollmentType));
+        return ResponseEntity.ok(body);
+    }
 }

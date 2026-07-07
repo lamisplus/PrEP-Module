@@ -500,12 +500,17 @@ const PEPFollowupVisit = props => {
     // effects so Next Appointment / Duration stay consistent.
     if (visitDateMin && !formikRef.current.values?.encounterDate) {
       setF("encounterDate", visitDateMin);
-      const nextAppt = addDaysIso(visitDateMin, 28);
-      if (nextAppt) setF("nextAppointment", nextAppt);
+      // Resolve the effective duration of refill: carried forward from a prior
+      // follow-up, else computed from months elapsed since enrollment. The field
+      // stays editable so the user can override it.
+      let dur = formikRef.current.values?.duration;
       if (!hasPriorFollowup) {
-        const dur = calculateDurationOnPep(visitDateMin);
+        dur = calculateDurationOnPep(visitDateMin);
         if (dur !== "") setF("duration", dur);
       }
+      // Next Appointment = visit date + duration of refill (months), like PrEP.
+      const nextAppt = calculateNextAppointment(visitDateMin, dur);
+      if (nextAppt) setF("nextAppointment", nextAppt);
     }
   }, [patientDto, latestPepFollowup, isCreateMode, visitDateMin, hasPriorFollowup]);
 
@@ -613,17 +618,18 @@ const PEPFollowupVisit = props => {
   const handleEncounterDateChangeForAppt = (e, setFieldValue, duration) => {
     const encounterDate = e.target.value;
     setFieldValue("encounterDate", encounterDate);
-    // Duration on PEP — months elapsed since enrollment, read-only field.
-    // Skip the recompute when a prior follow-up exists: the value is carried
-    // forward read-only from that follow-up and must not be overwritten.
+    // Duration of refill — default from months elapsed since enrollment when no
+    // prior follow-up carried it forward. The field stays editable regardless.
+    let effectiveDuration = duration;
     if (!hasPriorFollowup) {
       const computedDuration = calculateDurationOnPep(encounterDate);
       if (computedDuration !== "") {
+        effectiveDuration = computedDuration;
         setFieldValue("duration", computedDuration);
       }
     }
-    // Next Appointment is always visit + 28 days for PEP follow-ups.
-    const nextAppt = addDaysIso(encounterDate, 28);
+    // Next Appointment = visit date + duration of refill (months), like PrEP.
+    const nextAppt = calculateNextAppointment(encounterDate, effectiveDuration);
     if (nextAppt) setFieldValue("nextAppointment", nextAppt);
   };
 
@@ -657,6 +663,25 @@ const PEPFollowupVisit = props => {
     if (manualErrors.length > 0) {
       manualErrors.forEach(msg => toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER }));
       return;
+    }
+
+    // HTS ordering guard (create mode): the selected HTS must be dated strictly
+    // AFTER the PEP initiation — a follow-up visit happens after initiation.
+    // Same-day or earlier is refused; the user must register a new HTS. (The
+    // backend also enforces this AND the "later than the previous visit's HTS"
+    // rule authoritatively, so the toast here is just immediate feedback.)
+    if (isCreateMode) {
+      const htsDate = latestHts?.dateOfVisit;
+      const initDate = patientDto?.dateEnrolled;
+      if (htsDate && initDate && !moment(htsDate).isAfter(moment(initDate), "day")) {
+        toast.error(
+          "The selected HTS result must be dated later than the PEP initiation. " +
+            "A follow-up visit happens after initiation — please register a new HTS " +
+            "with a later date and select it.",
+          { position: toast.POSITION.BOTTOM_CENTER }
+        );
+        return;
+      }
     }
 
     setSaving(true);
@@ -1333,19 +1358,22 @@ const PEPFollowupVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* 12b. Duration on PEP (Months) — read-only: carried from the
-                        previous follow-up when one exists, otherwise computed
-                        from months elapsed since enrollment. */}
+                    {/* 12b. Duration of Refill (Months) — auto-populated (carried
+                        from the previous follow-up, else computed from months
+                        since enrollment) but always editable. Driving Next
+                        Appointment = Visit Date + this value. */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Duration on PEP (Months)</FormLabelName>
+                        <FormLabelName>Duration of Refill (Months)</FormLabelName>
                         <Input
                           type="number"
                           name="duration"
                           id="duration"
                           value={values.duration}
+                          onChange={e =>
+                            handleDurationChange(e, setFieldValue, values.encounterDate)
+                          }
                           style={inputStyle}
-                          disabled
                           min="0"
                         />
                       </FormGroup>

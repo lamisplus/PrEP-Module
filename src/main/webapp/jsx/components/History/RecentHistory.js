@@ -604,10 +604,13 @@ const RecentHistory = props => {
                                   {
                                     <>
                                       BMI :{" "}
+                                      {/* Height is stored in cm; BMI = weight(kg) /
+                                          height(m)^2, so convert cm → m first. */}
                                       {summary && summary.weight && summary.height
                                         ? (
                                             summary.weight /
-                                            (summary.height * summary.height)
+                                            ((summary.height / 100) *
+                                              (summary.height / 100))
                                           ).toFixed(2)
                                         : "NIL"}{" "}
                                       {summary && summary.weight && summary.height && (
@@ -644,7 +647,7 @@ const RecentHistory = props => {
                                     <>
                                       <h4 className="m-1">
                                         <span className="counter">
-                                          {summary ? summary.height : "0"} m
+                                          {summary ? summary.height : "0"} cm
                                         </span>
                                       </h4>
                                       <p className="m-0">
