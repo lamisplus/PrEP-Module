@@ -77,6 +77,22 @@ function PatientCard(props) {
   const genderRaw =
     patientObj?.gender || patientObj?.sex || getSex(patientDetail);
   const isFemale = (genderRaw || "").toLowerCase() === "female";
+  // Pregnancy display for the female-only chips. Prefer the freshly-fetched
+  // patientDetail (HTS-derived), fall back to the grid row's pregnancyStatusDisplay
+  // so PrEP clients (whose value may only be on the row) still get the chips.
+  const pregnancyValue =
+    patientDetail?.pregnant || patientObj?.pregnancyStatusDisplay;
+  // When there is no pregnancy value (e.g. the client has no valid/complete HTS
+  // record), still show the chips for female clients with an explicit default
+  // rather than hiding them or implying a "No".
+  const UNKNOWN_STATUS = "Unknown (Invalid HTS record)";
+  const pregnancyDisplay = pregnancyValue || UNKNOWN_STATUS;
+  const breastFeedingDisplay = !pregnancyValue
+    ? UNKNOWN_STATUS
+    : pregnancyValue.toString().toLowerCase().replace(/\s|-/g, "") ===
+      "breastfeeding"
+    ? "Yes"
+    : "No";
 
   useEffect(() => {
     setShowReminder(getReminderAlert(parseInt(patientObj?.sendCabLaAlert)));
@@ -123,27 +139,22 @@ function PatientCard(props) {
                           </span>
                         </ButtonMui>
                       </Link>
-                      {(patientDetail?.currentRegimen ||
-                        (isFemale && patientDetail?.pregnant)) && (
+                      {(patientDetail?.currentRegimen || isFemale) && (
                         <div className="mt-2" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                          {isFemale && patientDetail?.pregnant && (
+                          {/* Pregnancy Status + Breast Feeding show for ALL female
+                              PrEP/PEP clients (arm-agnostic). Value comes from
+                              patientDetail.pregnant (HTS-derived), falling back to
+                              the grid row's pregnancyStatusDisplay. When neither is
+                              present (e.g. invalid/incomplete HTS record) we show an
+                              explicit "Unknown" default rather than hiding. */}
+                          {isFemale && (
                             <Label color={"pink"} size={"small"}>
-                              Pregnancy Status:&nbsp;<b>{patientDetail.pregnant}</b>
+                              Pregnancy Status:&nbsp;<b>{pregnancyDisplay}</b>
                             </Label>
                           )}
-                          {/* Breast Feeding — a chip alongside Pregnancy Status
-                              (same row/height, second position). */}
-                          {isFemale && patientDetail?.pregnant && (
+                          {isFemale && (
                             <Label color={"purple"} size={"small"}>
-                              Breast Feeding:&nbsp;
-                              <b>
-                                {(patientDetail.pregnant || "")
-                                  .toString()
-                                  .toLowerCase()
-                                  .replace(/\s|-/g, "") === "breastfeeding"
-                                  ? "Yes"
-                                  : "No"}
-                              </b>
+                              Breast Feeding:&nbsp;<b>{breastFeedingDisplay}</b>
                             </Label>
                           )}
                         </div>
@@ -254,14 +265,14 @@ function PatientCard(props) {
                           <Typography variant="caption">
                             <Label color={"teal"} size={"mini"}>
                               STATUS :{" "}
-                              {/* Prefer the grid's status (patientObj) — it is
-                                  arm-specific (PrEP vs PEP), matching the grid.
-                                  patientDetail's status mixes arms, so it can
-                                  disagree (e.g. shows "Default" for a PrEP-active
-                                  client who completed PEP). Fall back to it only
-                                  when the grid didn't ship a status. */}
-                              {patientObj?.prepStatus ||
-                                patientDetail?.prepStatus}
+                              {/* Prefer patientDetail — it's re-fetched after every
+                                  form save (so the status updates in place), and is
+                                  now arm-aware (prep/persons/{id}?enrollmentType),
+                                  so it matches the grid. patientObj (the grid row)
+                                  is only a fallback for the brief moment before
+                                  patientDetail loads. */}
+                              {patientDetail?.prepStatus ||
+                                patientObj?.prepStatus}
                             </Label>
                           </Typography>
                         </div>

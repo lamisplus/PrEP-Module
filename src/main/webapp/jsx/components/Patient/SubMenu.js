@@ -100,10 +100,10 @@ function SubMenu(props) {
     "pep completion",
     "pep completed",
   ];
-  // Prefer the grid's arm-specific status (patientObj) over patientDetail's
-  // arm-mixed one, so the menu's discontinued/eligibility gating matches the
-  // status shown on the grid and the patient card.
-  const prepStatusValue = (patientObj?.prepStatus || patientDetail?.prepStatus || "")
+  // Prefer patientDetail (re-fetched after every form save, and arm-aware so it
+  // matches the grid) so the menu's gating updates immediately post-save. The
+  // grid row (patientObj) is only a fallback until patientDetail loads.
+  const prepStatusValue = (patientDetail?.prepStatus || patientObj?.prepStatus || "")
     .toString()
     .trim()
     .toLowerCase();

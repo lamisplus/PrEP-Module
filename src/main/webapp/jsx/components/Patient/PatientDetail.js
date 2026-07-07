@@ -127,6 +127,22 @@ function PatientCard(props) {
     ViralLoadObject();
   }, []);
 
+  // Every form (PrEP follow-up, screening, initiation, interruption…) returns to
+  // the "recent-history" home view after saving. Refresh patientDetail whenever
+  // we land back there so the STATUS on the card/menu reflects the just-saved
+  // record immediately — not only after leaving and re-opening the dashboard.
+  // Skip the initial mount (handled by the effect above).
+  const didMountRef = React.useRef(false);
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+    if (activeContent.route === "recent-history") {
+      PatientObject();
+    }
+  }, [activeContent.route]);
+
   function ViralLoadObject() {
     const personId = patientObjLocation?.personId || patientObjLocation?.id;
     if (!personId) return;
