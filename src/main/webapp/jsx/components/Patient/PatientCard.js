@@ -169,22 +169,27 @@ function PatientCard(props) {
                         </b>
                       </span>
                     </Col>
-                    {/* Latest viral load — shown for every PrEP/PEP patient that
-                        has a VL result. Sits just over Age and Phone Number.
-                        Wording comes from the shared viralLoad constants. */}
-                    {props.viralLoad?.viralLoadResult && (
+                    {/* Latest viral load — shown for every PrEP/PEP patient once
+                        the VL lookup has run. When there is no result, we show
+                        "No record found" (grey) rather than hiding it or implying
+                        a result. Wording comes from the shared viralLoad constants. */}
+                    {props.viralLoad && (
                       <Col md={4} className={classes.root2}>
                         <span>
                           {" "}
                           Viral Load :{" "}
                           <b
                             style={{
-                              color: isTargetDetected(props.viralLoad.viralLoadResult)
+                              color: !props.viralLoad.viralLoadResult
+                                ? "#6c757d"
+                                : isTargetDetected(props.viralLoad.viralLoadResult)
                                 ? "#dc3545"
                                 : "#28a745",
                             }}
                           >
-                            {viralLoadDisplay(props.viralLoad.viralLoadResult)}
+                            {props.viralLoad.viralLoadResult
+                              ? viralLoadDisplay(props.viralLoad.viralLoadResult)
+                              : "No record found"}
                           </b>
                         </span>
                       </Col>
@@ -262,6 +267,23 @@ function PatientCard(props) {
                         </div>
                       </Col>
                     )}
+                    {/* PEP due-for-completion warning: past 28 days since the last
+                        PEP visit with no completion form. The client is NOT auto-
+                        completed — this just reminds staff to fill the PEP
+                        Completion form. Only shown on the PEP arm. */}
+                    {patientDetail?.pepDueForCompletion &&
+                      props.screeningType === "PEP" && (
+                        <Col md={12}>
+                          <div>
+                            <Typography variant="caption">
+                              <Label color={"orange"} size={"mini"}>
+                                ⚠ PEP completion due — 28+ days since last visit;
+                                fill the PEP Completion form.
+                              </Label>
+                            </Typography>
+                          </div>
+                        </Col>
+                      )}
                   </Row>
                 </>
               ) : (

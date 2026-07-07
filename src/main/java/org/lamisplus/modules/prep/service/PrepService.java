@@ -815,9 +815,11 @@ public class PrepService {
                         if (anchor == null) {
                             prepDtos.setPrepStatus("Enrolled");
                         } else {
-                            long days = java.time.temporal.ChronoUnit.DAYS.between(
-                                    anchor, java.time.LocalDate.now());
-                            prepDtos.setPrepStatus(days >= 29 ? "Completed" : "Active");
+                            // Time alone never completes PEP — only a completion
+                            // form does (the explicitCompletion check above). Past
+                            // 28 days the client is merely *due* for completion,
+                            // which the UI surfaces as a warning, not a status.
+                            prepDtos.setPrepStatus("Active");
                         }
                     });
         }
@@ -827,6 +829,26 @@ public class PrepService {
         // empty — assume the worst case rather than an implied-active blank.
         if (prepDtos.getPrepStatus() == null || prepDtos.getPrepStatus().trim().isEmpty()) {
             prepDtos.setPrepStatus("Defaulted");
+        }
+
+        // PEP "due for completion" warning flag: a PEP client is past the 28-day
+        // window since their latest PEP visit but has NOT been marked Completed
+        // (no completion form). We flag them so the UI can warn — but the status
+        // stays as-is; only a completion form completes them.
+        if (!"Completed".equalsIgnoreCase(prepDtos.getPrepStatus())) {
+            pepFollowupVisitRepository
+                    .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
+                            person.getUuid(),
+                            currentUserOrganizationService.getCurrentUserOrganization(), false)
+                    .stream().findFirst()
+                    .ifPresent(latestPep -> {
+                        LocalDate anchor = latestPep.getDateStartPep() != null
+                                ? latestPep.getDateStartPep() : latestPep.getEncounterDate();
+                        if (anchor != null && java.time.temporal.ChronoUnit.DAYS
+                                .between(anchor, java.time.LocalDate.now()) >= 28) {
+                            prepDtos.setPepDueForCompletion(true);
+                        }
+                    });
         }
 
         // Compute previousProphylaxis by comparing latest PrEP and PEP followup visit dates

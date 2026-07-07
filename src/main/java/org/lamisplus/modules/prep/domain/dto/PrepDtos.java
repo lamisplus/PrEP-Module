@@ -39,6 +39,14 @@ public class PrepDtos {
     /** Same semantics for PEP. */
     private Boolean isCurrentStatusInterruptedPep = false;
 
+    /**
+     * True when a PEP client is past the 28-day window since their latest PEP
+     * visit but has NOT yet filled a PEP completion form. They are *due* for
+     * completion — the UI shows a warning — but the status is NOT auto-set to
+     * "Completed"; only a completion form completes them.
+     */
+    private Boolean pepDueForCompletion = false;
+
     /** Total interruptions/discontinuations on file for the patient. */
     private Integer interruptionCount = 0;
     /** Initiations on file with enrollment_type = PrEP. */

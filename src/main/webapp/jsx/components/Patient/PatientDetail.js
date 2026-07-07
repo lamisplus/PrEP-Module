@@ -27,6 +27,7 @@ import { useAuth } from "../../../context/AuthProvider/AuthProvider";
 import ProtectedComponent from "../PrepServices/ProtectedComponent";
 import { useLocation } from "react-router-dom/cjs/react-router-dom";
 import PatientVisits from "./PatientVisits";
+import ViralLoadWarningModal from "../../../Reusables/ViralLoadWarningModal";
 
 const styles = theme => ({
   root: {
@@ -117,6 +118,9 @@ function PatientCard(props) {
   // shared with the PatientCard (chip display) and SubMenu (hides PEP service
   // forms when Target Detected). Shape: { viralLoad, viralLoadResult }.
   const [viralLoad, setViralLoad] = useState(null);
+  // Shown once when the VL lookup returns no record. A missing VL is NOT treated
+  // as "Target Detected" — it is simply surfaced as a dismissible warning.
+  const [showVlWarning, setShowVlWarning] = useState(false);
 
   useEffect(() => {
     PatientObject();
@@ -130,7 +134,11 @@ function PatientCard(props) {
       .get(`${baseUrl}prep/viral-load/latest/${personId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then(response => setViralLoad(response.data))
+      .then(response => {
+        setViralLoad(response.data);
+        // No result on the record → warn the user (non-blocking).
+        if (!response.data?.viralLoadResult) setShowVlWarning(true);
+      })
       .catch(() => setViralLoad(null));
   }
 
@@ -315,6 +323,10 @@ function PatientCard(props) {
 
   return (
     <div className={classes.root}>
+      <ViralLoadWarningModal
+        isOpen={showVlWarning}
+        onClose={() => setShowVlWarning(false)}
+      />
       <Dialog
         open={otherArmModalOpen}
         onClose={() => setOtherArmModalOpen(false)}
@@ -375,6 +387,7 @@ function PatientCard(props) {
             activeContent={activeContent}
             patientDetail={patientDetail}
             viralLoad={viralLoad}
+            screeningType={screeningType}
           />
           <SubMenu
             patientObj={patientObjLocation}
