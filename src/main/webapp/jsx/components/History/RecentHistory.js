@@ -549,117 +549,62 @@ const RecentHistory = props => {
                   <div className="col-sm-6 col-md-6 col-lg-6">
                     <div className="card-body">
                       <div className="card overflow-hidden">
-                        {summarySource === "pep" ? (
-                          <>
-                            <div className="social-graph-wrapper widget-linkedin">
-                              <span className="s-icon">
-                                <span style={{ fontSize: "16px" }}>
-                                  Blood Pressure :{" "}
-                                  {summary && summary.systolic && summary.diastolic
-                                    ? `${summary.systolic}/${summary.diastolic} mmHg`
-                                    : "NIL"}
-                                </span>
+                        <>
+                          <div className="social-graph-wrapper widget-linkedin">
+                            <span className="s-icon">
+                              <span style={{ fontSize: "16px" }}>
+                                BMI :{" "}
+                                {/* Same formula as the initiation form: height is
+                                    captured in cm, BMI = weight(kg) / height(m)^2. */}
+                                {summary && summary.weight && summary.height
+                                  ? (
+                                      Number(summary.weight) /
+                                      (Number(summary.height) / 100) ** 2
+                                    ).toFixed(2)
+                                  : "NIL"}{" "}
+                                {summary && summary.weight && summary.height && (
+                                  <>
+                                    kg/cm<sup>2</sup>
+                                  </>
+                                )}
                               </span>
-                            </div>
-                            <div className="row">
-                              <div className="col-6 border-right">
-                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                                  {summary && summary.systolic && (
-                                    <>
-                                      <h4 className="m-1">
-                                        <span className="counter">
-                                          {summary.systolic}
-                                        </span>
-                                      </h4>
-                                      <p className="m-0">
-                                        <b>Systolic</b>
-                                      </p>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="col-6">
-                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                                  {summary && summary.diastolic && (
-                                    <>
-                                      <h4 className="m-1">
-                                        <span className="counter">
-                                          {summary.diastolic}
-                                        </span>
-                                      </h4>
-                                      <p className="m-0">
-                                        <b>Diastolic</b>
-                                      </p>
-                                    </>
-                                  )}
-                                </div>
+                            </span>
+                          </div>
+                          <div className="row">
+                            <div className="col-6 border-right">
+                              <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                {summary && (
+                                  <>
+                                    <h4 className="m-1">
+                                      <span className="counter">
+                                        {summary ? summary.weight : "0"} Kg
+                                      </span>
+                                    </h4>
+                                    <p className="m-0">
+                                      <b>Weight </b>
+                                    </p>
+                                  </>
+                                )}
                               </div>
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="social-graph-wrapper widget-linkedin">
-                              <span className="s-icon">
-                                <span style={{ fontSize: "16px" }}>
-                                  {
-                                    <>
-                                      BMI :{" "}
-                                      {/* Height is stored in cm; BMI = weight(kg) /
-                                          height(m)^2, so convert cm → m first. */}
-                                      {summary && summary.weight && summary.height
-                                        ? (
-                                            summary.weight /
-                                            ((summary.height / 100) *
-                                              (summary.height / 100))
-                                          ).toFixed(2)
-                                        : "NIL"}{" "}
-                                      {summary && summary.weight && summary.height && (
-                                        <>
-                                          kg/m<sup>2</sup>
-                                          <span></span>
-                                        </>
-                                      )}
-                                    </>
-                                  }
-                                </span>
-                              </span>
-                            </div>
-                            <div className="row">
-                              <div className="col-6 border-right">
-                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                                  {summary && (
-                                    <>
-                                      <h4 className="m-1">
-                                        <span className="counter">
-                                          {summary ? summary.weight : "0"} Kg
-                                        </span>
-                                      </h4>
-                                      <p className="m-0">
-                                        <b>Weight </b>
-                                      </p>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="col-6">
-                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                                  {summary && (
-                                    <>
-                                      <h4 className="m-1">
-                                        <span className="counter">
-                                          {summary ? summary.height : "0"} cm
-                                        </span>
-                                      </h4>
-                                      <p className="m-0">
-                                        <b>Height </b>
-                                      </p>
-                                    </>
-                                  )}
-                                </div>
+                            <div className="col-6">
+                              <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                {summary && (
+                                  <>
+                                    <h4 className="m-1">
+                                      <span className="counter">
+                                        {summary ? summary.height : "0"} cm
+                                      </span>
+                                    </h4>
+                                    <p className="m-0">
+                                      <b>Height </b>
+                                    </p>
+                                  </>
+                                )}
                               </div>
                             </div>
-                          </>
-                        )}
+                          </div>
+                        </>
                       </div>
                     </div>
                   </div>

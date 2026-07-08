@@ -540,6 +540,7 @@ public class PrepService {
         return PrepHtsPatientDto.builder()
                 .personId(row.getPersonId())
                 .personUuid(row.getPersonUuid())
+                .uniqueId(row.getUniqueId())
                 .firstName(row.getFirstName())
                 .surname(row.getSurname())
                 .otherName(row.getOtherName())
