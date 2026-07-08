@@ -1099,6 +1099,11 @@ const ClinicVisit = props => {
   const handlePrepTypeChange = (e, setFieldValue) => {
     setFieldValue("regimenId", "");
     setFieldValue("prepType", e.target.value);
+    // Injectible PrEP mandates a Liver Function Test — auto-check it so its date
+    // and result fields are shown (and required) for the user to fill.
+    if (e.target.value === "PREP_TYPE_INJECTIBLES") {
+      setShowLiverFunctionTest(true);
+    }
     if (
       e.target.value === "PREP_TYPE_OTHERS" ||
       e.target.value === "PREP_TYPE_ED_PREP"
@@ -1162,6 +1167,16 @@ const ClinicVisit = props => {
         manualErrors.push(`Other Test #${idx + 1}: Date is required`);
       }
     });
+    // Injectible PrEP requires a Liver Function Test: both the date AND the
+    // test result must be entered before the form can be submitted.
+    if (values.prepType === "PREP_TYPE_INJECTIBLES") {
+      if (!dateLiverFunctionTestResults) {
+        manualErrors.push("Date of Liver Function Test Result is required for injectible PrEP");
+      }
+      if (!liverFunctionTestResults || liverFunctionTestResults.length === 0) {
+        manualErrors.push("Liver Function Test Result is required for injectible PrEP");
+      }
+    }
     if (manualErrors.length > 0) {
       manualErrors.forEach(msg => toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER }));
       return;
@@ -2326,19 +2341,31 @@ const ClinicVisit = props => {
                         name="liverFunctionTest"
                         value="Yes"
                         onChange={handleCheckBoxLiverFunctionTest}
-                        checked={showLiverFunctionTest}
-                        disabled={disabledField}
+                        checked={
+                          showLiverFunctionTest ||
+                          values.prepType === "PREP_TYPE_INJECTIBLES"
+                        }
+                        disabled={
+                          disabledField ||
+                          values.prepType === "PREP_TYPE_INJECTIBLES"
+                        }
                       />{" "}
                       Liver Function Test Result
                     </h4>
                   </Label>
                   <br />
                   <br />
-                  {showLiverFunctionTest && (
+                  {(showLiverFunctionTest ||
+                    values.prepType === "PREP_TYPE_INJECTIBLES") && (
                     <>
                       <div className="mb-3 col-md-12">
                         <FormGroup>
-                          <FormLabelName>Date of Liver Function Test Result</FormLabelName>
+                          <FormLabelName>
+                            Date of Liver Function Test Result
+                            {values.prepType === "PREP_TYPE_INJECTIBLES" && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
+                          </FormLabelName>
                           <Input
                             type="date"
                             onKeyDown={e => e.preventDefault()}
@@ -2356,6 +2383,12 @@ const ClinicVisit = props => {
                       </div>
                       <div className="mb-3 col-md-12">
                         <FormGroup>
+                          <FormLabelName>
+                            Liver Function Test Result
+                            {values.prepType === "PREP_TYPE_INJECTIBLES" && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
+                          </FormLabelName>
                           <DualListBox
                             options={(codeset?.LIVER_FUNCTION_TEST_RESULT || []).map(value => ({
                               value: value?.code,
