@@ -3,6 +3,7 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { Menu, Popup } from "semantic-ui-react";
 import ProtectedComponent from "../PrepServices/ProtectedComponent";
 import { useAuth } from "../../../context/AuthProvider/AuthProvider";
+import { isTargetDetected } from "../../constants/viralLoad";
 
 function SubMenu(props) {
   const { userPermissions } = useAuth();
@@ -78,27 +79,61 @@ function SubMenu(props) {
     enrollmentType: patientDetailCopy.enrollmentType || "",
   };
 
-  // Effective type: screeningType from Patient Tab takes priority, then fall back to enrollmentType
   const effectiveType = screeningType || patientObj?.enrollmentType || "";
   const isPEP = effectiveType === "PEP";
   const isPrEP = effectiveType === "PrEP";
   const typeLabel = isPEP ? "PEP" : "PrEP";
-
-  // Cross-arm exclusivity. The two flags arrive on patientDetail; "true" means the
-  // patient is currently active on that arm. If the user is browsing the OTHER arm's
-  // tab, hide all PrEP/PEP service entry points so they can't accidentally start work
-  // on a wrong-arm form. (Discontinuation stays available so the user can interrupt.)
   const isActivePrep = !!patientDetail?.isCurrentStatusInterruptedPrep;
   const isActivePep = !!patientDetail?.isCurrentStatusInterruptedPep;
   const blockedByOtherArm =
     (isPrEP && isActivePep) || (isPEP && isActivePrep);
 
+  // Statuses that end the current course and restrict the menu to Eligibility
+  // Screening (until a fresh screening re-opens the workflow → re-initiation).
+  //   • PrEP: discontinuation/interruption outcomes, incl. Default/Defaulted.
+  //   • PEP: ONLY 'Completed'. PEP 'Default' is a TRANSIENT "overdue for next
+  //     visit" state (toggles back to Active once seen) — it must NOT lock the
+  //     client out of the PEP Follow-up form, so it is intentionally excluded.
+  const DISCONTINUED_STATUSES_PREP = [
+    "discontinued",
+    "stopped",
+    "default",
+    "defaulted",
+    "dead",
+    "referred",
+    "seroconverted",
+    "completed",
+    "pep completion",
+    "pep completed",
+  ];
+  const DISCONTINUED_STATUSES_PEP = [
+    "completed",
+    "pep completion",
+    "pep completed",
+    "seroconverted",
+    "dead",
+    "referred",
+    "stopped",
+  ];
+  // Prefer patientDetail (re-fetched after every form save, and arm-aware so it
+  // matches the grid) so the menu's gating updates immediately post-save. The
+  // grid row (patientObj) is only a fallback until patientDetail loads.
+  const prepStatusValue = (patientDetail?.prepStatus || patientObj?.prepStatus || "")
+    .toString()
+    .trim()
+    .toLowerCase();
+  const hasDiscontinued = (isPEP ? DISCONTINUED_STATUSES_PEP : DISCONTINUED_STATUSES_PREP)
+    .includes(prepStatusValue);
+
+  // Latest viral load (shared with the dashboard chip). When it's Detected
+  // (> 1000) for a PEP client, PEP was not completed successfully — the menu
+  // surfaces ONLY the PEP Completion form (handled in renderMenuItems), which
+  // auto-fills PEP Completion = YES and the HIV Result from the latest HTS.
+  const viralLoadTargetDetected = isTargetDetected(props.viralLoad?.viralLoadResult);
+
   const renderMenuItems = () => {
     const isNegative = patientObj?.hivresultAtVisit === "Negative" || patientObj?.hivresultAtVisit === null;
 
-    // If the patient is currently active on the OTHER arm, lock down this tab to
-    // a notice + History only. The user must visit the other arm's tab and
-    // discontinue first.
     if (blockedByOtherArm) {
       const activeArm = isActivePrep ? "PrEP" : "PEP";
       return (
@@ -113,7 +148,52 @@ function SubMenu(props) {
       );
     }
 
-    // Fresh workflow (came from Patient Tab): walk the user through Screening -> Initiation -> All forms
+    // PEP client with a Detected viral load (> 1000): PEP was not completed
+    // successfully. Surface ONLY the PEP Completion form (it auto-fills PEP
+    // Completion = YES and the HIV Result). Takes precedence over the
+    // positive/discontinued "eligibility only" branch below.
+    if (isPEP && viralLoadTargetDetected) {
+      return (
+        <>
+          <Menu.Item onClick={onClickHome}>Home</Menu.Item>
+          <ProtectedComponent
+            isAuthorized={userPermissions.discontinuation}
+            privateComponent={() => (
+              <Menu.Item onClick={loadPrEPDiscontinuationsInterruptions}>
+                PEP Completion
+              </Menu.Item>
+            )}
+          />
+          <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
+        </>
+      );
+    }
+
+    // Restrict to Eligibility Screening only when:
+    //   • the client is HIV-positive (can never be provided PrEP/PEP), OR
+    //   • the client is discontinued/stopped/defaulted/completed AND has not yet
+    //     re-screened. A discontinued client is allowed to RESTART: once they
+    //     fill a fresh Eligibility Screening (hasOpenScreening becomes true), we
+    //     fall through to the normal menu so Initiation and the service forms
+    //     appear again. This applies to every such client, not just one.
+    const needsReScreenBeforeRestart = hasDiscontinued && !hasOpenScreening;
+    if (!isNegative || needsReScreenBeforeRestart) {
+      return (
+        <>
+          <Menu.Item onClick={onClickHome}>Home</Menu.Item>
+          <ProtectedComponent
+            isAuthorized={userPermissions.eligibility}
+            privateComponent={() => (
+              <Menu.Item onClick={loadPrEPEligibilityScreeningForm}>
+                {typeLabel} Eligibility Screening
+              </Menu.Item>
+            )}
+          />
+          <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
+        </>
+      );
+    }
+
     if (freshWorkflow && sessionStage === "screening") {
       return (
         <>
@@ -148,7 +228,6 @@ function SubMenu(props) {
       );
     }
 
-    // sessionStage === "all" OR returning client (not fresh workflow): show full menu
     return (
       <>
         <Menu.Item onClick={onClickHome}>Home</Menu.Item>
@@ -161,8 +240,8 @@ function SubMenu(props) {
             </Menu.Item>
           )}
         />
-
-        {isNegative && (freshWorkflow || hasOpenScreening) && (
+        
+        {isNegative && hasOpenScreening && (
           <ProtectedComponent
             isAuthorized={userPermissions.enrollment}
             privateComponent={() => (

@@ -21,7 +21,7 @@ const PEPFollowupVisitIndex = props => {
     axios
       .get(
         `${baseUrl}pep-followup-visit/person/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -41,7 +41,7 @@ const PEPFollowupVisitIndex = props => {
     axios
       .get(
         `${baseUrl}pep-followup-visit/person/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )

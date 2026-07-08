@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { FormGroup, Label, CardBody, Spinner, Input } from "reactstrap";
 import DualListBox from "react-dual-listbox";
@@ -16,7 +16,7 @@ import "react-phone-input-2/lib/style.css";
 import { fetchEligibilityScreeningCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
-import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import { isValidHtsEncounter, normalizeHtsObservation } from "../../../Utils/htsEncounter";
 import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
@@ -223,7 +223,14 @@ const BasicInfo = props => {
   // auto-populate / disable logic applies on every render path.
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = patientObj?.latestHtsResult || loadedHts;
-  const htsObs = latestHts?.observation || {};
+  // Normalised once per HTS record (keyed on uuid) so migrated/community
+  // encounters auto-populate the same as natively-captured ones — the raw
+  // observation stores the HIV result on finalHivTestResult and a space-joined
+  // pregnancy/breastfeeding string the form fields can't read directly.
+  const htsObs = useMemo(
+    () => normalizeHtsObservation(latestHts?.observation),
+    [latestHts?.uuid]
+  );
   // "HTS found" is decided by whether the linked hts_encounter resolved from
   // htsEncounterUuid is valid/properly structured. A valid HTS record is
   // REQUIRED for screening, so when none can be resolved we hard-block with a
@@ -389,6 +396,9 @@ const BasicInfo = props => {
         patientObj?.htsClientCode || latestHts.clientCode || prev.clientHtsCode,
       htsEncounterUuid: prev.htsEncounterUuid || latestHts.uuid || "",
       pregnancyStatus: htsObs.pregnancyStatus || prev.pregnancyStatus,
+      // Default the visit date to the latest HTS date; the user may still pick a
+      // later date (the input's `min` enforces "not earlier").
+      visitDate: prev.visitDate || latestHts.dateOfVisit || prev.visitDate,
     }));
     setHivTesting(prev => ({
       ...prev,
@@ -702,6 +712,9 @@ const BasicInfo = props => {
       objValues.sexPartnerRisk = riskAssessmentPartner;
       objValues.stiScreening = stiScreening;
       objValues.personId = props?.patientObj?.personId || props?.patientObj?.id;
+      // Prefer the stable person UUID — the backend resolves the person by this,
+      // so a missing/stale person id can no longer break the save.
+      objValues.personUuid = props?.patientObj?.personUuid || props?.patientObj?.uuid;
       objValues.assessmentForAcuteHivInfection = assessmentForAcuteHivInfection;
       // Only include PEP indication if screening type is not PrEP
       objValues.assessmentForPepIndication = screeningType !== 'PrEP' ? assessmentForPepIndication : {};
@@ -890,11 +903,11 @@ const BasicInfo = props => {
   // getPatientPrepEligibility) and when the user has already typed something.
   useEffect(() => {
     if (props.activeContent?.id) return;
-    const personId = props.patientObj?.personId || props.patientObj?.id;
-    if (!personId) return;
+    const personUuid = props.patientObj?.personUuid || props.patientObj?.uuid;
+    if (!personUuid) return;
     if (objValues.uniqueClientId) return;
     axios
-      .get(`${baseUrl}prep-eligibility-screening/person/${personId}`, {
+      .get(`${baseUrl}prep-eligibility-screening/person/${personUuid}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(resp => {
@@ -908,7 +921,7 @@ const BasicInfo = props => {
         }
       })
       .catch(() => {});
-  }, [props.patientObj?.personId, props.patientObj?.id, props.activeContent?.id]);
+  }, [props.patientObj?.personUuid, props.patientObj?.uuid, props.activeContent?.id]);
   useEffect(() => {
     if (isNo(hivTesting.hivTestedBefore)) {
       setHivTesting(prev => ({
@@ -1336,11 +1349,6 @@ const BasicInfo = props => {
                       className="form-control"
                       name="pregnancyStatus"
                       id="pregnancyStatus"
-                      // When isFromHts the field is read-only and its value is
-                      // the HTS observation directly. This avoids a race where
-                      // a server-side fetch (which no longer carries
-                      // pregnancyStatus) wipes the formik value after the HTS
-                      // auto-pop has set it.
                       value={
                         isFromHts && htsObs.pregnancyStatus
                           ? htsObs.pregnancyStatus
@@ -1350,9 +1358,6 @@ const BasicInfo = props => {
                       style={{
                         border: "1px solid #014D88",
                         borderRadius: "0.2rem",
-                        // Only grey out when HTS actually provided the value.
-                        // If HTS has no pregnancyStatus, leave the field
-                        // editable so the user can supply it.
                         backgroundColor:
                           isFromHts && htsObs.pregnancyStatus ? "#f1f3f5" : undefined,
                       }}
@@ -1378,7 +1383,41 @@ const BasicInfo = props => {
                   </FormGroup>
                 </div>
               )}
-              {/* ===== Main Header: Pre-Test Counselling / Risk Assessment ===== */}
+              {isFemale() && (
+                <div className="form-group col-md-4 p-2">
+                  <FormGroup className="p-2">
+                    <Label>Breast Feeding</Label>
+                    <select
+                      className="form-control"
+                      name="breastFeeding"
+                      id="breastFeeding"
+                      value={
+                        (props.patientDetail?.pregnant || "")
+                          .toString()
+                          .toLowerCase()
+                          .replace(/\s|-/g, "") === "breastfeeding"
+                          ? "YES_NO_YES"
+                          : "YES_NO_NO"
+                      }
+                      disabled
+                      title="Autopopulated from pregnancy status"
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.2rem",
+                        padding: "0.5rem",
+                        backgroundColor: "#f1f3f5",
+                      }}
+                    >
+                      <option value="">Select</option>
+                      {(codeset?.YES_NO || []).map(item => (
+                        <option key={item.id} value={item.code}>
+                          {item.display}
+                        </option>
+                      ))}
+                    </select>
+                  </FormGroup>
+                </div>
+              )}
               <div
                 className="form-group my-4 col-md-12 text-center pt-2 mb-4"
                 style={{
@@ -1391,8 +1430,6 @@ const BasicInfo = props => {
               >
                 Pre-Test Counselling / Risk Assessment
               </div>
-
-              {/* --- Subsection: Sex Partner Risk --- */}
               <div
                 style={{
                   width: "100%",
@@ -1584,7 +1621,6 @@ const BasicInfo = props => {
 
               <hr />
 
-              {/* --- Subsection: Personal HIV Risk Assessment (Last 3 months) --- */}
               <div
                 style={{
                   width: "100%",
@@ -1753,7 +1789,6 @@ const BasicInfo = props => {
 
               <hr />
 
-              {/* --- Subsection: Drug Use History --- */}
               <div
                 style={{
                   width: "100%",
@@ -1965,9 +2000,6 @@ const BasicInfo = props => {
                   </div>
                 )}
               </div>
-
-              {/* useDrugSexualPerformance is its own column now — no longer
-                  gated by drug selection, so it always renders. */}
               <div className="form-group col-md-6 p-3">
                 <FormGroup>
                   <Label>
@@ -2007,7 +2039,6 @@ const BasicInfo = props => {
 
               {screeningType !== 'PrEP' && (
               <>
-              {/* --- Subsection: Assessment for PEP Indication --- */}
               <div
                 style={{
                   width: "100%",
@@ -2119,7 +2150,6 @@ const BasicInfo = props => {
               </>
               )}
 
-              {/* --- Subsection: Assessment Acute HIV Infection --- */}
               <div
                 style={{
                   width: "100%",
@@ -2220,7 +2250,6 @@ const BasicInfo = props => {
 
               <hr />
 
-              {/* --- Subsection: STI Screening --- */}
               <div
                 style={{
                   width: "100%",

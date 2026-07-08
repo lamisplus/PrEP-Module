@@ -136,16 +136,16 @@ public class PrepController {
         return new ResponseEntity<>(prepService.saveInterruption(prepInterruptionRequestDto), HttpStatus.CREATED);
     }
 
-    @GetMapping(PREP_URL_VERSION_ONE + "/enrollment/person/{personId}")
-    @ApiOperation("Get Prep enrollment by person Id")
-    public ResponseEntity<List<PrepEnrollmentDto>> getAllEnrollmentByPersonId(@PathVariable Long personId) {
-        return ResponseEntity.ok(this.prepService.getEnrollmentByPersonId(personId));
+    @GetMapping(PREP_URL_VERSION_ONE + "/enrollment/person/{personUuid}")
+    @ApiOperation("Get Prep enrollment by person UUID")
+    public ResponseEntity<List<PrepEnrollmentDto>> getAllEnrollmentByPersonUuid(@PathVariable String personUuid) {
+        return ResponseEntity.ok(this.prepService.getEnrollmentByPersonUuid(personUuid));
     }
 
-    @GetMapping(PREP_URL_VERSION_ONE + "/commencement/person/{personId}")
-    @ApiOperation("Get Prep commencement by person Id")
-    public ResponseEntity<List<PrepClinicDto>> getAllCommencementByPersonId(@PathVariable Long personId) {
-        return ResponseEntity.ok(this.prepService.getCommencementByPersonId(personId));
+    @GetMapping(PREP_URL_VERSION_ONE + "/commencement/person/{personUuid}")
+    @ApiOperation("Get Prep commencement by person UUID")
+    public ResponseEntity<List<PrepClinicDto>> getAllCommencementByPersonUuid(@PathVariable String personUuid) {
+        return ResponseEntity.ok(this.prepService.getCommencementByPersonUuid(personUuid));
     }
 
     @GetMapping(PREP_URL_VERSION_ONE + "/commencement/{id}")
@@ -174,8 +174,9 @@ public class PrepController {
 
     @GetMapping(PREP_URL_VERSION_ONE + "/persons/{personId}")
     @ApiOperation("Get Prep Client by person Id")
-    public ResponseEntity<PrepDtos> getPrepByPersonId(@PathVariable Long personId) {
-        return ResponseEntity.ok(this.prepService.getPrepByPersonId(personId));
+    public ResponseEntity<PrepDtos> getPrepByPersonId(@PathVariable Long personId,
+            @RequestParam(required = false) String enrollmentType) {
+        return ResponseEntity.ok(this.prepService.getPrepByPersonId(personId, enrollmentType));
     }
 
     @GetMapping(PREP_URL_VERSION_ONE + "/activities/patients/{patientId}")
@@ -190,24 +191,24 @@ public class PrepController {
         return patientActivityService.getActivitiesFor(patientId);
     }
 
-    @GetMapping(PREP_URL_VERSION_ONE + "/eligibility/open/patients/{patientId}")
-    @ApiOperation("Get Prep Eligible not enrolled by patient Id")
-    public ResponseEntity<PrepEligibilityDto> getOpenEligibility(@PathVariable Long patientId) {
-        return ResponseEntity.ok(prepService.getOpenEligibility(patientId));
+    @GetMapping(PREP_URL_VERSION_ONE + "/eligibility/open/patients/{personUuid}")
+    @ApiOperation("Get Prep Eligible not enrolled by person UUID")
+    public ResponseEntity<PrepEligibilityDto> getOpenEligibility(@PathVariable String personUuid) {
+        return ResponseEntity.ok(prepService.getOpenEligibility(personUuid));
     }
 
-    @GetMapping(PREP_URL_VERSION_ONE + "/enrollment/open/patients/{patientId}")
-    @ApiOperation("Get Prep Enrollment not commenced by patient Id")
-    public ResponseEntity<PrepEnrollmentDto> getOpenEnrollment(@PathVariable Long patientId) {
-        return ResponseEntity.ok(prepService.getOpenEnrollment(patientId));
+    @GetMapping(PREP_URL_VERSION_ONE + "/enrollment/open/patients/{personUuid}")
+    @ApiOperation("Get Prep Enrollment not commenced by person UUID")
+    public ResponseEntity<PrepEnrollmentDto> getOpenEnrollment(@PathVariable String personUuid) {
+        return ResponseEntity.ok(prepService.getOpenEnrollment(personUuid));
     }
 
-    @GetMapping(PREP_URL_VERSION_ONE + "/initiation/latest/{patientId}")
-    @ApiOperation("Get latest PrEP/PEP initiation by patient Id and enrollment type")
+    @GetMapping(PREP_URL_VERSION_ONE + "/initiation/latest/{personUuid}")
+    @ApiOperation("Get latest PrEP/PEP initiation by person UUID and enrollment type")
     public ResponseEntity<PrepEnrollmentDto> getLatestInitiation(
-            @PathVariable Long patientId,
+            @PathVariable String personUuid,
             @RequestParam(value = "enrollmentType", defaultValue = EnrollmentType.PREP) String enrollmentType) {
-        return ResponseEntity.ok(prepService.getLatestInitiation(patientId, enrollmentType));
+        return ResponseEntity.ok(prepService.getLatestInitiation(personUuid, enrollmentType));
     }
 
     @GetMapping(PREP_URL_VERSION_ONE + "/initiation/latest-uuid")
@@ -218,6 +219,16 @@ public class PrepController {
         String uuid = prepService.getLatestInitiationUuid(personUuid, enrollmentType);
         Map<String, String> body = new HashMap<>();
         body.put("prepEnrollmentUuid", uuid);
+        return ResponseEntity.ok(body);
+    }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/status/{personUuid}")
+    @ApiOperation("Get the arm-specific (PrEP/PEP) enrollment status for a person — same as the grid")
+    public ResponseEntity<Map<String, String>> getEnrollmentStatus(
+            @PathVariable String personUuid,
+            @RequestParam(value = "enrollmentType", defaultValue = EnrollmentType.PREP) String enrollmentType) {
+        Map<String, String> body = new HashMap<>();
+        body.put("status", prepService.getEnrollmentStatus(personUuid, enrollmentType));
         return ResponseEntity.ok(body);
     }
 }

@@ -16,6 +16,8 @@ import java.time.LocalDate;
 public class PrepEnrollmentRequestDto implements Serializable {
     //@NotNull(message = "personId is mandatory")
     private Long personId;
+    /** Stable person UUID (preferred over personId for robust person resolution). */
+    private String personUuid;
 
     private String uniqueId;
 

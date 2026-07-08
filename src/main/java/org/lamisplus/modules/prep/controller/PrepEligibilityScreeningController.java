@@ -34,10 +34,10 @@ public class PrepEligibilityScreeningController {
         return ResponseEntity.ok(prepEligibilityScreeningService.getById(id));
     }
 
-    @GetMapping("/person/{personId}")
-    @ApiOperation(value = "Get PrEP Eligibility Screenings by Person ID")
-    public ResponseEntity<List<PrepEligibilityScreeningDto>> getByPersonId(@PathVariable Long personId) {
-        return ResponseEntity.ok(prepEligibilityScreeningService.getByPersonId(personId));
+    @GetMapping("/person/{personUuid}")
+    @ApiOperation(value = "Get PrEP Eligibility Screenings by Person UUID")
+    public ResponseEntity<List<PrepEligibilityScreeningDto>> getByPersonUuid(@PathVariable String personUuid) {
+        return ResponseEntity.ok(prepEligibilityScreeningService.getByPersonUuid(personUuid));
     }
 
     @DeleteMapping("/{id}")

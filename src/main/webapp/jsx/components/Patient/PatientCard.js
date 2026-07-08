@@ -20,6 +20,10 @@ import useGetPhoneNumber from "../../../hooks/patientCard/useGetPhoneNumber";
 import useCalculateAge from "../../../hooks/patientCard/useCalculateAge";
 import useGetReminderAlert from "../../../hooks/patientCard/useGetReminderAlert";
 import useBasicPatientDetails from "../../../hooks/patientCard/useBasicPatientDetails";
+import {
+  isTargetDetected,
+  viralLoadDisplay,
+} from "../../constants/viralLoad";
 Moment.locale("en");
 momentLocalizer();
 
@@ -70,14 +74,25 @@ function PatientCard(props) {
     useBasicPatientDetails();
   const [showReminder, setShowReminder] = useState(0);
   const toggleModal = () => setShowReminder(0);
-
-  // Pregnancy is shown only for female patients (codeset display already
-  // resolved server-side via base_application_codeset). Gender on the row
-  // is plain English ("Female") — fall back to patientDetail when patientObj
-  // hasn't been rehydrated yet.
   const genderRaw =
     patientObj?.gender || patientObj?.sex || getSex(patientDetail);
   const isFemale = (genderRaw || "").toLowerCase() === "female";
+  // Pregnancy display for the female-only chips. Prefer the freshly-fetched
+  // patientDetail (HTS-derived), fall back to the grid row's pregnancyStatusDisplay
+  // so PrEP clients (whose value may only be on the row) still get the chips.
+  const pregnancyValue =
+    patientDetail?.pregnant || patientObj?.pregnancyStatusDisplay;
+  // When there is no pregnancy value (e.g. the client has no valid/complete HTS
+  // record), still show the chips for female clients with an explicit default
+  // rather than hiding them or implying a "No".
+  const UNKNOWN_STATUS = "Unknown (Invalid HTS record)";
+  const pregnancyDisplay = pregnancyValue || UNKNOWN_STATUS;
+  const breastFeedingDisplay = !pregnancyValue
+    ? UNKNOWN_STATUS
+    : pregnancyValue.toString().toLowerCase().replace(/\s|-/g, "") ===
+      "breastfeeding"
+    ? "Yes"
+    : "No";
 
   useEffect(() => {
     setShowReminder(getReminderAlert(parseInt(patientObj?.sendCabLaAlert)));
@@ -124,22 +139,22 @@ function PatientCard(props) {
                           </span>
                         </ButtonMui>
                       </Link>
-                      {/* Quick badges directly under the patient name so the
-                          dashboard surfaces clinically relevant state up top:
-                          current PrEP regimen, and pregnancy status for female
-                          patients. Display strings (not codes) are resolved
-                          server-side. */}
-                      {(patientDetail?.currentRegimen ||
-                        (isFemale && patientDetail?.pregnant)) && (
+                      {(patientDetail?.currentRegimen || isFemale) && (
                         <div className="mt-2" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                          {/* {patientDetail?.currentRegimen && (
-                            <Label color={"blue"} size={"small"}>
-                              Current Regimen:&nbsp;<b>{patientDetail.currentRegimen}</b>
-                            </Label>
-                          )} */}
-                          {isFemale && patientDetail?.pregnant && (
+                          {/* Pregnancy Status + Breast Feeding show for ALL female
+                              PrEP/PEP clients (arm-agnostic). Value comes from
+                              patientDetail.pregnant (HTS-derived), falling back to
+                              the grid row's pregnancyStatusDisplay. When neither is
+                              present (e.g. invalid/incomplete HTS record) we show an
+                              explicit "Unknown" default rather than hiding. */}
+                          {isFemale && (
                             <Label color={"pink"} size={"small"}>
-                              Pregnancy Status:&nbsp;<b>{patientDetail.pregnant}</b>
+                              Pregnancy Status:&nbsp;<b>{pregnancyDisplay}</b>
+                            </Label>
+                          )}
+                          {isFemale && (
+                            <Label color={"purple"} size={"small"}>
+                              Breast Feeding:&nbsp;<b>{breastFeedingDisplay}</b>
                             </Label>
                           )}
                         </div>
@@ -165,6 +180,30 @@ function PatientCard(props) {
                         </b>
                       </span>
                     </Col>
+                    {/* Latest viral load — a PEP-only feature. Shown only on the
+                        PEP arm once the VL lookup has run; when there is no result
+                        we show "No record found" (grey). Hidden entirely for PrEP. */}
+                    {props.screeningType === "PEP" && props.viralLoad && (
+                      <Col md={4} className={classes.root2}>
+                        <span>
+                          {" "}
+                          Viral Load :{" "}
+                          <b
+                            style={{
+                              color: !props.viralLoad.viralLoadResult
+                                ? "#6c757d"
+                                : isTargetDetected(props.viralLoad.viralLoadResult)
+                                ? "#dc3545"
+                                : "#28a745",
+                            }}
+                          >
+                            {props.viralLoad.viralLoadResult
+                              ? viralLoadDisplay(props.viralLoad.viralLoadResult)
+                              : "No record found"}
+                          </b>
+                        </span>
+                      </Col>
+                    )}
                     <Col md={4} className={classes.root2}>
                       <span>
                         {" "}
@@ -219,12 +258,18 @@ function PatientCard(props) {
                         </b>
                       </span>
                     </Col>
-                    {patientObj?.prepStatus !== null && (
+                    {(patientObj?.prepStatus || patientDetail?.prepStatus) && (
                       <Col md={12}>
                         <div>
                           <Typography variant="caption">
                             <Label color={"teal"} size={"mini"}>
                               STATUS :{" "}
+                              {/* Prefer patientDetail — it's re-fetched after every
+                                  form save (so the status updates in place), and is
+                                  now arm-aware (prep/persons/{id}?enrollmentType),
+                                  so it matches the grid. patientObj (the grid row)
+                                  is only a fallback for the brief moment before
+                                  patientDetail loads. */}
                               {patientDetail?.prepStatus ||
                                 patientObj?.prepStatus}
                             </Label>
@@ -232,11 +277,6 @@ function PatientCard(props) {
                         </div>
                       </Col>
                     )}
-                    {/* Pregnancy + Current Regimen now render as top-row
-                        chips next to the patient name; the old footer
-                        rows here were removed. Breastfeeding is folded into
-                        Pregnancy Status (one of the PREGNANCY_STATUS codeset
-                        values). */}
                   </Row>
                 </>
               ) : (

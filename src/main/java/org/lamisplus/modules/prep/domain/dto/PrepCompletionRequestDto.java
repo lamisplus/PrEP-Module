@@ -21,6 +21,8 @@ public class PrepCompletionRequestDto implements Serializable {
     private String facilityReferredTo;
     private String interruptionReason;
     private Long personId;
+    /** Stable person UUID (preferred over personId for robust person resolution). */
+    private String personUuid;
     private LocalDate dateSeroConverted;
     private LocalDate dateRestartPlacedBackMedication;
     private Boolean linkToArt;

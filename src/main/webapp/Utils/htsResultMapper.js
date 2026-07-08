@@ -55,6 +55,31 @@ const POSITIVE_CODES = new Set([
   CONFIRMATORY_HIV_TEST_RESULT.POSITIVE,
 ]);
 
+/**
+ * Collapse any recognised HIV-result source value to "NEGATIVE" | "POSITIVE",
+ * or null when unrecognised. Accepts the coded families above AND the plain
+ * "Negative"/"Positive" strings that migrated/community HTS encounters store on
+ * `observation.finalHivTestResult` (the coded initial/confirmatory fields are
+ * often empty or carry a non-result value like "No" on those records).
+ */
+const resultPolarity = sourceCode => {
+  if (!sourceCode || typeof sourceCode !== "string") return null;
+  if (NEGATIVE_CODES.has(sourceCode) || /^negative$/i.test(sourceCode.trim()))
+    return "NEGATIVE";
+  if (POSITIVE_CODES.has(sourceCode) || /^positive$/i.test(sourceCode.trim()))
+    return "POSITIVE";
+  return null;
+};
+
+/**
+ * True when a value is a recognised HIV result (coded or plain Negative/
+ * Positive). Used by the HTS observation normaliser to decide whether the
+ * initial/confirmatory fields already carry a usable result, or whether it must
+ * fall back to `finalHivTestResult`.
+ */
+export const isRecognizedHivResultCode = sourceCode =>
+  resultPolarity(sourceCode) !== null;
+
 // When typeOfHivTestDone on the HTS observation is this value, the HIV result
 // field on prep forms should reflect "early detect" instead of the
 // initial/confirmatory test result.
@@ -72,8 +97,9 @@ const TYPE_HIV_EARLY_DETECT = "TYPE_OF_HIV_TEST_HIV_EARLY_DETECT";
 export const toHivTestResultCode = (sourceCode, testType) => {
   if (testType === TYPE_HIV_EARLY_DETECT) return HIV_TEST_RESULT.EARLY_DETECT;
   if (!sourceCode) return sourceCode;
-  if (NEGATIVE_CODES.has(sourceCode)) return HIV_TEST_RESULT.NEGATIVE;
-  if (POSITIVE_CODES.has(sourceCode)) return HIV_TEST_RESULT.POSITIVE;
+  const polarity = resultPolarity(sourceCode);
+  if (polarity === "NEGATIVE") return HIV_TEST_RESULT.NEGATIVE;
+  if (polarity === "POSITIVE") return HIV_TEST_RESULT.POSITIVE;
   return sourceCode;
 };
 
@@ -89,8 +115,9 @@ export const toHivTestResultCode = (sourceCode, testType) => {
 export const toHtsResultCode = (sourceCode, testType) => {
   if (testType === TYPE_HIV_EARLY_DETECT) return "";
   if (!sourceCode) return sourceCode;
-  if (NEGATIVE_CODES.has(sourceCode)) return HTS_RESULT.NEGATIVE;
-  if (POSITIVE_CODES.has(sourceCode)) return HTS_RESULT.POSITIVE;
+  const polarity = resultPolarity(sourceCode);
+  if (polarity === "NEGATIVE") return HTS_RESULT.NEGATIVE;
+  if (polarity === "POSITIVE") return HTS_RESULT.POSITIVE;
   return sourceCode;
 };
 
@@ -105,7 +132,8 @@ export const toHtsResultCode = (sourceCode, testType) => {
 export const toPepHivStatusCode = (sourceCode, testType) => {
   if (testType === TYPE_HIV_EARLY_DETECT) return "";
   if (!sourceCode) return sourceCode;
-  if (NEGATIVE_CODES.has(sourceCode)) return PEP_HIV_STATUS.NEGATIVE;
-  if (POSITIVE_CODES.has(sourceCode)) return PEP_HIV_STATUS.POSITIVE;
+  const polarity = resultPolarity(sourceCode);
+  if (polarity === "NEGATIVE") return PEP_HIV_STATUS.NEGATIVE;
+  if (polarity === "POSITIVE") return PEP_HIV_STATUS.POSITIVE;
   return sourceCode;
 };

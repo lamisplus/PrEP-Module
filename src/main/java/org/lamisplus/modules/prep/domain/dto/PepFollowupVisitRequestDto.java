@@ -18,6 +18,8 @@ public class PepFollowupVisitRequestDto implements Serializable {
     private String prophylaxisInitiationUuid;
     private String regimenId;
     private Long personId;
+    /** Stable person UUID (preferred over personId for robust person resolution). */
+    private String personUuid;
     private LocalDate nextAppointment;
     private LocalDate encounterDate;
     private LocalDate datePrepStart;

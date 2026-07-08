@@ -58,7 +58,9 @@ const RecentHistory = props => {
   };
   console.log("props.patientObj recent history: ", props.patientObj.id);
   const Summary = () => {
-    const personId = props.patientObj.personId || props.patientObj.id;
+    // Person UUID (stable on every grid row) keys all these reads now — the
+    // bigint person id could be stale/absent and 404 the person lookup.
+    const personUuid = props.patientObj.personUuid || props.patientObj.uuid;
     const headers = { Authorization: `Bearer ${token}` };
 
     // Pull the latest PrEP/PEP follow-up visit AND the latest PrEP/PEP initiation.
@@ -66,10 +68,10 @@ const RecentHistory = props => {
     // when no follow-up exists, and merging fields so a missing weight/regimen on
     // the latest follow-up is still served from the initiation.
     Promise.all([
-      axios.get(`${baseUrl}prep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
-      axios.get(`${baseUrl}pep-followup-visit/person/${personId}?full=true`, { headers }).catch(() => ({ data: [] })),
-      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PREP}`, { headers }).catch(() => ({ data: {} })),
-      axios.get(`${baseUrl}prep/initiation/latest/${personId}?enrollmentType=${ENROLLMENT_TYPE_PEP}`, { headers }).catch(() => ({ data: {} })),
+      axios.get(`${baseUrl}prep-followup-visit/person/${personUuid}?full=true`, { headers }).catch(() => ({ data: [] })),
+      axios.get(`${baseUrl}pep-followup-visit/person/${personUuid}?full=true`, { headers }).catch(() => ({ data: [] })),
+      axios.get(`${baseUrl}prep/initiation/latest/${personUuid}?enrollmentType=${ENROLLMENT_TYPE_PREP}`, { headers }).catch(() => ({ data: {} })),
+      axios.get(`${baseUrl}prep/initiation/latest/${personUuid}?enrollmentType=${ENROLLMENT_TYPE_PEP}`, { headers }).catch(() => ({ data: {} })),
     ]).then(([prepFollowupRes, pepFollowupRes, prepInitRes, pepInitRes]) => {
       const prepVisit = prepFollowupRes.data[0];
       const pepVisit = pepFollowupRes.data[0];
@@ -547,114 +549,62 @@ const RecentHistory = props => {
                   <div className="col-sm-6 col-md-6 col-lg-6">
                     <div className="card-body">
                       <div className="card overflow-hidden">
-                        {summarySource === "pep" ? (
-                          <>
-                            <div className="social-graph-wrapper widget-linkedin">
-                              <span className="s-icon">
-                                <span style={{ fontSize: "16px" }}>
-                                  Blood Pressure :{" "}
-                                  {summary && summary.systolic && summary.diastolic
-                                    ? `${summary.systolic}/${summary.diastolic} mmHg`
-                                    : "NIL"}
-                                </span>
+                        <>
+                          <div className="social-graph-wrapper widget-linkedin">
+                            <span className="s-icon">
+                              <span style={{ fontSize: "16px" }}>
+                                BMI :{" "}
+                                {/* Same formula as the initiation form: height is
+                                    captured in cm, BMI = weight(kg) / height(m)^2. */}
+                                {summary && summary.weight && summary.height
+                                  ? (
+                                      Number(summary.weight) /
+                                      (Number(summary.height) / 100) ** 2
+                                    ).toFixed(2)
+                                  : "NIL"}{" "}
+                                {summary && summary.weight && summary.height && (
+                                  <>
+                                    kg/cm<sup>2</sup>
+                                  </>
+                                )}
                               </span>
-                            </div>
-                            <div className="row">
-                              <div className="col-6 border-right">
-                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                                  {summary && summary.systolic && (
-                                    <>
-                                      <h4 className="m-1">
-                                        <span className="counter">
-                                          {summary.systolic}
-                                        </span>
-                                      </h4>
-                                      <p className="m-0">
-                                        <b>Systolic</b>
-                                      </p>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="col-6">
-                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                                  {summary && summary.diastolic && (
-                                    <>
-                                      <h4 className="m-1">
-                                        <span className="counter">
-                                          {summary.diastolic}
-                                        </span>
-                                      </h4>
-                                      <p className="m-0">
-                                        <b>Diastolic</b>
-                                      </p>
-                                    </>
-                                  )}
-                                </div>
+                            </span>
+                          </div>
+                          <div className="row">
+                            <div className="col-6 border-right">
+                              <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                {summary && (
+                                  <>
+                                    <h4 className="m-1">
+                                      <span className="counter">
+                                        {summary ? summary.weight : "0"} Kg
+                                      </span>
+                                    </h4>
+                                    <p className="m-0">
+                                      <b>Weight </b>
+                                    </p>
+                                  </>
+                                )}
                               </div>
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="social-graph-wrapper widget-linkedin">
-                              <span className="s-icon">
-                                <span style={{ fontSize: "16px" }}>
-                                  {
-                                    <>
-                                      BMI :{" "}
-                                      {summary && summary.weight && summary.height
-                                        ? (
-                                            summary.weight /
-                                            (summary.height * summary.height)
-                                          ).toFixed(2)
-                                        : "NIL"}{" "}
-                                      {summary && summary.weight && summary.height && (
-                                        <>
-                                          kg/m<sup>2</sup>
-                                          <span></span>
-                                        </>
-                                      )}
-                                    </>
-                                  }
-                                </span>
-                              </span>
-                            </div>
-                            <div className="row">
-                              <div className="col-6 border-right">
-                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                                  {summary && (
-                                    <>
-                                      <h4 className="m-1">
-                                        <span className="counter">
-                                          {summary ? summary.weight : "0"} Kg
-                                        </span>
-                                      </h4>
-                                      <p className="m-0">
-                                        <b>Weight </b>
-                                      </p>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="col-6">
-                                <div className="pt-3 pb-3 ps-0 pe-0 text-center">
-                                  {summary && (
-                                    <>
-                                      <h4 className="m-1">
-                                        <span className="counter">
-                                          {summary ? summary.height : "0"} m
-                                        </span>
-                                      </h4>
-                                      <p className="m-0">
-                                        <b>Height </b>
-                                      </p>
-                                    </>
-                                  )}
-                                </div>
+                            <div className="col-6">
+                              <div className="pt-3 pb-3 ps-0 pe-0 text-center">
+                                {summary && (
+                                  <>
+                                    <h4 className="m-1">
+                                      <span className="counter">
+                                        {summary ? summary.height : "0"} cm
+                                      </span>
+                                    </h4>
+                                    <p className="m-0">
+                                      <b>Height </b>
+                                    </p>
+                                  </>
+                                )}
                               </div>
                             </div>
-                          </>
-                        )}
+                          </div>
+                        </>
                       </div>
                     </div>
                   </div>

@@ -31,8 +31,18 @@ public class ProphylaxisInterruptionService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
+    /** Prefer the stable person UUID over the bigint id when resolving for a write. */
+    private Person resolvePersonForWrite(String personUuid, Long personId) {
+        if (personUuid != null && !personUuid.trim().isEmpty()) {
+            java.util.Optional<Person> byUuid = personRepository.findByUuidAndFacilityId(
+                    personUuid, currentUserOrganizationService.getCurrentUserOrganization());
+            if (byUuid.isPresent()) return byUuid.get();
+        }
+        return getPerson(personId);
+    }
+
     public ProphylaxisInterruptionDto save(ProphylaxisInterruptionRequestDto requestDto) {
-        Person person = this.getPerson(requestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(requestDto.getPersonUuid(), requestDto.getPersonId());
         ProphylaxisInterruption entity = requestDtoToEntity(requestDto, person.getUuid());
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setUuid(UUID.randomUUID().toString());
@@ -69,10 +79,12 @@ public class ProphylaxisInterruptionService {
         return entityToDto(entity);
     }
 
-    public List<ProphylaxisInterruptionDto> getByPersonId(Long personId) {
-        Person person = getPerson(personId);
+    public List<ProphylaxisInterruptionDto> getByPersonUuid(String personUuid) {
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
         return repository
-                .findAllByPersonUuidAndFacilityIdAndArchived(person.getUuid(),
+                .findAllByPersonUuidAndFacilityIdAndArchived(personUuid,
                         currentUserOrganizationService.getCurrentUserOrganization(), false)
                 .stream().map(this::entityToDto).collect(Collectors.toList());
     }

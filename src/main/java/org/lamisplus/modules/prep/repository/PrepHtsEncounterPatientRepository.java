@@ -11,13 +11,6 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-/**
- * Queries that drive the HIV Prevention "Patients" tab off of {@code hts_encounter}
- * rather than {@code prophylaxis_initiation}. Bound to {@link Person} because the
- * result rows are patient-shaped; this repo never touches the prophylaxis tables
- * directly except via LEFT JOINs to derive the existing status / counts the UI
- * still depends on.
- */
 public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person, Long> {
 
     String BASE_SELECT =
@@ -35,7 +28,12 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    CAST(EXTRACT(YEAR FROM AGE(NOW(), p.date_of_birth)) AS INTEGER) AS age,\n" +
             "    INITCAP(p.sex) AS gender,\n" +
             "    p.date_of_birth AS dateOfBirth,\n" +
-            "    CAST(COUNT(pet.person_uuid) AS INTEGER) AS prepCount,\n" +
+            // prepCount == number of non-archived initiations, which init_count
+            // already computes per person. Sourcing it from there (instead of
+            // COUNT(pet.person_uuid)) removes the ONLY aggregate in this SELECT,
+            // which lets us drop the GROUP BY over ~30 columns incl. the
+            // hts.observation JSONB — the main cost of the content query.
+            "    CAST(COALESCE(init_count.enrollment_count, 0) AS INTEGER) AS prepCount,\n" +
             "    hts.client_code AS htsClientCode,\n" +
             "    hts.id AS latestHtsId,\n" +
             "    CAST(hts.uuid AS text) AS latestHtsUuid,\n" +
@@ -46,13 +44,12 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    CAST(hts.observation AS text) AS latestHtsObservation,\n" +
             "    hts.facility_id AS latestHtsFacilityId,\n" +
             "    preg_codeset.display AS pregnancyStatusDisplay,\n" +
-            // PEP-only flag: true when the early-detect result indicates acute
-            // infection (antigen reactive or antigen + antibody reactive) AND
-            // the test type is HIV early detect. Drives the frontend Enroll
-            // modal to hide the PrEP option for these patients.
-            "    CASE WHEN hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
+            "    CASE WHEN (hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
                     + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE_VALUE_HIV_EARLY_DETECT + "'\n" +
             "         AND hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "'))\n" +
+            "         OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
             "         THEN true ELSE false END AS pepOnly,\n" +
@@ -140,16 +137,6 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
             "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
-            // The form persists the type-specific date into its own column
-            // (date_defaulted for Default, date_client_died for Dead, etc.),
-            // so COALESCE these into a single effective_interruption_date that
-            // the main CASE compares against the latest encounter date. This
-            // is the same fix applied to findPersonPrepAndStatusByPatientUuid
-            // so the Patient tab and dashboard agree.
-            // DISTINCT ON picks the latest interruption per person, COALESCE
-            // over the type-specific date columns. Simpler + avoids the
-            // INNER-JOIN-on-MAX trap where rows silently disappear if the
-            // GROUP BY fingerprint doesn't round-trip.
             "LEFT JOIN (\n" +
             "    SELECT DISTINCT ON (pi.person_uuid) pi.id, pi.person_uuid, \n" +
             "           COALESCE(pi.interruption_date, pi.date_defaulted, pi.date_client_died, pi.date_client_referred_out, pi.date_sero_converted) AS interruption_date, \n" +
@@ -164,43 +151,14 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "LEFT JOIN base_application_codeset preg_codeset\n" +
             "    ON preg_codeset.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n";
 
-    // Hard exclusion (highest precedence, AND-ed on top of the inclusion):
-    //   confirmatoryHivTest = STI_HIV_RESULT_POSITIVE  -> always exclude.
-    //
-    // NULL and empty-string both PASS this check — when the user records a
-    // negative initialHivTest they don't fill the confirmatory field at all,
-    // so observation->>'confirmatoryHivTest' comes back as NULL (key absent)
-    // or '' (key present but empty). Those rows are still candidates; only
-    // an explicit "STI_HIV_RESULT_POSITIVE" string disqualifies.
-    //
-    // Inclusion has two branches keyed on typeOfHivTestDone:
-    //   ── Branch A: TYPE_OF_HIV_TEST_RAPID_ANTIBODY (or unset / unknown) ──
-    //   Any one of:
-    //     1. confirmatoryHivTest = NEGATIVE
-    //     2. initialHivTest      = NEGATIVE
-    //     3. hivEarlyDetectResult IN (ANTIBODY_REACTIVE, ANTIGEN_REACTIVE,
-    //                                 ANTIGEN_+_ANTIBODY_REACTIVE)
-    //
-    //   ── Branch B: TYPE_OF_HIV_TEST_HIV_EARLY_DETECT ──
-    //   Must have hivEarlyDetectResult IN (ANTIBODY_REACTIVE, ANTIGEN_REACTIVE,
-    //   ANTIGEN_+_ANTIBODY_REACTIVE) AND confirmatoryHivTest = NEGATIVE.
-    //   When the early-detect result is antigen-only or antigen+antibody, the
-    //   row is still kept but the SELECT-side `pepOnly` flag tells the UI to
-    //   restrict enrollment to PEP only.
+
     String WHERE_FILTERS =
             "WHERE hts.archived = false\n" +
             "AND p.archived = CAST(?1 AS INTEGER)\n" +
             "AND hts.facility_id = ?2\n" +
-            // Hard exclusion: confirmed-positive is a permanent disqualifier.
-            // Reads as "confirmatoryHivTest is anything other than the literal
-            // POSITIVE code" — NULL and '' (both produced when the user didn't
-            // fill the field because initialHivTest was already negative)
-            // satisfy the check and the row stays.
             "AND COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "', '') <> '"
                     + HtsObservationKeys.CONFIRMATORY_HIV_TEST_POSITIVE + "'\n" +
-            // Two-branch inclusion.
             "AND (\n" +
-            // ── Branch A: rapid antibody (or unset) — OR of three positives ──
             "  ( (hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' IS NULL\n" +
             "      OR hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = ''\n" +
             "      OR hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
@@ -217,13 +175,6 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    )\n" +
             "  )\n" +
             "  OR\n" +
-            // ── Branch B: early-detect — reactive marker, confirmatory not positive ──
-            // We only require a reactive early-detect marker here; the
-            // "confirmatory is not positive" guarantee is already enforced
-            // by the hard-exclusion clause above (COALESCE(…) <> POSITIVE).
-            // This lets empty / unset confirmatoryHivTest (the common case for
-            // early-detect patients — the form doesn't always capture it)
-            // still pass.
             "  ( hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
                     + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE_VALUE_HIV_EARLY_DETECT + "'\n" +
             "    AND hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
@@ -231,7 +182,28 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
                     + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
             "  )\n" +
+            "  OR\n" +
+            "  ( hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            "  )\n" +
             ")\n";
+
+    // Lean FROM for the COUNT queries. COUNT(DISTINCT p.id) only needs the
+    // tables referenced by WHERE_FILTERS / the search clause (hts, latest_hts,
+    // p). The full FROM_AND_JOINS adds many LEFT JOINs + grouped subqueries that
+    // never affect which p.id match (they're all LEFT JOINs), so running them in
+    // the count is pure waste — and becomes a hang once the filter set widens.
+    String COUNT_FROM =
+            "FROM hts_encounter hts\n" +
+            "INNER JOIN (\n" +
+            "    SELECT patient_id, MAX(date_of_visit) AS max_date\n" +
+            "    FROM hts_encounter\n" +
+            "    WHERE archived = false\n" +
+            "    GROUP BY patient_id\n" +
+            ") latest_hts ON latest_hts.patient_id = hts.patient_id\n" +
+            "          AND latest_hts.max_date = hts.date_of_visit\n" +
+            "INNER JOIN patient_person p ON p.id = hts.patient_id\n";
 
     String GROUP_BY =
             "GROUP BY\n" +
@@ -251,11 +223,14 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             BASE_SELECT +
             FROM_AND_JOINS +
             WHERE_FILTERS +
-            GROUP_BY +
+            // No GROUP BY — there are no aggregates left in BASE_SELECT, so
+            // DISTINCT ON (p.id) alone dedupes to one row per patient. This
+            // avoids grouping/sorting over the full ~30-column key (incl. the
+            // jsonb observation); the only sort key is (p.id, date_of_visit).
             "ORDER BY p.id, hts.date_of_visit DESC NULLS LAST",
             countQuery =
                     "SELECT COUNT(DISTINCT p.id)\n" +
-                    FROM_AND_JOINS +
+                    COUNT_FROM +
                     WHERE_FILTERS,
             nativeQuery = true)
     Page<PrepHtsPatient> findAllPatients(Boolean archived, Long facilityId, Pageable pageable);
@@ -270,11 +245,11 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "     OR p.other_name ILIKE ?3\n" +
             "     OR p.hospital_number ILIKE ?3\n" +
             "     OR hts.client_code ILIKE ?3)\n" +
-            GROUP_BY +
+            // No GROUP BY — DISTINCT ON (p.id) dedupes (see findAllPatients).
             "ORDER BY p.id, hts.date_of_visit DESC NULLS LAST",
             countQuery =
                     "SELECT COUNT(DISTINCT p.id)\n" +
-                    FROM_AND_JOINS +
+                    COUNT_FROM +
                     WHERE_FILTERS +
                     "AND (p.first_name ILIKE ?3\n" +
                     "     OR p.full_name ILIKE ?3\n" +
@@ -285,13 +260,119 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             nativeQuery = true)
     Page<PrepHtsPatient> searchPatients(Boolean archived, Long facilityId, String search, Pageable pageable);
 
-    /**
-     * Fetches a single {@code hts_encounter} row by its uuid — used when a
-     * PrEP form (screening / initiation / followup / clinic) is loaded for
-     * view/edit and needs to rehydrate the HTS values it linked via
-     * {@code hts_encounter_uuid}. JSON columns are cast to text and parsed in the
-     * service layer.
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // LEAN alternative for the "Patients" grid.
+    //
+    // Much simpler + faster than findAllPatients: a single CTE picks the LATEST
+    // HTS per patient via DISTINCT ON (one filtered scan, no MAX-join), and the
+    // outer query joins only patient_person + the pregnancy codeset. It drops
+    // the whole prepStatus CASE and the interruption / follow-up / initiation /
+    // count joins — the grid only needs demographics + the latest HTS +
+    // pepOnly, and the dashboard re-fetches status/counts via prep/persons/{id}.
+    //
+    // Inclusion is a flat OR of "any negative or acute marker" with a
+    // positive hard-exclusion, and it reads finalHivTestResult directly, so
+    // community/migrated records (result only on finalHivTestResult) are pulled
+    // without a backfill. Projection aliases match findAllPatients, so this is a
+    // drop-in for the same PrepHtsPatient projection (prepStatus/counts come
+    // back null/0).
+    // ─────────────────────────────────────────────────────────────────────────
+    // Global latest HTS per patient (no facility filter here) — matches
+    // findAllPatients, which ties a patient to their most-recent HTS overall and
+    // then requires that row to be at the requested facility (LITE_WHERE).
+    String LITE_CTE =
+            "WITH latest_hts AS (\n" +
+            "    SELECT DISTINCT ON (h.patient_id)\n" +
+            "           h.id, h.uuid, h.patient_id, h.patient_uuid, h.client_code,\n" +
+            "           h.date_of_visit, h.setting, h.observation, h.facility_id\n" +
+            "    FROM hts_encounter h\n" +
+            "    WHERE h.archived = false\n" +
+            "    ORDER BY h.patient_id, h.date_of_visit DESC NULLS LAST, h.id DESC\n" +
+            ")\n";
+
+    String LITE_SELECT =
+            "SELECT\n" +
+            "    p.hospital_number AS hospitalNumber,\n" +
+            "    p.date_of_registration AS dateOfRegistration,\n" +
+            "    0 AS enrollmentCount,\n" +
+            "    0 AS eligibilityCount,\n" +
+            "    p.id AS personId,\n" +
+            "    CAST(p.uuid AS text) AS personUuid,\n" +
+            "    p.first_name AS firstName,\n" +
+            "    p.surname AS surname,\n" +
+            "    p.other_name AS otherName,\n" +
+            "    CAST(NULL AS timestamp) AS date_created,\n" +
+            "    CAST(EXTRACT(YEAR FROM AGE(NOW(), p.date_of_birth)) AS INTEGER) AS age,\n" +
+            "    INITCAP(p.sex) AS gender,\n" +
+            "    p.date_of_birth AS dateOfBirth,\n" +
+            "    CAST(0 AS INTEGER) AS prepCount,\n" +
+            "    hts.client_code AS htsClientCode,\n" +
+            "    hts.id AS latestHtsId,\n" +
+            "    CAST(hts.uuid AS text) AS latestHtsUuid,\n" +
+            "    hts.patient_id AS latestHtsPatientId,\n" +
+            "    CAST(hts.patient_uuid AS text) AS latestHtsPatientUuid,\n" +
+            "    hts.date_of_visit AS latestHtsDateOfVisit,\n" +
+            "    hts.setting AS latestHtsSetting,\n" +
+            "    CAST(hts.observation AS text) AS latestHtsObservation,\n" +
+            "    hts.facility_id AS latestHtsFacilityId,\n" +
+            "    preg_codeset.display AS pregnancyStatusDisplay,\n" +
+            "    CASE WHEN (hts.observation->>'" + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE + "' = '"
+                    + HtsObservationKeys.KEY_TYPE_OF_HIV_TEST_DONE_VALUE_HIV_EARLY_DETECT + "'\n" +
+            "         AND hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "'))\n" +
+            "         OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            "         THEN true ELSE false END AS pepOnly,\n" +
+            "    CAST(NULL AS text) AS prepStatus\n" +
+            "FROM latest_hts hts\n" +
+            "JOIN patient_person p ON p.id = hts.patient_id\n" +
+            "LEFT JOIN base_application_codeset preg_codeset\n" +
+            "    ON preg_codeset.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n";
+
+    String LITE_WHERE =
+            "WHERE p.archived = CAST(?1 AS INTEGER)\n" +
+            "AND hts.facility_id = ?2\n" +
+            // Positive hard-exclusion (coded + plain-string finalHivTestResult).
+            "AND COALESCE(hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "', '') <> '"
+                    + HtsObservationKeys.CONFIRMATORY_HIV_TEST_POSITIVE + "'\n" +
+            "AND LOWER(TRIM(COALESCE(hts.observation->>'finalHivTestResult', ''))) <> 'positive'\n" +
+            // Include on any negative or acute-infection marker.
+            "AND (\n" +
+            "     hts.observation->>'" + HtsObservationKeys.KEY_CONFIRMATORY_HIV_TEST + "' = '"
+                    + HtsObservationKeys.CONFIRMATORY_HIV_TEST_NEGATIVE + "'\n" +
+            "  OR hts.observation->>'" + HtsObservationKeys.KEY_INITIAL_HIV_TEST + "' = '"
+                    + HtsObservationKeys.INITIAL_HIV_TEST_NEGATIVE + "'\n" +
+            "  OR LOWER(TRIM(hts.observation->>'finalHivTestResult')) = 'negative'\n" +
+            "  OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIBODY_REACTIVE + "', '"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            "  OR hts.observation->>'" + HtsObservationKeys.KEY_HIV_EARLY_DETECT_RESULT + "' IN ('"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_REACTIVE + "', '"
+                    + HtsObservationKeys.EARLY_DETECT_ANTIGEN_AND_ANTIBODY_REACTIVE + "')\n" +
+            ")\n";
+
+    String LITE_SEARCH =
+            "AND (p.first_name ILIKE ?3 OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3\n" +
+            "     OR p.hospital_number ILIKE ?3 OR hts.client_code ILIKE ?3)\n";
+
+    String LITE_COUNT_HEAD =
+            "SELECT COUNT(*)\n" +
+            "FROM latest_hts hts\n" +
+            "JOIN patient_person p ON p.id = hts.patient_id\n";
+
+    @Query(value = LITE_CTE + LITE_SELECT + LITE_WHERE + "ORDER BY p.id",
+            countQuery = LITE_CTE + LITE_COUNT_HEAD + LITE_WHERE,
+            nativeQuery = true)
+    Page<PrepHtsPatient> findAllPatientsLite(Boolean archived, Long facilityId, Pageable pageable);
+
+    @Query(value = LITE_CTE + LITE_SELECT + LITE_WHERE + LITE_SEARCH + "ORDER BY p.id",
+            countQuery = LITE_CTE + LITE_COUNT_HEAD + LITE_WHERE + LITE_SEARCH,
+            nativeQuery = true)
+    Page<PrepHtsPatient> searchPatientsLite(Boolean archived, Long facilityId, String search, Pageable pageable);
+
     @Query(value =
             "SELECT hts.id              AS id,\n" +
             "       CAST(hts.uuid AS text)         AS uuid,\n" +
@@ -308,12 +389,6 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             nativeQuery = true)
     Optional<HtsEncounterRow> findHtsEncounterByUuid(String uuid);
 
-    /**
-     * Returns the codeset display for the {@code pregnancyStatus} value on the
-     * patient's most recent non-archived hts_encounter. Used to keep the Patient
-     * Card on the dashboard populated now that {@code prophylaxis_initiation}
-     * no longer stores pregnancy status directly.
-     */
     @Query(value =
             "SELECT preg.display\n" +
             "FROM hts_encounter hts\n" +

@@ -138,7 +138,7 @@ const PrEPCommencementForm = props => {
     axios
       .get(
         `${baseUrl}prep/commencement/person/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -174,7 +174,7 @@ const PrEPCommencementForm = props => {
     axios
       .get(
         `${baseUrl}prep/enrollment/open/patients/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }`,
         {
           headers: { Authorization: `Bearer ${token}` },

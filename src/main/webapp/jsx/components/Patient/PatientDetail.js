@@ -27,6 +27,7 @@ import { useAuth } from "../../../context/AuthProvider/AuthProvider";
 import ProtectedComponent from "../PrepServices/ProtectedComponent";
 import { useLocation } from "react-router-dom/cjs/react-router-dom";
 import PatientVisits from "./PatientVisits";
+import ViralLoadWarningModal from "../../../Reusables/ViralLoadWarningModal";
 
 const styles = theme => ({
   root: {
@@ -113,9 +114,73 @@ function PatientCard(props) {
 
   const { userPermissions } = useAuth();
 
+  // Latest viral load for this patient — fetched once on dashboard entry and
+  // shared with the PatientCard (chip display) and SubMenu (hides PEP service
+  // forms when Target Detected). Shape: { viralLoad, viralLoadResult }.
+  const [viralLoad, setViralLoad] = useState(null);
+  // Shown once when the VL lookup returns no record. A missing VL is NOT treated
+  // as "Target Detected" — it is simply surfaced as a dismissible warning.
+  const [showVlWarning, setShowVlWarning] = useState(false);
+
   useEffect(() => {
     PatientObject();
+    ViralLoadObject();
   }, []);
+
+  // Any form submission (PrEP/PEP follow-up, screening, initiation, interruption…)
+  // changes activeContent (route/tab/actionType). On every such change we hit the
+  // dedicated, lightweight status endpoint and merge the fresh arm-specific status
+  // straight into patientDetail.prepStatus — so the patient card / menu reflect the
+  // just-saved record IMMEDIATELY, without waiting to leave and re-open the
+  // dashboard. On the way back to the home view we also do the fuller PatientObject
+  // refresh. The initial mount is skipped (handled by the effect above).
+  const didMountRef = React.useRef(false);
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+    refreshStatus();
+    if (activeContent.route === "recent-history") {
+      PatientObject();
+    }
+  }, [activeContent.route, activeContent.activeTab, activeContent.actionType]);
+
+  // Dedicated status refresh: calls GET /prep/status/{personUuid}?enrollmentType=…
+  // (same calculation as the grid) and updates only the status on the card/menu.
+  async function refreshStatus() {
+    const personUuid = patientObjLocation?.personUuid || patientObjLocation?.uuid;
+    if (!personUuid) return;
+    try {
+      const resp = await axios.get(
+        `${baseUrl}prep/status/${personUuid}?enrollmentType=${encodeURIComponent(
+          screeningType || ""
+        )}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const status = resp?.data?.status;
+      if (status) {
+        setPatientDetail(prev => ({ ...(prev || {}), prepStatus: status }));
+      }
+    } catch (_e) {
+      /* non-blocking: leave the existing status in place on failure */
+    }
+  }
+
+  function ViralLoadObject() {
+    const personId = patientObjLocation?.personId || patientObjLocation?.id;
+    if (!personId) return;
+    return axios
+      .get(`${baseUrl}prep/viral-load/latest/${personId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(response => {
+        setViralLoad(response.data);
+        // No result on the record → warn the user (non-blocking).
+        if (!response.data?.viralLoadResult) setShowVlWarning(true);
+      })
+      .catch(() => setViralLoad(null));
+  }
 
   // Once patientDetail loads, derive screeningType from enrollmentType ONLY if not set from route
   // (route-passed screeningType always wins so PrEP enrollment tab shows PrEP forms even if patient is also enrolled in PEP)
@@ -157,8 +222,10 @@ function PatientCard(props) {
   // left mid-flow (screening saved, initiation not yet entered) can pick up where they
   // stopped when they navigate back to the patient.
   useEffect(() => {
-    const personId = patientObjLocation?.personId || patientObjLocation?.id;
-    if (!personId) return;
+    // Person UUID keys the read endpoints below (stable on every grid row); the
+    // bigint person id could be stale/absent and 404 the person lookup.
+    const personUuid = patientObjLocation?.personUuid || patientObjLocation?.uuid;
+    if (!personUuid) return;
     let cancelled = false;
 
     // Normalize either short labels ("PrEP"/"PEP") or canonical codeset codes
@@ -204,7 +271,7 @@ function PatientCard(props) {
           });
 
         const initsResp = await axios
-          .get(`${baseUrl}prep-pep-initiation/person/${personId}`, {
+          .get(`${baseUrl}prep-pep-initiation/person/${personUuid}`, {
             headers: { Authorization: `Bearer ${token}` },
           })
           .catch(() => ({ data: [] }));
@@ -220,7 +287,7 @@ function PatientCard(props) {
         }
 
         const screeningsResp = await axios
-          .get(`${baseUrl}prep-eligibility-screening/person/${personId}`, {
+          .get(`${baseUrl}prep-eligibility-screening/person/${personUuid}`, {
             headers: { Authorization: `Bearer ${token}` },
           })
           .catch(() => ({ data: [] }));
@@ -251,7 +318,7 @@ function PatientCard(props) {
     return () => {
       cancelled = true;
     };
-  }, [freshWorkflow, screeningType, patientObjLocation?.personId, patientObjLocation?.id]);
+  }, [freshWorkflow, screeningType, patientObjLocation?.personUuid, patientObjLocation?.uuid]);
 
   // Callbacks to advance the workflow stage after each form is saved
   const onScreeningSaved = () => {
@@ -281,9 +348,11 @@ function PatientCard(props) {
     // a discontinuation save.
     return axios
       .get(
+        // Pass the arm being viewed so the backend computes the SAME
+        // arm-specific status the grid shows (PrEP vs PEP), not an arm-mixed one.
         `${baseUrl}prep/persons/${
           patientObjLocation.personId || patientObjLocation.id
-        }`,
+        }?enrollmentType=${encodeURIComponent(screeningType || "")}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -296,6 +365,12 @@ function PatientCard(props) {
 
   return (
     <div className={classes.root}>
+      {/* Viral load is a PEP-only feature — only warn on the PEP arm.
+          Temporarily disabled per request; re-enable by restoring this block.
+      <ViralLoadWarningModal
+        isOpen={showVlWarning && screeningType === "PEP"}
+        onClose={() => setShowVlWarning(false)}
+      /> */}
       <Dialog
         open={otherArmModalOpen}
         onClose={() => setOtherArmModalOpen(false)}
@@ -355,6 +430,8 @@ function PatientCard(props) {
             setActiveContent={setActiveContent}
             activeContent={activeContent}
             patientDetail={patientDetail}
+            viralLoad={viralLoad}
+            screeningType={screeningType}
           />
           <SubMenu
             patientObj={patientObjLocation}
@@ -364,6 +441,7 @@ function PatientCard(props) {
             freshWorkflow={freshWorkflow}
             sessionStage={sessionStage}
             hasOpenScreening={hasOpenScreening}
+            viralLoad={viralLoad}
           />
           <br />
 
@@ -415,6 +493,7 @@ function PatientCard(props) {
               setActiveContent={setActiveContent}
               activeContent={activeContent}
               prepId={prepId}
+              viralLoad={viralLoad}
               PatientObject={() => PatientObject()}
             />
           )}

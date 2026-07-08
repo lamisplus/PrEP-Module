@@ -5,18 +5,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
+import org.lamisplus.modules.prep.domain.dto.FollowupHtsResultDto;
 import org.lamisplus.modules.prep.domain.dto.PepFollowupVisitDto;
 import org.lamisplus.modules.prep.domain.dto.PepFollowupVisitRequestDto;
+import org.lamisplus.modules.prep.domain.entity.FollowupHtsResult;
 import org.lamisplus.modules.prep.domain.entity.PepFollowupVisit;
 import org.lamisplus.modules.prep.domain.entity.PrepPepInitiation;
 import org.lamisplus.modules.prep.repository.PepFollowupVisitRepository;
 import org.lamisplus.modules.prep.repository.PrepPepInitiationRepository;
+import org.lamisplus.modules.prep.util.EnrollmentType;
 import org.lamisplus.modules.prep.util.PrepErrors;
 import org.springframework.stereotype.Service;
 
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Slf4j
@@ -32,8 +38,18 @@ public class PepFollowupVisitService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
+    /** Prefer the stable person UUID over the bigint id when resolving for a write. */
+    private Person resolvePersonForWrite(String personUuid, Long personId) {
+        if (personUuid != null && !personUuid.trim().isEmpty()) {
+            java.util.Optional<Person> byUuid = personRepository.findByUuidAndFacilityId(
+                    personUuid, currentUserOrganizationService.getCurrentUserOrganization());
+            if (byUuid.isPresent()) return byUuid.get();
+        }
+        return getPerson(personId);
+    }
+
     public PepFollowupVisitDto saveClinicVisit(PepFollowupVisitRequestDto requestDto) {
-        Person person = this.getPerson(requestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(requestDto.getPersonUuid(), requestDto.getPersonId());
 
         // Always anchor to the patient's latest PEP initiation so prophylaxis_initiation_uuid
         // is correctly populated for every PEP follow-up.
@@ -56,6 +72,29 @@ public class PepFollowupVisitService {
                     throw PrepErrors.pepFollowupAlreadyExists(requestDto.getEncounterDate());
                 });
 
+        // HTS ordering guard rails (a follow-up visit must occur AFTER initiation,
+        // and each subsequent visit's HTS must be later than the previous one's):
+        //   1. the selected HTS must be dated strictly after the PEP initiation;
+        //   2. it must be dated strictly after the latest existing follow-up's HTS.
+        // So the 1st follow-up result is the 1st HTS after initiation, the 2nd is
+        // the next, and so on. Same-day or earlier HTS is rejected.
+        String htsUuid = requestDto.getHtsEncounterUuid();
+        if (htsUuid != null && !htsUuid.trim().isEmpty()) {
+            java.sql.Date htsSqlDate = pepFollowupVisitRepository.findHtsVisitDate(htsUuid);
+            java.time.LocalDate htsDate = htsSqlDate == null ? null : htsSqlDate.toLocalDate();
+            if (htsDate != null) {
+                java.time.LocalDate initiationDate = initiation.getDateEnrolled();
+                if (initiationDate != null && !htsDate.isAfter(initiationDate)) {
+                    throw PrepErrors.htsNotAfterInitiation(initiationDate);
+                }
+                java.sql.Date priorSql = pepFollowupVisitRepository.findLatestFollowupHtsDate(enrollmentUuid);
+                java.time.LocalDate priorHtsDate = priorSql == null ? null : priorSql.toLocalDate();
+                if (priorHtsDate != null && !htsDate.isAfter(priorHtsDate)) {
+                    throw PrepErrors.htsNotAfterPreviousVisit(priorHtsDate);
+                }
+            }
+        }
+
         PepFollowupVisit entity = requestDtoToEntity(requestDto, person.getUuid());
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setIsCommencement(false);
@@ -72,16 +111,74 @@ public class PepFollowupVisitService {
         return entityToDto(entity);
     }
 
-    public List<PepFollowupVisitDto> getByPersonId(Long personId) {
-        Person person = getPerson(personId);
+    public List<PepFollowupVisitDto> getByPersonUuid(String personUuid) {
+        // Keyed by person UUID (stable on grid rows); avoids the bigint person-id
+        // lookup that 404'd when the id was stale/absent.
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
         List<PepFollowupVisit> list = pepFollowupVisitRepository
                 .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
-                        person.getUuid(),
+                        personUuid,
                         currentUserOrganizationService.getCurrentUserOrganization(),
                         false);
         return list.stream()
                 .map(this::entityToDto)
                 .collect(Collectors.toList());
+    }
+
+    public PepFollowupVisitDto getLatestByEnrollmentType(String personUuid, String enrollmentType) {
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return null;
+        }
+        Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
+        if (enrollmentType == null || enrollmentType.trim().isEmpty()) {
+            return pepFollowupVisitRepository
+                    .findAllByPersonUuidAndFacilityIdAndArchivedOrderByEncounterDateDesc(
+                            personUuid, facilityId, false)
+                    .stream()
+                    .findFirst()
+                    .map(this::entityToDto)
+                    .orElse(null);
+        }
+        return pepFollowupVisitRepository
+                .findLatestByPersonUuidAndEnrollmentType(personUuid, facilityId, enrollmentType)
+                .map(this::entityToDto)
+                .orElse(null);
+    }
+
+    /**
+     * The first three PEP follow-up visits after the patient's latest PEP
+     * initiation, each carrying the HTS encounter used to resolve its HIV
+     * result. Returned in chronological order and numbered 1..3. Fewer than
+     * three entries means the remaining slots are still pending.
+     */
+    public List<FollowupHtsResultDto> getInitialFollowupHtsResults(String personUuid) {
+        if (personUuid == null || personUuid.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        PrepPepInitiation initiation = prepPepInitiationRepository
+                .findLatestByPersonUuidAndEnrollmentType(personUuid, false, EnrollmentType.PEP)
+                .orElseGet(() -> prepPepInitiationRepository
+                        .findTopByPersonUuidAndArchived(personUuid, false)
+                        .orElse(null));
+        if (initiation == null) {
+            return Collections.emptyList();
+        }
+        List<FollowupHtsResult> rows = pepFollowupVisitRepository
+                .findFirstThreeFollowupHtsResults(initiation.getUuid());
+        List<FollowupHtsResultDto> result = new ArrayList<>();
+        IntStream.range(0, rows.size()).forEach(i -> {
+            FollowupHtsResult row = rows.get(i);
+            result.add(FollowupHtsResultDto.builder()
+                    .visitNumber(i + 1)
+                    .followupId(row.getFollowupId())
+                    .encounterDate(row.getEncounterDate())
+                    .htsEncounterUuid(row.getHtsEncounterUuid())
+                    .htsObservation(row.getHtsObservation())
+                    .build());
+        });
+        return result;
     }
 
     public PepFollowupVisitDto update(Long id, PepFollowupVisitDto dto) {

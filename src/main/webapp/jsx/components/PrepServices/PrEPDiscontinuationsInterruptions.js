@@ -9,6 +9,9 @@ import { url as baseUrl, token } from "../../../api";
 import { fetchDiscontinuationCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { toEnrollmentTypeCode, ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
+import { isValidHtsEncounter, normalizeHtsObservation } from "../../../Utils/htsEncounter";
+import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
+import { isTargetDetected } from "../../constants/viralLoad";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import { Spinner } from "reactstrap";
@@ -72,7 +75,24 @@ const PrEPDiscontinuationsInterruptions = props => {
   // pepCompletion is persisted as a YES_NO codeset code (YES_NO_YES /
   // YES_NO_NO) so the backend PEP-tab query can match exact codes.
   const showFollowUpVisitDate = objValues.pepCompletion === "YES_NO_YES";
-  const showHivPositiveFields = objValues.hivResult?.toLowerCase().includes("positive");
+
+  // Latest HTS for this patient — used to auto-populate HIV Result when PEP
+  // Completion = YES, exactly like the PEP follow-up form. Best-effort: when no
+  // valid HTS is attached the field simply stays manual.
+  const latestHts = props.patientObj?.latestHtsResult || null;
+  const htsObs = normalizeHtsObservation(latestHts?.observation);
+  const isFromHts = isValidHtsEncounter(latestHts);
+
+  // Early Detect Viral Load now keys off the HIV Result being "Early Detect"
+  // (HIV_TEST_RESULT_EARLY_DETECT) — NOT "Positive". When hidden it is not
+  // validated. A code or a display containing "early detect" both qualify.
+  const isEarlyDetectHivResult = code =>
+    (code || "")
+      .toString()
+      .toLowerCase()
+      .replace(/\s/g, "_")
+      .includes("early_detect");
+  const showEarlyDetectFields = isEarlyDetectHivResult(objValues.hivResult);
 
   useEffect(() => {
     GetPatientDTOObj();
@@ -92,11 +112,101 @@ const PrEPDiscontinuationsInterruptions = props => {
     GetPatientInterruption(props.activeContent.id);
   }, [props.activeContent.id]);
 
+  // When PEP Completion = YES, auto-populate HIV Result from the latest HTS
+  // encounter (same mapping the PEP follow-up form uses). Clears the Early
+  // Detect Viral Load value when the resolved result isn't Early Detect.
+  useEffect(() => {
+    if (objValues.pepCompletion !== "YES_NO_YES") return;
+    if (!isFromHts) return;
+    const code = toHivTestResultCode(
+      htsObs.confirmatoryHivTest || htsObs.initialHivTest,
+      htsObs.typeOfHivTestDone
+    );
+    if (!code) return;
+    setObjValues(prev => ({
+      ...prev,
+      hivResult: code,
+      earlyDetectViralLoadResult: isEarlyDetectHivResult(code)
+        ? prev.earlyDetectViralLoadResult
+        : "",
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [objValues.pepCompletion, latestHts?.uuid]);
+
+  // Map the viral-load API result ("Target Detected" / "Target NO Detected")
+  // onto an EARLY_DETECT_VIRAL_LOAD_RESULT codeset option. Robust to wording
+  // differences: normalizes case/spacing/underscores and treats "NOT" === "NO",
+  // so "Target NO Detected", "Target Not Detected" and "TARGET_NOT_DETECTED"
+  // all compare equal. Tries an exact (normalized) match on display OR code
+  // first, then falls back to a detected / not-detected heuristic.
+  const normalizeVl = s =>
+    (s || "")
+      .toString()
+      .toLowerCase()
+      .replace(/[_\s]+/g, " ")
+      .replace(/\bnot\b/g, "no") // unify NOT/NO
+      .trim();
+
+  const earlyDetectVlCodeFromViralLoad = (viralLoadResult, options) => {
+    if (!viralLoadResult || !Array.isArray(options) || options.length === 0) {
+      return "";
+    }
+    const target = normalizeVl(viralLoadResult); // e.g. "target no detected"
+    // 1) exact normalized match against display or code
+    let match = options.find(
+      opt => normalizeVl(opt.display) === target || normalizeVl(opt.code) === target
+    );
+    if (match) return match.code;
+    // 2) detected / not-detected heuristic
+    const wantDetected = isTargetDetected(viralLoadResult);
+    const isNotDetected = s => /\bno\b.*detect|undetect/.test(normalizeVl(s));
+    const hasDetect = s => /detect/.test(normalizeVl(s));
+    match = options.find(opt => {
+      const hay = `${opt.display || ""} ${opt.code || ""}`;
+      if (!hasDetect(hay)) return false;
+      return wantDetected ? !isNotDetected(hay) : isNotDetected(hay);
+    });
+    return match?.code || "";
+  };
+
+  // Auto-populate Early Detect Viral Load Result from the latest viral load
+  // whenever the HIV Result is Early Detect.
+  useEffect(() => {
+    if (!showEarlyDetectFields) return;
+    const code = earlyDetectVlCodeFromViralLoad(
+      props.viralLoad?.viralLoadResult,
+      codeset?.EARLY_DETECT_VIRAL_LOAD_RESULT
+    );
+    if (code) {
+      setObjValues(prev => ({ ...prev, earlyDetectViralLoadResult: code }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    showEarlyDetectFields,
+    props.viralLoad?.viralLoadResult,
+    codeset?.EARLY_DETECT_VIRAL_LOAD_RESULT,
+  ]);
+
+  // When the latest viral load is detected (> 1000 → "Target Detected"), the
+  // client has not completed PEP successfully, so PEP Completion auto-populates
+  // to YES. Only on a new record (don't override a saved value on view/edit);
+  // the user can still change it afterwards.
+  useEffect(() => {
+    if (props.activeContent?.id) return; // edit/view — keep the saved value
+    if (!isTargetDetected(props.viralLoad?.viralLoadResult)) return;
+    setObjValues(prev =>
+      prev.pepCompletion === "YES_NO_YES"
+        ? prev
+        : { ...prev, pepCompletion: "YES_NO_YES" }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.viralLoad?.viralLoadResult]);
+
   const GetPatientDTOObj = () => {
     axios
       .get(
         `${baseUrl}prep/enrollment/open/patients/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -187,6 +297,16 @@ const PrEPDiscontinuationsInterruptions = props => {
       }));
       return;
     }
+    // Drop the Early Detect Viral Load value when the HIV Result is no longer
+    // Early Detect — it's hidden in that case and must not be saved stale.
+    if (name === "hivResult" && !isEarlyDetectHivResult(value)) {
+      setObjValues(prev => ({
+        ...prev,
+        [name]: value,
+        earlyDetectViralLoadResult: "",
+      }));
+      return;
+    }
 
     setObjValues({ ...objValues, [name]: value });
   };
@@ -258,10 +378,14 @@ const PrEPDiscontinuationsInterruptions = props => {
           : "This field is required";
       }
       temp.hivResult = objValues.hivResult ? "" : "This field is required";
-      if (showHivPositiveFields) {
+      // Only validate Early Detect Viral Load when it is actually shown
+      // (HIV Result = Early Detect). Clear any stale error otherwise.
+      if (showEarlyDetectFields) {
         temp.earlyDetectViralLoadResult = objValues.earlyDetectViralLoadResult
           ? ""
           : "This field is required";
+      } else {
+        temp.earlyDetectViralLoadResult = "";
       }
     }
 
@@ -319,7 +443,7 @@ const PrEPDiscontinuationsInterruptions = props => {
     try {
       const latest = await axios.get(
         `${baseUrl}prep/initiation/latest/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }?enrollmentType=${encodeURIComponent(canonicalEnrollmentType)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -336,6 +460,8 @@ const PrEPDiscontinuationsInterruptions = props => {
       return;
     }
     objValues.prepEnrollmentUuid = resolvedEnrollmentUuid;
+    // Prefer the stable person UUID for backend person resolution on save.
+    objValues.personUuid = props.patientObj.personUuid || props.patientObj.uuid;
 
     if (props.activeContent && props.activeContent.actionType === "update") {
       axios
@@ -838,7 +964,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                     </FormGroup>
                   </div>
 
-                  {showHivPositiveFields && (
+                  {showEarlyDetectFields && (
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <Label>

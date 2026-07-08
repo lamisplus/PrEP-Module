@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Grid, Segment, Label } from "semantic-ui-react";
 import {
   FormGroup,
@@ -11,7 +11,7 @@ import { url as baseUrl, token } from "../../../api";
 import { ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
-import { isValidHtsEncounter } from "../../../Utils/htsEncounter";
+import { isValidHtsEncounter, normalizeHtsObservation } from "../../../Utils/htsEncounter";
 import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
@@ -215,12 +215,27 @@ const ClinicVisit = props => {
   // disable logic applies on every render path.
   const [loadedHts, setLoadedHts] = useState(null);
   const latestHts = props.patientObj?.latestHtsResult || loadedHts;
-  const htsObs = latestHts?.observation || {};
+  // Normalised once per HTS record (keyed on uuid) so migrated/community
+  // encounters auto-populate the same as natively-captured ones — the raw
+  // observation stores the HIV result on finalHivTestResult and a space-joined
+  // pregnancy/breastfeeding string the form fields can't read directly.
+  const htsObs = useMemo(
+    () => normalizeHtsObservation(latestHts?.observation),
+    [latestHts?.uuid]
+  );
   // "HTS found" is decided by whether the linked hts_encounter resolved from
   // htsEncounterUuid is valid/properly structured — migrated records often have
   // a dangling uuid or malformed encounter, in which case HTS is treated as
   // absent (fields editable, not required) and a non-blocking modal is shown.
   const isFromHts = isValidHtsEncounter(latestHts);
+  // Visit date floor: never earlier than enrollment AND never earlier than the
+  // latest HTS date that auto-populates this form (whichever is later).
+  const visitDateMin =
+    [patientDto?.dateEnrolled, latestHts?.dateOfVisit]
+      .filter(Boolean)
+      .map(d => moment(d).format("YYYY-MM-DD"))
+      .sort()
+      .pop() || "";
   // The hard block only applies when creating a new visit (no record id).
   // Existing records can always be viewed/edited even if their HTS is missing.
   // (htsCandidateUuid / htsFetchPending are computed below, after the state
@@ -453,7 +468,7 @@ const ClinicVisit = props => {
     axios
       .get(
         `${baseUrl}prep/initiation/latest/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }?enrollmentType=${ENROLLMENT_TYPE_PREP}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -467,7 +482,7 @@ const ClinicVisit = props => {
     axios
       .get(
         `${baseUrl}prep/eligibility/open/patients/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -483,7 +498,7 @@ const ClinicVisit = props => {
     try {
       const response = await axios.get(
         `${baseUrl}prep-eligibility-screening/person/${
-          props.patientObj.personId || props.patientObj.id
+          props.patientObj.personUuid || props.patientObj.uuid
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -1175,7 +1190,7 @@ const ClinicVisit = props => {
       try {
         const latest = await axios.get(
           `${baseUrl}prep/initiation/latest/${
-            props.patientObj.personId || props.patientObj.id
+            props.patientObj.personUuid || props.patientObj.uuid
           }?enrollmentType=${ENROLLMENT_TYPE_PREP}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -1194,6 +1209,8 @@ const ClinicVisit = props => {
     payload.prepNotedSideEffects = notedSideEffects;
     payload.syndromicStiScreening = syndromicStiSelected;
     payload.previousPrepStatus = props.patientObj?.prepStatus;
+    // Prefer the stable person UUID for backend person resolution on save.
+    payload.personUuid = props.patientObj.personUuid || props.patientObj.uuid;
     // Derive stiScreening from syndromicStiScreening for API compatibility
     payload.stiScreening = syndromicStiSelected.length > 0 ? "true" : "false";
     // Map otherDrugsPrescribed back to otherDrugs for API compatibility.
@@ -1343,9 +1360,10 @@ const ClinicVisit = props => {
                             calculateDurationOnPrep(newDate);
                           }}
                           min={
-                            patientDto && patientDto.dateEnrolled
+                            visitDateMin ||
+                            (patientDto && patientDto.dateEnrolled
                               ? patientDto.dateEnrolled
-                              : ""
+                              : "")
                           }
                           max={moment(new Date()).format("YYYY-MM-DD")}
                           disabled={disabledField}
@@ -2311,7 +2329,7 @@ const ClinicVisit = props => {
                         checked={showLiverFunctionTest}
                         disabled={disabledField}
                       />{" "}
-                      Liver Function Test
+                      Liver Function Test Result
                     </h4>
                   </Label>
                   <br />
@@ -2320,7 +2338,7 @@ const ClinicVisit = props => {
                     <>
                       <div className="mb-3 col-md-12">
                         <FormGroup>
-                          <FormLabelName>Date of Liver Function Test</FormLabelName>
+                          <FormLabelName>Date of Liver Function Test Result</FormLabelName>
                           <Input
                             type="date"
                             onKeyDown={e => e.preventDefault()}

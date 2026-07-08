@@ -12,6 +12,8 @@ import java.time.LocalDate;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProphylaxisInterruptionRequestDto implements Serializable {
     private Long personId;
+    /** Stable person UUID (preferred over personId for robust person resolution). */
+    private String personUuid;
     private String prophylaxisInitiationUuid;
     private String interruptionType;
     private LocalDate interruptionDate;

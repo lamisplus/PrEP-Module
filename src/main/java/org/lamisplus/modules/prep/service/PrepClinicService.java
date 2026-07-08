@@ -57,8 +57,18 @@ public class PrepClinicService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
+    /** Prefer the stable person UUID over the bigint id when resolving for a write. */
+    private Person resolvePersonForWrite(String personUuid, Long personId) {
+        if (personUuid != null && !personUuid.trim().isEmpty()) {
+            Optional<Person> byUuid = personRepository.findByUuidAndFacilityId(
+                    personUuid, currentUserOrganizationService.getCurrentUserOrganization());
+            if (byUuid.isPresent()) return byUuid.get();
+        }
+        return getPerson(personId);
+    }
+
     public PrepClinicDto saveCommencement(PrepClinicRequestDto commencementRequestDto) {
-        Person person = this.getPerson(commencementRequestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(commencementRequestDto.getPersonUuid(), commencementRequestDto.getPersonId());
 
         String enrollmentUuid = commencementRequestDto.getPrepEnrollmentUuid();
         if (enrollmentUuid == null || enrollmentUuid.trim().isEmpty()) {
@@ -89,7 +99,7 @@ public class PrepClinicService {
     }
 
     public PrepClinicDto saveClinic(PrepClinicRequestDto clinicRequestDto) {
-        Person person = this.getPerson(clinicRequestDto.getPersonId());
+        Person person = this.resolvePersonForWrite(clinicRequestDto.getPersonUuid(), clinicRequestDto.getPersonId());
 
         String enrollmentUuid = clinicRequestDto.getPrepEnrollmentUuid();
         if (enrollmentUuid == null || enrollmentUuid.trim().isEmpty()) {

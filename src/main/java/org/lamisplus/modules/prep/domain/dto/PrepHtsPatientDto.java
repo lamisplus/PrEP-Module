@@ -10,6 +10,8 @@ import java.time.LocalDate;
 public class PrepHtsPatientDto {
     private Long personId;
     private String personUuid;
+    /** The unique client ID captured at initiation (prophylaxis_initiation.unique_id) — the grid "Code". */
+    private String uniqueId;
     private String firstName;
     private String surname;
     private String otherName;
