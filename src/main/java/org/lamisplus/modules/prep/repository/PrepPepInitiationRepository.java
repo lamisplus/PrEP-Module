@@ -1490,7 +1490,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    COALESCE(el.eligibility_count, 0) AS eligibilityCount,\n" +
             "    COALESCE(init_count.enrollment_count, 0) AS enrollmentCount,\n" +
             "    pet.created_by AS createdBy,\n" +
-            "    pet.unique_id AS uniqueId,\n" +
+            // Code = the client ID entered at screening (unique_client_id);
+            // fall back to the initiation's auto number if the screening has none.
+            "    COALESCE(scr.unique_client_id, pet.unique_id) AS uniqueId,\n" +
             "    p.id AS personId,\n" +
             "    CAST(p.uuid AS text) AS personUuid,\n" +
             "    p.first_name AS firstName,\n" +
@@ -1655,6 +1657,10 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     String ENROLLED_JOINS =
             "FROM prophylaxis_initiation pet\n" +
             "INNER JOIN patient_person p ON p.uuid = pet.person_uuid\n" +
+            // Screening that produced this initiation — the client Code the user
+            // entered ("unique client Id") lives on the screening, not the
+            // initiation (whose unique_id is an auto-generated PrEP/PEP number).
+            "LEFT JOIN prophylaxis_screening scr ON scr.uuid = pet.prophylaxis_screening_uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
@@ -1764,6 +1770,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "       OR p.surname ILIKE ?4\n" +
             "       OR p.other_name ILIKE ?4\n" +
             "       OR p.hospital_number ILIKE ?4\n" +
+            "       OR scr.unique_client_id ILIKE ?4\n" +
             "       OR pet.unique_id ILIKE ?4)\n";
 
     String ORDER_BY = "ORDER BY p.id, pet.date_enrolled DESC NULLS LAST";
@@ -1778,6 +1785,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     String ENROLLED_COUNT_FROM =
             "FROM prophylaxis_initiation pet\n" +
             "INNER JOIN patient_person p ON p.uuid = pet.person_uuid\n" +
+            // Present so SEARCH_PREDICATE can match on scr.unique_client_id here too.
+            "LEFT JOIN prophylaxis_screening scr ON scr.uuid = pet.prophylaxis_screening_uuid\n" +
             // Latest interruption per person in ONE scan (was a MAX-self-join).
             "LEFT JOIN (\n" +
             "    SELECT DISTINCT ON (pi.person_uuid)\n" +
