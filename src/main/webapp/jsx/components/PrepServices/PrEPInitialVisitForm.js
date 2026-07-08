@@ -376,10 +376,18 @@ const PrEPInitialVisitForm = props => {
     }
     temp.urinalysisResult = objValues.urinalysisResult
       ? "" : "This field is required";
-    // liverFunctionTestResults is an array; require at least one entry.
+    // Liver Function Test is required ONLY for injectible PrEP. For PEP
+    // enrollment (any prep type) it is always optional; likewise for oral PrEP.
+    const enroll = objValues.enrollmentType || screeningType;
+    const isPepEnrollment =
+      enroll === "PEP" || enroll === ENROLLMENT_TYPE_PEP_CODE;
+    const isInjectiblePrep =
+      objValues.prepTypeAtStart === "PREP_TYPE_INJECTIBLES";
+    const lftRequired = !isPepEnrollment && isInjectiblePrep;
     const lft = objValues.liverFunctionTestResults;
     const hasLft = Array.isArray(lft) ? lft.length > 0 : !!lft;
-    temp.liverFunctionTestResults = hasLft ? "" : "This field is required";
+    temp.liverFunctionTestResults =
+      !lftRequired || hasLft ? "" : "This field is required";
     setErrors({ ...temp });
     return Object.values(temp).every(x => x === "");
   };
@@ -1292,10 +1300,19 @@ const PrEPInitialVisitForm = props => {
                 </FormGroup>
               </div>
 
-              {/* 22. Liver Function Test (DualListBox) */}
+              {/* 22. Liver Function Test (DualListBox) — required only for
+                  injectible PrEP; optional for PEP and for oral PrEP. */}
               <div className="form-group mb-3 col-md-12">
                 <FormGroup>
-                  <Label>Liver Function Test Result <span style={{ color: "red" }}> *</span></Label>
+                  <Label>
+                    Liver Function Test Result
+                    {(objValues.enrollmentType || screeningType) !== "PEP" &&
+                      (objValues.enrollmentType || screeningType) !==
+                        ENROLLMENT_TYPE_PEP_CODE &&
+                      objValues.prepTypeAtStart === "PREP_TYPE_INJECTIBLES" && (
+                        <span style={{ color: "red" }}> *</span>
+                      )}
+                  </Label>
                   <LiverFunctionTest
                     objValues={objValues}
                     handleInputChange={handleLftInputChange}
