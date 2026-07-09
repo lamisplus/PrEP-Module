@@ -1717,14 +1717,17 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    ORDER BY pi.person_uuid, pi.interruption_date DESC NULLS LAST, pi.id DESC\n" +
             ") prepi ON prepi.person_uuid = pet.person_uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
-            // Latest hts_encounter for this patient (for the new HTS fields)
-            // Latest HTS per patient in ONE scan (was a MAX-self-join).
+            // Latest hts_encounter for this patient (for the new HTS fields).
+            // Keyed on patient_uuid (= person_uuid) rather than patient_id: the
+            // bigint patient_id linkage is unreliable for migrated/ETL HTS rows,
+            // which left latest_hts NULL (so the pregnancy chip fell back to
+            // "Unknown"). patient_uuid is the stable person link.
             "LEFT JOIN (\n" +
-            "    SELECT DISTINCT ON (he2.patient_id) he2.*\n" +
+            "    SELECT DISTINCT ON (he2.patient_uuid) he2.*\n" +
             "    FROM hts_encounter he2\n" +
             "    WHERE he2.archived = false\n" +
-            "    ORDER BY he2.patient_id, he2.date_of_visit DESC NULLS LAST, he2.id DESC\n" +
-            ") latest_hts ON latest_hts.patient_id = p.id\n" +
+            "    ORDER BY he2.patient_uuid, he2.date_of_visit DESC NULLS LAST, he2.id DESC\n" +
+            ") latest_hts ON CAST(latest_hts.patient_uuid AS text) = CAST(p.uuid AS text)\n" +
             "LEFT JOIN base_application_codeset preg_codeset\n" +
             "    ON preg_codeset.code = latest_hts.observation->>'pregnancyStatus'\n";
 

@@ -1425,6 +1425,16 @@
         </sql>
     </changeSet>
 
+    <!-- Supports the enrolled grid's latest-HTS subquery now keyed on patient_uuid
+         (DISTINCT ON (patient_uuid) ORDER BY patient_uuid, date_of_visit). -->
+    <changeSet failOnError="false" author="Gamaliel" id="2026-07-09-hts-patient-uuid-date-index">
+        <validCheckSum>ANY</validCheckSum>
+        <sql splitStatements="true" endDelimiter=";">
+            CREATE INDEX IF NOT EXISTS idx_hts_patient_uuid_date
+                ON hts_encounter (patient_uuid, date_of_visit);
+        </sql>
+    </changeSet>
+
     <!--
       Catch-all: guarantees every column the app expects exists, regardless of
       the older ADD COLUMN changesets' state. All use ADD COLUMN IF NOT EXISTS,

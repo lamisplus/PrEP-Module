@@ -101,7 +101,7 @@ function PatientCard(props) {
   // When there is genuinely no pregnancy value (client has no HTS record with a
   // pregnancy status), still show the chips for female clients with an explicit
   // default rather than hiding them or implying a "No".
-  const UNKNOWN_STATUS = "Unknown (Invalid HTS record)";
+  const UNKNOWN_STATUS = "Unknown";
   const pregnancyDisplay = pregnancyValue || UNKNOWN_STATUS;
   const isBreastfeeding =
     normalizedPregnancyCode === "PREGANACY_STATUS_BREASTFEEDING" ||

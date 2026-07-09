@@ -389,14 +389,15 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             nativeQuery = true)
     Optional<HtsEncounterRow> findHtsEncounterByUuid(String uuid);
 
+    // Keyed on hts.patient_uuid (= person_uuid) — the reliable person link. The
+    // old join on patient_id = patient_person.id missed migrated/ETL HTS rows.
     @Query(value =
             "SELECT preg.display\n" +
             "FROM hts_encounter hts\n" +
-            "INNER JOIN patient_person p ON p.id = hts.patient_id\n" +
             "LEFT JOIN base_application_codeset preg\n" +
             "    ON preg.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n" +
             "WHERE hts.archived = false\n" +
-            "  AND CAST(p.uuid AS text) = ?1\n" +
+            "  AND CAST(hts.patient_uuid AS text) = ?1\n" +
             "ORDER BY hts.date_of_visit DESC NULLS LAST, hts.id DESC\n" +
             "LIMIT 1",
             nativeQuery = true)
