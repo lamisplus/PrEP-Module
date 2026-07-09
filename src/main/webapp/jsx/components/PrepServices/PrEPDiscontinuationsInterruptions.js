@@ -921,6 +921,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                           id="followUpVisitDate"
                           onKeyDown={e => e.preventDefault()}
                           min={minDate}
+                          max={today}
                           onChange={handleInputChange}
                           value={objValues.followUpVisitDate}
                           disabled={disabledField}

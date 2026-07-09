@@ -1517,11 +1517,22 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    latest_hts.facility_id AS latestHtsFacilityId,\n" +
             "    preg_codeset.display AS pregnancyStatusDisplay,\n";
 
+    // True when the patient's latest hts_encounter says HIV-positive — via the
+    // confirmatory or initial test codeset, or a community/migrated record's
+    // finalHivTestResult. NULL-safe: absent keys evaluate to NULL, not true.
+    String LATEST_HTS_POSITIVE =
+            "(latest_hts.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_POSITIVE'\n" +
+            "         OR latest_hts.observation->>'initialHivTest' = 'STI_HIV_RESULT_POSITIVE'\n" +
+            "         OR latest_hts.observation->>'finalHivTestResult' ILIKE '%positive%')";
+
     String PREP_STATUS_CASE =
             "    CASE\n" +
-            // ── Top-precedence: an explicit interruption flagged on the
-            //    enrollment row (Stopped / Dead / Seroconverted / Transfer out /
-            //    Default / Referred). Displays the codeset label.
+            // ── Top-precedence: a positive latest HTS means the client has
+            //    seroconverted — no PrEP service should be offered.
+            "        WHEN " + LATEST_HTS_POSITIVE + " THEN 'Seroconverted'\n" +
+            // ── An explicit interruption flagged on the enrollment row
+            //    (Stopped / Dead / Seroconverted / Transfer out / Default /
+            //    Referred). Displays the codeset label.
             "        WHEN pet.is_interrupted = true THEN COALESCE(bac.display, \n" +
             "             CASE prepi.interruption_type \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' \n" +
@@ -1640,6 +1651,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     // next_appointment vs CURRENT_DATE until a completion form is filled.
     String PEP_STATUS_CASE =
             "    CASE\n" +
+            // A positive latest HTS means the client has seroconverted.
+            "        WHEN " + LATEST_HTS_POSITIVE + " THEN 'Seroconverted'\n" +
             "        WHEN latest_pep_interruption.pep_completion = 'YES_NO_YES'\n" +
             "             AND (latest_pep_visit.visit_date IS NULL\n" +
             "                  OR latest_pep_interruption.completion_date IS NULL\n" +
@@ -1763,7 +1776,11 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             // prepi.interruption_type IS NULL.
             "  AND (prepi.interruption_type IS NULL\n" +
             "       OR prepi.interruption_type NOT IN ('PREP_DISCONTINUATION_TYPE_SEROCONVERTED',\n" +
-            "                                          'PREP_STATUS_SEROCONVERTED'))\n";
+            "                                          'PREP_STATUS_SEROCONVERTED'))\n" +
+            // Also drop clients whose latest HTS is positive (seroconverted) —
+            // they must not appear on the Enrolled grid. IS NOT TRUE keeps NULL
+            // (no HTS / no result) flowing through.
+            "  AND (" + LATEST_HTS_POSITIVE + ") IS NOT TRUE\n";
 
     String SEARCH_PREDICATE =
             "  AND (p.first_name ILIKE ?4\n" +
@@ -1787,6 +1804,13 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "INNER JOIN patient_person p ON p.uuid = pet.person_uuid\n" +
             // Present so SEARCH_PREDICATE can match on scr.unique_client_id here too.
             "LEFT JOIN prophylaxis_screening scr ON scr.uuid = pet.prophylaxis_screening_uuid\n" +
+            // Latest HTS — needed so ENROLLED_WHERE can drop positive (seroconverted) clients.
+            "LEFT JOIN (\n" +
+            "    SELECT DISTINCT ON (he2.patient_id) he2.patient_id, he2.observation\n" +
+            "    FROM hts_encounter he2\n" +
+            "    WHERE he2.archived = false\n" +
+            "    ORDER BY he2.patient_id, he2.date_of_visit DESC NULLS LAST, he2.id DESC\n" +
+            ") latest_hts ON latest_hts.patient_id = p.id\n" +
             // Latest interruption per person in ONE scan (was a MAX-self-join).
             "LEFT JOIN (\n" +
             "    SELECT DISTINCT ON (pi.person_uuid)\n" +
