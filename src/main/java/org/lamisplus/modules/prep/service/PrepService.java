@@ -760,25 +760,35 @@ public class PrepService {
         }
 
         // isCurrentStatus* flags drive the Patient List "Enroll" modal and the
-        // SubMenu cross-arm lockouts. Compute PER ARM: a patient is "active on
-        // PrEP" only when their LATEST PrEP initiation row has is_interrupted
-        // != true (same for PEP). Falling back to findTopByPersonUuidAndArchived
-        // returned the lowest-id row regardless of arm, so a Stopped PrEP
-        // patient with an older PEP row could still appear active on PrEP.
-        prepPepInitiationRepository
-                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PREP)
-                .ifPresent(latestPrep -> {
-                    Boolean interrupted = applyPepAutoExpiry(latestPrep);
-                    boolean active = !Boolean.TRUE.equals(interrupted);
-                    prepDtos.setIsCurrentStatusInterruptedPrep(active);
-                });
-        prepPepInitiationRepository
-                .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PEP)
-                .ifPresent(latestPep -> {
-                    Boolean interrupted = applyPepAutoExpiry(latestPep);
-                    boolean active = !Boolean.TRUE.equals(interrupted);
-                    prepDtos.setIsCurrentStatusInterruptedPep(active);
-                });
+        // SubMenu cross-arm lockouts, and answer "does this client have a current
+        // enrollment on this arm?". Computed PER ARM and INDEPENDENTLY: the client
+        // is "active on PrEP" only when their LATEST PrEP initiation is not
+        // interrupted, and likewise for PEP — one arm never affects the other.
+        //
+        // Both flags DEFAULT to false, so a client with no initiation at all (e.g.
+        // a brand-new HTS registration) is correctly reported as NOT enrolled.
+        //
+        // The initiation ↔ person link is person_uuid. Since a blank/absent uuid
+        // ("we don't reliably use client uuids") would make `person_uuid = ''`
+        // collide with ANY other initiation carrying a blank uuid — falsely
+        // flagging a newly-registered client as already enrolled — we only run the
+        // lookup for a non-blank uuid. No uuid → no initiation match → flags stay
+        // false (no current enrollment), which is the correct answer.
+        String personUuidForStatus = person.getUuid();
+        if (personUuidForStatus != null && !personUuidForStatus.trim().isEmpty()) {
+            prepPepInitiationRepository
+                    .findLatestByPersonUuidAndEnrollmentType(personUuidForStatus, false, EnrollmentType.PREP)
+                    .ifPresent(latestPrep -> {
+                        boolean active = !Boolean.TRUE.equals(applyPepAutoExpiry(latestPrep));
+                        prepDtos.setIsCurrentStatusInterruptedPrep(active);
+                    });
+            prepPepInitiationRepository
+                    .findLatestByPersonUuidAndEnrollmentType(personUuidForStatus, false, EnrollmentType.PEP)
+                    .ifPresent(latestPep -> {
+                        boolean active = !Boolean.TRUE.equals(applyPepAutoExpiry(latestPep));
+                        prepDtos.setIsCurrentStatusInterruptedPep(active);
+                    });
+        }
         PrepClient prepClient = prepPepInitiationRepository
                 .findPersonPrepAndStatusByPatientUuid(false,
                         currentUserOrganizationService.getCurrentUserOrganization(), person.getUuid())

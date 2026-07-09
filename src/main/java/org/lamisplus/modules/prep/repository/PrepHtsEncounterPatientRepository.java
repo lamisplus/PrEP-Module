@@ -107,7 +107,8 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    GROUP BY patient_id\n" +
             ") latest_hts ON latest_hts.patient_id = hts.patient_id\n" +
             "          AND latest_hts.max_date = hts.date_of_visit\n" +
-            "INNER JOIN patient_person p ON p.id = hts.patient_id\n" +
+            // Link to patient_person by the reliable patient_uuid (= person_uuid).
+            "INNER JOIN patient_person p ON CAST(p.uuid AS text) = CAST(hts.patient_uuid AS text)\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
@@ -203,7 +204,8 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    GROUP BY patient_id\n" +
             ") latest_hts ON latest_hts.patient_id = hts.patient_id\n" +
             "          AND latest_hts.max_date = hts.date_of_visit\n" +
-            "INNER JOIN patient_person p ON p.id = hts.patient_id\n";
+            // Link to patient_person by the reliable patient_uuid (= person_uuid).
+            "INNER JOIN patient_person p ON CAST(p.uuid AS text) = CAST(hts.patient_uuid AS text)\n";
 
     String GROUP_BY =
             "GROUP BY\n" +
@@ -282,12 +284,16 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
     // then requires that row to be at the requested facility (LITE_WHERE).
     String LITE_CTE =
             "WITH latest_hts AS (\n" +
-            "    SELECT DISTINCT ON (h.patient_id)\n" +
+            // Latest HTS per person, keyed on patient_uuid (= person_uuid) — the
+            // reliable link. The bigint patient_id can point at the wrong
+            // patient_person, which surfaced the wrong client / wrong enrollment
+            // status on the Enroll modal.
+            "    SELECT DISTINCT ON (h.patient_uuid)\n" +
             "           h.id, h.uuid, h.patient_id, h.patient_uuid, h.client_code,\n" +
             "           h.date_of_visit, h.setting, h.observation, h.facility_id\n" +
             "    FROM hts_encounter h\n" +
             "    WHERE h.archived = false\n" +
-            "    ORDER BY h.patient_id, h.date_of_visit DESC NULLS LAST, h.id DESC\n" +
+            "    ORDER BY h.patient_uuid, h.date_of_visit DESC NULLS LAST, h.id DESC\n" +
             ")\n";
 
     String LITE_SELECT =
@@ -327,7 +333,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "         THEN true ELSE false END AS pepOnly,\n" +
             "    CAST(NULL AS text) AS prepStatus\n" +
             "FROM latest_hts hts\n" +
-            "JOIN patient_person p ON p.id = hts.patient_id\n" +
+            "JOIN patient_person p ON CAST(p.uuid AS text) = CAST(hts.patient_uuid AS text)\n" +
             "LEFT JOIN base_application_codeset preg_codeset\n" +
             "    ON preg_codeset.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n";
 
@@ -361,7 +367,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
     String LITE_COUNT_HEAD =
             "SELECT COUNT(*)\n" +
             "FROM latest_hts hts\n" +
-            "JOIN patient_person p ON p.id = hts.patient_id\n";
+            "JOIN patient_person p ON CAST(p.uuid AS text) = CAST(hts.patient_uuid AS text)\n";
 
     @Query(value = LITE_CTE + LITE_SELECT + LITE_WHERE + "ORDER BY p.id",
             countQuery = LITE_CTE + LITE_COUNT_HEAD + LITE_WHERE,
