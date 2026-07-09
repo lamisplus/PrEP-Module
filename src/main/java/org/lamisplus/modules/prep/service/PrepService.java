@@ -533,6 +533,16 @@ public class PrepService {
                 .map(this::toPrepHtsPatientDto)
                 .collect(Collectors.toList());
 
+        // Ship the per-arm active-enrollment flags ON each row so the Enroll modal
+        // reads them directly (no extra round-trip). Computed by person_uuid: a
+        // client with an active, not-yet-discontinued initiation on an arm cannot
+        // be re-enrolled there. New clients (no initiation) → both false → allowed.
+        dtos.forEach(dto -> {
+            java.util.Map<String, Boolean> active = getActiveEnrollmentByUuid(dto.getPersonUuid());
+            dto.setIsCurrentStatusInterruptedPrep(active.get("isCurrentStatusInterruptedPrep"));
+            dto.setIsCurrentStatusInterruptedPep(active.get("isCurrentStatusInterruptedPep"));
+        });
+
         return new PageImpl<>(dtos, pageable, resultPage.getTotalElements());
     }
 

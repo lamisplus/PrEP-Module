@@ -31,6 +31,14 @@ public class PrepHtsPatientDto {
     private String pregnancyStatusDisplay;
     private Boolean isInterrupted;
     /**
+     * Per-arm CURRENT (active) enrollment, computed and shipped ON the row so the
+     * Patient tab "Enroll" modal reads them directly (no extra round-trip). True =
+     * the client has an active, not-yet-discontinued initiation on that arm and
+     * cannot be re-enrolled there until discontinued.
+     */
+    private Boolean isCurrentStatusInterruptedPrep;
+    private Boolean isCurrentStatusInterruptedPep;
+    /**
      * True when the linked HTS encounter restricts the patient to PEP only
      * (early-detect test type + antigen-reactive marker). Drives the Patient
      * tab "Enroll" modal to hide / disable the PrEP option.

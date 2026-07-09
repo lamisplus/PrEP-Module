@@ -207,50 +207,17 @@ const EnrollPatientButton = ({ row }) => {
   // Resolve active-enrollment status from the backend. Cached after the first
   // success so the modal can open instantly in its final state — no jarring
   // spinner→content (or picker→active) switch inside the dialog.
+  // Active-enrollment status is now shipped ON the grid row (computed server-side
+  // by person_uuid), so we read it DIRECTLY — no round-trip. A client with an
+  // active, not-yet-discontinued initiation on an arm is blocked there; a new
+  // client (no initiation → both flags false/absent) can enroll.
   const fetchStatus = () => {
-    if (activeStatus.loaded || fetchingRef.current) return;
-    fetchingRef.current = true;
-    setLoading(true);
-    // Check active enrollment DIRECTLY by the person UUID the row carries.
-    // Initiations link only by person_uuid, so this avoids the personId →
-    // findById(person) → uuid hop that could resolve the wrong person and
-    // falsely block a brand-new HTS client. No uuid → treat as not enrolled.
-    const personUuid = row?.personUuid || row?.uuid;
-    if (!personUuid) {
-      setActiveStatus({ prep: false, pep: false, loaded: true });
-      fetchingRef.current = false;
-      setLoading(false);
-      if (openWhenLoadedRef.current) {
-        openWhenLoadedRef.current = false;
-        setAwaitingOpen(false);
-        setOpen(true);
-      }
-      return;
-    }
-    axios
-      .get(`${baseUrl}prep/active-enrollment/${personUuid}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((resp) => {
-        const d = resp?.data || {};
-        setActiveStatus({
-          prep: !!d.isCurrentStatusInterruptedPrep,
-          pep: !!d.isCurrentStatusInterruptedPep,
-          loaded: true,
-        });
-      })
-      .catch(() => {
-        setActiveStatus({ prep: false, pep: false, loaded: true });
-      })
-      .finally(() => {
-        fetchingRef.current = false;
-        setLoading(false);
-        if (openWhenLoadedRef.current) {
-          openWhenLoadedRef.current = false;
-          setAwaitingOpen(false);
-          setOpen(true);
-        }
-      });
+    if (activeStatus.loaded) return;
+    setActiveStatus({
+      prep: !!row?.isCurrentStatusInterruptedPrep,
+      pep: !!row?.isCurrentStatusInterruptedPep,
+      loaded: true,
+    });
   };
 
   // Prefetch on mount so an active patient shows the red-orange blocked modal
@@ -261,14 +228,10 @@ const EnrollPatientButton = ({ row }) => {
   }, []);
 
   const handleOpen = () => {
-    if (activeStatus.loaded) {
-      setOpen(true);
-      return;
-    }
-    // Prefetch still in flight (or not yet started) — open as soon as it lands.
-    openWhenLoadedRef.current = true;
-    setAwaitingOpen(true);
+    // Status is read synchronously from the row, so we can resolve + open in one
+    // click (no async wait / "Checking…" state needed).
     fetchStatus();
+    setOpen(true);
   };
 
   const blockedArm = activeStatus.prep
