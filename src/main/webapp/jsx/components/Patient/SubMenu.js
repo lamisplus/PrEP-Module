@@ -125,6 +125,13 @@ function SubMenu(props) {
   const hasDiscontinued = (isPEP ? DISCONTINUED_STATUSES_PEP : DISCONTINUED_STATUSES_PREP)
     .includes(prepStatusValue);
 
+  // Seroconverted (HIV positive) takes precedence over every other status: the
+  // PrEP/PEP journey ends here and NO cycle can be repeated. The client is only
+  // allowed the Discontinuation form to be formally closed out; once discontinued
+  // (no longer an active initiation on this arm) only History remains.
+  const isSeroconverted = prepStatusValue === "seroconverted";
+  const isActiveOnCurrentArm = isPEP ? isActivePep : isActivePrep;
+
   // Latest viral load (shared with the dashboard chip). When it's Detected
   // (> 1000) for a PEP client, PEP was not completed successfully — the menu
   // surfaces ONLY the PEP Completion form (handled in renderMenuItems), which
@@ -133,6 +140,29 @@ function SubMenu(props) {
 
   const renderMenuItems = () => {
     const isNegative = patientObj?.hivresultAtVisit === "Negative" || patientObj?.hivresultAtVisit === null;
+
+    // Seroconverted (HIV positive) — highest precedence. All service forms are
+    // hidden; the journey ends here (no PrEP/PEP cycle can be repeated). While the
+    // client is still an active initiation, expose ONLY the Discontinuation form
+    // to close them out; once discontinued, only History remains.
+    if (isSeroconverted) {
+      return (
+        <>
+          <Menu.Item onClick={onClickHome}>Home</Menu.Item>
+          {isActiveOnCurrentArm && (
+            <ProtectedComponent
+              isAuthorized={userPermissions.discontinuation}
+              privateComponent={() => (
+                <Menu.Item onClick={loadPrEPDiscontinuationsInterruptions}>
+                  {isPEP ? "PEP Completion" : "PrEP Discontinuation/Interruption"}
+                </Menu.Item>
+              )}
+            />
+          )}
+          <Menu.Item onClick={loadPatientHistory}>History</Menu.Item>
+        </>
+      );
+    }
 
     if (blockedByOtherArm) {
       const activeArm = isActivePrep ? "PrEP" : "PEP";

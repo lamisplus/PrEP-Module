@@ -1767,20 +1767,11 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     String ENROLLED_WHERE =
             "WHERE CAST(pet.archived AS BOOLEAN) = ?1\n" +
             "  AND pet.facility_id = ?2\n" +
-            "  AND pet.enrollment_type = ?3\n" +
-            // Exclude clients whose latest interruption on this arm is
-            // Seroconverted — they should not surface on the Enrolled grid for
-            // either PrEP or PEP. prepi is LEFT-JOINed and pre-scoped to the
-            // current arm (?3), so this WHERE works for both queries; clients
-            // with no interruption at all keep flowing through because
-            // prepi.interruption_type IS NULL.
-            "  AND (prepi.interruption_type IS NULL\n" +
-            "       OR prepi.interruption_type NOT IN ('PREP_DISCONTINUATION_TYPE_SEROCONVERTED',\n" +
-            "                                          'PREP_STATUS_SEROCONVERTED'))\n" +
-            // Also drop clients whose latest HTS is positive (seroconverted) —
-            // they must not appear on the Enrolled grid. IS NOT TRUE keeps NULL
-            // (no HTS / no result) flowing through.
-            "  AND (" + LATEST_HTS_POSITIVE + ") IS NOT TRUE\n";
+            "  AND pet.enrollment_type = ?3\n";
+            // Seroconverted clients (positive latest HTS, or a seroconverted
+            // interruption) are intentionally NOT filtered out — they must appear
+            // on the Enrolled grid with status 'Seroconverted'. The Patient tab
+            // only pulls negative clients, so this grid is where they surface.
 
     String SEARCH_PREDICATE =
             "  AND (p.first_name ILIKE ?4\n" +
@@ -1804,13 +1795,6 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "INNER JOIN patient_person p ON p.uuid = pet.person_uuid\n" +
             // Present so SEARCH_PREDICATE can match on scr.unique_client_id here too.
             "LEFT JOIN prophylaxis_screening scr ON scr.uuid = pet.prophylaxis_screening_uuid\n" +
-            // Latest HTS — needed so ENROLLED_WHERE can drop positive (seroconverted) clients.
-            "LEFT JOIN (\n" +
-            "    SELECT DISTINCT ON (he2.patient_id) he2.patient_id, he2.observation\n" +
-            "    FROM hts_encounter he2\n" +
-            "    WHERE he2.archived = false\n" +
-            "    ORDER BY he2.patient_id, he2.date_of_visit DESC NULLS LAST, he2.id DESC\n" +
-            ") latest_hts ON latest_hts.patient_id = p.id\n" +
             // Latest interruption per person in ONE scan (was a MAX-self-join).
             "LEFT JOIN (\n" +
             "    SELECT DISTINCT ON (pi.person_uuid)\n" +
