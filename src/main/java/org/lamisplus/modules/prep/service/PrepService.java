@@ -977,6 +977,34 @@ public class PrepService {
                 .orElse("Not Available");
     }
 
+    /**
+     * Does the client currently have an ACTIVE (non-interrupted) enrollment on
+     * each arm? Keyed DIRECTLY by the person UUID that the grid row carries, so
+     * the "Enroll" modal never goes through the personId → findById(person) →
+     * person.getUuid() hop (which can resolve the wrong/mismatched person and
+     * falsely block a brand-new HTS client). Initiations link only by
+     * person_uuid, so this is the reliable check. No initiation on an arm → not
+     * active on that arm; the two arms are reported independently.
+     */
+    public java.util.Map<String, Boolean> getActiveEnrollmentByUuid(String personUuid) {
+        boolean prepActive = false;
+        boolean pepActive = false;
+        if (personUuid != null && !personUuid.trim().isEmpty()) {
+            prepActive = prepPepInitiationRepository
+                    .findLatestByPersonUuidAndEnrollmentType(personUuid, false, EnrollmentType.PREP)
+                    .map(i -> !Boolean.TRUE.equals(applyPepAutoExpiry(i)))
+                    .orElse(false);
+            pepActive = prepPepInitiationRepository
+                    .findLatestByPersonUuidAndEnrollmentType(personUuid, false, EnrollmentType.PEP)
+                    .map(i -> !Boolean.TRUE.equals(applyPepAutoExpiry(i)))
+                    .orElse(false);
+        }
+        java.util.Map<String, Boolean> result = new java.util.HashMap<>();
+        result.put("isCurrentStatusInterruptedPrep", prepActive);
+        result.put("isCurrentStatusInterruptedPep", pepActive);
+        return result;
+    }
+
     public PrepEligibilityScreening prepEligibilityRequestDtoToPrepEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto, String personUuid) {
         if (prepEligibilityRequestDto == null) {
             return null;

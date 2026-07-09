@@ -231,4 +231,10 @@ public class PrepController {
         body.put("status", prepService.getEnrollmentStatus(personUuid, enrollmentType));
         return ResponseEntity.ok(body);
     }
+
+    @GetMapping(PREP_URL_VERSION_ONE + "/active-enrollment/{personUuid}")
+    @ApiOperation("Whether the client has a current active PrEP/PEP enrollment (by person UUID)")
+    public ResponseEntity<Map<String, Boolean>> getActiveEnrollment(@PathVariable String personUuid) {
+        return ResponseEntity.ok(prepService.getActiveEnrollmentByUuid(personUuid));
+    }
 }

@@ -211,9 +211,24 @@ const EnrollPatientButton = ({ row }) => {
     if (activeStatus.loaded || fetchingRef.current) return;
     fetchingRef.current = true;
     setLoading(true);
-    const personId = row?.personId || row?.id;
+    // Check active enrollment DIRECTLY by the person UUID the row carries.
+    // Initiations link only by person_uuid, so this avoids the personId →
+    // findById(person) → uuid hop that could resolve the wrong person and
+    // falsely block a brand-new HTS client. No uuid → treat as not enrolled.
+    const personUuid = row?.personUuid || row?.uuid;
+    if (!personUuid) {
+      setActiveStatus({ prep: false, pep: false, loaded: true });
+      fetchingRef.current = false;
+      setLoading(false);
+      if (openWhenLoadedRef.current) {
+        openWhenLoadedRef.current = false;
+        setAwaitingOpen(false);
+        setOpen(true);
+      }
+      return;
+    }
     axios
-      .get(`${baseUrl}prep/persons/${personId}`, {
+      .get(`${baseUrl}prep/active-enrollment/${personUuid}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((resp) => {
