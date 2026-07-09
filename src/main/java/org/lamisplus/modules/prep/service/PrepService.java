@@ -990,19 +990,48 @@ public class PrepService {
         boolean prepActive = false;
         boolean pepActive = false;
         if (personUuid != null && !personUuid.trim().isEmpty()) {
-            prepActive = prepPepInitiationRepository
-                    .findLatestByPersonUuidAndEnrollmentType(personUuid, false, EnrollmentType.PREP)
-                    .map(i -> !Boolean.TRUE.equals(applyPepAutoExpiry(i)))
-                    .orElse(false);
-            pepActive = prepPepInitiationRepository
-                    .findLatestByPersonUuidAndEnrollmentType(personUuid, false, EnrollmentType.PEP)
-                    .map(i -> !Boolean.TRUE.equals(applyPepAutoExpiry(i)))
-                    .orElse(false);
+            prepActive = isArmActivelyEnrolled(personUuid, EnrollmentType.PREP,
+                    prepFollowupVisitRepository.findLatestFollowupDate(personUuid));
+            pepActive = isArmActivelyEnrolled(personUuid, EnrollmentType.PEP,
+                    pepFollowupVisitRepository.findLatestFollowupDate(personUuid));
         }
         java.util.Map<String, Boolean> result = new java.util.HashMap<>();
         result.put("isCurrentStatusInterruptedPrep", prepActive);
         result.put("isCurrentStatusInterruptedPep", pepActive);
         return result;
+    }
+
+    /**
+     * Is the client on a CURRENT (active) enrollment for this arm?
+     *   • No initiation on the arm → NOT active (a brand-new client — enrollment
+     *     allowed).
+     *   • Has an initiation → active, UNLESS discontinued.
+     *   • Discontinued when the latest interruption date for the arm is on/after
+     *     the latest follow-up visit date for the arm (a later interruption closes
+     *     the course). A client with an initiation but no interruption yet (with or
+     *     without follow-ups) is still active.
+     */
+    private boolean isArmActivelyEnrolled(String personUuid, String enrollmentType,
+                                          java.sql.Date latestFollowupSql) {
+        boolean hasInitiation = prepPepInitiationRepository
+                .findLatestByPersonUuidAndEnrollmentType(personUuid, false, enrollmentType)
+                .isPresent();
+        if (!hasInitiation) {
+            return false;
+        }
+        java.sql.Date latestInterruptionSql =
+                prophylaxisInterruptionRepository.findLatestInterruptionDate(personUuid, enrollmentType);
+        // No interruption at all → not discontinued → still active.
+        if (latestInterruptionSql == null) {
+            return true;
+        }
+        java.time.LocalDate latestInterruption = latestInterruptionSql.toLocalDate();
+        java.time.LocalDate latestFollowup =
+                latestFollowupSql == null ? null : latestFollowupSql.toLocalDate();
+        // Discontinued when the interruption is on/after the latest follow-up
+        // (or there is no follow-up at all). Discontinued → NOT active.
+        boolean discontinued = latestFollowup == null || !latestInterruption.isBefore(latestFollowup);
+        return !discontinued;
     }
 
     public PrepEligibilityScreening prepEligibilityRequestDtoToPrepEligibility(PrepEligibilityRequestDto prepEligibilityRequestDto, String personUuid) {

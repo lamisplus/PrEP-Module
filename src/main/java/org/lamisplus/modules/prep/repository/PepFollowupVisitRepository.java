@@ -75,6 +75,12 @@ public interface PepFollowupVisitRepository extends JpaRepository<PepFollowupVis
             "ORDER BY hts.date_of_visit DESC NULLS LAST, pfv.id DESC LIMIT 1")
     java.sql.Date findLatestFollowupHtsDate(@Param("initiationUuid") String initiationUuid);
 
+    /** Latest PEP follow-up visit date for a person — the "latest visit" the discontinuation check compares against. */
+    @Query(nativeQuery = true, value =
+            "SELECT MAX(f.encounter_date) FROM pep_followup_visit f " +
+            "WHERE CAST(f.person_uuid AS text) = :personUuid AND CAST(f.archived AS BOOLEAN) = false")
+    java.sql.Date findLatestFollowupDate(@Param("personUuid") String personUuid);
+
     Optional<PepFollowupVisit> findByUuid(String uuid);
     Integer countAllByPersonUuid(String personUuid);
     List<PepFollowupVisit> findAllByFacilityId(Long facilityId);
