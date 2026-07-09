@@ -148,11 +148,14 @@ function SubMenu(props) {
       );
     }
 
-    // PEP client with a Detected viral load (> 1000): PEP was not completed
-    // successfully. Surface ONLY the PEP Completion form (it auto-fills PEP
-    // Completion = YES and the HIV Result). Takes precedence over the
-    // positive/discontinued "eligibility only" branch below.
-    if (isPEP && viralLoadTargetDetected) {
+    // PEP client with a Detected viral load (> 1000) whose PEP is NOT yet
+    // completed: surface ONLY the PEP Completion form (it auto-fills PEP
+    // Completion = YES and the HIV Result) to force completion. Once the
+    // completion form has been filled the status becomes 'Completed'
+    // (hasDiscontinued), so we STOP forcing completion and fall through to the
+    // discontinued → re-screen → re-initiate cycle below — otherwise the client
+    // would be stuck on the completion form forever and the cycle never resets.
+    if (isPEP && viralLoadTargetDetected && !hasDiscontinued) {
       return (
         <>
           <Menu.Item onClick={onClickHome}>Home</Menu.Item>
