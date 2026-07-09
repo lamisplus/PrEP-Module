@@ -770,35 +770,18 @@ public class PrepService {
         }
 
         // isCurrentStatus* flags drive the Patient List "Enroll" modal and the
-        // SubMenu cross-arm lockouts, and answer "does this client have a current
-        // enrollment on this arm?". Computed PER ARM and INDEPENDENTLY: the client
-        // is "active on PrEP" only when their LATEST PrEP initiation is not
-        // interrupted, and likewise for PEP — one arm never affects the other.
-        //
-        // Both flags DEFAULT to false, so a client with no initiation at all (e.g.
-        // a brand-new HTS registration) is correctly reported as NOT enrolled.
-        //
-        // The initiation ↔ person link is person_uuid. Since a blank/absent uuid
-        // ("we don't reliably use client uuids") would make `person_uuid = ''`
-        // collide with ANY other initiation carrying a blank uuid — falsely
-        // flagging a newly-registered client as already enrolled — we only run the
-        // lookup for a non-blank uuid. No uuid → no initiation match → flags stay
-        // false (no current enrollment), which is the correct answer.
+        // SubMenu cross-arm lockouts. They answer, PER ARM and independently:
+        // "does the client have a CURRENT (active, not-yet-discontinued)
+        // enrollment on this arm?" — the SAME single source of truth the grid row
+        // uses (getActiveEnrollmentByUuid), so no two paths can disagree.
+        // No initiation → false (enrollment allowed). Has initiation, not
+        // discontinued → true. Blank uuid → false.
         String personUuidForStatus = person.getUuid();
-        if (personUuidForStatus != null && !personUuidForStatus.trim().isEmpty()) {
-            prepPepInitiationRepository
-                    .findLatestByPersonUuidAndEnrollmentType(personUuidForStatus, false, EnrollmentType.PREP)
-                    .ifPresent(latestPrep -> {
-                        boolean active = !Boolean.TRUE.equals(applyPepAutoExpiry(latestPrep));
-                        prepDtos.setIsCurrentStatusInterruptedPrep(active);
-                    });
-            prepPepInitiationRepository
-                    .findLatestByPersonUuidAndEnrollmentType(personUuidForStatus, false, EnrollmentType.PEP)
-                    .ifPresent(latestPep -> {
-                        boolean active = !Boolean.TRUE.equals(applyPepAutoExpiry(latestPep));
-                        prepDtos.setIsCurrentStatusInterruptedPep(active);
-                    });
-        }
+        java.util.Map<String, Boolean> activeEnrollment = getActiveEnrollmentByUuid(personUuidForStatus);
+        prepDtos.setIsCurrentStatusInterruptedPrep(
+                Boolean.TRUE.equals(activeEnrollment.get("isCurrentStatusInterruptedPrep")));
+        prepDtos.setIsCurrentStatusInterruptedPep(
+                Boolean.TRUE.equals(activeEnrollment.get("isCurrentStatusInterruptedPep")));
         PrepClient prepClient = prepPepInitiationRepository
                 .findPersonPrepAndStatusByPatientUuid(false,
                         currentUserOrganizationService.getCurrentUserOrganization(), person.getUuid())
