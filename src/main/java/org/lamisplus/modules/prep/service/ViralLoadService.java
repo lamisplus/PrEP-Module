@@ -35,6 +35,10 @@ public class ViralLoadService {
 
     private String interpret(String rawResult) {
         if (rawResult == null) return null;
+        
+        if (NOT_DETECTED_TEXT.matcher(rawResult).find()) {
+            return ViralLoadConstants.TARGET_NOT_DETECTED;
+        }
         String qualifier = leadingQualifier(rawResult);
         Double bound = parseNumeric(stripLeadingQualifier(rawResult));
         if (bound == null) return null;
@@ -55,12 +59,14 @@ public class ViralLoadService {
         }
     }
 
+    private static final Pattern NOT_DETECTED_TEXT = Pattern.compile(
+            "\\bT?ND\\b|NOT\\s+DETECTED|UNDETECT", Pattern.CASE_INSENSITIVE);
+
     private static final String LESS_THAN_OR_EQUAL = String.valueOf((char) 0x2264);
     private static final String GREATER_THAN_OR_EQUAL = String.valueOf((char) 0x2265);
     private static final Pattern LEADING_QUALIFIER = Pattern.compile(
             "^\\s*(<=|>=|" + LESS_THAN_OR_EQUAL + "|" + GREATER_THAN_OR_EQUAL + "|<|>)");
 
-    /** The qualifier a result opens with, normalised to <, <=, > or >=; "" when there is none. */
     private static String leadingQualifier(String raw) {
         Matcher matcher = LEADING_QUALIFIER.matcher(raw);
         if (!matcher.find()) return "";
