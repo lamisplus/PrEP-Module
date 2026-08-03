@@ -178,7 +178,7 @@ function SubMenu(props) {
       );
     }
 
-    // PEP client with a Detected viral load (> 1000) whose PEP is NOT yet
+    // PEP client with a Detected viral load (>= 1000) whose PEP is NOT yet
     // completed: surface ONLY the PEP Completion form (it auto-fills PEP
     // Completion = YES and the HIV Result) to force completion. Once the
     // completion form has been filled the status becomes 'Completed'
