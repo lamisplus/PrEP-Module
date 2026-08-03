@@ -77,9 +77,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
             "FROM patient_person p " +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND CAST(pet.archived AS BOOLEAN) = false " +
-            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
-            "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
-            "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE '%' || ?3 || '%' " +
+            "OR p.surname ILIKE '%' || ?3 || '%' OR p.other_name ILIKE '%' || ?3 || '%' " +
+            "OR p.hospital_number ILIKE ?3 || '%' OR pet.unique_id ILIKE ?3 || '%') " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled ", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
 
@@ -90,9 +90,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
             "FROM patient_person p " +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND CAST(pet.archived AS BOOLEAN) = false " +
-            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
-            "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
-            "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE '%' || ?3 || '%' " +
+            "OR p.surname ILIKE '%' || ?3 || '%' OR p.other_name ILIKE '%' || ?3 || '%' " +
+            "OR p.hospital_number ILIKE ?3 || '%' OR pet.unique_id ILIKE ?3 || '%') " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled ", nativeQuery = true)
     List<PrepClient> findAllPersonPrepBySearchParam(Boolean archived, Long facilityId, String search);
 
@@ -230,12 +230,12 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR pet.unique_id ILIKE ?3 || '%')\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +
@@ -364,12 +364,12 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
             "AND pet.person_uuid IS NOT NULL\n" +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR pet.unique_id ILIKE ?3 || '%')\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +
@@ -498,12 +498,12 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
             "AND pet.person_uuid IS NOT NULL\n" +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR pet.unique_id ILIKE ?3 || '%')\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +
@@ -1295,12 +1295,12 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
             "AND pet.enrollment_type = '" + EnrollmentType.PEP + "'\n" +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR pet.unique_id ILIKE ?3 || '%')\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +
@@ -1776,13 +1776,19 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             // on the Enrolled grid with status 'Seroconverted'. The Patient tab
             // only pulls negative clients, so this grid is where they surface.
 
+    // Name columns are contains-matched; the identifier columns (hospital
+    // number, HTS unique client id, PrEP unique id) are PREFIX-matched. An
+    // unanchored '%term%' on the identifiers is what made a search for "M-1"
+    // return every client whose id merely contained it (ADM-145, FM-17, PM-1B).
+    // The bound term is escaped by PrepService#normalizeSearchTerm, so a '%' or
+    // '_' typed into the search box is matched literally.
     String SEARCH_PREDICATE =
-            "  AND (p.first_name ILIKE ?4\n" +
-            "       OR p.surname ILIKE ?4\n" +
-            "       OR p.other_name ILIKE ?4\n" +
-            "       OR p.hospital_number ILIKE ?4\n" +
-            "       OR scr.unique_client_id ILIKE ?4\n" +
-            "       OR pet.unique_id ILIKE ?4)\n";
+            "  AND (p.first_name ILIKE '%' || ?4 || '%'\n" +
+            "       OR p.surname ILIKE '%' || ?4 || '%'\n" +
+            "       OR p.other_name ILIKE '%' || ?4 || '%'\n" +
+            "       OR p.hospital_number ILIKE ?4 || '%'\n" +
+            "       OR scr.unique_client_id ILIKE ?4 || '%'\n" +
+            "       OR pet.unique_id ILIKE ?4 || '%')\n";
 
     String ORDER_BY = "ORDER BY p.id, pet.date_enrolled DESC NULLS LAST";
 

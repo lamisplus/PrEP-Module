@@ -51,9 +51,9 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount  " +
             "FROM patient_person p " +
             "LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND CAST(pet.archived AS BOOLEAN)=?1 " +
-            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
-            "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
-            "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE '%' || ?3 || '%' " +
+            "OR p.surname ILIKE '%' || ?3 || '%' OR p.other_name ILIKE '%' || ?3 || '%' " +
+            "OR p.hospital_number ILIKE ?3 || '%' OR pet.unique_id ILIKE ?3 || '%') " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth ", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepBySearchParam(Integer archived, Long facilityId, String search, Pageable pageable);
 
@@ -64,9 +64,9 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount  " +
             "FROM patient_person p " +
             "LEFT JOIN prep_enrollment pet ON pet.person_uuid = p.uuid AND CAST(pet.archived AS BOOLEAN)=?1 " +
-            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
-            "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
-            "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE '%' || ?3 || '%' " +
+            "OR p.surname ILIKE '%' || ?3 || '%' OR p.other_name ILIKE '%' || ?3 || '%' " +
+            "OR p.hospital_number ILIKE ?3 || '%' OR pet.unique_id ILIKE ?3 || '%') " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth ", nativeQuery = true)
     List<PrepClient> findAllPersonPrepBySearchParam(Integer archived, Long facilityId, String search);
 
@@ -196,12 +196,12 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR pet.unique_id ILIKE ?3 || '%')\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +
@@ -322,12 +322,12 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
             "AND pet.person_uuid IS NOT NULL\n" +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR pet.unique_id ILIKE ?3 || '%')\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +
@@ -448,12 +448,12 @@ public interface PrepEnrollmentRepository extends JpaRepository<PrepEnrollment, 
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
             "AND pet.person_uuid IS NOT NULL\n" +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR pet.unique_id ILIKE ?3 || '%')\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +

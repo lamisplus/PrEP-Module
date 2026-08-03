@@ -126,7 +126,11 @@ const NotEnrolledPatients = props => {
           new Promise((resolve, reject) => {
             axios
               .get(
-                `${baseUrl}prep/persons/enrolled?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
+                // encodeURIComponent: an unencoded '&', '+' or '%' typed into
+                // the search box truncated or corrupted the query string.
+                `${baseUrl}prep/persons/enrolled?pageSize=${query.pageSize}&pageNo=${
+                  query.page
+                }&searchValue=${encodeURIComponent(query.search)}`,
                 { headers: { Authorization: `Bearer ${token}` } }
               )
               .then(response => response)

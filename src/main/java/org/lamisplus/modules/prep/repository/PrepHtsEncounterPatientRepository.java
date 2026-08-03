@@ -241,24 +241,24 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             BASE_SELECT +
             FROM_AND_JOINS +
             WHERE_FILTERS +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR hts.client_code ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR hts.client_code ILIKE ?3 || '%')\n" +
             // No GROUP BY — DISTINCT ON (p.id) dedupes (see findAllPatients).
             "ORDER BY p.id, hts.date_of_visit DESC NULLS LAST",
             countQuery =
                     "SELECT COUNT(DISTINCT p.id)\n" +
                     COUNT_FROM +
                     WHERE_FILTERS +
-                    "AND (p.first_name ILIKE ?3\n" +
-                    "     OR p.full_name ILIKE ?3\n" +
-                    "     OR p.surname ILIKE ?3\n" +
-                    "     OR p.other_name ILIKE ?3\n" +
-                    "     OR p.hospital_number ILIKE ?3\n" +
-                    "     OR hts.client_code ILIKE ?3)",
+                    "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+                    "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+                    "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+                    "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+                    "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+                    "     OR hts.client_code ILIKE ?3 || '%')",
             nativeQuery = true)
     Page<PrepHtsPatient> searchPatients(Boolean archived, Long facilityId, String search, Pageable pageable);
 
@@ -361,8 +361,9 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             ")\n";
 
     String LITE_SEARCH =
-            "AND (p.first_name ILIKE ?3 OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3 OR hts.client_code ILIKE ?3)\n";
+            "AND (p.first_name ILIKE '%' || ?3 || '%' OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%' OR hts.client_code ILIKE ?3 || '%')\n";
 
     String LITE_COUNT_HEAD =
             "SELECT COUNT(*)\n" +

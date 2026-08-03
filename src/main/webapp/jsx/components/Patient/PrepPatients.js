@@ -114,7 +114,9 @@ const Patients = (props) => {
             //isLoading={loading}
             data={query =>
                 new Promise((resolve, reject) =>
-                    axios.get(`${baseUrl}prep/persons?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`, { headers: {"Authorization" : `Bearer ${token}`} })
+                    // encodeURIComponent: an unencoded '&', '+' or '%' typed into
+                    // the search box truncated or corrupted the query string.
+                    axios.get(`${baseUrl}prep/persons?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${encodeURIComponent(query.search)}`, { headers: {"Authorization" : `Bearer ${token}`} })
                         .then(response => response)
                         .then(result => {
                             

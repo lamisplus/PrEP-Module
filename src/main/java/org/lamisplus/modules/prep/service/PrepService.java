@@ -60,12 +60,6 @@ public class PrepService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
-    /**
-     * Resolves the Person for a write, PREFERRING the stable person UUID (always
-     * shipped on every grid row) over the bigint person id. Falls back to the id
-     * only when no uuid was sent, so older payloads keep working. This is what
-     * makes every CRUD path robust against a stale/absent person id.
-     */
     public Person resolvePersonForWrite(String personUuid, Long personId) {
         if (personUuid != null && !personUuid.trim().isEmpty()) {
             Optional<Person> byUuid = personRepository.findByUuidAndFacilityId(
@@ -113,9 +107,6 @@ public class PrepService {
             throw PrepErrors.personMismatch("eligibility screening");
         }
 
-        // Clinical guard: PrEP is only available to clients aged 15 and above. Below that age,
-        // only PEP may be initiated. The frontend already disables the PrEP card for under-15s,
-        // but enforce here to prevent direct API misuse and bad data via syncs.
         String enrollmentType = EnrollmentType.toCanonical(prepEnrollmentRequestDto.getEnrollmentType());
         if (EnrollmentType.isPrep(enrollmentType) && person.getDateOfBirth() != null) {
             int age = Period.between(person.getDateOfBirth(), LocalDate.now()).getYears();
@@ -124,10 +115,6 @@ public class PrepService {
             }
         }
 
-        // Per-arm duplicate guard: a single eligibility screening can seed BOTH
-        // a PrEP and a PEP initiation (clients legitimately switch arms after
-        // re-screening). Only reject if an initiation of the SAME arm already
-        // exists for this screening.
         if (enrollmentType != null && !enrollmentType.isEmpty()) {
             if (this.prepPepInitiationRepository
                     .findByProphylaxisScreeningUuidAndEnrollmentTypeIgnoreCaseAndArchived(
@@ -142,8 +129,6 @@ public class PrepService {
         prepEnrollment.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         prepEligibility.setUuid(UUID.randomUUID().toString());
 
-        // Same-date duplicate guard — arm-scoped so PEP and PrEP can both be
-        // initiated on the same calendar date.
         if (enrollmentType != null && !enrollmentType.isEmpty()) {
             prepPepInitiationRepository
                     .findByDateEnrolledAndPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(
@@ -393,12 +378,27 @@ public class PrepService {
         prepPepInitiationRepository.save(prepEnrollment);
     }
 
+    private static String normalizeSearchTerm(String searchValue) {
+        if (searchValue == null || "null".equals(searchValue) || "*".equals(searchValue)) {
+            return null;
+        }
+        String term = searchValue.trim().replaceAll("\\s+", " ");
+        if (term.isEmpty()) {
+            return null;
+        }
+        return term.replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+    }
+
     public Page<Person> findPrepPersonPage(String searchValue, int pageNo, int pageSize) {
         Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            searchValue = searchValue.replaceAll("\\s", "");
-            String queryParam = "%" + searchValue + "%";
+        String searchTerm = normalizeSearchTerm(searchValue);
+        if (searchTerm != null) {
+            // The patient module owns this query, so its predicate still takes a
+            // pre-wrapped contains pattern.
+            String queryParam = "%" + searchTerm + "%";
             return personRepository
                     .findAllPersonBySearchParameters(queryParam, UN_ARCHIVED, facilityId, pageable);
         }
@@ -411,10 +411,9 @@ public class PrepService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<PrepClient> resultPage;
 
-        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            searchValue = searchValue.replaceAll("\\\\s", "");
-            String queryParam = "%" + searchValue + "%";
-            resultPage = prepPepInitiationRepository.findAllPersonPrepAndStatusBySearchParam(false, facilityId, queryParam, pageable);
+        String searchTerm = normalizeSearchTerm(searchValue);
+        if (searchTerm != null) {
+            resultPage = prepPepInitiationRepository.findAllPersonPrepAndStatusBySearchParam(false, facilityId, searchTerm, pageable);
         } else {
             resultPage = prepPepInitiationRepository.findAllPersonPrepAndStatus(false, facilityId, pageable);
         }
@@ -430,10 +429,9 @@ public class PrepService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<PrepClient> resultPage;
 
-        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            searchValue = searchValue.replaceAll("\\\\s", "");
-            String queryParam = "%" + searchValue + "%";
-            resultPage = prepPepInitiationRepository.findAllInterruptedPersonPrepAndStatusBySearchParam(false, facilityId, queryParam, pageable);
+        String searchTerm = normalizeSearchTerm(searchValue);
+        if (searchTerm != null) {
+            resultPage = prepPepInitiationRepository.findAllInterruptedPersonPrepAndStatusBySearchParam(false, facilityId, searchTerm, pageable);
         } else {
             resultPage = prepPepInitiationRepository.findAllInterruptedPersonPrepAndStatus(false, facilityId, pageable);
         }
@@ -449,10 +447,9 @@ public class PrepService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<PrepClient> resultPage;
 
-        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            searchValue = searchValue.replaceAll("\\\\s", "");
-            String queryParam = "%" + searchValue + "%";
-            resultPage = prepPepInitiationRepository.findAllNotEnrolledPersonPrepAndStatusBySearchParam(false, facilityId, queryParam, pageable);
+        String searchTerm = normalizeSearchTerm(searchValue);
+        if (searchTerm != null) {
+            resultPage = prepPepInitiationRepository.findAllNotEnrolledPersonPrepAndStatusBySearchParam(false, facilityId, searchTerm, pageable);
         } else {
             resultPage = prepPepInitiationRepository.findAllNotEnrolledPersonPrepAndStatus(false, facilityId, pageable);
         }
@@ -468,10 +465,10 @@ public class PrepService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<PrepHtsPatient> resultPage;
 
-        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            String queryParam = "%" + searchValue.replaceAll("\\s", "") + "%";
+        String searchTerm = normalizeSearchTerm(searchValue);
+        if (searchTerm != null) {
             resultPage = prepPepInitiationRepository
-                    .findPrepEnrolledBySearchParam(false, facilityId, EnrollmentType.PREP, queryParam, pageable);
+                    .findPrepEnrolledBySearchParam(false, facilityId, EnrollmentType.PREP, searchTerm, pageable);
         } else {
             resultPage = prepPepInitiationRepository
                     .findPrepEnrolled(false, facilityId, EnrollmentType.PREP, pageable);
@@ -484,10 +481,10 @@ public class PrepService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<PrepHtsPatient> resultPage;
 
-        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            String queryParam = "%" + searchValue.replaceAll("\\s", "") + "%";
+        String searchTerm = normalizeSearchTerm(searchValue);
+        if (searchTerm != null) {
             resultPage = prepPepInitiationRepository
-                    .findPepEnrolledBySearchParam(false, facilityId, EnrollmentType.PEP, queryParam, pageable);
+                    .findPepEnrolledBySearchParam(false, facilityId, EnrollmentType.PEP, searchTerm, pageable);
         } else {
             resultPage = prepPepInitiationRepository
                     .findPepEnrolled(false, facilityId, EnrollmentType.PEP, pageable);
@@ -495,15 +492,6 @@ public class PrepService {
         return mapEnrolledPage(resultPage, pageable);
     }
 
-    /**
-     * Re-uses the same projection mapper the Patient tab uses so enrollment-tab
-     * rows ship every property the dashboard expects (HTS encounter,
-     * pregnancyStatusDisplay, isInterrupted, counts, etc).
-     * <p>
-     * Pagination is preserved verbatim from the underlying {@code Page} —
-     * total elements + total pages come straight from the SQL count query;
-     * we only re-wrap the content list after DTO mapping.
-     */
     private Page<PrepHtsPatientDto> mapEnrolledPage(Page<PrepHtsPatient> resultPage, Pageable pageable) {
         List<PrepHtsPatientDto> dtos = resultPage.getContent().stream()
                 .map(this::toPrepHtsPatientDto)
@@ -516,13 +504,10 @@ public class PrepService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<PrepHtsPatient> resultPage;
 
-        // Lean grid query (findAllPatientsLite/searchPatientsLite): latest-HTS
-        // CTE + patient_person only, no prepStatus/interruption/follow-up joins.
-        // Revert by swapping these back to searchPatients/findAllPatients.
-        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            String queryParam = "%" + searchValue.replaceAll("\\s", "") + "%";
+        String searchTerm = normalizeSearchTerm(searchValue);
+        if (searchTerm != null) {
             resultPage = prepHtsEncounterPatientRepository
-                    .searchPatientsLite(false, facilityId, queryParam, pageable);
+                    .searchPatientsLite(false, facilityId, searchTerm, pageable);
         } else {
             resultPage = prepHtsEncounterPatientRepository
                     .findAllPatientsLite(false, facilityId, pageable);
@@ -533,10 +518,6 @@ public class PrepService {
                 .map(this::toPrepHtsPatientDto)
                 .collect(Collectors.toList());
 
-        // Ship the per-arm active-enrollment flags ON each row so the Enroll modal
-        // reads them directly (no extra round-trip). Computed by person_uuid: a
-        // client with an active, not-yet-discontinued initiation on an arm cannot
-        // be re-enrolled there. New clients (no initiation) → both false → allowed.
         dtos.forEach(dto -> {
             java.util.Map<String, Boolean> active = getActiveEnrollmentByUuid(dto.getPersonUuid());
             dto.setIsCurrentStatusInterruptedPrep(active.get("isCurrentStatusInterruptedPrep"));
@@ -592,12 +573,6 @@ public class PrepService {
                 .build();
     }
 
-    /**
-     * Rehydrate a single hts_encounter by uuid into {@link LatestHtsResultDto}
-     * — used by edit/view paths on prep forms (screening, initiation, followup,
-     * clinic) to fill the read-only HTS fields when the saved record links to
-     * an hts_encounter via {@code hts_encounter_uuid}.
-     */
     public LatestHtsResultDto findHtsEncounterByUuid(String htsEncounterUuid) {
         if (htsEncounterUuid == null || htsEncounterUuid.isEmpty()) {
             return null;
@@ -633,11 +608,10 @@ public class PrepService {
     public Page<PrepClient> findOnlyPrepPersonPage(String searchValue, int pageNo, int pageSize) {
         Long facilityId = currentUserOrganizationService.getCurrentUserOrganization();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        if (!String.valueOf(searchValue).equals("null") && !searchValue.equals("*")) {
-            searchValue = searchValue.replaceAll("\\s", "");
-            String queryParam = "%" + searchValue + "%";
+        String searchTerm = normalizeSearchTerm(searchValue);
+        if (searchTerm != null) {
             return prepPepInitiationRepository
-                    .findOnlyPersonPrepAndStatusBySearchParam(false, facilityId, queryParam, pageable);
+                    .findOnlyPersonPrepAndStatusBySearchParam(false, facilityId, searchTerm, pageable);
         }
         return prepPepInitiationRepository
                 .findOnlyPersonPrepAndStatus(false, currentUserOrganizationService.getCurrentUserOrganization(), pageable);
@@ -693,8 +667,7 @@ public class PrepService {
         if (!clients.isEmpty()) {
             prepDtos.setEnrollmentType(clients.get(0).getEnrollmentType());
         }
-        // Per-arm counts so the UI can decide what to show on each tab without
-        // re-querying. Always non-null (zero when the patient has no records).
+
         prepDtos.setInterruptionCount(
                 prophylaxisInterruptionRepository.countAllByPersonUuidAndArchived(person.getUuid(), false));
         prepDtos.setPrepInitiationCount(
@@ -703,17 +676,10 @@ public class PrepService {
         prepDtos.setPepInitiationCount(
                 prepPepInitiationRepository.countAllByPersonUuidAndEnrollmentTypeIgnoreCaseAndArchived(
                         person.getUuid(), EnrollmentType.PEP, false));
-        // Pregnancy display comes from the patient's latest hts_encounter
-        // (initiation no longer stores pregnancyStatus / breastFeeding — both are
-        // derived from the same hts pregnancyStatus codeset where Breastfeeding
-        // is one of the possible values). Patient Card reads this directly.
+
         prepDtos.setPregnant(
                 prepHtsEncounterPatientRepository.findLatestPregnancyStatusDisplay(person.getUuid()));
 
-        // Current regimen — display name from the patient's most recent
-        // prep_followup_visit (covers both initiation and ongoing visits).
-        // Patient Card renders this; falling back to the regimen code when an
-        // entry is not mapped in PrepRegimens.
         prepFollowupVisitRepository
                 .findTopByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(
                         person.getUuid(), currentUserOrganizationService.getCurrentUserOrganization(),
@@ -725,11 +691,6 @@ public class PrepService {
                     if (regimenId == null || regimenId.isEmpty()) {
                         return;
                     }
-                    // After the bigint→varchar migration, regimen_id holds the
-                    // canonical codeset code (e.g. PREP_REGIMEN_TDF_FTC).
-                    // Legacy rows that survived the migration as a stringified
-                    // numeric id (no matching codeset row) fall through to
-                    // displayById so they still render a friendly name.
                     String display = PrepRegimens.displayByCode(regimenId);
                     if (display == null || display.equals(regimenId)) {
                         try {
@@ -740,10 +701,7 @@ public class PrepService {
                     }
                     prepDtos.setCurrentRegimen(display);
                 });
-        // If no follow-up exists yet (right after initiation), fall back to the
-        // latest initiation's prep_regimen so the dashboard never surfaces a
-        // raw numeric id. The form historically stored the numeric row id; we
-        // also handle the case where future writes use the codeset code.
+
         if (prepDtos.getCurrentRegimen() == null) {
             prepPepInitiationRepository
                     .findTopByPersonUuidAndArchived(person.getUuid(), false)
@@ -753,9 +711,7 @@ public class PrepService {
                             return;
                         }
                         String display = PrepRegimens.displayByCode(raw);
-                        // displayByCode returns the original string when the
-                        // code isn't mapped; treat that as a numeric-id legacy
-                        // value and re-resolve via displayById.
+
                         if (display == null || display.equals(raw)) {
                             try {
                                 display = PrepRegimens.displayById(Long.parseLong(raw));
@@ -769,13 +725,6 @@ public class PrepService {
                     });
         }
 
-        // isCurrentStatus* flags drive the Patient List "Enroll" modal and the
-        // SubMenu cross-arm lockouts. They answer, PER ARM and independently:
-        // "does the client have a CURRENT (active, not-yet-discontinued)
-        // enrollment on this arm?" — the SAME single source of truth the grid row
-        // uses (getActiveEnrollmentByUuid), so no two paths can disagree.
-        // No initiation → false (enrollment allowed). Has initiation, not
-        // discontinued → true. Blank uuid → false.
         String personUuidForStatus = person.getUuid();
         java.util.Map<String, Boolean> activeEnrollment = getActiveEnrollmentByUuid(personUuidForStatus);
         prepDtos.setIsCurrentStatusInterruptedPrep(
@@ -795,10 +744,6 @@ public class PrepService {
             //prepDtos.setPrepEligibilityCount(prepClient.getEligibilityCount());
         }
 
-        // Arm-aware status: when the dashboard tells us which arm it is showing
-        // (enrollmentType), override prepStatus with the SAME per-arm query the
-        // grid uses, so the dashboard and grid always agree. When no arm is
-        // supplied, fall back to the legacy PEP-override heuristic below.
         String canonicalArm = EnrollmentType.toCanonical(enrollmentType);
         if (EnrollmentType.PREP.equals(canonicalArm)) {
             prepPepInitiationRepository
@@ -815,10 +760,6 @@ public class PrepService {
                     .map(PrepHtsPatient::getPrepStatus)
                     .ifPresent(prepDtos::setPrepStatus);
         } else {
-            // Legacy (no arm supplied): if the patient's latest initiation is PEP,
-            // reuse the EXACT PEP grid status query (PEP_STATUS_CASE) so the
-            // fallback matches the grid — Completed only via a completion form,
-            // otherwise Active/Default on next_appointment, Not Commenced pre-visit.
             prepPepInitiationRepository
                     .findLatestByPersonUuidAndEnrollmentType(person.getUuid(), false, EnrollmentType.PEP)
                     .ifPresent(latestPepInit -> prepPepInitiationRepository
@@ -829,14 +770,10 @@ public class PrepService {
                             .ifPresent(prepDtos::setPrepStatus));
         }
 
-        // Final safety net: if every path above left the status null/blank (a
-        // record we read came back null and nothing set a value), never leave it
-        // empty — assume the worst case rather than an implied-active blank.
         if (prepDtos.getPrepStatus() == null || prepDtos.getPrepStatus().trim().isEmpty()) {
             prepDtos.setPrepStatus("Defaulted");
         }
 
-        // Compute previousProphylaxis by comparing latest PrEP and PEP followup visit dates
         LocalDate latestPrepVisit = prepFollowupVisitRepository
                 .findAllByPersonUuidAndFacilityIdAndArchivedAndIsCommencementOrderByEncounterDateDesc(
                         person.getUuid(), currentUserOrganizationService.getCurrentUserOrganization(), false, false)
@@ -857,13 +794,6 @@ public class PrepService {
         return prepDtos;
     }
 
-    /**
-     * PEP courses auto-expire 28 days after the initiation/enrollment date. This
-     * helper is invoked whenever an initiation is read so the {@code is_interrupted}
-     * flag stays accurate without waiting for a scheduled job — the value is also
-     * persisted lazily so subsequent reads (and any direct DB queries) see it.
-     * Returns the effective interrupted state.
-     */
     private Boolean applyPepAutoExpiry(PrepPepInitiation initiation) {
         if (initiation == null) return null;
         Boolean interrupted = initiation.getIsInterrupted();
@@ -904,16 +834,7 @@ public class PrepService {
         return new PrepEnrollmentDto();
     }
 
-    /**
-     * Returns the most recent (by date_enrolled) initiation for the given person filtered
-     * by enrollment type (PrEP or PEP). Used by follow-up visit forms to compute duration
-     * on therapy and to validate that the visit date is after the enrollment date.
-     */
     public PrepEnrollmentDto getLatestInitiation(String personUuid, String enrollmentType) {
-        // Keyed by the person UUID (stable, always shipped on every grid row)
-        // rather than the bigint person id, which could be stale/absent on a row
-        // and threw EntityNotFound. No person lookup needed — the repository
-        // filters directly on person_uuid.
         if (personUuid == null || personUuid.trim().isEmpty()) {
             return new PrepEnrollmentDto();
         }
@@ -945,12 +866,6 @@ public class PrepService {
         return getLatestInitiationUuid(personUuid, enrollmentType);
     }
 
-    /**
-     * Dedicated, lightweight status endpoint: returns the SAME arm-specific status
-     * the grid shows (PrEP or PEP), for one person, keyed by person UUID. Used by
-     * the dashboard to refresh the patient card's status immediately after a form
-     * submission — without re-fetching the full person payload.
-     */
     public String getEnrollmentStatus(String personUuid, String enrollmentType) {
         if (personUuid == null || personUuid.trim().isEmpty()) {
             return "Not Available";
@@ -970,15 +885,6 @@ public class PrepService {
                 .orElse("Not Available");
     }
 
-    /**
-     * Does the client currently have an ACTIVE (non-interrupted) enrollment on
-     * each arm? Keyed DIRECTLY by the person UUID that the grid row carries, so
-     * the "Enroll" modal never goes through the personId → findById(person) →
-     * person.getUuid() hop (which can resolve the wrong/mismatched person and
-     * falsely block a brand-new HTS client). Initiations link only by
-     * person_uuid, so this is the reliable check. No initiation on an arm → not
-     * active on that arm; the two arms are reported independently.
-     */
     public java.util.Map<String, Boolean> getActiveEnrollmentByUuid(String personUuid) {
         boolean prepActive = false;
         boolean pepActive = false;
@@ -994,16 +900,6 @@ public class PrepService {
         return result;
     }
 
-    /**
-     * Is the client on a CURRENT (active) enrollment for this arm?
-     *   • No initiation on the arm → NOT active (a brand-new client — enrollment
-     *     allowed).
-     *   • Has an initiation → active, UNLESS discontinued.
-     *   • Discontinued when the latest interruption date for the arm is on/after
-     *     the latest follow-up visit date for the arm (a later interruption closes
-     *     the course). A client with an initiation but no interruption yet (with or
-     *     without follow-ups) is still active.
-     */
     private boolean isArmActivelyEnrolled(String personUuid, String enrollmentType,
                                           java.sql.Date latestFollowupSql) {
         boolean hasInitiation = prepPepInitiationRepository
