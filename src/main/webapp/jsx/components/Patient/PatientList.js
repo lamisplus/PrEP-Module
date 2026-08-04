@@ -6,6 +6,9 @@ import {
   ENROLLMENT_LABEL_PREP,
   ENROLLMENT_LABEL_PEP,
 } from "../../constants/enrollmentType";
+import useLatestGridRequest, {
+  isAbortError,
+} from "../../hooks/useLatestGridRequest";
 import { forwardRef } from "react";
 import "semantic-ui-css/semantic.min.css";
 import { useHistory } from "react-router-dom";
@@ -451,12 +454,7 @@ const EnrollPatientButton = ({ row }) => {
 const Patients = (props) => {
   const classes = useStyles();
   const [showPPI, setShowPPI] = useState(true);
-
-  // NOTE: the on-mount `prep/persons/hts` fetch was removed. It hit the heavy
-  // patient-tab query a SECOND time (its result was stored in unused state),
-  // doubling DB load every time the tab opened. The MaterialTable `data`
-  // function below already fetches the (paginated) list — that is the only
-  // call needed.
+  const startRequest = useLatestGridRequest();
 
   const handleCheckBox = (e) => {
     if (e.target.checked) {
@@ -484,21 +482,20 @@ const Patients = (props) => {
         ]}
         data={(query) =>
           new Promise((resolve, reject) => {
+            const { signal, isCurrent } = startRequest();
             axios
               .get(
-                // encodeURIComponent: an unencoded '&', '+' or '%' typed into
-                // the search box truncated or corrupted the query string.
                 `${baseUrl}prep/persons/hts?pageSize=${query.pageSize}&pageNo=${
                   query.page
                 }&searchValue=${encodeURIComponent(query.search)}`,
                 {
                   headers: { Authorization: `Bearer ${token}` },
-                  // Fail fast instead of hanging until the OS suspends the
-                  // socket (the ERR_NETWORK_IO_SUSPENDED seen after ~5 min).
                   timeout: 120000,
+                  signal,
                 }
               )
               .then((result) => {
+                if (!isCurrent()) return;
                 resolve({
                   data: result?.data?.records?.map?.((row) => ({
                     name: row.firstName + " " + row.surname,
@@ -511,10 +508,8 @@ const Patients = (props) => {
                   totalCount: result?.data?.totalRecords || 0,
                 });
               })
-              // Without this catch the promise never settled on error, so the
-              // table spun forever even after the request failed/timed out.
-              // Reject so MaterialTable shows its error state + a retry.
               .catch((error) => {
+                if (isAbortError(error) || !isCurrent()) return;
                 reject(error);
               });
           })

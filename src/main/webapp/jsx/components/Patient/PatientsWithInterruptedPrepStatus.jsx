@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { token as token, url as baseUrl } from "./../../../api";
+import useLatestGridRequest, {
+  isAbortError,
+} from "../../hooks/useLatestGridRequest";
 import { forwardRef } from "react";
 import "semantic-ui-css/semantic.min.css";
 import { Link } from "react-router-dom";
@@ -61,14 +64,15 @@ const tableIcons = {
 // Create styles using makeStyles
 const useStyles = makeStyles({
   statusLabel: {
-    width: "150px", // Set a constant width for the Label component
-    display: "inline-block", // Ensure the width is respected
-    textAlign: "center", // Center the text within the label
+    width: "150px",     
+    display: "inline-block",
+    textAlign: "center",
   },
 });
 
 const PatientsWithInterruptedPrepStatus = props => {
-  const classes = useStyles(); // Use the styles
+  const classes = useStyles(); 
+  const startRequest = useLatestGridRequest();
   const [patientList, setPatientList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPPI, setShowPPI] = useState(true);
@@ -124,19 +128,19 @@ const PatientsWithInterruptedPrepStatus = props => {
         ]}
         data={query =>
           new Promise((resolve, reject) => {
+            const { signal, isCurrent } = startRequest();
             axios
               .get(
-                // encodeURIComponent: an unencoded '&', '+' or '%' typed into
-                // the search box truncated or corrupted the query string.
                 `${baseUrl}prep/persons/interrupted-prep-status?pageSize=${
                   query.pageSize
                 }&pageNo=${query.page}&searchValue=${encodeURIComponent(
                   query.search
                 )}`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${token}` }, signal }
               )
               .then(response => response)
               .then(result => {
+                if (!isCurrent()) return;
                 resolve({
                   data: result?.data?.records?.map?.(row => ({
                     name: row.firstName + " " + row.surname,
@@ -209,6 +213,10 @@ const PatientsWithInterruptedPrepStatus = props => {
                   page: query.page,
                   totalCount: result.data.totalRecords,
                 });
+              })
+              .catch(error => {
+                if (isAbortError(error) || !isCurrent()) return;
+                reject(error);
               });
           })
         }
