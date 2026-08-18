@@ -82,7 +82,7 @@ const PrEPInitialVisitForm = props => {
     prepTypeAtStart: "",
     prepTypeAtStartOthersSpecify: "",
     prepRegimen: "",
-    monthsOfRefill: "",
+    refillDays: "",
   });
 
   const [loadedHts, setLoadedHts] = useState(null);
@@ -1204,17 +1204,19 @@ const PrEPInitialVisitForm = props => {
                 </FormGroup>
               </div>
 
-              {/* 18b. Months of Refill */}
+              {/* 18b. Refill Days */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label>Months of Refill</Label>
+                  {/* REPLACED: was "Months of Refill". The value is now a DAY
+                      count, matching what the status SQL adds to the visit date. */}
+                  <Label>Refill Days</Label>
                   <Input
                     type="number"
                     className="form-control"
-                    name="monthsOfRefill"
-                    id="monthsOfRefill"
-                    min="0"
-                    value={objValues.monthsOfRefill}
+                    name="refillDays"
+                    id="refillDays"
+                    min="1"
+                    value={objValues.refillDays}
                     onChange={handleInputChange}
                     style={{
                       border: "1px solid #014D88",

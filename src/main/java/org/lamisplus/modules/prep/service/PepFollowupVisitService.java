@@ -253,10 +253,17 @@ public class PepFollowupVisitService {
         entity.setOtherPrepType(dto.getOtherPrepType());
         entity.setWasPrepAdministered(dto.getWasPrepAdministered());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
-        entity.setMonthsOfRefill(dto.getMonthsOfRefill());
+        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
+        // entity.setMonthsOfRefill(dto.getMonthsOfRefill());
+        entity.setRefillDays(dto.getRefillDays());
         entity.setReasonForSwitch(dto.getReasonForSwitch());
         entity.setStiScreening(dto.getStiScreening());
-        entity.setDuration(dto.getDuration());
+        // REPLACED BY refillDays. `duration` is still written because the status
+        // SQL adds it to encounter_date as a DAY count
+        // (PrepPepInitiationRepository.java:1634); feeding it days is what makes
+        // the client statuses correct without rewriting that SQL.
+        // entity.setDuration(dto.getDuration());
+        entity.setDuration(dto.getRefillDays());
         entity.setPrepType(dto.getPrepType());
         entity.setPopulationType(dto.getPopulationType());
         entity.setOtherRegimenId(dto.getOtherRegimenId());
@@ -304,10 +311,17 @@ public class PepFollowupVisitService {
         entity.setOtherPrepType(dto.getOtherPrepType());
         entity.setWasPrepAdministered(dto.getWasPrepAdministered());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
-        entity.setMonthsOfRefill(dto.getMonthsOfRefill());
+        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
+        // entity.setMonthsOfRefill(dto.getMonthsOfRefill());
+        entity.setRefillDays(dto.getRefillDays());
         entity.setReasonForSwitch(dto.getReasonForSwitch());
         entity.setStiScreening(dto.getStiScreening());
-        entity.setDuration(dto.getDuration());
+        // REPLACED BY refillDays. `duration` is still written because the status
+        // SQL adds it to encounter_date as a DAY count
+        // (PrepPepInitiationRepository.java:1634); feeding it days is what makes
+        // the client statuses correct without rewriting that SQL.
+        // entity.setDuration(dto.getDuration());
+        entity.setDuration(dto.getRefillDays());
         entity.setPrepType(dto.getPrepType());
         entity.setPopulationType(dto.getPopulationType());
         entity.setOtherRegimenId(dto.getOtherRegimenId());
@@ -356,7 +370,9 @@ public class PepFollowupVisitService {
         dto.setOtherPrepType(entity.getOtherPrepType());
         dto.setWasPrepAdministered(entity.getWasPrepAdministered());
         dto.setPrepDistributionSetting(entity.getPrepDistributionSetting());
-        dto.setMonthsOfRefill(entity.getMonthsOfRefill());
+        // REPLACED BY refillDays.
+        // dto.setMonthsOfRefill(entity.getMonthsOfRefill());
+        dto.setRefillDays(entity.getRefillDays());
         dto.setReasonForSwitch(entity.getReasonForSwitch());
         dto.setStiScreening(entity.getStiScreening());
         dto.setDuration(entity.getDuration());

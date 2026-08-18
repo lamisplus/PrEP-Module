@@ -41,22 +41,30 @@ export const CleanupWrapper = ({ cleanup, children }) => {
 
 const prepTypesMappedToDuration = ["PREP_TYPE_INJECTIBLES", "PREP_TYPE_ORAL"];
 
-// CAB-LA refill codeset codes carry days in the suffix (30/60/90 days), but
-// the next-appointment math operates on months. Map every code to the months
-// it actually corresponds to so visit_date + months works out: 30d=1mo,
-// 60d=2mo, 90d=3mo. Keep the legacy days strings here too so historical rows
-// (where monthsOfRefill was persisted as "30"/"60"/"90") still resolve.
-const CAB_LA_REFILL_MONTHS = {
-  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": 1,
-  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": 2,
-  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90": 3,
-  "30": 1,
-  "60": 2,
-  "90": 3,
+// REPLACED: CAB_LA_REFILL_MONTHS mapped each CAB-LA codeset code to a MONTH
+// count (30d=1mo, 60d=2mo, 90d=3mo) because the next-appointment math added
+// months. The refill field is now a DAY count end to end, so the codes map
+// straight to the days their suffix already names and no conversion is left to
+// get wrong.
+//
+// const CAB_LA_REFILL_MONTHS = {
+//   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": 1,
+//   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": 2,
+//   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90": 3,
+//   "30": 1, "60": 2, "90": 3,
+// };
+const CAB_LA_REFILL_DAYS = {
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": 30,
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": 60,
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90": 90,
+  // Legacy rows persisted the bare days string; keep them resolving.
+  "30": 30,
+  "60": 60,
+  "90": 90,
 };
 
-// Legacy reverse map (full code -> days string) — kept for the save path
-// because the backend column historically holds the days string.
+// Maps the CAB-LA codeset code to the days string and back. Still needed: the
+// dropdown's value is the codeset code, while what is stored is a day count.
 const durationMap = {
   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": "30",
   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": "60",
@@ -79,13 +87,13 @@ function getDurationByValue(value) {
   }
 }
 
-// Months to add to the visit date for the next appointment. CAB-LA codes
-// (full codeset code OR legacy days string) resolve via the map above;
-// otherwise the value is a plain monthly count typed by the user on the
-// oral-PrEP path.
-function refillToMonths(value) {
+// REPLACED refillToMonths. Days to add to the visit date for the next
+// appointment. CAB-LA codes (full codeset code OR legacy days string) resolve
+// via the map above; otherwise the value is the plain day count the user typed
+// on the oral-PrEP path.
+function refillToDays(value) {
   if (value == null || value === "") return NaN;
-  if (CAB_LA_REFILL_MONTHS[value] != null) return CAB_LA_REFILL_MONTHS[value];
+  if (CAB_LA_REFILL_DAYS[value] != null) return CAB_LA_REFILL_DAYS[value];
   const n = Number(value);
   return Number.isFinite(n) ? n : NaN;
 }
@@ -142,7 +150,7 @@ const buildValidationSchema = (isFemalePatient, isFromHts) =>
     adherenceLevel: Yup.string().required("This field is required"),
     prepType: Yup.string().required("This field is required"),
     regimenId: Yup.string().required("This field is required"),
-    monthsOfRefill: Yup.string().required("This field is required"),
+    refillDays: Yup.string().required("This field is required"),
     nextAppointment: Yup.string().required("This field is required"),
     healthCareWorkerSignature: Yup.string().required("This field is required"),
     whyAdherenceLevelPoor: Yup.string().when("adherenceLevel", {
@@ -185,7 +193,7 @@ const INITIAL_VALUES = {
   hasOtherDrugs: "",
   prepType: "",
   populationType: "",
-  monthsOfRefill: "",
+  refillDays: "",
   visitType: "",
   reasonForSwitch: "",
   whyAdherenceLevelPoor: "",
@@ -421,8 +429,13 @@ const ClinicVisit = props => {
       data = {
         ...data,
         regimenId: normalizeRegimenIdToCode(data?.regimenId, regimenList),
-        monthsOfRefill: getDurationByValue(data.monthsOfRefill) || data?.monthsOfRefill,
-        duration: getDurationByValue(data.monthsOfRefill) || data?.duration,
+        // REPLACED monthsOfRefill. Prefer the canonical refillDays; fall back to the
+        // legacy columns so records saved before the migration still open.
+        refillDays:
+          getDurationByValue(data?.refillDays) ||
+          data?.refillDays ||
+          data?.duration ||
+          data?.monthsOfRefill,
         // hasOtherDrugs drives a YES_NO codeset dropdown, so the loaded
         // toggle has to use the canonical "YES_NO_YES" / "YES_NO_NO" codes —
         // any other value (e.g. legacy "true") would not match a dropdown
@@ -590,6 +603,19 @@ const ClinicVisit = props => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
+  }
+
+  // REPLACED addMonthsToDate for the refill calculation. The refill field is
+  // now a DAY count, matching what the status SQL adds to encounter_date.
+  function addDaysToDate(dateString, daysToAdd) {
+    const date = new Date(dateString);
+    const days = parseInt(daysToAdd, 10);
+    if (isNaN(date.getTime()) || isNaN(days)) return "";
+    date.setDate(date.getDate() + days);
+    const year = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${year}-${m}-${d}`;
   }
 
   function addMonthsToDate(dateString, monthsToAdd) {
@@ -1184,8 +1210,9 @@ const ClinicVisit = props => {
 
     setSaving(true);
     const payload = { ...values };
-    payload.duration = getDuration(payload.monthsOfRefill);
-    payload.monthsOfRefill = getDuration(payload.monthsOfRefill);
+    // REPLACED monthsOfRefill. Send a DAY count; the backend mirrors it into the
+    // legacy `duration` column, which the status SQL adds to encounter_date as days.
+    payload.refillDays = getDuration(payload.refillDays);
     // The backend no longer stores hiv_test_result / hiv_test_result_date /
     // pregnant on prep_followup_visit — they are dereferenced via
     // hts_encounter at read time. We persist only `htsEncounterUuid`.
@@ -1322,14 +1349,14 @@ const ClinicVisit = props => {
           handleSubmit,
           setFieldValue,
         }) => {
-          // Auto-calculate next appointment = Visit Date + Months of Refill.
-          // For CAB-LA the dropdown value is a days code (30/60/90) which maps
-          // to 1/2/3 months — adding it as months caused the "+30 months" bug.
+          // Auto-calculate next appointment = Visit Date + Refill Days.
+          // The field is a DAY count now, so the CAB-LA codes (30/60/90) are
+          // added as the days they already name - no months conversion.
           const autoCalcNextAppointment = () => {
             if (!["update", "view"].includes(props.activeContent.actionType)) {
-              const months = refillToMonths(values.monthsOfRefill);
-              if (!Number.isFinite(months)) return;
-              const nextAppt = addMonthsToDate(values.encounterDate, months);
+              const days = refillToDays(values.refillDays);
+              if (!Number.isFinite(days)) return;
+              const nextAppt = addDaysToDate(values.encounterDate, days);
               if (nextAppt && nextAppt !== values.nextAppointment) {
                 setTimeout(() => setFieldValue("nextAppointment", nextAppt), 0);
               }
@@ -1944,7 +1971,7 @@ const ClinicVisit = props => {
                                 props.activeContent.actionType
                               )
                             ) {
-                              setFieldValue("monthsOfRefill", "");
+                              setFieldValue("refillDays", "");
                               setFieldValue("duration", "");
                             }
                           }}
@@ -1985,12 +2012,12 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* 15. Months of Refill */}
+                    {/* 15. Refill Days */}
                     {values.regimenId && (
                       <div className="mb-3 col-md-6">
                         <FormGroup>
                           <FormLabelName>
-                            Months of Refill{" "}
+                            Refill Days{" "}
                             <span style={{ color: "red" }}> *</span>
                           </FormLabelName>
                           <DurationWrapper
@@ -1998,17 +2025,13 @@ const ClinicVisit = props => {
                             isSelectedRegimenCabLa={isSelectedRegimenCabLa(
                               values.regimenId
                             )}
-                            name="monthsOfRefill"
-                            id="monthsOfRefill"
-                            value={values.monthsOfRefill}
+                            name="refillDays"
+                            id="refillDays"
+                            value={values.refillDays}
                             style={inputStyle}
                             handleInputChange={e => {
                               const durationInDays = e.target.value;
-                              setFieldValue(
-                                "monthsOfRefill",
-                                `${durationInDays}`
-                              );
-                              setFieldValue("duration", `${durationInDays}`);
+                              setFieldValue("refillDays", `${durationInDays}`);
                             }}
                             disabledField={disabledField}
                             setObjValues={fn => {
@@ -2022,9 +2045,9 @@ const ClinicVisit = props => {
                               }
                             }}
                           />
-                          {getError("monthsOfRefill") && (
+                          {getError("refillDays") && (
                             <span className={classes.error}>
-                              {getError("monthsOfRefill")}
+                              {getError("refillDays")}
                             </span>
                           )}
                         </FormGroup>

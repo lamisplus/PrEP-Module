@@ -12,7 +12,8 @@ const OralsDurationInput = ({
   return (
     <CleanupWrapper
       cleanup={() =>
-        setObjValues(prev => ({ ...prev, monthsOfRefill: '', duration: '' }))
+        // REPLACED monthsOfRefill/duration with the canonical refillDays.
+        setObjValues(prev => ({ ...prev, refillDays: '' }))
       }
     >
       <Input
@@ -20,7 +21,7 @@ const OralsDurationInput = ({
         name={name}
         id={name}
         value={value}
-        min={0}
+        min={1}
         onChange={handleInputChange}
         style={style}
         disabled={disabledField}

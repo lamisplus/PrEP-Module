@@ -105,13 +105,18 @@ const INITIAL_VALUES = {
   pepRegimen: "",
   dateStartPep: "",
   dateStopPep: "",
-  duration: "",
+  // REPLACED duration. Refill supply in DAYS; defaults to the 28-day PEP course.
+  refillDays: "",
   followupHivTestResults: [],
   nextAppointment: "",
   healthCareWorkerSignature: "",
   pregnant: "",
   personId: "",
 };
+
+// PEP is a fixed 28-day course, so this is both the form default and the
+// value the migration pins existing PEP rows to.
+const PEP_DEFAULT_REFILL_DAYS = "28";
 
 const PEPFollowupVisit = props => {
   const classes = useStyles();
@@ -491,8 +496,12 @@ const PEPFollowupVisit = props => {
         setF("durationBeforePep", latestPepFollowup.durationBeforePep);
       if (latestPepFollowup.dateStopPep)
         setF("dateStopPep", moment(latestPepFollowup.dateStopPep).format("YYYY-MM-DD"));
-      if (latestPepFollowup.duration !== undefined && latestPepFollowup.duration !== null)
-        setF("duration", latestPepFollowup.duration);
+      // REPLACED duration with refillDays; fall back to the legacy column so a
+      // follow-up saved before the migration still carries its value forward.
+      if (latestPepFollowup.refillDays !== undefined && latestPepFollowup.refillDays !== null)
+        setF("refillDays", latestPepFollowup.refillDays);
+      else if (latestPepFollowup.duration !== undefined && latestPepFollowup.duration !== null)
+        setF("refillDays", latestPepFollowup.duration);
     }
     // Auto-populate the Visit Date with the latest HTS date floor; the user may
     // still pick a later date (the input's `min` blocks earlier ones). Don't
@@ -500,15 +509,15 @@ const PEPFollowupVisit = props => {
     // effects so Next Appointment / Duration stay consistent.
     if (visitDateMin && !formikRef.current.values?.encounterDate) {
       setF("encounterDate", visitDateMin);
-      // Resolve the effective duration of refill: carried forward from a prior
-      // follow-up, else computed from months elapsed since enrollment. The field
-      // stays editable so the user can override it.
-      let dur = formikRef.current.values?.duration;
+      // Resolve the effective Refill Days: carried forward from a prior follow-up,
+      // else the 28-day PEP course. The field stays editable so the user can
+      // override it.
+      let dur = formikRef.current.values?.refillDays;
       if (!hasPriorFollowup) {
-        dur = calculateDurationOnPep(visitDateMin);
-        if (dur !== "") setF("duration", dur);
+        dur = PEP_DEFAULT_REFILL_DAYS;
+        setF("refillDays", dur);
       }
-      // Next Appointment = visit date + duration of refill (months), like PrEP.
+      // Next Appointment = visit date + Refill Days.
       const nextAppt = calculateNextAppointment(visitDateMin, dur);
       if (nextAppt) setF("nextAppointment", nextAppt);
     }
@@ -577,36 +586,39 @@ const PEPFollowupVisit = props => {
     }
   }, [props.activeContent.actionType]);
 
-  // ── Auto-calculate next appointment from encounterDate + duration ──
-  const calculateNextAppointment = (encounterDate, durationMonths) => {
-    if (!encounterDate || !durationMonths || isNaN(Number(durationMonths))) return "";
+  // ── Auto-calculate next appointment from encounterDate + refillDays ──
+  // REPLACED: this took a MONTH count and did setMonth(+n), which is what
+  // pushed a "28" entered as days ~28 months into the future and left those
+  // clients permanently Active (PEP status is decided purely by
+  // next_appointment < CURRENT_DATE, PrepPepInitiationRepository.java:1661).
+  //
+  // const calculateNextAppointment = (encounterDate, durationMonths) => {
+  //   if (!encounterDate || !durationMonths || isNaN(Number(durationMonths))) return "";
+  //   const date = new Date(encounterDate);
+  //   date.setMonth(date.getMonth() + Number(durationMonths));
+  //   return date.toISOString().split("T")[0];
+  // };
+  const calculateNextAppointment = (encounterDate, refillDays) => {
+    if (!encounterDate || !refillDays || isNaN(Number(refillDays))) return "";
     const date = new Date(encounterDate);
-    date.setMonth(date.getMonth() + Number(durationMonths));
+    date.setDate(date.getDate() + Number(refillDays));
     return date.toISOString().split("T")[0];
   };
 
-  // Months elapsed between enrollment date and the current visit date.
-  const calculateDurationOnPep = encounterDate => {
-    if (!encounterDate || !patientDto?.dateEnrolled) return "";
-    const start = new Date(patientDto.dateEnrolled);
-    const end = new Date(encounterDate);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
-    const months =
-      (end.getFullYear() - start.getFullYear()) * 12 +
-      (end.getMonth() - start.getMonth());
-    return months >= 0 ? String(months) : "0";
-  };
+  // REPLACED calculateDurationOnPep, which defaulted the field to the number of
+  // MONTHS elapsed since enrollment. PEP is a fixed 28-day course, so the
+  // default is simply 28 days; there is nothing to derive from the enrolment
+  // date.
+  //
+  // const calculateDurationOnPep = encounterDate => { ...months elapsed... };
 
   const handleDurationChange = (e, setFieldValue, encounterDate) => {
-    const duration = e.target.value;
-    setFieldValue("duration", duration);
-    const nextAppt = calculateNextAppointment(encounterDate, duration);
+    const refillDays = e.target.value;
+    setFieldValue("refillDays", refillDays);
+    const nextAppt = calculateNextAppointment(encounterDate, refillDays);
     if (nextAppt) setFieldValue("nextAppointment", nextAppt);
   };
 
-  // PEP schedule: next appointment = visit date + 28 days (the spec). The
-  // earlier "duration in months" math is left as a fallback but no longer
-  // overrides the 28-day default.
   const addDaysIso = (encounterDate, days) => {
     if (!encounterDate) return "";
     const date = new Date(encounterDate);
@@ -615,21 +627,18 @@ const PEPFollowupVisit = props => {
     return date.toISOString().split("T")[0];
   };
 
-  const handleEncounterDateChangeForAppt = (e, setFieldValue, duration) => {
+  const handleEncounterDateChangeForAppt = (e, setFieldValue, refillDays) => {
     const encounterDate = e.target.value;
     setFieldValue("encounterDate", encounterDate);
-    // Duration of refill — default from months elapsed since enrollment when no
-    // prior follow-up carried it forward. The field stays editable regardless.
-    let effectiveDuration = duration;
+    // Refill Days — defaults to the 28-day PEP course when no prior follow-up
+    // carried a value forward. The field stays editable regardless.
+    let effectiveDays = refillDays;
     if (!hasPriorFollowup) {
-      const computedDuration = calculateDurationOnPep(encounterDate);
-      if (computedDuration !== "") {
-        effectiveDuration = computedDuration;
-        setFieldValue("duration", computedDuration);
-      }
+      effectiveDays = PEP_DEFAULT_REFILL_DAYS;
+      setFieldValue("refillDays", PEP_DEFAULT_REFILL_DAYS);
     }
-    // Next Appointment = visit date + duration of refill (months), like PrEP.
-    const nextAppt = calculateNextAppointment(encounterDate, effectiveDuration);
+    // Next Appointment = visit date + Refill Days.
+    const nextAppt = calculateNextAppointment(encounterDate, effectiveDays);
     if (nextAppt) setFieldValue("nextAppointment", nextAppt);
   };
 
@@ -843,7 +852,7 @@ const PEPFollowupVisit = props => {
                           onKeyDown={e => e.preventDefault()}
                           value={values.encounterDate}
                           style={inputStyle}
-                          onChange={e => handleEncounterDateChangeForAppt(e, setFieldValue, values.duration)}
+                          onChange={e => handleEncounterDateChangeForAppt(e, setFieldValue, values.refillDays)}
                           min={visitDateMin || patientDto?.dateEnrolled || ""}
                           max={moment(new Date()).format("YYYY-MM-DD")}
                           disabled={disabledField}
@@ -1358,23 +1367,22 @@ const PEPFollowupVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* 12b. Duration of Refill (Months) — auto-populated (carried
-                        from the previous follow-up, else computed from months
-                        since enrollment) but always editable. Driving Next
-                        Appointment = Visit Date + this value. */}
+                    {/* 12b. Refill Days - auto-populated (carried from the previous
+                        follow-up, else the 28-day PEP course) but always editable.
+                        Driving Next Appointment = Visit Date + this value. */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Duration of Refill (Months)</FormLabelName>
+                        <FormLabelName>Refill Days</FormLabelName>
                         <Input
                           type="number"
-                          name="duration"
-                          id="duration"
-                          value={values.duration}
+                          name="refillDays"
+                          id="refillDays"
+                          value={values.refillDays}
                           onChange={e =>
                             handleDurationChange(e, setFieldValue, values.encounterDate)
                           }
                           style={inputStyle}
-                          min="0"
+                          min="1"
                         />
                       </FormGroup>
                     </div>

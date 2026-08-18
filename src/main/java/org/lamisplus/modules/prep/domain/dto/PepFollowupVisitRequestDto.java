@@ -46,6 +46,9 @@ public class PepFollowupVisitRequestDto implements Serializable {
     private String reasonForSwitch;
     private String wasPrepAdministered;
     private Integer monthsOfRefill;
+
+    /** Refill supply in DAYS. Replaces the ambiguous monthsOfRefill/duration pair. */
+    private Integer refillDays;
     private String previousPrepStatus;
     private String whyAdherenceLevelPoor;
     private String otherReasonForPoorFairAdherence;

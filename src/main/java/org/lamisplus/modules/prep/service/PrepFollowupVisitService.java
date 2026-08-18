@@ -255,12 +255,19 @@ public class PrepFollowupVisitService {
         entity.setSyndromicStiScreening(sanitizeJsonb(dto.getSyndromicStiScreening()));
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
-        entity.setDuration(dto.getDuration());
+        // REPLACED BY refillDays. `duration` is still written because the status
+        // SQL adds it to encounter_date as a DAY count
+        // (PrepPepInitiationRepository.java:1634); feeding it days is what makes
+        // the client statuses correct without rewriting that SQL.
+        // entity.setDuration(dto.getDuration());
+        entity.setDuration(dto.getRefillDays());
         entity.setOtherDrugs(dto.getOtherDrugs());
         entity.setPrepType(dto.getPrepType());
         entity.setPopulationType(dto.getPopulationType());
         entity.setPrepNotedSideEffects(sanitizeJsonb(dto.getPrepNotedSideEffects()));
-        entity.setMonthsOfRefill(dto.getMonthsOfRefill());
+        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
+        // entity.setMonthsOfRefill(dto.getMonthsOfRefill());
+        entity.setRefillDays(dto.getRefillDays());
         entity.setReasonForSwitch(dto.getReasonForSwitch());
         entity.setVisitType(dto.getVisitType());
         entity.setOtherRegimenId(dto.getOtherRegimenId());
@@ -301,12 +308,19 @@ public class PrepFollowupVisitService {
         entity.setSyndromicStiScreening(sanitizeJsonb(dto.getSyndromicStiScreening()));
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
-        entity.setDuration(dto.getDuration());
+        // REPLACED BY refillDays. `duration` is still written because the status
+        // SQL adds it to encounter_date as a DAY count
+        // (PrepPepInitiationRepository.java:1634); feeding it days is what makes
+        // the client statuses correct without rewriting that SQL.
+        // entity.setDuration(dto.getDuration());
+        entity.setDuration(dto.getRefillDays());
         entity.setOtherDrugs(dto.getOtherDrugs());
         entity.setPrepType(dto.getPrepType());
         entity.setPopulationType(dto.getPopulationType());
         entity.setPrepNotedSideEffects(sanitizeJsonb(dto.getPrepNotedSideEffects()));
-        entity.setMonthsOfRefill(dto.getMonthsOfRefill());
+        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
+        // entity.setMonthsOfRefill(dto.getMonthsOfRefill());
+        entity.setRefillDays(dto.getRefillDays());
         entity.setReasonForSwitch(dto.getReasonForSwitch());
         entity.setOtherRegimenId(dto.getOtherRegimenId());
         entity.setPreviousPrepStatus(dto.getPreviousPrepStatus());
@@ -374,7 +388,9 @@ public class PrepFollowupVisitService {
         dto.setPrepType(entity.getPrepType());
         dto.setPopulationType(entity.getPopulationType());
         dto.setPrepNotedSideEffects(entity.getPrepNotedSideEffects());
-        dto.setMonthsOfRefill(entity.getMonthsOfRefill());
+        // REPLACED BY refillDays.
+        // dto.setMonthsOfRefill(entity.getMonthsOfRefill());
+        dto.setRefillDays(entity.getRefillDays());
         dto.setReasonForSwitch(entity.getReasonForSwitch());
         dto.setOtherRegimenId(entity.getOtherRegimenId());
         dto.setPreviousPrepStatus(entity.getPreviousPrepStatus());

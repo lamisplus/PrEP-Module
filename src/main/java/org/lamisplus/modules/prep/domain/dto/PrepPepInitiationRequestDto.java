@@ -34,4 +34,7 @@ public class PrepPepInitiationRequestDto implements Serializable {
     private String prepTypeAtStartOthersSpecify;
     private String prepRegimen;
     private Integer monthsOfRefill;
+
+    /** Refill supply in DAYS. Replaces the ambiguous monthsOfRefill/duration pair. */
+    private Integer refillDays;
 }

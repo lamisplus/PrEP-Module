@@ -111,6 +111,14 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "months_of_refill")
     private Integer monthsOfRefill;
 
+    /**
+     * Refill supply in DAYS. Canonical replacement for the ambiguous
+     * months_of_refill / duration pair, which were written from one value
+     * but read as months by the forms and as days by the status SQL.
+     */
+    @Column(name = "refill_days")
+    private Integer refillDays;
+
     @Column(name = "reason_for_switch")
     private String reasonForSwitch;
 
