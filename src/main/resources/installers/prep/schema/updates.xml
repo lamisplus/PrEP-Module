@@ -122,8 +122,6 @@
 
     <changeSet failOnError="false" author="Gamaliel" id="add_health_care_worker_signature">
         <validCheckSum>ANY</validCheckSum>
-        <!-- Accept the prior checksum on DBs where this already ran, since the
-             SQL below changed to be idempotent. -->
         <sql>
             ALTER TABLE prep_clinic ADD COLUMN IF NOT EXISTS health_care_worker_signature VARCHAR(255);
         </sql>
@@ -327,13 +325,6 @@
     </changeSet>
     <changeSet failOnError="true" author="Gamaliel Dashua" id="prep-regimen-update-v4-08-20-25">
         <validCheckSum>ANY</validCheckSum>
-        <!-- Accept any prior checksum: the two ADD COLUMN IF NOT EXISTS statements below were
-             changed to IF NOT EXISTS after deployment. prep_regimen.prep_type and
-             prep_clinic.prep_distribution_setting are also added by the earlier
-             add-missing-prep-regimen-cols-082025 changeset, so a bare ADD COLUMN
-             here fails with "column already exists". IF NOT EXISTS makes the DDL a
-             no-op when the column is already present; the UPDATE/INSERT data steps
-             are unchanged and remain guarded by the MARK_RAN precondition. -->
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM prep_regimen WHERE regimen = 'TDF(300mg)+3TC(150mg)';
@@ -824,8 +815,6 @@
         </sql>
     </changeSet>
 
-    <!-- Indexes covering the Patient-tab + Enrollment-tab joins. Each is an
-         additive CREATE INDEX IF NOT EXISTS, so safe on every boot. -->
     <changeSet failOnError="false" author="Gamaliel" id="patient-grid-perf-indexes">
         <validCheckSum>ANY</validCheckSum>
         <sql>
@@ -1374,16 +1363,6 @@
         </sql>
     </changeSet>
 
-    <!--
-      Performance indexes for the three HIV-Prevention patient tabs
-      (Patients / PrEP Patients / PEP Patients). These cover the join keys and
-      filter columns the list queries hit on every page load — the latest-HTS,
-      latest-follow-up and latest-interruption subqueries plus the enrollment
-      filters. Without them the planner falls back to sequential scans / nested
-      loops (O(n^2) at scale); with them the joins stay hash/merge (O(n log n)).
-      IF NOT EXISTS keeps this idempotent; failOnError=false so a pre-existing
-      equivalent index never blocks startup.
-    -->
     <changeSet failOnError="false" author="Gamaliel" id="30-06-2026-prep-patient-tab-perf-indexes">
         <validCheckSum>ANY</validCheckSum>
         <sql splitStatements="true" endDelimiter=";">
@@ -1425,8 +1404,6 @@
         </sql>
     </changeSet>
 
-    <!-- Supports the enrolled grid's latest-HTS subquery now keyed on patient_uuid
-         (DISTINCT ON (patient_uuid) ORDER BY patient_uuid, date_of_visit). -->
     <changeSet failOnError="false" author="Gamaliel" id="2026-07-09-hts-patient-uuid-date-index">
         <validCheckSum>ANY</validCheckSum>
         <sql splitStatements="true" endDelimiter=";">
@@ -1435,11 +1412,6 @@
         </sql>
     </changeSet>
 
-    <!--
-      Catch-all: guarantees every column the app expects exists, regardless of
-      the older ADD COLUMN changesets' state. All use ADD COLUMN IF NOT EXISTS,
-      so they only add what's missing and never fail on already-present columns.
-    -->
     <changeSet failOnError="false" author="Gamaliel" id="2026-07-06-ensure-prep-columns">
         <validCheckSum>ANY</validCheckSum>
         <sql splitStatements="true" endDelimiter=";">
@@ -1474,4 +1446,81 @@
         </sql>
     </changeSet>
 
+        <changeSet failOnError="true" author="Gamaliel" id="2026-08-18-refill-days-01-add-column">
+        <sql splitStatements="true" endDelimiter=";">
+            ALTER TABLE prep_followup_visit    ADD COLUMN IF NOT EXISTS refill_days INTEGER;
+            ALTER TABLE pep_followup_visit     ADD COLUMN IF NOT EXISTS refill_days INTEGER;
+            ALTER TABLE prophylaxis_initiation ADD COLUMN IF NOT EXISTS refill_days INTEGER;
+        </sql>
+        <rollback>
+            ALTER TABLE prep_followup_visit    DROP COLUMN IF EXISTS refill_days;
+            ALTER TABLE pep_followup_visit     DROP COLUMN IF EXISTS refill_days;
+            ALTER TABLE prophylaxis_initiation DROP COLUMN IF EXISTS refill_days;
+        </rollback>
+        </changeSet>
+        <changeSet failOnError="true" author="Gamaliel" id="2026-08-18-refill-days-02-classify-visits">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="prep_followup_visit" columnName="refill_days"/>
+        </preConditions>
+        <sql splitStatements="true" endDelimiter=";">
+            UPDATE prep_followup_visit t
+            SET refill_days = c.days
+            FROM (
+                SELECT s.id,
+                       CASE
+                           WHEN s.encounter_date IS NOT NULL AND s.next_appointment IS NOT NULL
+                                AND abs((s.next_appointment - s.encounter_date) - s.val) &lt;= 2
+                               THEN s.val
+                           WHEN s.encounter_date IS NOT NULL AND s.next_appointment IS NOT NULL
+                                AND abs((s.next_appointment - s.encounter_date) - s.val * 30) &lt;= 5
+                               THEN s.val * 30
+                           WHEN s.encounter_date IS NOT NULL AND s.next_appointment IS NOT NULL
+                               THEN 30
+                           WHEN s.val &gt;= 8 THEN s.val
+                           WHEN s.val &lt;= 6 THEN s.val * 30
+                           ELSE 30
+                       END AS days
+                FROM (
+                    SELECT id, COALESCE(duration, months_of_refill) AS val,
+                           encounter_date, next_appointment
+                    FROM prep_followup_visit
+                    WHERE CAST(archived AS BOOLEAN) = false
+                      AND COALESCE(duration, months_of_refill) > 0
+                ) s
+            ) c
+            WHERE c.id = t.id AND t.refill_days IS NULL;
+
+            UPDATE pep_followup_visit
+            SET refill_days = 28
+            WHERE CAST(archived AS BOOLEAN) = false
+              AND refill_days IS NULL
+              AND COALESCE(duration, months_of_refill) > 0;
+        </sql>
+        <rollback>
+            UPDATE prep_followup_visit SET refill_days = NULL;
+            UPDATE pep_followup_visit  SET refill_days = NULL;
+        </rollback>
+        </changeSet>
+
+        <changeSet failOnError="true" author="Gamaliel" id="2026-08-18-refill-days-03-classify-initiation">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="prophylaxis_initiation" columnName="refill_days"/>
+        </preConditions>
+        <sql splitStatements="true" endDelimiter=";">
+            UPDATE prophylaxis_initiation
+            SET refill_days = CASE
+                    WHEN upper(COALESCE(enrollment_type, ''))
+                         IN ('PEP', 'PREP_PEP_ENROLLMENT_TYPE_PEP') THEN 28
+                    WHEN months_of_refill &gt;= 8 THEN months_of_refill
+                    WHEN months_of_refill &lt;= 6 THEN months_of_refill * 30
+                    ELSE 30
+                END
+            WHERE CAST(archived AS BOOLEAN) = false
+              AND refill_days IS NULL
+              AND months_of_refill > 0;
+        </sql>
+        <rollback>
+            UPDATE prophylaxis_initiation SET refill_days = NULL;
+        </rollback>
+        </changeSet>
 </databaseChangeLog>
