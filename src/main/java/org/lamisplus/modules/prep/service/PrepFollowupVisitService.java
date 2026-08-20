@@ -255,10 +255,9 @@ public class PrepFollowupVisitService {
         entity.setSyndromicStiScreening(sanitizeJsonb(dto.getSyndromicStiScreening()));
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
-        // REPLACED BY refillDays. `duration` is still written because the status
-        // SQL adds it to encounter_date as a DAY count
-        // (PrepPepInitiationRepository.java:1634); feeding it days is what makes
-        // the client statuses correct without rewriting that SQL.
+        // REPLACED BY refillDays. The status SQL no longer reads `duration` - it
+        // compares elapsed days since encounter_date against refill_days. `duration`
+        // is kept equal to refillDays only for readers outside this module.
         // entity.setDuration(dto.getDuration());
         entity.setDuration(dto.getRefillDays());
         entity.setOtherDrugs(dto.getOtherDrugs());
@@ -308,10 +307,9 @@ public class PrepFollowupVisitService {
         entity.setSyndromicStiScreening(sanitizeJsonb(dto.getSyndromicStiScreening()));
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
-        // REPLACED BY refillDays. `duration` is still written because the status
-        // SQL adds it to encounter_date as a DAY count
-        // (PrepPepInitiationRepository.java:1634); feeding it days is what makes
-        // the client statuses correct without rewriting that SQL.
+        // REPLACED BY refillDays. The status SQL no longer reads `duration` - it
+        // compares elapsed days since encounter_date against refill_days. `duration`
+        // is kept equal to refillDays only for readers outside this module.
         // entity.setDuration(dto.getDuration());
         entity.setDuration(dto.getRefillDays());
         entity.setOtherDrugs(dto.getOtherDrugs());

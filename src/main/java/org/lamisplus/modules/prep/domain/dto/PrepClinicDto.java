@@ -105,6 +105,9 @@ public class PrepClinicDto implements Serializable {
     private String historyOfDrugToDrugInteraction;
     private String historyOfDrugAllergies;
     private Integer monthsOfRefill;
+
+    /** Refill supply in DAYS. Replaces the ambiguous monthsOfRefill/duration pair. */
+    private Integer refillDays;
     private String comment;
     private String previousPrepStatus;
     private String whyAdherenceLevelPoor;

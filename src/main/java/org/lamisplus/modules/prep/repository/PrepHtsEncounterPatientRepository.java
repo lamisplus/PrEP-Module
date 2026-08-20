@@ -82,17 +82,17 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
@@ -125,9 +125,9 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid,\n" +
-            "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            "           MAX(pc.encounter_date) AS encounter_date, pc.refill_days,\n" +
             "           pc.visit_type AS visit_type, pc.prep_type AS prep_type, pc.previous_prep_status AS previous_prep_status,\n" +
-            "           CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END AS status\n" +
+            "           CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
@@ -136,7 +136,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
-            "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
+            "    GROUP BY pc.person_uuid, pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT DISTINCT ON (pi.person_uuid) pi.id, pi.person_uuid, \n" +
@@ -216,7 +216,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid,\n" +
-            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled,\n" +
+            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.refill_days, pet.date_enrolled,\n" +
             "    hts.client_code, hts.id, hts.uuid, hts.patient_id, hts.patient_uuid,\n" +
             "    hts.date_of_visit, hts.setting, hts.observation, hts.facility_id,\n" +
             "    preg_codeset.display\n";

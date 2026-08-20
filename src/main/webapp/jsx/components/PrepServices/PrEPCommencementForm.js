@@ -75,10 +75,10 @@ const PrEPCommencementForm = props => {
     datereferred: "",
     nextAppointment: "",
     prepEnrollmentUuid: "",
-    duration: "",
     prepDistributionSetting: "",
     prepType: "",
-    monthsOfRefill: "",
+    // REPLACED monthsOfRefill/duration with the canonical refillDays (DAYS).
+    refillDays: "",
     liverFunctionTestResults: [],
     dateLiverFunctionTestResults: "",
     historyOfDrugToDrugInteraction: "",
@@ -160,8 +160,11 @@ const PrEPCommencementForm = props => {
         data = {
           ...data,
           regimenId: normalizeRegimenIdToCode(data?.regimenId, regimenList),
-          monthsOfRefill:
-            getDurationByValue(data?.monthsOfRefill) || data?.monthsOfRefill,
+          refillDays:
+            getDurationByValue(data?.refillDays) ||
+            data?.refillDays ||
+            data?.duration ||
+            data?.monthsOfRefill,
         };
         setObjValues(data);
       })
@@ -199,13 +202,6 @@ const PrEPCommencementForm = props => {
     if (e.target.name === "referred" && e.target.value === "false") {
       objValues.datereferred = "";
       setObjValues({ ...objValues, ["datereferred"]: "" });
-    } else if (e.target.name === "monthsOfRefill") {
-      const durationInDays = Number(e.target.value) * 30;
-      setObjValues({
-        ...objValues,
-        monthsOfRefill: e.target.value,
-        duration: durationInDays,
-      });
     }
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
   };
@@ -271,8 +267,7 @@ const PrEPCommencementForm = props => {
     e.preventDefault();
     if (validate()) {
       setSaving(true);
-      objValues.duration = getDuration(objValues.monthsOfRefill);
-      objValues.monthsOfRefill = getDuration(objValues.monthsOfRefill);
+      objValues.refillDays = getDuration(objValues.refillDays);
       objValues.prepEnrollmentUuid = patientDto.uuid;
       if (props.activeContent && props.activeContent.actionType === "update") {
         axios
@@ -396,7 +391,7 @@ const PrEPCommencementForm = props => {
 
   useEffect(() => {
     if (!["update", "view"].includes(props.activeContent.actionType))
-      setObjValues(prev => ({ ...prev, monthsOfRefill: "", duration: "" }));
+      setObjValues(prev => ({ ...prev, refillDays: "" }));
   }, [objValues?.regimenId]);
 
   return (
@@ -855,9 +850,9 @@ const PrEPCommencementForm = props => {
                   <DurationWrapper
                     isCabLaEligible={true}
                     isSelectedRegimenCabLa={isSelectedRegimenCabLa()}
-                    name={"monthsOfRefill"}
-                    id="monthsOfRefill"
-                    value={objValues.monthsOfRefill}
+                    name={"refillDays"}
+                    id="refillDays"
+                    value={objValues.refillDays}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
@@ -866,9 +861,9 @@ const PrEPCommencementForm = props => {
                     disabledField={disabledField}
                     setObjValues={setObjValues}
                   />
-                  {errors.monthsOfRefill !== "" ? (
+                  {errors.refillDays !== "" ? (
                     <span className={classes.error}>
-                      {errors.monthsOfRefill}
+                      {errors.refillDays}
                     </span>
                   ) : (
                     ""

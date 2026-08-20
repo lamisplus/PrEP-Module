@@ -1458,6 +1458,7 @@
             ALTER TABLE prophylaxis_initiation DROP COLUMN IF EXISTS refill_days;
         </rollback>
         </changeSet>
+
         <changeSet failOnError="true" author="Gamaliel" id="2026-08-18-refill-days-02-classify-visits">
         <preConditions onFail="MARK_RAN">
             <columnExists tableName="prep_followup_visit" columnName="refill_days"/>
@@ -1468,24 +1469,35 @@
             FROM (
                 SELECT s.id,
                        CASE
-                           WHEN s.encounter_date IS NOT NULL AND s.next_appointment IS NOT NULL
-                                AND abs((s.next_appointment - s.encounter_date) - s.val) &lt;= 2
-                               THEN s.val
-                           WHEN s.encounter_date IS NOT NULL AND s.next_appointment IS NOT NULL
-                                AND abs((s.next_appointment - s.encounter_date) - s.val * 30) &lt;= 5
-                               THEN s.val * 30
-                           WHEN s.encounter_date IS NOT NULL AND s.next_appointment IS NOT NULL
-                               THEN 30
+                           -- Tier 1: the observed appointment gap is real evidence of the
+                           -- supply window, so it outranks both stored values. Try the
+                           -- months_of_refill readings first, then duration's.
+                           WHEN s.gap IS NOT NULL AND s.m IS NOT NULL
+                                AND abs(s.gap - s.m) &lt;= 2       THEN s.m
+                           WHEN s.gap IS NOT NULL AND s.m IS NOT NULL
+                                AND abs(s.gap - s.m * 30) &lt;= 5  THEN s.m * 30
+                           WHEN s.gap IS NOT NULL AND s.d IS NOT NULL
+                                AND abs(s.gap - s.d) &lt;= 2       THEN s.d
+                           WHEN s.gap IS NOT NULL AND s.d IS NOT NULL
+                                AND abs(s.gap - s.d * 30) &lt;= 5  THEN s.d * 30
+                           WHEN s.gap IS NOT NULL                    THEN 30
+                           -- Tier 2: no gap evidence. s.val prefers months_of_refill, which
+                           -- tracks the latest edit; duration can be a stale fossil left
+                           -- behind by the old commencement form (see comment above).
                            WHEN s.val &gt;= 8 THEN s.val
                            WHEN s.val &lt;= 6 THEN s.val * 30
                            ELSE 30
                        END AS days
                 FROM (
-                    SELECT id, COALESCE(duration, months_of_refill) AS val,
-                           encounter_date, next_appointment
+                    SELECT id,
+                           NULLIF(months_of_refill, 0) AS m,
+                           NULLIF(duration, 0)         AS d,
+                           COALESCE(NULLIF(months_of_refill, 0), NULLIF(duration, 0)) AS val,
+                           CASE WHEN encounter_date IS NOT NULL AND next_appointment IS NOT NULL
+                                    THEN next_appointment - encounter_date END AS gap
                     FROM prep_followup_visit
                     WHERE CAST(archived AS BOOLEAN) = false
-                      AND COALESCE(duration, months_of_refill) > 0
+                      AND COALESCE(NULLIF(months_of_refill, 0), NULLIF(duration, 0)) &gt; 0
                 ) s
             ) c
             WHERE c.id = t.id AND t.refill_days IS NULL;
@@ -1494,7 +1506,7 @@
             SET refill_days = 28
             WHERE CAST(archived AS BOOLEAN) = false
               AND refill_days IS NULL
-              AND COALESCE(duration, months_of_refill) > 0;
+              AND (COALESCE(months_of_refill, 0) &gt; 0 OR COALESCE(duration, 0) &gt; 0);
         </sql>
         <rollback>
             UPDATE prep_followup_visit SET refill_days = NULL;
@@ -1523,4 +1535,5 @@
             UPDATE prophylaxis_initiation SET refill_days = NULL;
         </rollback>
         </changeSet>
+
 </databaseChangeLog>

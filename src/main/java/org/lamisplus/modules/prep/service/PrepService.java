@@ -1035,7 +1035,9 @@ public class PrepService {
         prepEnrollment.setPrepTypeAtStart(prepEnrollmentRequestDto.getPrepTypeAtStart());
         prepEnrollment.setPrepTypeAtStartOthersSpecify(prepEnrollmentRequestDto.getPrepTypeAtStartOthersSpecify());
         prepEnrollment.setPrepRegimen(prepEnrollmentRequestDto.getPrepRegimen());
-        prepEnrollment.setMonthsOfRefill(prepEnrollmentRequestDto.getMonthsOfRefill());
+        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
+        // prepEnrollment.setMonthsOfRefill(prepEnrollmentRequestDto.getMonthsOfRefill());
+        prepEnrollment.setRefillDays(prepEnrollmentRequestDto.getRefillDays());
 
         return prepEnrollment;
     }
@@ -1070,12 +1072,18 @@ public class PrepService {
         prepClinic.setDateLiverFunctionTestResults(prepClinicRequestDto.getDateLiverFunctionTestResults());
         prepClinic.setSyndromicStiScreening(prepClinicRequestDto.getSyndromicStiScreening());
         prepClinic.setRiskReductionServices(prepClinicRequestDto.getRiskReductionServices());
-        prepClinic.setDuration(prepClinicRequestDto.getDuration());
+        // REPLACED BY refillDays. The status SQL no longer reads `duration` - it
+        // compares elapsed days since encounter_date against refill_days. `duration`
+        // is kept equal to refillDays only for readers outside this module.
+        // prepClinic.setDuration(prepClinicRequestDto.getDuration());
+        prepClinic.setDuration(prepClinicRequestDto.getRefillDays());
         prepClinic.setOtherDrugs(prepClinicRequestDto.getOtherDrugs());
         prepClinic.setPrepType(prepClinicRequestDto.getPrepType());
         prepClinic.setPopulationType(prepClinicRequestDto.getPopulationType());
         prepClinic.setPrepNotedSideEffects(prepClinicRequestDto.getPrepNotedSideEffects());
-        prepClinic.setMonthsOfRefill(prepClinicRequestDto.getMonthsOfRefill());
+        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
+        // prepClinic.setMonthsOfRefill(prepClinicRequestDto.getMonthsOfRefill());
+        prepClinic.setRefillDays(prepClinicRequestDto.getRefillDays());
         prepClinic.setHealthCareWorkerSignature(prepClinicRequestDto.getHealthCareWorkerSignature());
         prepClinic.setReasonForSwitch(prepClinicRequestDto.getReasonForSwitch());
         prepClinic.setOtherRegimenId(prepClinicRequestDto.getOtherRegimenId());
@@ -1123,7 +1131,9 @@ public class PrepService {
         prepClinicDto.setOtherDrugs(clinic.getOtherDrugs());
         prepClinicDto.setPrepType(clinic.getPrepType());
         prepClinicDto.setPopulationType(clinic.getPopulationType());
-        prepClinicDto.setMonthsOfRefill(clinic.getMonthsOfRefill());
+        // REPLACED BY refillDays.
+        // prepClinicDto.setMonthsOfRefill(clinic.getMonthsOfRefill());
+        prepClinicDto.setRefillDays(clinic.getRefillDays());
         prepClinicDto.setPrepNotedSideEffects(clinic.getPrepNotedSideEffects());
         prepClinicDto.setReasonForSwitch(clinic.getReasonForSwitch());
         prepClinicDto.setOtherRegimenId(clinic.getOtherRegimenId());
@@ -1168,7 +1178,9 @@ public class PrepService {
         enrollmentDto.setPrepTypeAtStart(enrollment.getPrepTypeAtStart());
         enrollmentDto.setPrepTypeAtStartOthersSpecify(enrollment.getPrepTypeAtStartOthersSpecify());
         enrollmentDto.setPrepRegimen(enrollment.getPrepRegimen());
-        enrollmentDto.setMonthsOfRefill(enrollment.getMonthsOfRefill());
+        // REPLACED BY refillDays.
+        // enrollmentDto.setMonthsOfRefill(enrollment.getMonthsOfRefill());
+        enrollmentDto.setRefillDays(enrollment.getRefillDays());
 
         return enrollmentDto;
     }

@@ -258,10 +258,9 @@ public class PepFollowupVisitService {
         entity.setRefillDays(dto.getRefillDays());
         entity.setReasonForSwitch(dto.getReasonForSwitch());
         entity.setStiScreening(dto.getStiScreening());
-        // REPLACED BY refillDays. `duration` is still written because the status
-        // SQL adds it to encounter_date as a DAY count
-        // (PrepPepInitiationRepository.java:1634); feeding it days is what makes
-        // the client statuses correct without rewriting that SQL.
+        // REPLACED BY refillDays. The status SQL no longer reads `duration` - it
+        // compares elapsed days since encounter_date against refill_days. `duration`
+        // is kept equal to refillDays only for readers outside this module.
         // entity.setDuration(dto.getDuration());
         entity.setDuration(dto.getRefillDays());
         entity.setPrepType(dto.getPrepType());
@@ -316,10 +315,9 @@ public class PepFollowupVisitService {
         entity.setRefillDays(dto.getRefillDays());
         entity.setReasonForSwitch(dto.getReasonForSwitch());
         entity.setStiScreening(dto.getStiScreening());
-        // REPLACED BY refillDays. `duration` is still written because the status
-        // SQL adds it to encounter_date as a DAY count
-        // (PrepPepInitiationRepository.java:1634); feeding it days is what makes
-        // the client statuses correct without rewriting that SQL.
+        // REPLACED BY refillDays. The status SQL no longer reads `duration` - it
+        // compares elapsed days since encounter_date against refill_days. `duration`
+        // is kept equal to refillDays only for readers outside this module.
         // entity.setDuration(dto.getDuration());
         entity.setDuration(dto.getRefillDays());
         entity.setPrepType(dto.getPrepType());
