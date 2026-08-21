@@ -1526,11 +1526,36 @@
         </changeSet>
 
 
+
         <changeSet failOnError="true" author="Gamaliel" id="2026-08-21-refill-days-04-finalise">
         <preConditions onFail="MARK_RAN">
             <columnExists tableName="prep_followup_visit" columnName="months_of_refill"/>
         </preConditions>
         <sql splitStatements="true" endDelimiter=";">
+            ALTER TABLE pep_followup_visit ADD COLUMN IF NOT EXISTS duration INTEGER;
+
+            UPDATE pep_followup_visit
+            SET refill_days = CASE
+                    WHEN COALESCE(months_of_refill, 0) &gt;= 8            THEN months_of_refill
+                    WHEN COALESCE(months_of_refill, 0) BETWEEN 1 AND 7  THEN months_of_refill * 30
+                    WHEN COALESCE(duration, 0)         &gt;= 8            THEN duration
+                    WHEN COALESCE(duration, 0)         BETWEEN 1 AND 7  THEN duration * 30
+                    ELSE 28
+                END
+            WHERE CAST(archived AS BOOLEAN) = false
+              AND refill_days IS NULL;
+
+            UPDATE prophylaxis_initiation
+            SET refill_days = CASE
+                    WHEN COALESCE(months_of_refill, 0) &gt;= 8            THEN months_of_refill
+                    WHEN COALESCE(months_of_refill, 0) BETWEEN 1 AND 7  THEN months_of_refill * 30
+                    ELSE 28
+                END
+            WHERE CAST(archived AS BOOLEAN) = false
+              AND refill_days IS NULL
+              AND upper(COALESCE(enrollment_type, ''))
+                  IN ('PEP', 'PREP_PEP_ENROLLMENT_TYPE_PEP');
+
             UPDATE prep_followup_visit t
             SET refill_days = c.days
             FROM (
@@ -1571,7 +1596,7 @@
             ALTER TABLE pep_followup_visit     DROP COLUMN IF EXISTS months_of_refill;
             ALTER TABLE prophylaxis_initiation DROP COLUMN IF EXISTS months_of_refill;
         </sql>
-
+        <!-- Re-adds the column but cannot restore its values: a one-way migration. -->
         <rollback>
             ALTER TABLE prep_followup_visit    ADD COLUMN IF NOT EXISTS months_of_refill INTEGER;
             ALTER TABLE pep_followup_visit     ADD COLUMN IF NOT EXISTS months_of_refill INTEGER;
