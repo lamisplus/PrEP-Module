@@ -116,8 +116,6 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @Column(name = "prep_regimen")
     private String prepRegimen;
 
-    @Column(name = "months_of_refill")
-    private Integer monthsOfRefill;
 
     /**
      * Refill supply in DAYS. Canonical replacement for the ambiguous

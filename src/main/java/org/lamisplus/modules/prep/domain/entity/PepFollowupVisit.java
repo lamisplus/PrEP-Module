@@ -128,8 +128,6 @@ public class PepFollowupVisit extends Audit implements Serializable {
     @Column(name = "prep_distribution_setting")
     private String prepDistributionSetting;
 
-    @Column(name = "months_of_refill")
-    private Integer monthsOfRefill;
 
     /**
      * Refill supply in DAYS. Canonical replacement for the ambiguous

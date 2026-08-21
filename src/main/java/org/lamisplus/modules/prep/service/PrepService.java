@@ -1035,8 +1035,6 @@ public class PrepService {
         prepEnrollment.setPrepTypeAtStart(prepEnrollmentRequestDto.getPrepTypeAtStart());
         prepEnrollment.setPrepTypeAtStartOthersSpecify(prepEnrollmentRequestDto.getPrepTypeAtStartOthersSpecify());
         prepEnrollment.setPrepRegimen(prepEnrollmentRequestDto.getPrepRegimen());
-        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
-        // prepEnrollment.setMonthsOfRefill(prepEnrollmentRequestDto.getMonthsOfRefill());
         prepEnrollment.setRefillDays(prepEnrollmentRequestDto.getRefillDays());
 
         return prepEnrollment;
@@ -1072,17 +1070,15 @@ public class PrepService {
         prepClinic.setDateLiverFunctionTestResults(prepClinicRequestDto.getDateLiverFunctionTestResults());
         prepClinic.setSyndromicStiScreening(prepClinicRequestDto.getSyndromicStiScreening());
         prepClinic.setRiskReductionServices(prepClinicRequestDto.getRiskReductionServices());
-        // REPLACED BY refillDays. The status SQL no longer reads `duration` - it
-        // compares elapsed days since encounter_date against refill_days. `duration`
-        // is kept equal to refillDays only for readers outside this module.
-        // prepClinic.setDuration(prepClinicRequestDto.getDuration());
+        // `duration` MUST be kept equal to refillDays: a downstream pipeline reads
+        // it. The status SQL itself no longer uses it (it compares elapsed days since
+        // encounter_date against refill_days), so this write exists solely for that
+        // pipeline - never let the two columns diverge.
         prepClinic.setDuration(prepClinicRequestDto.getRefillDays());
         prepClinic.setOtherDrugs(prepClinicRequestDto.getOtherDrugs());
         prepClinic.setPrepType(prepClinicRequestDto.getPrepType());
         prepClinic.setPopulationType(prepClinicRequestDto.getPopulationType());
         prepClinic.setPrepNotedSideEffects(prepClinicRequestDto.getPrepNotedSideEffects());
-        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
-        // prepClinic.setMonthsOfRefill(prepClinicRequestDto.getMonthsOfRefill());
         prepClinic.setRefillDays(prepClinicRequestDto.getRefillDays());
         prepClinic.setHealthCareWorkerSignature(prepClinicRequestDto.getHealthCareWorkerSignature());
         prepClinic.setReasonForSwitch(prepClinicRequestDto.getReasonForSwitch());
@@ -1131,8 +1127,6 @@ public class PrepService {
         prepClinicDto.setOtherDrugs(clinic.getOtherDrugs());
         prepClinicDto.setPrepType(clinic.getPrepType());
         prepClinicDto.setPopulationType(clinic.getPopulationType());
-        // REPLACED BY refillDays.
-        // prepClinicDto.setMonthsOfRefill(clinic.getMonthsOfRefill());
         prepClinicDto.setRefillDays(clinic.getRefillDays());
         prepClinicDto.setPrepNotedSideEffects(clinic.getPrepNotedSideEffects());
         prepClinicDto.setReasonForSwitch(clinic.getReasonForSwitch());
@@ -1178,8 +1172,6 @@ public class PrepService {
         enrollmentDto.setPrepTypeAtStart(enrollment.getPrepTypeAtStart());
         enrollmentDto.setPrepTypeAtStartOthersSpecify(enrollment.getPrepTypeAtStartOthersSpecify());
         enrollmentDto.setPrepRegimen(enrollment.getPrepRegimen());
-        // REPLACED BY refillDays.
-        // enrollmentDto.setMonthsOfRefill(enrollment.getMonthsOfRefill());
         enrollmentDto.setRefillDays(enrollment.getRefillDays());
 
         return enrollmentDto;

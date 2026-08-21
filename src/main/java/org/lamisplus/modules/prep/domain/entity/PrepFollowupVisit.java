@@ -108,8 +108,6 @@ public class PrepFollowupVisit extends Audit implements Serializable {
     @Column(name = "duration")
     private Integer duration;
 
-    @Column(name = "months_of_refill")
-    private Integer monthsOfRefill;
 
     /**
      * Refill supply in DAYS. Canonical replacement for the ambiguous

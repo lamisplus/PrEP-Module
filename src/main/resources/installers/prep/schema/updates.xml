@@ -1461,7 +1461,11 @@
 
         <changeSet failOnError="true" author="Gamaliel" id="2026-08-18-refill-days-02-classify-visits">
         <preConditions onFail="MARK_RAN">
-            <columnExists tableName="prep_followup_visit" columnName="refill_days"/>
+            <and>
+                <columnExists tableName="prep_followup_visit" columnName="refill_days"/>
+                <!-- Skip cleanly if -04 has already dropped the source column. -->
+                <columnExists tableName="prep_followup_visit" columnName="months_of_refill"/>
+            </and>
         </preConditions>
         <sql splitStatements="true" endDelimiter=";">
             UPDATE prep_followup_visit t
@@ -1516,7 +1520,11 @@
 
         <changeSet failOnError="true" author="Gamaliel" id="2026-08-18-refill-days-03-classify-initiation">
         <preConditions onFail="MARK_RAN">
-            <columnExists tableName="prophylaxis_initiation" columnName="refill_days"/>
+            <and>
+                <columnExists tableName="prophylaxis_initiation" columnName="refill_days"/>
+                <!-- Skip cleanly if -04 has already dropped the source column. -->
+                <columnExists tableName="prophylaxis_initiation" columnName="months_of_refill"/>
+            </and>
         </preConditions>
         <sql splitStatements="true" endDelimiter=";">
             UPDATE prophylaxis_initiation
@@ -1533,6 +1541,23 @@
         </sql>
         <rollback>
             UPDATE prophylaxis_initiation SET refill_days = NULL;
+        </rollback>
+        </changeSet>
+
+  
+        <changeSet failOnError="true" author="Gamaliel" id="2026-08-21-refill-days-04-sync-duration-drop-months">
+        <sql splitStatements="true" endDelimiter=";">
+            UPDATE prep_followup_visit SET duration = refill_days WHERE refill_days IS NOT NULL;
+            UPDATE pep_followup_visit  SET duration = refill_days WHERE refill_days IS NOT NULL;
+
+            ALTER TABLE prep_followup_visit    DROP COLUMN IF EXISTS months_of_refill;
+            ALTER TABLE pep_followup_visit     DROP COLUMN IF EXISTS months_of_refill;
+            ALTER TABLE prophylaxis_initiation DROP COLUMN IF EXISTS months_of_refill;
+        </sql>
+        <rollback>
+            ALTER TABLE prep_followup_visit    ADD COLUMN IF NOT EXISTS months_of_refill INTEGER;
+            ALTER TABLE pep_followup_visit     ADD COLUMN IF NOT EXISTS months_of_refill INTEGER;
+            ALTER TABLE prophylaxis_initiation ADD COLUMN IF NOT EXISTS months_of_refill INTEGER;
         </rollback>
         </changeSet>
 

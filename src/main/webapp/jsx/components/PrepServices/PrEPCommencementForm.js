@@ -163,8 +163,7 @@ const PrEPCommencementForm = props => {
           refillDays:
             getDurationByValue(data?.refillDays) ||
             data?.refillDays ||
-            data?.duration ||
-            data?.monthsOfRefill,
+            data?.duration,
         };
         setObjValues(data);
       })

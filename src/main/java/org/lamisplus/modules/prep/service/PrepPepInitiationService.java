@@ -150,8 +150,6 @@ public class PrepPepInitiationService {
         entity.setPrepTypeAtStart(dto.getPrepTypeAtStart());
         entity.setPrepTypeAtStartOthersSpecify(dto.getPrepTypeAtStartOthersSpecify());
         entity.setPrepRegimen(dto.getPrepRegimen());
-        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
-        // entity.setMonthsOfRefill(dto.getMonthsOfRefill());
         entity.setRefillDays(dto.getRefillDays());
 
         return entity;
@@ -189,8 +187,6 @@ public class PrepPepInitiationService {
         entity.setPrepTypeAtStart(dto.getPrepTypeAtStart());
         entity.setPrepTypeAtStartOthersSpecify(dto.getPrepTypeAtStartOthersSpecify());
         entity.setPrepRegimen(dto.getPrepRegimen());
-        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
-        // entity.setMonthsOfRefill(dto.getMonthsOfRefill());
         entity.setRefillDays(dto.getRefillDays());
 
         return entity;
@@ -230,8 +226,6 @@ public class PrepPepInitiationService {
         dto.setPrepTypeAtStart(entity.getPrepTypeAtStart());
         dto.setPrepTypeAtStartOthersSpecify(entity.getPrepTypeAtStartOthersSpecify());
         dto.setPrepRegimen(entity.getPrepRegimen());
-        // REPLACED BY refillDays.
-        // dto.setMonthsOfRefill(entity.getMonthsOfRefill());
         dto.setRefillDays(entity.getRefillDays());
 
         return dto;

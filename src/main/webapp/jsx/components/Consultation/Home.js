@@ -465,10 +465,10 @@ const ClinicVisit = (props) => {
         data?.regimenId,
         regimenList
       );
-      // REPLACED monthsOfRefill. Prefer the canonical refillDays; fall back to the
-      // legacy columns so records saved before the migration still open.
-      const storedRefill =
-        data?.refillDays || data?.duration || data?.monthsOfRefill;
+      // Prefer the canonical refillDays; `duration` is kept equal to it on every
+      // save, so it is a safe fallback for any row written before refillDays
+      // existed. months_of_refill has been dropped from the schema.
+      const storedRefill = data?.refillDays || data?.duration;
       const selectedRegimen = (regimenList || []).find(
         (r) =>
           r.code === String(normalizedRegimenId) ||

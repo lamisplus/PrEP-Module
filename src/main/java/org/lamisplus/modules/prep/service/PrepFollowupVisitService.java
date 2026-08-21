@@ -255,17 +255,15 @@ public class PrepFollowupVisitService {
         entity.setSyndromicStiScreening(sanitizeJsonb(dto.getSyndromicStiScreening()));
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
-        // REPLACED BY refillDays. The status SQL no longer reads `duration` - it
-        // compares elapsed days since encounter_date against refill_days. `duration`
-        // is kept equal to refillDays only for readers outside this module.
-        // entity.setDuration(dto.getDuration());
+        // `duration` MUST be kept equal to refillDays: a downstream pipeline reads
+        // it. The status SQL itself no longer uses it (it compares elapsed days since
+        // encounter_date against refill_days), so this write exists solely for that
+        // pipeline - never let the two columns diverge.
         entity.setDuration(dto.getRefillDays());
         entity.setOtherDrugs(dto.getOtherDrugs());
         entity.setPrepType(dto.getPrepType());
         entity.setPopulationType(dto.getPopulationType());
         entity.setPrepNotedSideEffects(sanitizeJsonb(dto.getPrepNotedSideEffects()));
-        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
-        // entity.setMonthsOfRefill(dto.getMonthsOfRefill());
         entity.setRefillDays(dto.getRefillDays());
         entity.setReasonForSwitch(dto.getReasonForSwitch());
         entity.setVisitType(dto.getVisitType());
@@ -307,17 +305,15 @@ public class PrepFollowupVisitService {
         entity.setSyndromicStiScreening(sanitizeJsonb(dto.getSyndromicStiScreening()));
         entity.setRiskReductionServices(dto.getRiskReductionServices());
         entity.setHealthCareWorkerSignature(dto.getHealthCareWorkerSignature());
-        // REPLACED BY refillDays. The status SQL no longer reads `duration` - it
-        // compares elapsed days since encounter_date against refill_days. `duration`
-        // is kept equal to refillDays only for readers outside this module.
-        // entity.setDuration(dto.getDuration());
+        // `duration` MUST be kept equal to refillDays: a downstream pipeline reads
+        // it. The status SQL itself no longer uses it (it compares elapsed days since
+        // encounter_date against refill_days), so this write exists solely for that
+        // pipeline - never let the two columns diverge.
         entity.setDuration(dto.getRefillDays());
         entity.setOtherDrugs(dto.getOtherDrugs());
         entity.setPrepType(dto.getPrepType());
         entity.setPopulationType(dto.getPopulationType());
         entity.setPrepNotedSideEffects(sanitizeJsonb(dto.getPrepNotedSideEffects()));
-        // REPLACED BY refillDays. Refill supply is now captured in DAYS.
-        // entity.setMonthsOfRefill(dto.getMonthsOfRefill());
         entity.setRefillDays(dto.getRefillDays());
         entity.setReasonForSwitch(dto.getReasonForSwitch());
         entity.setOtherRegimenId(dto.getOtherRegimenId());
@@ -386,8 +382,6 @@ public class PrepFollowupVisitService {
         dto.setPrepType(entity.getPrepType());
         dto.setPopulationType(entity.getPopulationType());
         dto.setPrepNotedSideEffects(entity.getPrepNotedSideEffects());
-        // REPLACED BY refillDays.
-        // dto.setMonthsOfRefill(entity.getMonthsOfRefill());
         dto.setRefillDays(entity.getRefillDays());
         dto.setReasonForSwitch(entity.getReasonForSwitch());
         dto.setOtherRegimenId(entity.getOtherRegimenId());
