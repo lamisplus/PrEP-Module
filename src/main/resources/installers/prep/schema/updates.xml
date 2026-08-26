@@ -1604,4 +1604,21 @@
         </rollback>
         </changeSet>
 
+    <changeSet failOnError="true" author="Gamaliel" id="2026-08-26-update-hts-encounter-uuid-prophylaxis-screening">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="prophylaxis_screening" columnName="hts_encounter_uuid"/>
+            <columnExists tableName="hts_encounter" columnName="uuid"/>
+        </preConditions>
+        <sql splitStatements="true" endDelimiter=";">
+            UPDATE prophylaxis_screening ps
+            SET hts_encounter_uuid = ht.uuid
+                FROM hts_encounter ht
+            WHERE ps.hts_encounter_uuid IS NULL
+              AND ht.patient_uuid = ps.person_uuid;
+        </sql>
+        <rollback>
+            <!-- Optional rollback depending on requirements; leaving blank or resetting if needed -->
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
