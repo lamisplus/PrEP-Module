@@ -12,7 +12,7 @@
 
     <groupId>org.lamisplus.modules</groupId>
     <artifactId>hiv-prevention</artifactId>
-    <version>2.3.1</version>
+    <version>2.3.2.1</version>
     <packaging>jar</packaging>
 
     <name>HIV Prevention</name>
