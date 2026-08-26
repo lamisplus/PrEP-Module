@@ -28,6 +28,13 @@ import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { isValidHtsEncounter, normalizeHtsObservation } from "../../../Utils/htsEncounter";
 import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import {
+  MAX_REFILL_DAYS,
+  MIN_REFILL_DAYS,
+  blockNonNumericRefillDaysKeys,
+  withRefillDaysGuard,
+  withRefillDaysPasteGuard,
+} from "../../constants/refillDays";
+import {
   fetchPrepRegimens,
   fetchPrepRegimenByType,
   fetchPepRegimens,
@@ -1215,9 +1222,15 @@ const PrEPInitialVisitForm = props => {
                     className="form-control"
                     name="refillDays"
                     id="refillDays"
-                    min="1"
+                    min={MIN_REFILL_DAYS}
+                    max={MAX_REFILL_DAYS}
+                    step={1}
+                    inputMode="numeric"
                     value={objValues.refillDays}
-                    onChange={handleInputChange}
+                    // Digits only, no negatives, capped at MAX_REFILL_DAYS.
+                    onKeyDown={blockNonNumericRefillDaysKeys}
+                    onPaste={withRefillDaysPasteGuard(handleInputChange)}
+                    onChange={withRefillDaysGuard(handleInputChange)}
                     style={{
                       border: "1px solid #014D88",
                       borderRadius: "0.2rem",

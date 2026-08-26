@@ -10,6 +10,13 @@ import {
 import { url as baseUrl, token } from "../../../api";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
+import {
+  MAX_REFILL_DAYS,
+  MIN_REFILL_DAYS,
+  blockNonNumericRefillDaysKeys,
+  withRefillDaysGuard,
+  withRefillDaysPasteGuard,
+} from "../../constants/refillDays";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { isValidHtsEncounter, normalizeHtsObservation } from "../../../Utils/htsEncounter";
 import HtsWarningModal from "../../../Reusables/HtsWarningModal";
@@ -1378,11 +1385,19 @@ const PEPFollowupVisit = props => {
                           name="refillDays"
                           id="refillDays"
                           value={values.refillDays}
-                          onChange={e =>
+                          // Digits only, no negatives, capped at MAX_REFILL_DAYS.
+                          onKeyDown={blockNonNumericRefillDaysKeys}
+                          onPaste={withRefillDaysPasteGuard(e =>
                             handleDurationChange(e, setFieldValue, values.encounterDate)
-                          }
+                          )}
+                          onChange={withRefillDaysGuard(e =>
+                            handleDurationChange(e, setFieldValue, values.encounterDate)
+                          )}
                           style={inputStyle}
-                          min="1"
+                          min={MIN_REFILL_DAYS}
+                          max={MAX_REFILL_DAYS}
+                          step={1}
+                          inputMode="numeric"
                         />
                       </FormGroup>
                     </div>
