@@ -187,7 +187,7 @@ const PrEPDiscontinuationsInterruptions = props => {
     codeset?.EARLY_DETECT_VIRAL_LOAD_RESULT,
   ]);
 
-  // When the latest viral load is detected (> 1000 → "Target Detected"), the
+  // When the latest viral load is detected (>= 1000 → "Target Detected"), the
   // client has not completed PEP successfully, so PEP Completion auto-populates
   // to YES. Only on a new record (don't override a saved value on view/edit);
   // the user can still change it afterwards.
@@ -921,6 +921,7 @@ const PrEPDiscontinuationsInterruptions = props => {
                           id="followUpVisitDate"
                           onKeyDown={e => e.preventDefault()}
                           min={minDate}
+                          max={today}
                           onChange={handleInputChange}
                           value={objValues.followUpVisitDate}
                           disabled={disabledField}

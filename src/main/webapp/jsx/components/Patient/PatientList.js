@@ -6,6 +6,9 @@ import {
   ENROLLMENT_LABEL_PREP,
   ENROLLMENT_LABEL_PEP,
 } from "../../constants/enrollmentType";
+import useLatestGridRequest, {
+  isAbortError,
+} from "../../hooks/useLatestGridRequest";
 import { forwardRef } from "react";
 import "semantic-ui-css/semantic.min.css";
 import { useHistory } from "react-router-dom";
@@ -207,35 +210,17 @@ const EnrollPatientButton = ({ row }) => {
   // Resolve active-enrollment status from the backend. Cached after the first
   // success so the modal can open instantly in its final state — no jarring
   // spinner→content (or picker→active) switch inside the dialog.
+  // Active-enrollment status is now shipped ON the grid row (computed server-side
+  // by person_uuid), so we read it DIRECTLY — no round-trip. A client with an
+  // active, not-yet-discontinued initiation on an arm is blocked there; a new
+  // client (no initiation → both flags false/absent) can enroll.
   const fetchStatus = () => {
-    if (activeStatus.loaded || fetchingRef.current) return;
-    fetchingRef.current = true;
-    setLoading(true);
-    const personId = row?.personId || row?.id;
-    axios
-      .get(`${baseUrl}prep/persons/${personId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((resp) => {
-        const d = resp?.data || {};
-        setActiveStatus({
-          prep: !!d.isCurrentStatusInterruptedPrep,
-          pep: !!d.isCurrentStatusInterruptedPep,
-          loaded: true,
-        });
-      })
-      .catch(() => {
-        setActiveStatus({ prep: false, pep: false, loaded: true });
-      })
-      .finally(() => {
-        fetchingRef.current = false;
-        setLoading(false);
-        if (openWhenLoadedRef.current) {
-          openWhenLoadedRef.current = false;
-          setAwaitingOpen(false);
-          setOpen(true);
-        }
-      });
+    if (activeStatus.loaded) return;
+    setActiveStatus({
+      prep: !!row?.isCurrentStatusInterruptedPrep,
+      pep: !!row?.isCurrentStatusInterruptedPep,
+      loaded: true,
+    });
   };
 
   // Prefetch on mount so an active patient shows the red-orange blocked modal
@@ -246,14 +231,10 @@ const EnrollPatientButton = ({ row }) => {
   }, []);
 
   const handleOpen = () => {
-    if (activeStatus.loaded) {
-      setOpen(true);
-      return;
-    }
-    // Prefetch still in flight (or not yet started) — open as soon as it lands.
-    openWhenLoadedRef.current = true;
-    setAwaitingOpen(true);
+    // Status is read synchronously from the row, so we can resolve + open in one
+    // click (no async wait / "Checking…" state needed).
     fetchStatus();
+    setOpen(true);
   };
 
   const blockedArm = activeStatus.prep
@@ -473,12 +454,7 @@ const EnrollPatientButton = ({ row }) => {
 const Patients = (props) => {
   const classes = useStyles();
   const [showPPI, setShowPPI] = useState(true);
-
-  // NOTE: the on-mount `prep/persons/hts` fetch was removed. It hit the heavy
-  // patient-tab query a SECOND time (its result was stored in unused state),
-  // doubling DB load every time the tab opened. The MaterialTable `data`
-  // function below already fetches the (paginated) list — that is the only
-  // call needed.
+  const startRequest = useLatestGridRequest();
 
   const handleCheckBox = (e) => {
     if (e.target.checked) {
@@ -506,17 +482,20 @@ const Patients = (props) => {
         ]}
         data={(query) =>
           new Promise((resolve, reject) => {
+            const { signal, isCurrent } = startRequest();
             axios
               .get(
-                `${baseUrl}prep/persons/hts?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
+                `${baseUrl}prep/persons/hts?pageSize=${query.pageSize}&pageNo=${
+                  query.page
+                }&searchValue=${encodeURIComponent(query.search)}`,
                 {
                   headers: { Authorization: `Bearer ${token}` },
-                  // Fail fast instead of hanging until the OS suspends the
-                  // socket (the ERR_NETWORK_IO_SUSPENDED seen after ~5 min).
                   timeout: 120000,
+                  signal,
                 }
               )
               .then((result) => {
+                if (!isCurrent()) return;
                 resolve({
                   data: result?.data?.records?.map?.((row) => ({
                     name: row.firstName + " " + row.surname,
@@ -529,10 +508,8 @@ const Patients = (props) => {
                   totalCount: result?.data?.totalRecords || 0,
                 });
               })
-              // Without this catch the promise never settled on error, so the
-              // table spun forever even after the request failed/timed out.
-              // Reject so MaterialTable shows its error state + a retry.
               .catch((error) => {
+                if (isAbortError(error) || !isCurrent()) return;
                 reject(error);
               });
           })

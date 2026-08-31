@@ -82,17 +82,17 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
@@ -107,7 +107,8 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    GROUP BY patient_id\n" +
             ") latest_hts ON latest_hts.patient_id = hts.patient_id\n" +
             "          AND latest_hts.max_date = hts.date_of_visit\n" +
-            "INNER JOIN patient_person p ON p.id = hts.patient_id\n" +
+            // Link to patient_person by the reliable patient_uuid (= person_uuid).
+            "INNER JOIN patient_person p ON CAST(p.uuid AS text) = CAST(hts.patient_uuid AS text)\n" +
             "LEFT JOIN (\n" +
             "    SELECT COUNT(el.person_uuid) AS eligibility_count, el.person_uuid\n" +
             "    FROM prophylaxis_screening el\n" +
@@ -124,9 +125,9 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid,\n" +
-            "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            "           MAX(pc.encounter_date) AS encounter_date, pc.refill_days,\n" +
             "           pc.visit_type AS visit_type, pc.prep_type AS prep_type, pc.previous_prep_status AS previous_prep_status,\n" +
-            "           CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END AS status\n" +
+            "           CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
@@ -135,7 +136,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
-            "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
+            "    GROUP BY pc.person_uuid, pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT DISTINCT ON (pi.person_uuid) pi.id, pi.person_uuid, \n" +
@@ -203,7 +204,8 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    GROUP BY patient_id\n" +
             ") latest_hts ON latest_hts.patient_id = hts.patient_id\n" +
             "          AND latest_hts.max_date = hts.date_of_visit\n" +
-            "INNER JOIN patient_person p ON p.id = hts.patient_id\n";
+            // Link to patient_person by the reliable patient_uuid (= person_uuid).
+            "INNER JOIN patient_person p ON CAST(p.uuid AS text) = CAST(hts.patient_uuid AS text)\n";
 
     String GROUP_BY =
             "GROUP BY\n" +
@@ -214,7 +216,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "    pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid,\n" +
-            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled,\n" +
+            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.refill_days, pet.date_enrolled,\n" +
             "    hts.client_code, hts.id, hts.uuid, hts.patient_id, hts.patient_uuid,\n" +
             "    hts.date_of_visit, hts.setting, hts.observation, hts.facility_id,\n" +
             "    preg_codeset.display\n";
@@ -239,24 +241,24 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             BASE_SELECT +
             FROM_AND_JOINS +
             WHERE_FILTERS +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR hts.client_code ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR hts.client_code ILIKE ?3 || '%')\n" +
             // No GROUP BY — DISTINCT ON (p.id) dedupes (see findAllPatients).
             "ORDER BY p.id, hts.date_of_visit DESC NULLS LAST",
             countQuery =
                     "SELECT COUNT(DISTINCT p.id)\n" +
                     COUNT_FROM +
                     WHERE_FILTERS +
-                    "AND (p.first_name ILIKE ?3\n" +
-                    "     OR p.full_name ILIKE ?3\n" +
-                    "     OR p.surname ILIKE ?3\n" +
-                    "     OR p.other_name ILIKE ?3\n" +
-                    "     OR p.hospital_number ILIKE ?3\n" +
-                    "     OR hts.client_code ILIKE ?3)",
+                    "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+                    "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+                    "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+                    "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+                    "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+                    "     OR hts.client_code ILIKE ?3 || '%')",
             nativeQuery = true)
     Page<PrepHtsPatient> searchPatients(Boolean archived, Long facilityId, String search, Pageable pageable);
 
@@ -282,12 +284,16 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
     // then requires that row to be at the requested facility (LITE_WHERE).
     String LITE_CTE =
             "WITH latest_hts AS (\n" +
-            "    SELECT DISTINCT ON (h.patient_id)\n" +
+            // Latest HTS per person, keyed on patient_uuid (= person_uuid) — the
+            // reliable link. The bigint patient_id can point at the wrong
+            // patient_person, which surfaced the wrong client / wrong enrollment
+            // status on the Enroll modal.
+            "    SELECT DISTINCT ON (h.patient_uuid)\n" +
             "           h.id, h.uuid, h.patient_id, h.patient_uuid, h.client_code,\n" +
             "           h.date_of_visit, h.setting, h.observation, h.facility_id\n" +
             "    FROM hts_encounter h\n" +
             "    WHERE h.archived = false\n" +
-            "    ORDER BY h.patient_id, h.date_of_visit DESC NULLS LAST, h.id DESC\n" +
+            "    ORDER BY h.patient_uuid, h.date_of_visit DESC NULLS LAST, h.id DESC\n" +
             ")\n";
 
     String LITE_SELECT =
@@ -327,7 +333,7 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             "         THEN true ELSE false END AS pepOnly,\n" +
             "    CAST(NULL AS text) AS prepStatus\n" +
             "FROM latest_hts hts\n" +
-            "JOIN patient_person p ON p.id = hts.patient_id\n" +
+            "JOIN patient_person p ON CAST(p.uuid AS text) = CAST(hts.patient_uuid AS text)\n" +
             "LEFT JOIN base_application_codeset preg_codeset\n" +
             "    ON preg_codeset.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n";
 
@@ -355,13 +361,14 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             ")\n";
 
     String LITE_SEARCH =
-            "AND (p.first_name ILIKE ?3 OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3 OR hts.client_code ILIKE ?3)\n";
+            "AND (p.first_name ILIKE '%' || ?3 || '%' OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%' OR hts.client_code ILIKE ?3 || '%')\n";
 
     String LITE_COUNT_HEAD =
             "SELECT COUNT(*)\n" +
             "FROM latest_hts hts\n" +
-            "JOIN patient_person p ON p.id = hts.patient_id\n";
+            "JOIN patient_person p ON CAST(p.uuid AS text) = CAST(hts.patient_uuid AS text)\n";
 
     @Query(value = LITE_CTE + LITE_SELECT + LITE_WHERE + "ORDER BY p.id",
             countQuery = LITE_CTE + LITE_COUNT_HEAD + LITE_WHERE,
@@ -389,14 +396,15 @@ public interface PrepHtsEncounterPatientRepository extends JpaRepository<Person,
             nativeQuery = true)
     Optional<HtsEncounterRow> findHtsEncounterByUuid(String uuid);
 
+    // Keyed on hts.patient_uuid (= person_uuid) — the reliable person link. The
+    // old join on patient_id = patient_person.id missed migrated/ETL HTS rows.
     @Query(value =
             "SELECT preg.display\n" +
             "FROM hts_encounter hts\n" +
-            "INNER JOIN patient_person p ON p.id = hts.patient_id\n" +
             "LEFT JOIN base_application_codeset preg\n" +
             "    ON preg.code = hts.observation->>'" + HtsObservationKeys.KEY_PREGNANCY_STATUS + "'\n" +
             "WHERE hts.archived = false\n" +
-            "  AND CAST(p.uuid AS text) = ?1\n" +
+            "  AND CAST(hts.patient_uuid AS text) = ?1\n" +
             "ORDER BY hts.date_of_visit DESC NULLS LAST, hts.id DESC\n" +
             "LIMIT 1",
             nativeQuery = true)

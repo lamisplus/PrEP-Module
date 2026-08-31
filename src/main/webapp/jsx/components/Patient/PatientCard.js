@@ -24,6 +24,7 @@ import {
   isTargetDetected,
   viralLoadDisplay,
 } from "../../constants/viralLoad";
+import { normalizeHtsObservation } from "../../../Utils/htsEncounter";
 Moment.locale("en");
 momentLocalizer();
 
@@ -77,20 +78,38 @@ function PatientCard(props) {
   const genderRaw =
     patientObj?.gender || patientObj?.sex || getSex(patientDetail);
   const isFemale = (genderRaw || "").toLowerCase() === "female";
-  // Pregnancy display for the female-only chips. Prefer the freshly-fetched
-  // patientDetail (HTS-derived), fall back to the grid row's pregnancyStatusDisplay
-  // so PrEP clients (whose value may only be on the row) still get the chips.
+  // Pregnancy display for the female-only chips. Derive it the SAME way the
+  // screening/initiation forms do — via normalizeHtsObservation on the latest HTS
+  // observation shipped with the row. The backend `pregnant` /
+  // `pregnancyStatusDisplay` fields do a naive exact-match codeset join that
+  // FAILS on the messy composite value the HTS stores (e.g.
+  // "PREGANACY_STATUS_PREGNANT BREASTFEEDING_NO"), which is why the card showed
+  // "Unknown" while the form resolved it correctly. Reusing the normaliser here
+  // repairs the misspelling / collapses the composite → a single canonical code.
+  const normalizedPregnancyCode = normalizeHtsObservation(
+    patientObj?.latestHtsResult?.observation
+  )?.pregnancyStatus;
+  const PREGNANCY_CODE_DISPLAY = {
+    PREGANACY_STATUS_PREGNANT: "Pregnant",
+    PREGANACY_STATUS_BREASTFEEDING: "Breastfeeding",
+    PREGANACY_STATUS_NOT_PREGNANT: "Not Pregnant",
+  };
   const pregnancyValue =
-    patientDetail?.pregnant || patientObj?.pregnancyStatusDisplay;
-  // When there is no pregnancy value (e.g. the client has no valid/complete HTS
-  // record), still show the chips for female clients with an explicit default
-  // rather than hiding them or implying a "No".
-  const UNKNOWN_STATUS = "Unknown (Invalid HTS record)";
+    PREGNANCY_CODE_DISPLAY[normalizedPregnancyCode] ||
+    patientDetail?.pregnant ||
+    patientObj?.pregnancyStatusDisplay;
+  // When there is genuinely no pregnancy value (client has no HTS record with a
+  // pregnancy status), still show the chips for female clients with an explicit
+  // default rather than hiding them or implying a "No".
+  const UNKNOWN_STATUS = "Unknown";
   const pregnancyDisplay = pregnancyValue || UNKNOWN_STATUS;
+  const isBreastfeeding =
+    normalizedPregnancyCode === "PREGANACY_STATUS_BREASTFEEDING" ||
+    (pregnancyValue || "").toString().toLowerCase().replace(/\s|-/g, "") ===
+      "breastfeeding";
   const breastFeedingDisplay = !pregnancyValue
     ? UNKNOWN_STATUS
-    : pregnancyValue.toString().toLowerCase().replace(/\s|-/g, "") ===
-      "breastfeeding"
+    : isBreastfeeding
     ? "Yes"
     : "No";
 

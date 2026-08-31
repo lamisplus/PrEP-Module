@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from "axios";
 import MaterialTable, { MTableToolbar }  from 'material-table';
 import { token as token, url as baseUrl } from "./../../../api";
+import useLatestGridRequest, { isAbortError } from "../../hooks/useLatestGridRequest";
 import { forwardRef } from 'react';
 import 'semantic-ui-css/semantic.min.css';
 import { Link } from 'react-router-dom'
@@ -58,10 +59,11 @@ ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 
 
 
-const Patients = (props) => {    
+const Patients = (props) => {
     const [patientList, setPatientList] = useState([])
     const [loading, setLoading] = useState(true)
     const [showPPI, setShowPPI] = useState(true)
+    const startRequest = useLatestGridRequest()
     useEffect(() => {
         // patients()
       }, []);
@@ -113,11 +115,17 @@ const Patients = (props) => {
             ]}
             //isLoading={loading}
             data={query =>
-                new Promise((resolve, reject) =>
-                    axios.get(`${baseUrl}prep/persons?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`, { headers: {"Authorization" : `Bearer ${token}`} })
+                new Promise((resolve, reject) => {
+                    const { signal, isCurrent } = startRequest()
+                    // encodeURIComponent: an unencoded '&', '+' or '%' typed into
+                    // the search box truncated or corrupted the query string.
+                    axios.get(`${baseUrl}prep/persons?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${encodeURIComponent(query.search)}`, { headers: {"Authorization" : `Bearer ${token}`}, signal })
                         .then(response => response)
                         .then(result => {
-                            
+                            // Superseded by a newer search term: leave this promise
+                            // unsettled so its stale rows never reach the grid.
+                            if (!isCurrent()) return
+
                             resolve({
                                 data: result.data.records.filter(x=> x.prepStatus!== "Not Enrolled").map((row) => ({
                                     name:row.firstName + " " + row.surname,
@@ -171,8 +179,14 @@ const Patients = (props) => {
                                 
                             })
                         })
-                        
-            )}
+                        // Without a catch the promise never settled on error, so
+                        // the table spun forever. Aborted/superseded requests are
+                        // dropped silently; a real failure shows the error state.
+                        .catch(error => {
+                            if (isAbortError(error) || !isCurrent()) return
+                            reject(error)
+                        })
+                })}
             options={{
                 headerStyle: {
                     backgroundColor: "#014d88",

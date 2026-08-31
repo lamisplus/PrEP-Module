@@ -8,6 +8,9 @@ import org.lamisplus.modules.prep.repository.ViralLoadRepository;
 import org.lamisplus.modules.prep.util.ViralLoadConstants;
 import org.springframework.stereotype.Service;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @Service
 @RequiredArgsConstructor
 public class ViralLoadService {
@@ -15,11 +18,6 @@ public class ViralLoadService {
     private final ViralLoadRepository viralLoadRepository;
     private final PersonRepository personRepository;
 
-    /**
-     * Returns the patient's latest viral load (looked up by person id, resolving
-     * the uuid server-side so callers don't need to carry it) and its
-     * interpreted label. When no viral load exists the DTO fields are null.
-     */
     public ViralLoadResultDto getLatestViralLoad(Long personId) {
         String personUuid = personRepository.findById(personId)
                 .map(Person::getUuid)
@@ -35,23 +33,57 @@ public class ViralLoadService {
                 .orElseGet(() -> ViralLoadResultDto.builder().build());
     }
 
-    /**
-     * > threshold => Target Detected; at/below => Target NO Detected. Returns
-     * null when the raw result carries no parseable number so the UI can simply
-     * show nothing rather than a misleading label.
-     */
     private String interpret(String rawResult) {
-        Double value = parseNumeric(rawResult);
-        if (value == null) return null;
-        return value > ViralLoadConstants.VIRAL_LOAD_THRESHOLD
-                ? ViralLoadConstants.TARGET_DETECTED
-                : ViralLoadConstants.TARGET_NOT_DETECTED;
+        if (rawResult == null) return null;
+        
+        if (NOT_DETECTED_TEXT.matcher(rawResult).find()) {
+            return ViralLoadConstants.TARGET_NOT_DETECTED;
+        }
+        String qualifier = leadingQualifier(rawResult);
+        Double bound = parseNumeric(stripLeadingQualifier(rawResult));
+        if (bound == null) return null;
+
+        double threshold = ViralLoadConstants.VIRAL_LOAD_THRESHOLD;
+        switch (qualifier) {
+            case "<":  // true value < bound
+                return bound <= threshold ? ViralLoadConstants.TARGET_NOT_DETECTED : null;
+            case "<=": // true value <= bound
+                return bound < threshold ? ViralLoadConstants.TARGET_NOT_DETECTED : null;
+            case ">":  // true value > bound
+            case ">=": // true value >= bound
+                return bound >= threshold ? ViralLoadConstants.TARGET_DETECTED : null;
+            default:   // a plain number
+                return bound >= threshold
+                        ? ViralLoadConstants.TARGET_DETECTED
+                        : ViralLoadConstants.TARGET_NOT_DETECTED;
+        }
+    }
+
+    private static final Pattern NOT_DETECTED_TEXT = Pattern.compile(
+            "\\bT?ND\\b|NOT\\s+DETECTED|UNDETECT", Pattern.CASE_INSENSITIVE);
+
+    private static final String LESS_THAN_OR_EQUAL = String.valueOf((char) 0x2264);
+    private static final String GREATER_THAN_OR_EQUAL = String.valueOf((char) 0x2265);
+    private static final Pattern LEADING_QUALIFIER = Pattern.compile(
+            "^\\s*(<=|>=|" + LESS_THAN_OR_EQUAL + "|" + GREATER_THAN_OR_EQUAL + "|<|>)");
+
+    private static String leadingQualifier(String raw) {
+        Matcher matcher = LEADING_QUALIFIER.matcher(raw);
+        if (!matcher.find()) return "";
+        String qualifier = matcher.group(1);
+        if (LESS_THAN_OR_EQUAL.equals(qualifier)) return "<=";
+        if (GREATER_THAN_OR_EQUAL.equals(qualifier)) return ">=";
+        return qualifier;
+    }
+
+    private static String stripLeadingQualifier(String raw) {
+        Matcher matcher = LEADING_QUALIFIER.matcher(raw);
+        return matcher.find() ? raw.substring(matcher.end()) : raw;
     }
 
     private Double parseNumeric(String raw) {
         if (raw == null) return null;
-        // Lab results can carry qualifiers ("< 20", "1,000 copies"); keep digits
-        // and the decimal point only, then parse.
+        
         String cleaned = raw.replaceAll("[^0-9.]", "");
         if (cleaned.isEmpty()) return null;
         try {

@@ -48,7 +48,8 @@ public class PrepFollowupVisitDto implements Serializable {
     private String populationType;
     private String visitType;
     private String reasonForSwitch;
-    private Integer monthsOfRefill;
+    /** Refill supply in DAYS. Replaces the ambiguous monthsOfRefill/duration pair. */
+    private Integer refillDays;
     private String previousPrepStatus;
     private String whyAdherenceLevelPoor;
     private String otherReasonForPoorFairAdherence;

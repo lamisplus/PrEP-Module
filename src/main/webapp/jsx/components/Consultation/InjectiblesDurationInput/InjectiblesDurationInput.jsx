@@ -20,7 +20,8 @@ const InjectiblesDurationInput = ({
   return (
     <CleanupWrapper
       cleanup={() =>
-        setObjValues(prev => ({ ...prev, monthsOfRefill: '', duration: '' }))
+        // REPLACED monthsOfRefill/duration with the canonical refillDays.
+        setObjValues(prev => ({ ...prev, refillDays: '' }))
       }
     >
       <div>

@@ -253,10 +253,14 @@ public class PepFollowupVisitService {
         entity.setOtherPrepType(dto.getOtherPrepType());
         entity.setWasPrepAdministered(dto.getWasPrepAdministered());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
-        entity.setMonthsOfRefill(dto.getMonthsOfRefill());
+        entity.setRefillDays(dto.getRefillDays());
         entity.setReasonForSwitch(dto.getReasonForSwitch());
         entity.setStiScreening(dto.getStiScreening());
-        entity.setDuration(dto.getDuration());
+        // `duration` MUST be kept equal to refillDays: a downstream pipeline reads
+        // it. The status SQL itself no longer uses it (it compares elapsed days since
+        // encounter_date against refill_days), so this write exists solely for that
+        // pipeline - never let the two columns diverge.
+        entity.setDuration(dto.getRefillDays());
         entity.setPrepType(dto.getPrepType());
         entity.setPopulationType(dto.getPopulationType());
         entity.setOtherRegimenId(dto.getOtherRegimenId());
@@ -304,10 +308,14 @@ public class PepFollowupVisitService {
         entity.setOtherPrepType(dto.getOtherPrepType());
         entity.setWasPrepAdministered(dto.getWasPrepAdministered());
         entity.setPrepDistributionSetting(dto.getPrepDistributionSetting());
-        entity.setMonthsOfRefill(dto.getMonthsOfRefill());
+        entity.setRefillDays(dto.getRefillDays());
         entity.setReasonForSwitch(dto.getReasonForSwitch());
         entity.setStiScreening(dto.getStiScreening());
-        entity.setDuration(dto.getDuration());
+        // `duration` MUST be kept equal to refillDays: a downstream pipeline reads
+        // it. The status SQL itself no longer uses it (it compares elapsed days since
+        // encounter_date against refill_days), so this write exists solely for that
+        // pipeline - never let the two columns diverge.
+        entity.setDuration(dto.getRefillDays());
         entity.setPrepType(dto.getPrepType());
         entity.setPopulationType(dto.getPopulationType());
         entity.setOtherRegimenId(dto.getOtherRegimenId());
@@ -356,7 +364,7 @@ public class PepFollowupVisitService {
         dto.setOtherPrepType(entity.getOtherPrepType());
         dto.setWasPrepAdministered(entity.getWasPrepAdministered());
         dto.setPrepDistributionSetting(entity.getPrepDistributionSetting());
-        dto.setMonthsOfRefill(entity.getMonthsOfRefill());
+        dto.setRefillDays(entity.getRefillDays());
         dto.setReasonForSwitch(entity.getReasonForSwitch());
         dto.setStiScreening(entity.getStiScreening());
         dto.setDuration(entity.getDuration());

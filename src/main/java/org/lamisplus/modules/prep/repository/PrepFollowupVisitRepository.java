@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -26,6 +27,12 @@ public interface PrepFollowupVisitRepository extends JpaRepository<PrepFollowupV
     Optional<PrepFollowupVisit> findByEncounterDateAndPersonUuid(LocalDate encounterDate, String uuid);
     Optional<PrepFollowupVisit> findByEncounterDateAndPersonUuidAndIsCommencementAndArchived(LocalDate encounterDate, String uuid, Boolean isCommencement, Boolean archived);
     Optional<PrepFollowupVisit> findByUuid(String uuid);
+
+    /** Latest PrEP follow-up visit date for a person — the "latest visit" the discontinuation check compares against. */
+    @Query(nativeQuery = true, value =
+            "SELECT MAX(f.encounter_date) FROM prep_followup_visit f " +
+            "WHERE CAST(f.person_uuid AS text) = :personUuid AND CAST(f.archived AS BOOLEAN) = false")
+    java.sql.Date findLatestFollowupDate(@Param("personUuid") String personUuid);
 
     // CAB-LA eligibility: a patient becomes injectable-eligible after they
     // have had an initiation visit on the long-acting injectable regimen.

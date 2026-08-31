@@ -14,6 +14,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 import org.lamisplus.modules.base.domain.entities.Audit;
+import org.lamisplus.modules.prep.config.PrepAuditListener;
 import org.lamisplus.modules.patient.domain.entity.Person;
 
 import javax.persistence.*;
@@ -25,6 +26,8 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Table(name = "prophylaxis_initiation")
+
+@EntityListeners(PrepAuditListener.class)
 @TypeDefs({
         @TypeDef(name = "string-array", typeClass = StringArrayType.class),
         @TypeDef(name = "int-array", typeClass = IntArrayType.class),
@@ -113,8 +116,14 @@ public class PrepPepInitiation extends Audit implements Serializable {
     @Column(name = "prep_regimen")
     private String prepRegimen;
 
-    @Column(name = "months_of_refill")
-    private Integer monthsOfRefill;
+
+    /**
+     * Refill supply in DAYS. Canonical replacement for the ambiguous
+     * months_of_refill / duration pair, which were written from one value
+     * but read as months by the forms and as days by the status SQL.
+     */
+    @Column(name = "refill_days")
+    private Integer refillDays;
 
     /**
      * Whether this initiation has been discontinued / interrupted. Set to false on creation.

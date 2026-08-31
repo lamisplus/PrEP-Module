@@ -65,4 +65,7 @@ public class PrepEnrollmentRequestDto implements Serializable {
     private String prepRegimen;
 
     private Integer monthsOfRefill;
+
+    /** Refill supply in DAYS. Replaces the ambiguous monthsOfRefill/duration pair. */
+    private Integer refillDays;
 }

@@ -14,6 +14,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 import org.lamisplus.modules.base.domain.entities.Audit;
+import org.lamisplus.modules.prep.config.PrepAuditListener;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
 // import org.lamisplus.modules.triage.domain.entity.VitalSign;  // Triage temporarily disabled — see PrepModule.java.
@@ -28,6 +29,8 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Table(name = "prep_clinic")
+
+@EntityListeners(PrepAuditListener.class)
 @TypeDefs({
         @TypeDef(name = "string-array", typeClass = StringArrayType.class),
         @TypeDef(name = "int-array", typeClass = IntArrayType.class),

@@ -77,9 +77,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
             "FROM patient_person p " +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND CAST(pet.archived AS BOOLEAN) = false " +
-            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
-            "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
-            "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE '%' || ?3 || '%' " +
+            "OR p.surname ILIKE '%' || ?3 || '%' OR p.other_name ILIKE '%' || ?3 || '%' " +
+            "OR p.hospital_number ILIKE ?3 || '%' OR pet.unique_id ILIKE ?3 || '%') " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled ", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
 
@@ -90,9 +90,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "CAST (COUNT(pet.person_uuid) AS INTEGER) as prepCount " +
             "FROM patient_person p " +
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND CAST(pet.archived AS BOOLEAN) = false " +
-            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE ?3 " +
-            "OR p.surname ILIKE ?3 OR p.other_name ILIKE ?3 " +
-            "OR p.hospital_number ILIKE ?3 OR pet.unique_id ILIKE ?3) " +
+            "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND (p.first_name ILIKE '%' || ?3 || '%' " +
+            "OR p.surname ILIKE '%' || ?3 || '%' OR p.other_name ILIKE '%' || ?3 || '%' " +
+            "OR p.hospital_number ILIKE ?3 || '%' OR pet.unique_id ILIKE ?3 || '%') " +
             "GROUP BY pet.unique_id, p.id, p.first_name, p.first_name, p.surname, p.other_name, p.hospital_number, p.date_of_birth, pet.person_uuid, pet.date_enrolled ", nativeQuery = true)
     List<PrepClient> findAllPersonPrepBySearchParam(Boolean archived, Long facilityId, String search);
 
@@ -164,17 +164,17 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
@@ -190,9 +190,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
-            "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            "           MAX(pc.encounter_date) AS encounter_date, pc.refill_days,\n" +
             "           pc.visit_type AS visit_type, pc.prep_type AS prep_type, pc.previous_prep_status AS previous_prep_status,\n" +
-            "           CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END AS status\n" +
+            "           CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
@@ -201,7 +201,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
-            "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
+            "    GROUP BY pc.person_uuid, pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
@@ -230,12 +230,12 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND p.facility_id = ?2\n" +
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR pet.unique_id ILIKE ?3 || '%')\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +
@@ -244,7 +244,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
-            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
+            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.refill_days, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatusBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
 
@@ -297,17 +297,17 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
@@ -323,9 +323,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
-            "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            "           MAX(pc.encounter_date) AS encounter_date, pc.refill_days,\n" +
             "           pc.visit_type AS visit_type, pc.prep_type AS prep_type, pc.previous_prep_status AS previous_prep_status,\n" +
-            "           CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END AS status\n" +
+            "           CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
@@ -334,7 +334,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
-            "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
+            "    GROUP BY pc.person_uuid, pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
@@ -364,12 +364,12 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
             "AND pet.person_uuid IS NOT NULL\n" +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR pet.unique_id ILIKE ?3 || '%')\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +
@@ -378,7 +378,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
-            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
+            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.refill_days, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST) res where res.prepStatus = 'Not Enrolled' ", nativeQuery = true)
     Page<PrepClient> findAllNotEnrolledPersonPrepAndStatusBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
 
@@ -431,17 +431,17 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
@@ -457,9 +457,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
-            "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            "           MAX(pc.encounter_date) AS encounter_date, pc.refill_days,\n" +
             "           pc.visit_type AS visit_type, pc.prep_type AS prep_type, pc.previous_prep_status AS previous_prep_status,\n" +
-            "           CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END AS status\n" +
+            "           CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
@@ -468,7 +468,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
-            "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
+            "    GROUP BY pc.person_uuid, pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
@@ -498,12 +498,12 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
             "AND pet.person_uuid IS NOT NULL\n" +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR pet.unique_id ILIKE ?3 || '%')\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +
@@ -512,7 +512,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
-            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
+            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.refill_days, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST) res WHERE prepStatus IN ('Stopped', 'Discontinued', 'Death')\n" +
             "   OR prepi.interruption_type IS NOT NULL", nativeQuery = true)
     Page<PrepClient> findAllInterruptedPersonPrepAndStatusBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
@@ -536,13 +536,13 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid  " +
             "AND CAST(pet.archived AS BOOLEAN) = false LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid  " +
             "AND he.archived = CAST(?1 AS INTEGER) LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount,  " +
-            "MAX(pc.encounter_date) as encounter_date, pc.duration,   " +
-            " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'  " +
+            "MAX(pc.encounter_date) as encounter_date, pc.refill_days,   " +
+            " (CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active'  " +
             " ELSE  'Defaulted' END) status FROM prep_followup_visit pc  " +
             " INNER JOIN (SELECT DISTINCT MAX(pc.encounter_date) encounter_date,  " +
             " pc.person_uuid FROM prep_followup_visit pc GROUP BY pc.person_uuid) max_p  " +
             " ON max_p.encounter_date=pc.encounter_date  AND max_p.person_uuid=pc.person_uuid  " +
-            " WHERE CAST(pc.archived AS BOOLEAN) = false  GROUP BY pc.person_uuid, pc.duration, status ) prepc  " +
+            " WHERE CAST(pc.archived AS BOOLEAN) = false  GROUP BY pc.person_uuid, pc.refill_days, status ) prepc  " +
             " ON prepc.person_uuid=p.uuid  LEFT JOIN (SELECT pi.id, pi.person_uuid,  " +
             " pi.interruption_date , pi.interruption_type  " +
             " FROM prophylaxis_interruptions pi  " +
@@ -615,32 +615,32 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHEN pet.date_enrolled IS NOT NULL AND pet.date_enrolled > prepc.encounter_date THEN 'Not Commenced' \n" +
             // Worst-case on null: a followup exists but the date/duration needed to
             // compute a real status is missing — don't fall through to 'Active'.
-            "        WHEN prepc.encounter_date IS NULL OR prepc.duration IS NULL THEN 'Defaulted' \n" +
+            "        WHEN prepc.encounter_date IS NULL OR prepc.refill_days IS NULL THEN 'Defaulted' \n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN \n" +
             "            CASE \n" +
-            "                WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '29' DAY THEN 'Discontinued' \n" +
-            "                WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '7' DAY THEN 'Delayed Injection' \n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 29 THEN 'Discontinued' \n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 7 THEN 'Delayed Injection' \n" +
             "                ELSE 'Active' \n" +
             "            END \n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN \n" +
             "            CASE \n" +
-            "                WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '29' DAY THEN 'Discontinued' \n" +
-            "                WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '7' DAY THEN 'Delayed Injection' \n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 29 THEN 'Discontinued' \n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 7 THEN 'Delayed Injection' \n" +
             "                ELSE 'Active' \n" +
             "            END \n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN \n" +
             "            CASE \n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued' \n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued' \n" +
             "                ELSE 'Active' \n" +
             "            END \n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN \n" +
             "            CASE \n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued' \n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued' \n" +
             "                ELSE 'Active' \n" +
             "            END \n" +
             "        WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN \n" +
             "            CASE \n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped' \n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped' \n" +
             "                ELSE 'Active' \n" +
             "            END \n" +
             "        ELSE prepc.status \n" +
@@ -656,8 +656,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, \n" +
-            "           pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status,  \n" +
-            "           (CASE WHEN (pc.encounter_date + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'\n" +
+            "           pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status,  \n" +
+            "           (CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active'\n" +
             "                ELSE  'Defaulted' END) status \n" +
             "    FROM prep_followup_visit pc\n" +
             "    INNER JOIN (\n" +
@@ -667,7 +667,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    ) max_p ON max_p.encounter_date = pc.encounter_date \n" +
             "            AND max_p.person_uuid=pc.person_uuid \n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false \n" +
-            "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status \n" +
+            "    GROUP BY pc.person_uuid, pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status, status \n" +
             ") prepc ON prepc.person_uuid=p.uuid  \n" +
             // Picks the latest interruption per person using DISTINCT ON +
             // COALESCE over the type-specific date columns. The previous
@@ -696,7 +696,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "         AND el.person_uuid = pel.person_uuid\n" +
             ") el_max ON el_max.person_uuid = p.uuid \n" +
             "WHERE p.archived = CAST(?1 AS INTEGER) AND p.facility_id=?2 AND p.uuid=?3\n" +
-            "GROUP BY prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, bac.display, he.person_uuid, he.date_confirmed_hiv, \n" +
+            "GROUP BY prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.refill_days, bac.display, he.person_uuid, he.date_confirmed_hiv, \n" +
             "         el_max.HIVResultAtVisit, pet.date_created, p.date_of_registration, prepc.commencementCount, el.eligibility_count, pet.created_by, pet.unique_id, \n" +
             "         p.id, p.first_name, p.first_name, p.surname, pet.person_uuid, prepc.person_uuid, \n" +
             "         p.other_name, p.hospital_number, p.date_of_birth, prepc.status, pet.id, pet.date_enrolled \n" +
@@ -741,30 +741,30 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION'" +
             "           AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN" +
             "           CASE" +
-            "               WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '29' DAY THEN 'Discontinued'" +
-            "               WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '7' DAY THEN 'Delayed Injection'" +
+            "               WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 29 THEN 'Discontinued'" +
+            "               WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 7 THEN 'Delayed Injection'" +
             "               ELSE 'Active' " +
             "           END " +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' " +
             "           AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN " +
             "           CASE " +
-            "               WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '29' DAY THEN 'Discontinued' " +
-            "               WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '7' DAY THEN 'Delayed Injection' " +
+            "               WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 29 THEN 'Discontinued' " +
+            "               WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 7 THEN 'Delayed Injection' " +
             "               ELSE 'Active' " +
             "           END " +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
@@ -795,9 +795,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
-            "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            "           MAX(pc.encounter_date) AS encounter_date, pc.refill_days,\n" +
             "           pc.visit_type AS visit_type, pc.prep_type AS prep_type, pc.previous_prep_status AS previous_prep_status,\n" +
-            "           CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END AS status\n" +
+            "           CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
@@ -806,7 +806,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
-            "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
+            "    GROUP BY pc.person_uuid, pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
@@ -843,7 +843,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
-            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
+            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.refill_days, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPersonPrepAndStatus(Boolean archived, Long facilityId, Pageable pageable);
 
@@ -878,29 +878,29 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            WHEN prepi.interruption_type = 'PREP_STATUS_SEROCONVERTED' THEN 'Seroconverted'\n" +
             "            WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
             "                CASE\n" +
-            "                    WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '29 days' THEN 'Discontinued'\n" +
-            "                    WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '7 days' THEN 'Delayed Injection'\n" +
+            "                    WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 29 THEN 'Discontinued'\n" +
+            "                    WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 7 THEN 'Delayed Injection'\n" +
             "                    ELSE 'Active'\n" +
             "                END\n" +
             "            WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
             "                CASE\n" +
-            "                    WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '29 days' THEN 'Discontinued'\n" +
-            "                    WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '7 days' THEN 'Delayed Injection'\n" +
+            "                    WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 29 THEN 'Discontinued'\n" +
+            "                    WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 7 THEN 'Delayed Injection'\n" +
             "                    ELSE 'Active'\n" +
             "                END\n" +
             "            WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "                CASE\n" +
-            "                    WHEN CURRENT_DATE > (prepc.encounter_date + prepc.duration) THEN 'Discontinued'\n" +
+            "                    WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                    ELSE 'Active'\n" +
             "                END\n" +
             "            WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "                CASE\n" +
-            "                    WHEN CURRENT_DATE > (prepc.encounter_date + prepc.duration) THEN 'Discontinued'\n" +
+            "                    WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                    ELSE 'Active'\n" +
             "                END\n" +
             "            WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "                CASE\n" +
-            "                    WHEN CURRENT_DATE > (prepc.encounter_date + prepc.duration) THEN 'Stopped'\n" +
+            "                    WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped'\n" +
             "                    ELSE 'Active'\n" +
             "                END\n" +
             "            ELSE prepc.status\n" +
@@ -931,9 +931,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    LEFT JOIN hiv_enrollment he ON he.person_uuid = pet.person_uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "    LEFT JOIN (\n" +
             "        SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
-            "               MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            "               MAX(pc.encounter_date) AS encounter_date, pc.refill_days,\n" +
             "               pc.visit_type, pc.prep_type, pc.previous_prep_status,\n" +
-            "               CASE WHEN (pc.encounter_date + pc.duration) > CURRENT_DATE THEN 'Active' ELSE 'Defaulted' END AS status\n" +
+            "               CASE WHEN (CURRENT_DATE - pc.encounter_date) <= pc.refill_days THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "        FROM prep_followup_visit pc\n" +
             "        INNER JOIN (\n" +
             "            SELECT MAX(encounter_date) AS encounter_date, person_uuid\n" +
@@ -942,7 +942,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            GROUP BY person_uuid\n" +
             "        ) max_pc ON max_pc.encounter_date = pc.encounter_date AND max_pc.person_uuid = pc.person_uuid\n" +
             "        WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
-            "        GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
+            "        GROUP BY pc.person_uuid, pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             "    ) prepc ON prepc.person_uuid = pet.person_uuid\n" +
             "    LEFT JOIN (\n" +
             "        SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
@@ -974,7 +974,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        pet.date_created, p.date_of_birth, p.sex, he.date_confirmed_hiv,\n" +
             "        prepc.previous_prep_status, prepi.interruption_date, prepc.encounter_date,\n" +
             "        bac.display, prepi.interruption_type, he.person_uuid,\n" +
-            "        prepc.person_uuid, prepc.visit_type, prepc.prep_type, prepc.duration,\n" +
+            "        prepc.person_uuid, prepc.visit_type, prepc.prep_type, prepc.refill_days,\n" +
             "        prepc.status, pet.date_enrolled\n" +
             "    ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST\n" +
             ") res\n" +
@@ -1012,30 +1012,30 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                    WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION'\n" +
             "                       AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN\n" +
             "                       CASE\n" +
-            "                           WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '29' DAY THEN 'Discontinued'\n" +
-            "                           WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '7' DAY THEN 'Delayed Injection'\n" +
+            "                           WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 29 THEN 'Discontinued'\n" +
+            "                           WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 7 THEN 'Delayed Injection'\n" +
             "                           ELSE 'Active'\n" +
             "                       END\n" +
             "                    WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION'\n" +
             "                       AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES'THEN\n" +
             "                       CASE\n" +
-            "                           WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '29' DAY THEN 'Discontinued'\n" +
-            "                           WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '7' DAY THEN 'Delayed Injection'\n" +
+            "                           WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 29 THEN 'Discontinued'\n" +
+            "                           WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 7 THEN 'Delayed Injection'\n" +
             "                           ELSE 'Active'\n" +
             "                       END\n" +
             "                    WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "                        CASE\n" +
-            "                            WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                            ELSE 'Active'\n" +
             "                        END\n" +
             "                    WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "                        CASE\n" +
-            "                            WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                            ELSE 'Active'\n" +
             "                        END\n" +
             "                    WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "                        CASE\n" +
-            "                            WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
+            "                            WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped'\n" +
             "                            ELSE 'Active'\n" +
             "                        END\n" +
             "                    ELSE prepc.status\n" +
@@ -1066,9 +1066,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "            LEFT JOIN (\n" +
             "                SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
-            "                       MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            "                       MAX(pc.encounter_date) AS encounter_date, pc.refill_days,\n" +
             "                       pc.visit_type AS visit_type, pc.prep_type AS prep_type, pc.previous_prep_status AS previous_prep_status,\n" +
-            "                       CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END AS status\n" +
+            "                       CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "                FROM prep_followup_visit pc\n" +
             "                INNER JOIN (\n" +
             "                    SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
@@ -1077,7 +1077,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                    GROUP BY pc.person_uuid\n" +
             "                ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
             "                WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
-            "                GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
+            "                GROUP BY pc.person_uuid, pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             "            ) prepc ON prepc.person_uuid = p.uuid\n" +
             "            LEFT JOIN (\n" +
             "                SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
@@ -1114,7 +1114,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
             "                p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "                prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
-            "                pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
+            "                pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.refill_days, pet.date_enrolled\n" +
             "            ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST) res where res.prepStatus = 'Not Enrolled' ", nativeQuery = true)
     Page<PrepClient> findAllNotEnrolledPersonPrepAndStatus(Boolean archived, Long facilityId, Pageable pageable);
 
@@ -1149,13 +1149,13 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "WHERE CAST(el.archived AS BOOLEAN) = false GROUP BY person_uuid) el ON el.person_uuid = p.uuid" +
             " LEFT JOIN prophylaxis_initiation pet ON pet.person_uuid = p.uuid AND CAST(pet.archived AS BOOLEAN) = false" +
             " LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)" +
-            " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.duration,   " +
-            " (CASE WHEN (pc.encounter_date  + pc.duration) > CAST (NOW() AS DATE) THEN 'Active'" +
+            " LEFT JOIN (SELECT pc.person_uuid, COUNT(pc.person_uuid) commencementCount, MAX(pc.encounter_date) as encounter_date, pc.refill_days,   " +
+            " (CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active'" +
             " ELSE  'Defaulted' END) status FROM prep_followup_visit pc" +
             " INNER JOIN (SELECT DISTINCT MAX(pc.encounter_date) encounter_date, pc.person_uuid" +
             " FROM prep_followup_visit pc GROUP BY pc.person_uuid) max_p ON max_p.encounter_date=pc.encounter_date " +
             " AND max_p.person_uuid=pc.person_uuid WHERE CAST(pc.archived AS BOOLEAN) = false " +
-            " GROUP BY pc.person_uuid, pc.duration, status ) prepc ON prepc.person_uuid=p.uuid  " +
+            " GROUP BY pc.person_uuid, pc.refill_days, status ) prepc ON prepc.person_uuid=p.uuid  " +
             "LEFT JOIN (" +
             "SELECT pi.id, pi.person_uuid, pi.interruption_date , pi.interruption_type " +
             "FROM prophylaxis_interruptions pi " +
@@ -1228,17 +1228,17 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
@@ -1254,9 +1254,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
-            "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            "           MAX(pc.encounter_date) AS encounter_date, pc.refill_days,\n" +
             "           pc.visit_type AS visit_type, pc.prep_type AS prep_type, pc.previous_prep_status AS previous_prep_status,\n" +
-            "           CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END AS status\n" +
+            "           CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
@@ -1265,7 +1265,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
-            "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
+            "    GROUP BY pc.person_uuid, pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
@@ -1295,12 +1295,12 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "AND he.person_uuid IS NULL\n" +
             "AND (COALESCE(el_max.hivTestResult, '') NOT ILIKE '%Positive%')\n" +
             "AND pet.enrollment_type = '" + EnrollmentType.PEP + "'\n" +
-            "AND (p.first_name ILIKE ?3\n" +
-            "     OR p.full_name ILIKE ?3\n" +
-            "     OR p.surname ILIKE ?3\n" +
-            "     OR p.other_name ILIKE ?3\n" +
-            "     OR p.hospital_number ILIKE ?3\n" +
-            "     OR pet.unique_id ILIKE ?3)\n" +
+            "AND (p.first_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.full_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.surname ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.other_name ILIKE '%' || ?3 || '%'\n" +
+            "     OR p.hospital_number ILIKE ?3 || '%'\n" +
+            "     OR pet.unique_id ILIKE ?3 || '%')\n" +
             "GROUP BY\n" +
             "    prepi.interruption_date, prepi.interruption_type, prepc.encounter_date, bac.display,\n" +
             "    el_max.hivTestResult, p.date_of_registration,\n" +
@@ -1309,7 +1309,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
-            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
+            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.refill_days, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPepEnrolledPersonPrepAndStatusBySearchParam(Boolean archived, Long facilityId, String search, Pageable pageable);
 
@@ -1351,30 +1351,30 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_INITIATION'" +
             "           AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN" +
             "           CASE" +
-            "               WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '29' DAY THEN 'Discontinued'" +
-            "               WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '7' DAY THEN 'Delayed Injection'" +
+            "               WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 29 THEN 'Discontinued'" +
+            "               WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 7 THEN 'Delayed Injection'" +
             "               ELSE 'Active' " +
             "           END " +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_SECOND_INITIATION' " +
             "           AND prepc.prep_type = 'PREP_TYPE_INJECTIBLES' THEN " +
             "           CASE " +
-            "               WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '29' DAY THEN 'Discontinued' " +
-            "               WHEN CURRENT_DATE > prepc.encounter_date + prepc.duration + INTERVAL '7' DAY THEN 'Delayed Injection' " +
+            "               WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 29 THEN 'Discontinued' " +
+            "               WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days + 7 THEN 'Delayed Injection' " +
             "               ELSE 'Active' " +
             "           END " +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_METHOD_SWITCH' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type = 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Discontinued'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Discontinued'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        WHEN prepc.visit_type <> 'PREP_VISIT_TYPE_DISCONTINUATION' AND prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
             "        ELSE prepc.status\n" +
@@ -1405,9 +1405,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "LEFT JOIN hiv_enrollment he ON he.person_uuid = p.uuid AND he.archived = CAST(?1 AS INTEGER)\n" +
             "LEFT JOIN (\n" +
             "    SELECT pc.person_uuid, COUNT(pc.person_uuid) AS commencementCount,\n" +
-            "           MAX(pc.encounter_date) AS encounter_date, pc.duration,\n" +
+            "           MAX(pc.encounter_date) AS encounter_date, pc.refill_days,\n" +
             "           pc.visit_type AS visit_type, pc.prep_type AS prep_type, pc.previous_prep_status AS previous_prep_status,\n" +
-            "           CASE WHEN (pc.encounter_date + pc.duration) > CAST(NOW() AS DATE) THEN 'Active' ELSE 'Defaulted' END AS status\n" +
+            "           CASE WHEN (CAST(NOW() AS DATE) - pc.encounter_date) <= pc.refill_days THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
             "    INNER JOIN (\n" +
             "        SELECT DISTINCT MAX(pc.encounter_date) AS encounter_date, pc.person_uuid\n" +
@@ -1416,7 +1416,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "        GROUP BY pc.person_uuid\n" +
             "    ) max_p ON max_p.encounter_date = pc.encounter_date AND max_p.person_uuid = pc.person_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
-            "    GROUP BY pc.person_uuid, pc.duration, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
+            "    GROUP BY pc.person_uuid, pc.refill_days, pc.visit_type, pc.prep_type, pc.previous_prep_status, status\n" +
             ") prepc ON prepc.person_uuid = p.uuid\n" +
             "LEFT JOIN (\n" +
             "    SELECT pi.id, pi.person_uuid, pi.interruption_date, pi.interruption_type\n" +
@@ -1454,7 +1454,7 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    pet.person_uuid, prepc.person_uuid, pet.date_created,\n" +
             "    p.other_name, p.hospital_number, p.date_of_birth,\n" +
             "    prepc.status, he.person_uuid, he.date_confirmed_hiv,\n" +
-            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.duration, pet.date_enrolled\n" +
+            "    pet.id, prepc.visit_type, prepc.prep_type, prepc.previous_prep_status, prepc.refill_days, pet.date_enrolled\n" +
             "ORDER BY p.hospital_number, pet.date_created DESC NULLS LAST", nativeQuery = true)
     Page<PrepClient> findAllPepEnrolledPersonPrepAndStatus(Boolean archived, Long facilityId, Pageable pageable);
 
@@ -1517,11 +1517,22 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    latest_hts.facility_id AS latestHtsFacilityId,\n" +
             "    preg_codeset.display AS pregnancyStatusDisplay,\n";
 
+    // True when the patient's latest hts_encounter says HIV-positive — via the
+    // confirmatory or initial test codeset, or a community/migrated record's
+    // finalHivTestResult. NULL-safe: absent keys evaluate to NULL, not true.
+    String LATEST_HTS_POSITIVE =
+            "(latest_hts.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_POSITIVE'\n" +
+            "         OR latest_hts.observation->>'initialHivTest' = 'STI_HIV_RESULT_POSITIVE'\n" +
+            "         OR latest_hts.observation->>'finalHivTestResult' ILIKE '%positive%')";
+
     String PREP_STATUS_CASE =
             "    CASE\n" +
-            // ── Top-precedence: an explicit interruption flagged on the
-            //    enrollment row (Stopped / Dead / Seroconverted / Transfer out /
-            //    Default / Referred). Displays the codeset label.
+            // ── Top-precedence: a positive latest HTS means the client has
+            //    seroconverted — no PrEP service should be offered.
+            "        WHEN " + LATEST_HTS_POSITIVE + " THEN 'Seroconverted'\n" +
+            // ── An explicit interruption flagged on the enrollment row
+            //    (Stopped / Dead / Seroconverted / Transfer out / Default /
+            //    Referred). Displays the codeset label.
             "        WHEN pet.is_interrupted = true THEN COALESCE(bac.display, \n" +
             "             CASE prepi.interruption_type \n" +
             "               WHEN 'PREP_DISCONTINUATION_TYPE_DEFAULT' THEN 'Default' \n" +
@@ -1609,18 +1620,19 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "                ELSE 'Restart Pending'\n" +
             "            END\n" +
 
-            // ── ORAL: regular duration-based status ──────────────────────────
-            //   Within duration -> Active; past duration -> Discontinued for
+            // ── ORAL: refill-window status ───────────────────────────────────
+            //   Days elapsed since the visit vs the dispensed refill_days:
+            //   within the window -> Active; past it -> Discontinued for
             //   closing visit types (Method Switch, Discontinuation), Stopped
             //   for everything else.
             "        WHEN prepc.prep_type = 'PREP_TYPE_ORAL' THEN\n" +
             "            CASE\n" +
-            // Missing duration → unknown supply window → cannot prove the client
+            // Missing refill_days → unknown supply window → cannot prove the client
             // is still covered, so assume worst case instead of 'Active'.
-            "                WHEN prepc.duration IS NULL THEN 'Defaulted'\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER))\n" +
+            "                WHEN prepc.refill_days IS NULL THEN 'Defaulted'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days\n" +
             "                     AND prepc.visit_type IN ('PREP_VISIT_TYPE_METHOD_SWITCH', 'PREP_VISIT_TYPE_DISCONTINUATION') THEN 'Discontinued'\n" +
-            "                WHEN CURRENT_DATE > (CAST(prepc.encounter_date AS DATE) + CAST(prepc.duration AS INTEGER)) THEN 'Stopped'\n" +
+            "                WHEN (CURRENT_DATE - CAST(prepc.encounter_date AS DATE)) > prepc.refill_days THEN 'Stopped'\n" +
             "                ELSE 'Active'\n" +
             "            END\n" +
 
@@ -1640,6 +1652,8 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     // next_appointment vs CURRENT_DATE until a completion form is filled.
     String PEP_STATUS_CASE =
             "    CASE\n" +
+            // A positive latest HTS means the client has seroconverted.
+            "        WHEN " + LATEST_HTS_POSITIVE + " THEN 'Seroconverted'\n" +
             "        WHEN latest_pep_interruption.pep_completion = 'YES_NO_YES'\n" +
             "             AND (latest_pep_visit.visit_date IS NULL\n" +
             "                  OR latest_pep_interruption.completion_date IS NULL\n" +
@@ -1683,9 +1697,9 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    SELECT DISTINCT ON (pc.person_uuid)\n" +
             "           pc.person_uuid,\n" +
             "           COUNT(*) OVER (PARTITION BY pc.person_uuid) AS commencementCount,\n" +
-            "           pc.encounter_date AS encounter_date, pc.duration,\n" +
+            "           pc.encounter_date AS encounter_date, pc.refill_days,\n" +
             "           pc.visit_type, pc.prep_type, pc.previous_prep_status,\n" +
-            "           CASE WHEN (pc.encounter_date + pc.duration) > CURRENT_DATE THEN 'Active' ELSE 'Defaulted' END AS status\n" +
+            "           CASE WHEN (CURRENT_DATE - pc.encounter_date) <= pc.refill_days THEN 'Active' ELSE 'Defaulted' END AS status\n" +
             "    FROM prep_followup_visit pc\n" +
             "    JOIN prophylaxis_initiation pip_c ON pip_c.uuid = pc.prophylaxis_initiation_uuid\n" +
             "    WHERE CAST(pc.archived AS BOOLEAN) = false\n" +
@@ -1704,14 +1718,17 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
             "    ORDER BY pi.person_uuid, pi.interruption_date DESC NULLS LAST, pi.id DESC\n" +
             ") prepi ON prepi.person_uuid = pet.person_uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = prepi.interruption_type\n" +
-            // Latest hts_encounter for this patient (for the new HTS fields)
-            // Latest HTS per patient in ONE scan (was a MAX-self-join).
+            // Latest hts_encounter for this patient (for the new HTS fields).
+            // Keyed on patient_uuid (= person_uuid) rather than patient_id: the
+            // bigint patient_id linkage is unreliable for migrated/ETL HTS rows,
+            // which left latest_hts NULL (so the pregnancy chip fell back to
+            // "Unknown"). patient_uuid is the stable person link.
             "LEFT JOIN (\n" +
-            "    SELECT DISTINCT ON (he2.patient_id) he2.*\n" +
+            "    SELECT DISTINCT ON (he2.patient_uuid) he2.*\n" +
             "    FROM hts_encounter he2\n" +
             "    WHERE he2.archived = false\n" +
-            "    ORDER BY he2.patient_id, he2.date_of_visit DESC NULLS LAST, he2.id DESC\n" +
-            ") latest_hts ON latest_hts.patient_id = p.id\n" +
+            "    ORDER BY he2.patient_uuid, he2.date_of_visit DESC NULLS LAST, he2.id DESC\n" +
+            ") latest_hts ON CAST(latest_hts.patient_uuid AS text) = CAST(p.uuid AS text)\n" +
             "LEFT JOIN base_application_codeset preg_codeset\n" +
             "    ON preg_codeset.code = latest_hts.observation->>'pregnancyStatus'\n";
 
@@ -1754,24 +1771,25 @@ public interface PrepPepInitiationRepository extends JpaRepository<PrepPepInitia
     String ENROLLED_WHERE =
             "WHERE CAST(pet.archived AS BOOLEAN) = ?1\n" +
             "  AND pet.facility_id = ?2\n" +
-            "  AND pet.enrollment_type = ?3\n" +
-            // Exclude clients whose latest interruption on this arm is
-            // Seroconverted — they should not surface on the Enrolled grid for
-            // either PrEP or PEP. prepi is LEFT-JOINed and pre-scoped to the
-            // current arm (?3), so this WHERE works for both queries; clients
-            // with no interruption at all keep flowing through because
-            // prepi.interruption_type IS NULL.
-            "  AND (prepi.interruption_type IS NULL\n" +
-            "       OR prepi.interruption_type NOT IN ('PREP_DISCONTINUATION_TYPE_SEROCONVERTED',\n" +
-            "                                          'PREP_STATUS_SEROCONVERTED'))\n";
+            "  AND pet.enrollment_type = ?3\n";
+            // Seroconverted clients (positive latest HTS, or a seroconverted
+            // interruption) are intentionally NOT filtered out — they must appear
+            // on the Enrolled grid with status 'Seroconverted'. The Patient tab
+            // only pulls negative clients, so this grid is where they surface.
 
+    // Name columns are contains-matched; the identifier columns (hospital
+    // number, HTS unique client id, PrEP unique id) are PREFIX-matched. An
+    // unanchored '%term%' on the identifiers is what made a search for "M-1"
+    // return every client whose id merely contained it (ADM-145, FM-17, PM-1B).
+    // The bound term is escaped by PrepService#normalizeSearchTerm, so a '%' or
+    // '_' typed into the search box is matched literally.
     String SEARCH_PREDICATE =
-            "  AND (p.first_name ILIKE ?4\n" +
-            "       OR p.surname ILIKE ?4\n" +
-            "       OR p.other_name ILIKE ?4\n" +
-            "       OR p.hospital_number ILIKE ?4\n" +
-            "       OR scr.unique_client_id ILIKE ?4\n" +
-            "       OR pet.unique_id ILIKE ?4)\n";
+            "  AND (p.first_name ILIKE '%' || ?4 || '%'\n" +
+            "       OR p.surname ILIKE '%' || ?4 || '%'\n" +
+            "       OR p.other_name ILIKE '%' || ?4 || '%'\n" +
+            "       OR p.hospital_number ILIKE ?4 || '%'\n" +
+            "       OR scr.unique_client_id ILIKE ?4 || '%'\n" +
+            "       OR pet.unique_id ILIKE ?4 || '%')\n";
 
     String ORDER_BY = "ORDER BY p.id, pet.date_enrolled DESC NULLS LAST";
 

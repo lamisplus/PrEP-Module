@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.lamisplus.modules.base.domain.entities.Audit;
+import org.lamisplus.modules.prep.config.PrepAuditListener;
 import org.lamisplus.modules.patient.domain.entity.Person;
 
 import javax.persistence.*;
@@ -16,6 +17,8 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Table(name = "prophylaxis_interruptions")
+
+@EntityListeners(PrepAuditListener.class)
 public class ProphylaxisInterruption extends Audit implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

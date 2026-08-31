@@ -13,6 +13,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 import org.lamisplus.modules.base.domain.entities.Audit;
+import org.lamisplus.modules.prep.config.PrepAuditListener;
 import org.lamisplus.modules.patient.domain.entity.Person;
 
 import javax.persistence.*;
@@ -24,6 +25,8 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Table(name = "pep_followup_visit")
+
+@EntityListeners(PrepAuditListener.class)
 @TypeDefs({
         @TypeDef(name = "string-array", typeClass = StringArrayType.class),
         @TypeDef(name = "int-array", typeClass = IntArrayType.class),
@@ -125,8 +128,14 @@ public class PepFollowupVisit extends Audit implements Serializable {
     @Column(name = "prep_distribution_setting")
     private String prepDistributionSetting;
 
-    @Column(name = "months_of_refill")
-    private Integer monthsOfRefill;
+
+    /**
+     * Refill supply in DAYS. Canonical replacement for the ambiguous
+     * months_of_refill / duration pair, which were written from one value
+     * but read as months by the forms and as days by the status SQL.
+     */
+    @Column(name = "refill_days")
+    private Integer refillDays;
 
     @Column(name = "reason_for_switch")
     private String reasonForSwitch;

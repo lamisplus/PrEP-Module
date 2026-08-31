@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { Grid, Segment, Label } from "semantic-ui-react";
 import {
   FormGroup,
@@ -11,7 +17,10 @@ import { url as baseUrl, token } from "../../../api";
 import { ENROLLMENT_TYPE_PREP } from "../../constants/enrollmentType";
 import { toHivTestResultCode } from "../../../Utils/htsResultMapper";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
-import { isValidHtsEncounter, normalizeHtsObservation } from "../../../Utils/htsEncounter";
+import {
+  isValidHtsEncounter,
+  normalizeHtsObservation,
+} from "../../../Utils/htsEncounter";
 import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Button as MatButton } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
@@ -41,22 +50,30 @@ export const CleanupWrapper = ({ cleanup, children }) => {
 
 const prepTypesMappedToDuration = ["PREP_TYPE_INJECTIBLES", "PREP_TYPE_ORAL"];
 
-// CAB-LA refill codeset codes carry days in the suffix (30/60/90 days), but
-// the next-appointment math operates on months. Map every code to the months
-// it actually corresponds to so visit_date + months works out: 30d=1mo,
-// 60d=2mo, 90d=3mo. Keep the legacy days strings here too so historical rows
-// (where monthsOfRefill was persisted as "30"/"60"/"90") still resolve.
-const CAB_LA_REFILL_MONTHS = {
-  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": 1,
-  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": 2,
-  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90": 3,
-  "30": 1,
-  "60": 2,
-  "90": 3,
+// REPLACED: CAB_LA_REFILL_MONTHS mapped each CAB-LA codeset code to a MONTH
+// count (30d=1mo, 60d=2mo, 90d=3mo) because the next-appointment math added
+// months. The refill field is now a DAY count end to end, so the codes map
+// straight to the days their suffix already names and no conversion is left to
+// get wrong.
+//
+// const CAB_LA_REFILL_MONTHS = {
+//   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": 1,
+//   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": 2,
+//   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90": 3,
+//   "30": 1, "60": 2, "90": 3,
+// };
+const CAB_LA_REFILL_DAYS = {
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": 30,
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": 60,
+  "DURATION_OF_CAB-LA_INJECTABLE_REFILL_90": 90,
+  // Legacy rows persisted the bare days string; keep them resolving.
+  30: 30,
+  60: 60,
+  90: 90,
 };
 
-// Legacy reverse map (full code -> days string) — kept for the save path
-// because the backend column historically holds the days string.
+// Maps the CAB-LA codeset code to the days string and back. Still needed: the
+// dropdown's value is the codeset code, while what is stored is a day count.
 const durationMap = {
   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_30": "30",
   "DURATION_OF_CAB-LA_INJECTABLE_REFILL_60": "60",
@@ -79,13 +96,13 @@ function getDurationByValue(value) {
   }
 }
 
-// Months to add to the visit date for the next appointment. CAB-LA codes
-// (full codeset code OR legacy days string) resolve via the map above;
-// otherwise the value is a plain monthly count typed by the user on the
-// oral-PrEP path.
-function refillToMonths(value) {
+// REPLACED refillToMonths. Days to add to the visit date for the next
+// appointment. CAB-LA codes (full codeset code OR legacy days string) resolve
+// via the map above; otherwise the value is the plain day count the user typed
+// on the oral-PrEP path.
+function refillToDays(value) {
   if (value == null || value === "") return NaN;
-  if (CAB_LA_REFILL_MONTHS[value] != null) return CAB_LA_REFILL_MONTHS[value];
+  if (CAB_LA_REFILL_DAYS[value] != null) return CAB_LA_REFILL_DAYS[value];
   const n = Number(value);
   return Number.isFinite(n) ? n : NaN;
 }
@@ -142,15 +159,15 @@ const buildValidationSchema = (isFemalePatient, isFromHts) =>
     adherenceLevel: Yup.string().required("This field is required"),
     prepType: Yup.string().required("This field is required"),
     regimenId: Yup.string().required("This field is required"),
-    monthsOfRefill: Yup.string().required("This field is required"),
+    refillDays: Yup.string().required("This field is required"),
     nextAppointment: Yup.string().required("This field is required"),
     healthCareWorkerSignature: Yup.string().required("This field is required"),
     whyAdherenceLevelPoor: Yup.string().when("adherenceLevel", {
-      is: val =>
+      is: (val) =>
         val?.toUpperCase()?.includes("POOR") ||
         val?.toUpperCase()?.includes("FAIR"),
-      then: schema => schema.required("This field is required"),
-      otherwise: schema => schema,
+      then: (schema) => schema.required("This field is required"),
+      otherwise: (schema) => schema,
     }),
   });
 
@@ -185,7 +202,7 @@ const INITIAL_VALUES = {
   hasOtherDrugs: "",
   prepType: "",
   populationType: "",
-  monthsOfRefill: "",
+  refillDays: "",
   visitType: "",
   reasonForSwitch: "",
   whyAdherenceLevelPoor: "",
@@ -195,7 +212,7 @@ const INITIAL_VALUES = {
   duration: "",
 };
 
-const ClinicVisit = props => {
+const ClinicVisit = (props) => {
   const classes = useStyles();
   const [disabledField, setDisabledField] = useState(false);
   const [patientDto, setPatientDto] = useState();
@@ -233,7 +250,7 @@ const ClinicVisit = props => {
   const visitDateMin =
     [patientDto?.dateEnrolled, latestHts?.dateOfVisit]
       .filter(Boolean)
-      .map(d => moment(d).format("YYYY-MM-DD"))
+      .map((d) => moment(d).format("YYYY-MM-DD"))
       .sort()
       .pop() || "";
   // The hard block only applies when creating a new visit (no record id).
@@ -244,7 +261,8 @@ const ClinicVisit = props => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [fullPrepTypeList, setFullPrepTypeList] = useState([]);
   const [isCabLaEligible, setIsCabLaEligible] = useState(false);
-  const [eligibilityVisitDateSync, setEligibilityVisitDateSync] = useState(false);
+  const [eligibilityVisitDateSync, setEligibilityVisitDateSync] =
+    useState(false);
   const [notedSideEffects, setNotedSideEffects] = useState([]);
   const [syndromicStiSelected, setSyndromicStiSelected] = useState([]);
   const [durationOnPrep, setDurationOnPrep] = useState("");
@@ -256,7 +274,9 @@ const ClinicVisit = props => {
     }
     const start = new Date(patientDto.datePrepStarted);
     const end = new Date(encounterDate);
-    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    const months =
+      (end.getFullYear() - start.getFullYear()) * 12 +
+      (end.getMonth() - start.getMonth());
     setDurationOnPrep(months >= 0 ? months : 0);
   };
 
@@ -292,7 +312,8 @@ const ClinicVisit = props => {
   const [showLiverFunctionTest, setShowLiverFunctionTest] = useState(false);
   // Date the liver function test was conducted (persisted to its own
   // date_of_liver_function_test_results column).
-  const [dateLiverFunctionTestResults, setDateLiverFunctionTestResults] = useState("");
+  const [dateLiverFunctionTestResults, setDateLiverFunctionTestResults] =
+    useState("");
   const [otherTest, setOtherTest] = useState([]);
   const [otherTestInput, setOtherTestInput] = useState({
     testDate: "",
@@ -315,10 +336,10 @@ const ClinicVisit = props => {
   // A candidate uuid whose encounter is still being fetched means HTS isn't
   // resolved yet — wait (no timer) rather than hard-block prematurely.
   const htsCandidateUuid =
-    formInitialValues?.htsEncounterUuid
-    || latestFromEligibility?.htsEncounterUuid
-    || props.patientObj?.latestHtsResult?.uuid
-    || null;
+    formInitialValues?.htsEncounterUuid ||
+    latestFromEligibility?.htsEncounterUuid ||
+    props.patientObj?.latestHtsResult?.uuid ||
+    null;
   const htsFetchPending =
     !!htsCandidateUuid &&
     props.patientObj?.latestHtsResult?.uuid !== htsCandidateUuid &&
@@ -330,7 +351,11 @@ const ClinicVisit = props => {
 
   // ── API Calls ──
 
-  const checkEligibleForCabLa = async (currentDate, regimenList, currentValues) => {
+  const checkEligibleForCabLa = async (
+    currentDate,
+    regimenList,
+    currentValues
+  ) => {
     if (!currentDate) return;
     try {
       const response = await axios.get(
@@ -347,8 +372,12 @@ const ClinicVisit = props => {
         "PREP_REGIMEN_CABOTEGRAVIR",
         "PREP_REGIMEN_LENACAPAVIR",
       ];
-      const reg = regimenList?.filter(each => !INJECTABLE_REGIMEN_CODES.includes(each.code));
-      const pTypes = [...prepType]?.filter(each => each.code !== "PREP_TYPE_INJECTIBLES");
+      const reg = regimenList?.filter(
+        (each) => !INJECTABLE_REGIMEN_CODES.includes(each.code)
+      );
+      const pTypes = [...prepType]?.filter(
+        (each) => each.code !== "PREP_TYPE_INJECTIBLES"
+      );
       const vals = currentValues || formikRef.current?.values;
       if (
         isEligibleForCABLA ||
@@ -364,13 +393,13 @@ const ClinicVisit = props => {
     } catch (error) {}
   };
 
-  const PrepRegimen = currentDate => {
+  const PrepRegimen = (currentDate) => {
     // TODO: Replace fetchPrepRegimens() with API call when endpoint is ready.
     fetchPrepRegimens()
-      .then(data => {
+      .then((data) => {
         checkEligibleForCabLa(currentDate, data);
       })
-      .catch(error => {});
+      .catch((error) => {});
   };
 
   const getPatientVisit = async () => {
@@ -381,7 +410,9 @@ const ClinicVisit = props => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       let data = JSON.parse(JSON.stringify(response.data));
-      setUrinalysisTest(data.urinalysis || { urinalysisTest: "No", testDate: "", result: "" });
+      setUrinalysisTest(
+        data.urinalysis || { urinalysisTest: "No", testDate: "", result: "" }
+      );
       const loadedOtherTests = (data?.otherTestsDone || []).map((t, i) => ({
         ...t,
         localId: t.localId != null ? t.localId : i,
@@ -389,10 +420,20 @@ const ClinicVisit = props => {
       setOtherTest(loadedOtherTests);
       setShowOtherTests(loadedOtherTests.length > 0);
       if (loadedOtherTests.length > 0) {
-        otherTestIdCounter.current = Math.max(...loadedOtherTests.map(t => t.localId)) + 1;
+        otherTestIdCounter.current =
+          Math.max(...loadedOtherTests.map((t) => t.localId)) + 1;
       }
-      setSyphilisTest(data?.syphilis || { syphilisTest: "No", testDate: "", result: "", others: "" });
-      setHepatitisTest(data?.hepatitis || { hepatitisTest: "No", testDate: "", result: "" });
+      setSyphilisTest(
+        data?.syphilis || {
+          syphilisTest: "No",
+          testDate: "",
+          result: "",
+          others: "",
+        }
+      );
+      setHepatitisTest(
+        data?.hepatitis || { hepatitisTest: "No", testDate: "", result: "" }
+      );
       // Newer records store an array of codes; legacy records stored an object
       // ({ liverFunctionTest, testDate, result }) which can't map to the
       // multi-select, so fall back to an empty selection for those.
@@ -404,7 +445,9 @@ const ClinicVisit = props => {
       setDateLiverFunctionTestResults(loadedLiverDate);
       // Expand the section on view/edit when the record already has a date or
       // results so the captured values are visible.
-      setShowLiverFunctionTest(loadedLiverResults.length > 0 || !!loadedLiverDate);
+      setShowLiverFunctionTest(
+        loadedLiverResults.length > 0 || !!loadedLiverDate
+      );
       setIsCabLaEligible(true);
       // Pull the live regimen list so a legacy `regimenId` saved as the
       // codeset row id can be converted to its canonical code before binding
@@ -418,11 +461,28 @@ const ClinicVisit = props => {
           regimenList = [];
         }
       }
+      const normalizedRegimenId = normalizeRegimenIdToCode(
+        data?.regimenId,
+        regimenList
+      );
+      // Prefer the canonical refillDays; `duration` is kept equal to it on every
+      // save, so it is a safe fallback for any row written before refillDays
+      // existed. months_of_refill has been dropped from the schema.
+      const storedRefill = data?.refillDays || data?.duration;
+      const selectedRegimen = (regimenList || []).find(
+        (r) =>
+          r.code === String(normalizedRegimenId) ||
+          r.id?.toString() === String(normalizedRegimenId)
+      );
+      const isCabLaRecord = LONG_ACTING_INJECTABLE_CODES.includes(
+        selectedRegimen?.code
+      );
       data = {
         ...data,
-        regimenId: normalizeRegimenIdToCode(data?.regimenId, regimenList),
-        monthsOfRefill: getDurationByValue(data.monthsOfRefill) || data?.monthsOfRefill,
-        duration: getDurationByValue(data.monthsOfRefill) || data?.duration,
+        regimenId: normalizedRegimenId,
+        refillDays:
+          (isCabLaRecord ? getDurationByValue(storedRefill) : null) ||
+          storedRefill,
         // hasOtherDrugs drives a YES_NO codeset dropdown, so the loaded
         // toggle has to use the canonical "YES_NO_YES" / "YES_NO_NO" codes —
         // any other value (e.g. legacy "true") would not match a dropdown
@@ -440,7 +500,7 @@ const ClinicVisit = props => {
             : [data.syndromicStiScreening]
         );
       }
-      setFormInitialValues(prev => ({ ...prev, ...data }));
+      setFormInitialValues((prev) => ({ ...prev, ...data }));
       if (formikRef.current) {
         formikRef.current.setValues({ ...formikRef.current.values, ...data });
       }
@@ -458,7 +518,8 @@ const ClinicVisit = props => {
     setHivTestValue(
       toHivTestResultCode(
         htsObs.confirmatoryHivTest || htsObs.initialHivTest,
-        htsObs.typeOfHivTestDone) || ""
+        htsObs.typeOfHivTestDone
+      ) || ""
     );
   };
 
@@ -472,10 +533,10 @@ const ClinicVisit = props => {
         }?enrollmentType=${ENROLLMENT_TYPE_PREP}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      .then(response => {
+      .then((response) => {
         setPatientDto(response.data);
       })
-      .catch(error => {});
+      .catch((error) => {});
   };
 
   const getPrepEligibilityObj = () => {
@@ -486,8 +547,8 @@ const ClinicVisit = props => {
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      .then(response => {})
-      .catch(error => {});
+      .then((response) => {})
+      .catch((error) => {});
   };
 
   function sortByVisitDateDescending(data) {
@@ -515,19 +576,19 @@ const ClinicVisit = props => {
         }?full=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      .then(response => {
+      .then((response) => {
         setRecentActivities(response.data);
       })
-      .catch(error => {});
+      .catch((error) => {});
   };
 
   const prepRegimenUpdateView = () =>
     // TODO: Replace fetchPrepRegimens() with API call when endpoint is ready.
     fetchPrepRegimens()
-      .then(data => {
+      .then((data) => {
         setprepRegimen(data);
       })
-      .catch(error => {});
+      .catch((error) => {});
 
   // ── Utility Functions ──
 
@@ -592,6 +653,19 @@ const ClinicVisit = props => {
     return `${year}-${month}-${day}`;
   }
 
+  // REPLACED addMonthsToDate for the refill calculation. The refill field is
+  // now a DAY count, matching what the status SQL adds to encounter_date.
+  function addDaysToDate(dateString, daysToAdd) {
+    const date = new Date(dateString);
+    const days = parseInt(daysToAdd, 10);
+    if (isNaN(date.getTime()) || isNaN(days)) return "";
+    date.setDate(date.getDate() + days);
+    const year = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${year}-${m}-${d}`;
+  }
+
   function addMonthsToDate(dateString, monthsToAdd) {
     const date = new Date(dateString);
     const months = parseInt(monthsToAdd, 10);
@@ -607,7 +681,7 @@ const ClinicVisit = props => {
   // may still carry the codeset row id — `lastRegimenId` is matched against
   // both shapes so a "method switch" hides the previous regimen either way.
   const filterOutLastRegimen = (codeSet, lastRegimenId) =>
-    codeSet?.filter(regimen => {
+    codeSet?.filter((regimen) => {
       if (lastRegimenId == null || lastRegimenId === "") return true;
       const key = String(lastRegimenId);
       return regimen.code !== key && String(regimen.id) !== key;
@@ -619,9 +693,9 @@ const ClinicVisit = props => {
   const normalizeRegimenIdToCode = (value, list) => {
     if (value == null || value === "") return "";
     const key = String(value);
-    const byCode = (list || []).find(r => r.code === key);
+    const byCode = (list || []).find((r) => r.code === key);
     if (byCode) return byCode.code;
-    const byId = (list || []).find(r => String(r.id) === key);
+    const byId = (list || []).find((r) => String(r.id) === key);
     return byId?.code || key;
   };
 
@@ -645,12 +719,17 @@ const ClinicVisit = props => {
 
   const isSelectedRegimenCabLa = useCallback(
     (regimenIdVal) => {
-      if (regimenIdVal === undefined || regimenIdVal === null || regimenIdVal === "") return false;
+      if (
+        regimenIdVal === undefined ||
+        regimenIdVal === null ||
+        regimenIdVal === ""
+      )
+        return false;
       const key = regimenIdVal.toString();
       // `regimenIdVal` is now the canonical code on new records; older rows
       // may still hold the codeset row id — match both.
       const selected = (prepRegimen || []).find(
-        r => r.code === key || r.id?.toString() === key
+        (r) => r.code === key || r.id?.toString() === key
       );
       return LONG_ACTING_INJECTABLE_CODES.includes(selected?.code);
     },
@@ -659,49 +738,49 @@ const ClinicVisit = props => {
 
   // ── Vital sign warning helpers ──
 
-  const handleInputValueCheckWeight = e => {
+  const handleInputValueCheckWeight = (e) => {
     if (e.target.value < 1 || e.target.value > 300) {
-      setVitalClinicalSupport(prev => ({
+      setVitalClinicalSupport((prev) => ({
         ...prev,
         weight: "Body weight must be between 1 and 300 kg",
       }));
     } else {
-      setVitalClinicalSupport(prev => ({ ...prev, weight: "" }));
+      setVitalClinicalSupport((prev) => ({ ...prev, weight: "" }));
     }
   };
 
-  const handleInputValueCheckHeight = e => {
+  const handleInputValueCheckHeight = (e) => {
     if (e.target.value < 30 || e.target.value > 250) {
-      setVitalClinicalSupport(prev => ({
+      setVitalClinicalSupport((prev) => ({
         ...prev,
         height: "Height must be between 30 and 250 cm",
       }));
     } else {
-      setVitalClinicalSupport(prev => ({ ...prev, height: "" }));
+      setVitalClinicalSupport((prev) => ({ ...prev, height: "" }));
     }
   };
 
-  const handleInputValueCheckSystolic = e => {
+  const handleInputValueCheckSystolic = (e) => {
     if (e.target.value < 90 || e.target.value > 240) {
-      setVitalClinicalSupport(prev => ({
+      setVitalClinicalSupport((prev) => ({
         ...prev,
         systolic:
           "Blood Pressure systolic must not be greater than 240 and less than 90",
       }));
     } else {
-      setVitalClinicalSupport(prev => ({ ...prev, systolic: "" }));
+      setVitalClinicalSupport((prev) => ({ ...prev, systolic: "" }));
     }
   };
 
-  const handleInputValueCheckDiastolic = e => {
+  const handleInputValueCheckDiastolic = (e) => {
     if (e.target.value < 60 || e.target.value > 140) {
-      setVitalClinicalSupport(prev => ({
+      setVitalClinicalSupport((prev) => ({
         ...prev,
         diastolic:
           "Blood Pressure diastolic must not be greater than 140 and less than 60",
       }));
     } else {
-      setVitalClinicalSupport(prev => ({ ...prev, diastolic: "" }));
+      setVitalClinicalSupport((prev) => ({ ...prev, diastolic: "" }));
     }
   };
 
@@ -717,7 +796,12 @@ const ClinicVisit = props => {
 
   const handleCheckBoxSyphilisTest = () => {
     if (syphilisTest?.syphilisTest === "Yes") {
-      setSyphilisTest({ syphilisTest: "No", testDate: "", result: "", others: "" });
+      setSyphilisTest({
+        syphilisTest: "No",
+        testDate: "",
+        result: "",
+        others: "",
+      });
     } else {
       setSyphilisTest({ ...syphilisTest, syphilisTest: "Yes" });
     }
@@ -731,12 +815,12 @@ const ClinicVisit = props => {
     }
   };
 
-  const handleLiverFunctionTestChange = selected => {
+  const handleLiverFunctionTestChange = (selected) => {
     setLiverFunctionTestResults(selected);
   };
 
   const handleCheckBoxLiverFunctionTest = () => {
-    setShowLiverFunctionTest(prev => {
+    setShowLiverFunctionTest((prev) => {
       // Collapsing the section clears the date and selection so we don't persist
       // values for a test the user has hidden.
       if (prev) {
@@ -753,35 +837,45 @@ const ClinicVisit = props => {
     if (showOtherTests) {
       setShowOtherTests(false);
       setOtherTest([]);
-      setOtherTestInput({ testDate: "", otherTestsDone: "", result: "", name: "", otherTestName: "" });
+      setOtherTestInput({
+        testDate: "",
+        otherTestsDone: "",
+        result: "",
+        name: "",
+        otherTestName: "",
+      });
       setEditingOtherTestIndex(null);
     } else {
       setShowOtherTests(true);
     }
   };
 
-  const handleInputChangeUrinalysisTest = e => {
+  const handleInputChangeUrinalysisTest = (e) => {
     setUrinalysisTest({ ...urinalysisTest, [e.target.name]: e.target.value });
   };
 
-  const handleInputChangeSyphilisTest = e => {
+  const handleInputChangeSyphilisTest = (e) => {
     if (e.target.name === "result" && e.target.value !== "Others") {
-      setSyphilisTest({ ...syphilisTest, others: "", [e.target.name]: e.target.value });
+      setSyphilisTest({
+        ...syphilisTest,
+        others: "",
+        [e.target.name]: e.target.value,
+      });
     } else {
       setSyphilisTest({ ...syphilisTest, [e.target.name]: e.target.value });
     }
   };
 
-  const handleInputChangeHepatitisTest = e => {
+  const handleInputChangeHepatitisTest = (e) => {
     setHepatitisTest({ ...hepatitisTest, [e.target.name]: e.target.value });
   };
 
-  const handleOtherTestInputChange = e => {
+  const handleOtherTestInputChange = (e) => {
     const { name, value } = e.target;
-    setOtherTestInput(prev => {
+    setOtherTestInput((prev) => {
       const updated = { ...prev, [name]: value };
       if (name === "otherTestsDone") {
-        const matched = codeset?.PREP_OTHER_TEST?.find(v => v.code === value);
+        const matched = codeset?.PREP_OTHER_TEST?.find((v) => v.code === value);
         updated.name = matched?.code || "";
       }
       return updated;
@@ -789,17 +883,27 @@ const ClinicVisit = props => {
   };
 
   const handleAddOtherTestEntry = () => {
-    if (!otherTestInput.testDate || !otherTestInput.otherTestsDone || !otherTestInput.result) return;
+    if (
+      !otherTestInput.testDate ||
+      !otherTestInput.otherTestsDone ||
+      !otherTestInput.result
+    )
+      return;
     // Prevent duplicate test types (skip check when editing)
     if (editingOtherTestIndex === null) {
-      const isDuplicate = otherTest.some(t => t.otherTestsDone === otherTestInput.otherTestsDone);
+      const isDuplicate = otherTest.some(
+        (t) => t.otherTestsDone === otherTestInput.otherTestsDone
+      );
       if (isDuplicate) {
-        toast.error("This test has already been added. Please edit the existing entry instead.", { position: toast.POSITION.BOTTOM_CENTER });
+        toast.error(
+          "This test has already been added. Please edit the existing entry instead.",
+          { position: toast.POSITION.BOTTOM_CENTER }
+        );
         return;
       }
     }
     if (editingOtherTestIndex !== null) {
-      setOtherTest(prev =>
+      setOtherTest((prev) =>
         prev.map((item, idx) =>
           idx === editingOtherTestIndex
             ? { ...otherTestInput, localId: item.localId, otherTest: "Yes" }
@@ -809,12 +913,21 @@ const ClinicVisit = props => {
       setEditingOtherTestIndex(null);
     } else {
       const id = otherTestIdCounter.current++;
-      setOtherTest(prev => [...prev, { ...otherTestInput, localId: id, otherTest: "Yes" }]);
+      setOtherTest((prev) => [
+        ...prev,
+        { ...otherTestInput, localId: id, otherTest: "Yes" },
+      ]);
     }
-    setOtherTestInput({ testDate: "", otherTestsDone: "", result: "", name: "", otherTestName: "" });
+    setOtherTestInput({
+      testDate: "",
+      otherTestsDone: "",
+      result: "",
+      name: "",
+      otherTestName: "",
+    });
   };
 
-  const handleEditOtherTestEntry = index => {
+  const handleEditOtherTestEntry = (index) => {
     const entry = otherTest[index];
     setOtherTestInput({
       testDate: entry.testDate || "",
@@ -826,23 +939,29 @@ const ClinicVisit = props => {
     setEditingOtherTestIndex(index);
   };
 
-  const handleDeleteOtherTestEntry = index => {
-    setOtherTest(prev => prev.filter((_, idx) => idx !== index));
+  const handleDeleteOtherTestEntry = (index) => {
+    setOtherTest((prev) => prev.filter((_, idx) => idx !== index));
     if (editingOtherTestIndex === index) {
       setEditingOtherTestIndex(null);
-      setOtherTestInput({ testDate: "", otherTestsDone: "", result: "", name: "", otherTestName: "" });
+      setOtherTestInput({
+        testDate: "",
+        otherTestsDone: "",
+        result: "",
+        name: "",
+        otherTestName: "",
+      });
     }
   };
 
   const handleInputChangeOtherTest = (e, localId) => {
     const { name, value } = e.target;
-    setOtherTest(prev =>
-      prev.map(item => {
+    setOtherTest((prev) =>
+      prev.map((item) => {
         if (item.localId !== localId) return item;
         const updated = { ...item, [name]: value };
         if (name === "otherTestsDone") {
           const matched = codeset?.PREP_OTHER_TEST?.find(
-            v => v.code === value
+            (v) => v.code === value
           );
           updated.name = matched?.code || "";
         }
@@ -851,13 +970,13 @@ const ClinicVisit = props => {
     );
   };
 
-  const handleRemoveTest = localId => {
-    setOtherTest(prev => prev?.filter(test => test.localId !== localId));
+  const handleRemoveTest = (localId) => {
+    setOtherTest((prev) => prev?.filter((test) => test.localId !== localId));
   };
 
   const handleCreateNewTest = () => {
     const id = otherTestIdCounter.current++;
-    setOtherTest(prev => [
+    setOtherTest((prev) => [
       ...prev,
       {
         localId: id,
@@ -874,7 +993,7 @@ const ClinicVisit = props => {
   // ── Codeset fetch ──
 
   useEffect(() => {
-    fetchFollowupVisitCodesets().then(data => {
+    fetchFollowupVisitCodesets().then((data) => {
       setCodeset(data);
     });
   }, []);
@@ -910,8 +1029,8 @@ const ClinicVisit = props => {
   // `latestFromEligibility`.
   useEffect(() => {
     const targetUuid =
-      formInitialValues?.htsEncounterUuid
-      || latestFromEligibility?.htsEncounterUuid;
+      formInitialValues?.htsEncounterUuid ||
+      latestFromEligibility?.htsEncounterUuid;
     if (!targetUuid) return;
     if (props.patientObj?.latestHtsResult?.uuid === targetUuid) return;
     if (loadedHts?.uuid === targetUuid) return;
@@ -919,7 +1038,7 @@ const ClinicVisit = props => {
       .get(`${baseUrl}prep/hts-encounter/${targetUuid}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then(resp => setLoadedHts(resp?.data || null))
+      .then((resp) => setLoadedHts(resp?.data || null))
       .catch(() => setLoadedHts(null));
   }, [
     formInitialValues?.htsEncounterUuid,
@@ -945,7 +1064,8 @@ const ClinicVisit = props => {
     setHivTestValue(
       toHivTestResultCode(
         htsObs.confirmatoryHivTest || htsObs.initialHivTest,
-        htsObs.typeOfHivTestDone) || ""
+        htsObs.typeOfHivTestDone
+      ) || ""
     );
   }, [latestHts?.uuid]);
 
@@ -976,7 +1096,12 @@ const ClinicVisit = props => {
         });
       }
       setUrinalysisTest({ urinalysisTest: "No", testDate: "", result: "" });
-      setSyphilisTest({ syphilisTest: "No", testDate: "", result: "", others: "" });
+      setSyphilisTest({
+        syphilisTest: "No",
+        testDate: "",
+        result: "",
+        others: "",
+      });
       setHepatitisTest({ hepatitisTest: "No", testDate: "", result: "" });
       setLiverFunctionTestResults([]);
       setDateLiverFunctionTestResults("");
@@ -999,7 +1124,11 @@ const ClinicVisit = props => {
   }, [eligibilityVisitDateSync]);
 
   useEffect(() => {
-    if (eligibilityVisitDateSync && latestFromEligibility !== null && formikRef.current) {
+    if (
+      eligibilityVisitDateSync &&
+      latestFromEligibility !== null &&
+      formikRef.current
+    ) {
       formikRef.current.setFieldValue(
         "populationType",
         latestFromEligibility?.populationType || ""
@@ -1029,7 +1158,11 @@ const ClinicVisit = props => {
     if (!vals) return;
     const updateTest = (testType, setTestFunction) => {
       const testData = vals[testType];
-      if (testData?.testDate && testData?.result && testData?.[`${testType}Test`]) {
+      if (
+        testData?.testDate &&
+        testData?.result &&
+        testData?.[`${testType}Test`]
+      ) {
         setTestFunction({
           ...testData,
           testDate: testData.testDate,
@@ -1065,12 +1198,12 @@ const ClinicVisit = props => {
     }
     if (wasExclusive && next.length > 1) {
       // user added other options while exclusive was set — drop the exclusive one
-      return next.filter(c => c !== exclusiveCode);
+      return next.filter((c) => c !== exclusiveCode);
     }
     return next;
   };
 
-  const handleNotedSideEffectsChange = selected => {
+  const handleNotedSideEffectsChange = (selected) => {
     const finalSelection = enforceExclusive(
       notedSideEffects,
       selected,
@@ -1082,7 +1215,7 @@ const ClinicVisit = props => {
     }
   };
 
-  const handleSyndromicStiChange = selected => {
+  const handleSyndromicStiChange = (selected) => {
     const finalSelection = enforceExclusive(
       syndromicStiSelected,
       selected,
@@ -1099,6 +1232,11 @@ const ClinicVisit = props => {
   const handlePrepTypeChange = (e, setFieldValue) => {
     setFieldValue("regimenId", "");
     setFieldValue("prepType", e.target.value);
+    // Injectible PrEP mandates a Liver Function Test — auto-check it so its date
+    // and result fields are shown (and required) for the user to fill.
+    if (e.target.value === "PREP_TYPE_INJECTIBLES") {
+      setShowLiverFunctionTest(true);
+    }
     if (
       e.target.value === "PREP_TYPE_OTHERS" ||
       e.target.value === "PREP_TYPE_ED_PREP"
@@ -1107,13 +1245,10 @@ const ClinicVisit = props => {
     } else {
       // TODO: Replace fetchPrepRegimenByType() with API call when endpoint is ready.
       fetchPrepRegimenByType(e.target.value)
-        .then(data => {
-          checkEligibleForCabLa(
-            formikRef.current?.values?.encounterDate,
-            data
-          );
+        .then((data) => {
+          checkEligibleForCabLa(formikRef.current?.values?.encounterDate, data);
         })
-        .catch(error => {});
+        .catch((error) => {});
     }
   };
 
@@ -1162,15 +1297,32 @@ const ClinicVisit = props => {
         manualErrors.push(`Other Test #${idx + 1}: Date is required`);
       }
     });
+    // Injectible PrEP requires a Liver Function Test: both the date AND the
+    // test result must be entered before the form can be submitted.
+    if (values.prepType === "PREP_TYPE_INJECTIBLES") {
+      if (!dateLiverFunctionTestResults) {
+        manualErrors.push(
+          "Date of Liver Function Test Result is required for injectible PrEP"
+        );
+      }
+      if (!liverFunctionTestResults || liverFunctionTestResults.length === 0) {
+        manualErrors.push(
+          "Liver Function Test Result is required for injectible PrEP"
+        );
+      }
+    }
     if (manualErrors.length > 0) {
-      manualErrors.forEach(msg => toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER }));
+      manualErrors.forEach((msg) =>
+        toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER })
+      );
       return;
     }
 
     setSaving(true);
     const payload = { ...values };
-    payload.duration = getDuration(payload.monthsOfRefill);
-    payload.monthsOfRefill = getDuration(payload.monthsOfRefill);
+    // REPLACED monthsOfRefill. Send a DAY count; the backend mirrors it into the
+    // legacy `duration` column, which the status SQL adds to encounter_date as days.
+    payload.refillDays = getDuration(payload.refillDays);
     // The backend no longer stores hiv_test_result / hiv_test_result_date /
     // pregnant on prep_followup_visit — they are dereferenced via
     // hts_encounter at read time. We persist only `htsEncounterUuid`.
@@ -1307,14 +1459,14 @@ const ClinicVisit = props => {
           handleSubmit,
           setFieldValue,
         }) => {
-          // Auto-calculate next appointment = Visit Date + Months of Refill.
-          // For CAB-LA the dropdown value is a days code (30/60/90) which maps
-          // to 1/2/3 months — adding it as months caused the "+30 months" bug.
+          // Auto-calculate next appointment = Visit Date + Refill Days.
+          // The field is a DAY count now, so the CAB-LA codes (30/60/90) are
+          // added as the days they already name - no months conversion.
           const autoCalcNextAppointment = () => {
             if (!["update", "view"].includes(props.activeContent.actionType)) {
-              const months = refillToMonths(values.monthsOfRefill);
-              if (!Number.isFinite(months)) return;
-              const nextAppt = addMonthsToDate(values.encounterDate, months);
+              const days = refillToDays(values.refillDays);
+              if (!Number.isFinite(days)) return;
+              const nextAppt = addDaysToDate(values.encounterDate, days);
               if (nextAppt && nextAppt !== values.nextAppointment) {
                 setTimeout(() => setFieldValue("nextAppointment", nextAppt), 0);
               }
@@ -1346,17 +1498,23 @@ const ClinicVisit = props => {
                           type="date"
                           name="encounterDate"
                           id="encounterDate"
-                          onKeyDown={e => e.preventDefault()}
+                          onKeyDown={(e) => e.preventDefault()}
                           value={values.encounterDate}
                           style={inputStyle}
-                          onChange={e => {
+                          onChange={(e) => {
                             handleChange(e);
                             const newDate = e.target.value;
                             setEligibilityVisitDateSync(
-                              areDatesInSync(newDate, latestFromEligibility?.visitDate)
+                              areDatesInSync(
+                                newDate,
+                                latestFromEligibility?.visitDate
+                              )
                             );
                             PrepRegimen(newDate);
-                            checkDateMismatch(newDate, latestFromEligibility?.visitDate);
+                            checkDateMismatch(
+                              newDate,
+                              latestFromEligibility?.visitDate
+                            );
                             calculateDurationOnPrep(newDate);
                           }}
                           min={
@@ -1392,7 +1550,7 @@ const ClinicVisit = props => {
                           style={inputStyle}
                         >
                           <option value="">Select Visit Type</option>
-                          {codeset?.PrEP_VISIT_TYPE?.map(value => (
+                          {codeset?.PrEP_VISIT_TYPE?.map((value) => (
                             <option key={value.id} value={value.code}>
                               {value.display}
                             </option>
@@ -1447,19 +1605,29 @@ const ClinicVisit = props => {
                             // Source from HTS directly when read-only so the
                             // disabled field stays populated regardless of how
                             // formik state was last updated.
-                            value={isFromHts
-                              ? (htsObs.pregnancyStatus || "")
-                              : (values.pregnant || "")}
+                            value={
+                              isFromHts
+                                ? htsObs.pregnancyStatus || ""
+                                : values.pregnant || ""
+                            }
                             disabled={disabledField || isFromHts}
-                            title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
+                            title={
+                              isFromHts
+                                ? "Sourced from latest HTS encounter"
+                                : undefined
+                            }
                             style={{
                               ...inputStyle,
-                              backgroundColor: isFromHts ? "#f1f3f5" : inputStyle?.backgroundColor,
+                              backgroundColor: isFromHts
+                                ? "#f1f3f5"
+                                : inputStyle?.backgroundColor,
                             }}
                           >
                             <option value="">Select Pregnancy Status</option>
-                            {(codeset?.PREGNANCY_STATUS || []).map(item => (
-                              <option key={item.code} value={item.code}>{item.display}</option>
+                            {(codeset?.PREGNANCY_STATUS || []).map((item) => (
+                              <option key={item.code} value={item.code}>
+                                {item.display}
+                              </option>
                             ))}
                           </Input>
                           {getError("pregnant") && (
@@ -1482,7 +1650,7 @@ const ClinicVisit = props => {
                             type="number"
                             name="weight"
                             id="weight"
-                            onChange={e => {
+                            onChange={(e) => {
                               handleChange(e);
                               handleInputValueCheckWeight(e);
                             }}
@@ -1531,7 +1699,7 @@ const ClinicVisit = props => {
                             type="number"
                             name="height"
                             id="height"
-                            onChange={e => {
+                            onChange={(e) => {
                               handleChange(e);
                               handleInputValueCheckHeight(e);
                             }}
@@ -1564,7 +1732,7 @@ const ClinicVisit = props => {
                             type="text"
                             value={(
                               Number(values.weight) /
-                              ((Number(values.height) / 100) ** 2)
+                              (Number(values.height) / 100) ** 2
                             ).toFixed(2)}
                             style={inputStyle}
                             disabled
@@ -1576,7 +1744,10 @@ const ClinicVisit = props => {
                     {/* 6. Blood Pressure (mmHg) */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Blood Pressure (mmHg) <span style={{ color: "red" }}> *</span></FormLabelName>
+                        <FormLabelName>
+                          Blood Pressure (mmHg){" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
                         <InputGroup>
                           <InputGroupText
                             addonType="append"
@@ -1590,7 +1761,7 @@ const ClinicVisit = props => {
                             id="systolic"
                             min="90"
                             max="240"
-                            onChange={e => {
+                            onChange={(e) => {
                               handleChange(e);
                               handleInputValueCheckSystolic(e);
                             }}
@@ -1615,7 +1786,7 @@ const ClinicVisit = props => {
                             id="diastolic"
                             min={0}
                             max={140}
-                            onChange={e => {
+                            onChange={(e) => {
                               handleChange(e);
                               handleInputValueCheckDiastolic(e);
                             }}
@@ -1655,8 +1826,7 @@ const ClinicVisit = props => {
                     <div className="mb-3 col-md-6">
                       <FormGroup>
                         <FormLabelName>
-                          HTS Result{" "}
-                          <span style={{ color: "red" }}> *</span>
+                          HTS Result <span style={{ color: "red" }}> *</span>
                         </FormLabelName>
                         <Input
                           type="select"
@@ -1665,22 +1835,34 @@ const ClinicVisit = props => {
                           // Read-only HTS path renders the mapped HTS code so
                           // the disabled field stays in sync with the dropdown
                           // options regardless of formik state timing.
-                          value={isFromHts
-                            ? (toHivTestResultCode(
-                                htsObs.confirmatoryHivTest || htsObs.initialHivTest,
-                                htsObs.typeOfHivTestDone) || "")
-                            : (hivTestValue || "")}
+                          value={
+                            isFromHts
+                              ? toHivTestResultCode(
+                                  htsObs.confirmatoryHivTest ||
+                                    htsObs.initialHivTest,
+                                  htsObs.typeOfHivTestDone
+                                ) || ""
+                              : hivTestValue || ""
+                          }
                           style={{
                             ...inputStyle,
-                            backgroundColor: isFromHts ? "#f1f3f5" : inputStyle?.backgroundColor,
+                            backgroundColor: isFromHts
+                              ? "#f1f3f5"
+                              : inputStyle?.backgroundColor,
                           }}
                           disabled={disabledField || isFromHts}
-                          title={isFromHts ? "Sourced from latest HTS encounter" : undefined}
-                          onChange={e => setHivTestValue(e.target.value)}
+                          title={
+                            isFromHts
+                              ? "Sourced from latest HTS encounter"
+                              : undefined
+                          }
+                          onChange={(e) => setHivTestValue(e.target.value)}
                         >
                           <option value="">Select</option>
-                          {(codeset?.HIV_TEST_RESULT || []).map(item => (
-                            <option key={item.code} value={item.code}>{item.display}</option>
+                          {(codeset?.HIV_TEST_RESULT || []).map((item) => (
+                            <option key={item.code} value={item.code}>
+                              {item.display}
+                            </option>
                           ))}
                         </Input>
                         {!isFromHts && !hivTestValue && (
@@ -1695,12 +1877,17 @@ const ClinicVisit = props => {
                     {codeset?.PREP_SIDE_EFFECTS && (
                       <div className="mb-3 col-md-12">
                         <FormGroup>
-                          <FormLabelName>Noted Side Effects <span style={{ color: "red" }}> *</span></FormLabelName>
+                          <FormLabelName>
+                            Noted Side Effects{" "}
+                            <span style={{ color: "red" }}> *</span>
+                          </FormLabelName>
                           <DualListBox
-                            options={codeset.PREP_SIDE_EFFECTS.map(effect => ({
-                              value: effect?.code,
-                              label: effect?.display,
-                            }))}
+                            options={codeset.PREP_SIDE_EFFECTS.map(
+                              (effect) => ({
+                                value: effect?.code,
+                                label: effect?.display,
+                              })
+                            )}
                             selected={notedSideEffects}
                             onChange={handleNotedSideEffectsChange}
                             disabled={disabledField}
@@ -1713,7 +1900,9 @@ const ClinicVisit = props => {
                     {notedSideEffects?.includes("PREP_SIDE_EFFECTS_OTHER") && (
                       <div className="mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Specify Other Side Effect</FormLabelName>
+                          <FormLabelName>
+                            Specify Other Side Effect
+                          </FormLabelName>
                           <Input
                             type="text"
                             name="otherNotedSideEffects"
@@ -1732,12 +1921,17 @@ const ClinicVisit = props => {
                     {codeset?.SYNDROMIC_STI_SCREENING && (
                       <div className="mb-3 col-md-12">
                         <FormGroup>
-                          <FormLabelName>Syndromic STI Screening <span style={{ color: "red" }}> *</span></FormLabelName>
+                          <FormLabelName>
+                            Syndromic STI Screening{" "}
+                            <span style={{ color: "red" }}> *</span>
+                          </FormLabelName>
                           <DualListBox
-                            options={codeset.SYNDROMIC_STI_SCREENING.map(item => ({
-                              value: item?.code,
-                              label: item?.display,
-                            }))}
+                            options={codeset.SYNDROMIC_STI_SCREENING.map(
+                              (item) => ({
+                                value: item?.code,
+                                label: item?.display,
+                              })
+                            )}
                             selected={syndromicStiSelected}
                             onChange={handleSyndromicStiChange}
                             disabled={disabledField}
@@ -1747,10 +1941,14 @@ const ClinicVisit = props => {
                     )}
 
                     {/* 9b. Syndromic STI Screening - Other specify */}
-                    {syndromicStiSelected?.includes("SYNDROMIC_STI_SCREENING_OTHERS") && (
+                    {syndromicStiSelected?.includes(
+                      "SYNDROMIC_STI_SCREENING_OTHERS"
+                    ) && (
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Specify Other STI Screening</FormLabelName>
+                          <FormLabelName>
+                            Specify Other STI Screening
+                          </FormLabelName>
                           <Input
                             type="text"
                             name="otherSyndromicStiScreening"
@@ -1768,7 +1966,10 @@ const ClinicVisit = props => {
                     {/* 10. Risk Reduction Services */}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Risk Reduction Services <span style={{ color: "red" }}> *</span></FormLabelName>
+                        <FormLabelName>
+                          Risk Reduction Services{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
                         <Input
                           type="select"
                           name="riskReductionServices"
@@ -1779,7 +1980,7 @@ const ClinicVisit = props => {
                           disabled={disabledField}
                         >
                           <option value="">Select</option>
-                          {codeset?.PrEP_RISK_REDUCTION_PLAN?.map(plan => (
+                          {codeset?.PrEP_RISK_REDUCTION_PLAN?.map((plan) => (
                             <option key={plan.id} value={plan.code}>
                               {plan.display}
                             </option>
@@ -1796,16 +1997,20 @@ const ClinicVisit = props => {
                     {/* 11. Adherence */}
                     <div className="mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Adherence <span style={{ color: "red" }}> *</span></FormLabelName>
+                        <FormLabelName>
+                          Adherence <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
                         <Input
                           type="select"
                           name="adherenceLevel"
                           id="adherenceLevel"
                           value={values.adherenceLevel}
-                          onChange={e => {
+                          onChange={(e) => {
                             handleChange(e);
                             if (
-                              !e.target.value?.toUpperCase()?.includes("POOR") &&
+                              !e.target.value
+                                ?.toUpperCase()
+                                ?.includes("POOR") &&
                               !e.target.value?.toUpperCase()?.includes("FAIR")
                             ) {
                               setFieldValue("whyAdherenceLevelPoor", "");
@@ -1815,7 +2020,7 @@ const ClinicVisit = props => {
                           disabled={disabledField}
                         >
                           <option value="">Select</option>
-                          {codeset?.PrEP_LEVEL_OF_ADHERENCE?.map(value => (
+                          {codeset?.PrEP_LEVEL_OF_ADHERENCE?.map((value) => (
                             <option key={value.id} value={value.code}>
                               {value.display}
                             </option>
@@ -1847,11 +2052,13 @@ const ClinicVisit = props => {
                             disabled={disabledField}
                           >
                             <option value="">Select</option>
-                            {codeset?.PrEP_LEVEL_OF_ADHERENCE_REASONS?.map(value => (
-                              <option key={value.id} value={value.code}>
-                                {value.display}
-                              </option>
-                            ))}
+                            {codeset?.PrEP_LEVEL_OF_ADHERENCE_REASONS?.map(
+                              (value) => (
+                                <option key={value.id} value={value.code}>
+                                  {value.display}
+                                </option>
+                              )
+                            )}
                           </Input>
                           {getError("whyAdherenceLevelPoor") && (
                             <span className={classes.error}>
@@ -1864,23 +2071,25 @@ const ClinicVisit = props => {
 
                     {/* 12b. Reason for Poor/Fair Adherence - Other specify */}
                     {showReasonField &&
-                      values.whyAdherenceLevelPoor?.toUpperCase()?.includes("OTHER") && (
-                      <div className="mb-3 col-md-6">
-                        <FormGroup>
-                          <FormLabelName>Specify Other Reason</FormLabelName>
-                          <Input
-                            type="text"
-                            name="otherReasonForPoorFairAdherence"
-                            id="otherReasonForPoorFairAdherence"
-                            value={values.otherReasonForPoorFairAdherence}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            disabled={disabledField}
-                            placeholder="Specify..."
-                          />
-                        </FormGroup>
-                      </div>
-                    )}
+                      values.whyAdherenceLevelPoor
+                        ?.toUpperCase()
+                        ?.includes("OTHER") && (
+                        <div className="mb-3 col-md-6">
+                          <FormGroup>
+                            <FormLabelName>Specify Other Reason</FormLabelName>
+                            <Input
+                              type="text"
+                              name="otherReasonForPoorFairAdherence"
+                              id="otherReasonForPoorFairAdherence"
+                              value={values.otherReasonForPoorFairAdherence}
+                              onChange={handleChange}
+                              style={inputStyle}
+                              disabled={disabledField}
+                              placeholder="Specify..."
+                            />
+                          </FormGroup>
+                        </div>
+                      )}
 
                     {/* 13. PrEP Type */}
                     <div className="form-group mb-3 col-md-6">
@@ -1893,12 +2102,14 @@ const ClinicVisit = props => {
                           name="prepType"
                           id="prepType"
                           style={inputStyle}
-                          onChange={e => handlePrepTypeChange(e, setFieldValue)}
+                          onChange={(e) =>
+                            handlePrepTypeChange(e, setFieldValue)
+                          }
                           value={values.prepType}
                           disabled={disabledField}
                         >
                           <option value="">Select PrEP Type</option>
-                          {codeset?.PrEP_TYPE?.map(value => (
+                          {codeset?.PrEP_TYPE?.map((value) => (
                             <option key={value.id} value={value.code}>
                               {value.display}
                             </option>
@@ -1922,14 +2133,14 @@ const ClinicVisit = props => {
                           type="select"
                           name="regimenId"
                           id="regimenId"
-                          onChange={e => {
+                          onChange={(e) => {
                             handleChange(e);
                             if (
                               !["update", "view"].includes(
                                 props.activeContent.actionType
                               )
                             ) {
-                              setFieldValue("monthsOfRefill", "");
+                              setFieldValue("refillDays", "");
                               setFieldValue("duration", "");
                             }
                           }}
@@ -1941,8 +2152,11 @@ const ClinicVisit = props => {
                           {["update", "view"].includes(
                             props.activeContent.actionType
                           )
-                            ? prepRegimen?.map(value => (
-                                <option key={value.code || value.id} value={value.code}>
+                            ? prepRegimen?.map((value) => (
+                                <option
+                                  key={value.code || value.id}
+                                  value={value.code}
+                                >
                                   {value.regimen}
                                 </option>
                               ))
@@ -1951,13 +2165,19 @@ const ClinicVisit = props => {
                             ? filterOutLastRegimen(
                                 prepRegimen,
                                 props.recentActivities?.[0]?.regimenId
-                              )?.map(value => (
-                                <option key={value.code || value.id} value={value.code}>
+                              )?.map((value) => (
+                                <option
+                                  key={value.code || value.id}
+                                  value={value.code}
+                                >
                                   {value.regimen}
                                 </option>
                               ))
-                            : prepRegimen?.map(value => (
-                                <option key={value.code || value.id} value={value.code}>
+                            : prepRegimen?.map((value) => (
+                                <option
+                                  key={value.code || value.id}
+                                  value={value.code}
+                                >
                                   {value.regimen}
                                 </option>
                               ))}
@@ -1970,36 +2190,31 @@ const ClinicVisit = props => {
                       </FormGroup>
                     </div>
 
-                    {/* 15. Months of Refill */}
+                    {/* 15. Refill Days */}
                     {values.regimenId && (
                       <div className="mb-3 col-md-6">
                         <FormGroup>
                           <FormLabelName>
-                            Months of Refill{" "}
-                            <span style={{ color: "red" }}> *</span>
+                            Refill Days <span style={{ color: "red" }}> *</span>
                           </FormLabelName>
                           <DurationWrapper
                             isCabLaEligible={isCabLaEligible}
                             isSelectedRegimenCabLa={isSelectedRegimenCabLa(
                               values.regimenId
                             )}
-                            name="monthsOfRefill"
-                            id="monthsOfRefill"
-                            value={values.monthsOfRefill}
+                            name="refillDays"
+                            id="refillDays"
+                            value={values.refillDays}
                             style={inputStyle}
-                            handleInputChange={e => {
+                            handleInputChange={(e) => {
                               const durationInDays = e.target.value;
-                              setFieldValue(
-                                "monthsOfRefill",
-                                `${durationInDays}`
-                              );
-                              setFieldValue("duration", `${durationInDays}`);
+                              setFieldValue("refillDays", `${durationInDays}`);
                             }}
                             disabledField={disabledField}
-                            setObjValues={fn => {
+                            setObjValues={(fn) => {
                               if (typeof fn === "function") {
                                 const result = fn(values);
-                                Object.keys(result).forEach(key => {
+                                Object.keys(result).forEach((key) => {
                                   if (result[key] !== values[key]) {
                                     setFieldValue(key, result[key]);
                                   }
@@ -2007,9 +2222,9 @@ const ClinicVisit = props => {
                               }
                             }}
                           />
-                          {getError("monthsOfRefill") && (
+                          {getError("refillDays") && (
                             <span className={classes.error}>
-                              {getError("monthsOfRefill")}
+                              {getError("refillDays")}
                             </span>
                           )}
                         </FormGroup>
@@ -2022,17 +2237,20 @@ const ClinicVisit = props => {
                         not to surface an empty Yes/No toggle for visits where
                         nothing was filled in. On entry/edit the section is
                         always shown so the user can answer either way. */}
-                    {(!disabledField || values.hasOtherDrugs === "YES_NO_YES") && (
+                    {(!disabledField ||
+                      values.hasOtherDrugs === "YES_NO_YES") && (
                       <>
                         <div className="form-group mb-3 col-md-6">
                           <FormGroup>
-                            <FormLabelName>Other Drugs Prescribed</FormLabelName>
+                            <FormLabelName>
+                              Other Drugs Prescribed
+                            </FormLabelName>
                             <Input
                               type="select"
                               name="hasOtherDrugs"
                               id="hasOtherDrugs"
                               value={values.hasOtherDrugs}
-                              onChange={e => {
+                              onChange={(e) => {
                                 handleChange(e);
                                 if (e.target.value !== "YES_NO_YES") {
                                   setFieldValue("otherDrugsPrescribed", "");
@@ -2042,8 +2260,10 @@ const ClinicVisit = props => {
                               disabled={disabledField}
                             >
                               <option value="">Select</option>
-                              {(codeset?.YES_NO || []).map(item => (
-                                <option key={item.code} value={item.code}>{item.display}</option>
+                              {(codeset?.YES_NO || []).map((item) => (
+                                <option key={item.code} value={item.code}>
+                                  {item.display}
+                                </option>
                               ))}
                             </Input>
                           </FormGroup>
@@ -2099,7 +2319,7 @@ const ClinicVisit = props => {
                           <FormLabelName>Date of Urinalysis</FormLabelName>
                           <Input
                             type="date"
-                            onKeyDown={e => e.preventDefault()}
+                            onKeyDown={(e) => e.preventDefault()}
                             name="testDate"
                             id="urinalysisTestDate"
                             value={urinalysisTest?.testDate}
@@ -2129,17 +2349,18 @@ const ClinicVisit = props => {
                             disabled={disabledField}
                           >
                             <option value="">Select</option>
-                            {codeset?.PREP_URINALYSIS_RESULT?.map(value => (
+                            {codeset?.PREP_URINALYSIS_RESULT?.map((value) => (
                               <option key={value.id} value={value.code}>
                                 {value.display}
                               </option>
                             ))}
                           </Input>
-                          {urinalysisTest?.testDate && !urinalysisTest?.result && (
-                            <span className={classes.error}>
-                              Result is required when a date has been selected
-                            </span>
-                          )}
+                          {urinalysisTest?.testDate &&
+                            !urinalysisTest?.result && (
+                              <span className={classes.error}>
+                                Result is required when a date has been selected
+                              </span>
+                            )}
                         </FormGroup>
                       </div>
                     </div>
@@ -2173,7 +2394,7 @@ const ClinicVisit = props => {
                           <FormLabelName>Date of Hepatitis</FormLabelName>
                           <Input
                             type="date"
-                            onKeyDown={e => e.preventDefault()}
+                            onKeyDown={(e) => e.preventDefault()}
                             name="testDate"
                             id="hepatitisTestDate"
                             value={hepatitisTest.testDate}
@@ -2204,18 +2425,19 @@ const ClinicVisit = props => {
                           >
                             <option value="">Select</option>
                             {codeset?.HEPATITIS_SCREENING_RESULT?.map(
-                              value => (
+                              (value) => (
                                 <option key={value.id} value={value.code}>
                                   {value.display}
                                 </option>
                               )
                             )}
                           </Input>
-                          {hepatitisTest?.testDate && !hepatitisTest?.result && (
-                            <span className={classes.error}>
-                              Result is required when a date has been selected
-                            </span>
-                          )}
+                          {hepatitisTest?.testDate &&
+                            !hepatitisTest?.result && (
+                              <span className={classes.error}>
+                                Result is required when a date has been selected
+                              </span>
+                            )}
                         </FormGroup>
                       </div>
                     </div>
@@ -2249,7 +2471,7 @@ const ClinicVisit = props => {
                           <FormLabelName>Date of Syphilis Test</FormLabelName>
                           <Input
                             type="date"
-                            onKeyDown={e => e.preventDefault()}
+                            onKeyDown={(e) => e.preventDefault()}
                             name="testDate"
                             id="syphilisTestDate"
                             value={syphilisTest?.testDate}
@@ -2279,7 +2501,7 @@ const ClinicVisit = props => {
                             disabled={disabledField}
                           >
                             <option value="">Select</option>
-                            {codeset?.SYPHILIS_RESULT?.map(value => (
+                            {codeset?.SYPHILIS_RESULT?.map((value) => (
                               <option key={value.id} value={value.code}>
                                 {value.display}
                               </option>
@@ -2295,9 +2517,7 @@ const ClinicVisit = props => {
                       {syphilisTest?.result === "Others" && (
                         <div className="mb-3 col-md-6">
                           <FormGroup>
-                            <FormLabelName>
-                              Result (Others)
-                            </FormLabelName>
+                            <FormLabelName>Result (Others)</FormLabelName>
                             <Input
                               type="text"
                               name="others"
@@ -2326,38 +2546,63 @@ const ClinicVisit = props => {
                         name="liverFunctionTest"
                         value="Yes"
                         onChange={handleCheckBoxLiverFunctionTest}
-                        checked={showLiverFunctionTest}
-                        disabled={disabledField}
+                        checked={
+                          showLiverFunctionTest ||
+                          values.prepType === "PREP_TYPE_INJECTIBLES"
+                        }
+                        disabled={
+                          disabledField ||
+                          values.prepType === "PREP_TYPE_INJECTIBLES"
+                        }
                       />{" "}
                       Liver Function Test Result
                     </h4>
                   </Label>
                   <br />
                   <br />
-                  {showLiverFunctionTest && (
+                  {(showLiverFunctionTest ||
+                    values.prepType === "PREP_TYPE_INJECTIBLES") && (
                     <>
                       <div className="mb-3 col-md-12">
                         <FormGroup>
-                          <FormLabelName>Date of Liver Function Test Result</FormLabelName>
+                          <FormLabelName>
+                            Date of Liver Function Test Result
+                            {values.prepType === "PREP_TYPE_INJECTIBLES" && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
+                          </FormLabelName>
                           <Input
                             type="date"
-                            onKeyDown={e => e.preventDefault()}
+                            onKeyDown={(e) => e.preventDefault()}
                             name="dateLiverFunctionTestResults"
                             id="dateLiverFunctionTestResults"
                             value={dateLiverFunctionTestResults}
-                            onChange={e => setDateLiverFunctionTestResults(e.target.value)}
+                            onChange={(e) =>
+                              setDateLiverFunctionTestResults(e.target.value)
+                            }
                             style={inputStyle}
                             disabled={disabledField}
                             // Not in the future and on or before the Visit Date
                             // (encounterDate, itself capped at today).
-                            max={values.encounterDate || moment(new Date()).format("YYYY-MM-DD")}
+                            max={
+                              values.encounterDate ||
+                              moment(new Date()).format("YYYY-MM-DD")
+                            }
                           />
                         </FormGroup>
                       </div>
                       <div className="mb-3 col-md-12">
                         <FormGroup>
+                          <FormLabelName>
+                            Liver Function Test Result
+                            {values.prepType === "PREP_TYPE_INJECTIBLES" && (
+                              <span style={{ color: "red" }}> *</span>
+                            )}
+                          </FormLabelName>
                           <DualListBox
-                            options={(codeset?.LIVER_FUNCTION_TEST_RESULT || []).map(value => ({
+                            options={(
+                              codeset?.LIVER_FUNCTION_TEST_RESULT || []
+                            ).map((value) => ({
                               value: value?.code,
                               label: value?.display,
                             }))}
@@ -2401,7 +2646,7 @@ const ClinicVisit = props => {
                             <FormLabelName>Date</FormLabelName>
                             <Input
                               type="date"
-                              onKeyDown={e => e.preventDefault()}
+                              onKeyDown={(e) => e.preventDefault()}
                               name="testDate"
                               id="otherTestInputDate"
                               value={otherTestInput.testDate}
@@ -2424,7 +2669,7 @@ const ClinicVisit = props => {
                               style={inputStyle}
                             >
                               <option value="">Select</option>
-                              {codeset?.PREP_OTHER_TEST?.map(value => (
+                              {codeset?.PREP_OTHER_TEST?.map((value) => (
                                 <option key={value.id} value={value.code}>
                                   {value.display}
                                 </option>
@@ -2448,11 +2693,13 @@ const ClinicVisit = props => {
                               onChange={handleOtherTestInputChange}
                               style={inputStyle}
                             />
-                            {otherTestInput?.testDate && !otherTestInput?.result && (
-                              <span className={classes.error}>
-                                Result is required when a date has been selected
-                              </span>
-                            )}
+                            {otherTestInput?.testDate &&
+                              !otherTestInput?.result && (
+                                <span className={classes.error}>
+                                  Result is required when a date has been
+                                  selected
+                                </span>
+                              )}
                           </FormGroup>
                         </div>
                         <div className="mb-1 col-md-3 d-flex align-items-end">
@@ -2467,16 +2714,21 @@ const ClinicVisit = props => {
                             disabled={saving}
                           >
                             <span style={{ textTransform: "capitalize" }}>
-                              {editingOtherTestIndex !== null ? "Update" : "Add"}
+                              {editingOtherTestIndex !== null
+                                ? "Update"
+                                : "Add"}
                             </span>
                           </MatButton>
                         </div>
                       </div>
-                      {otherTestInput.name === "PREP_OTHER_TEST_OTHER_(SPECIFY)" && (
+                      {otherTestInput.name ===
+                        "PREP_OTHER_TEST_OTHER_(SPECIFY)" && (
                         <div className="row">
                           <div className="mb-1 col-md-6">
                             <FormGroup>
-                              <FormLabelName>Specify Other Test Name</FormLabelName>
+                              <FormLabelName>
+                                Specify Other Test Name
+                              </FormLabelName>
                               <Input
                                 type="text"
                                 name="otherTestName"
@@ -2494,7 +2746,9 @@ const ClinicVisit = props => {
                   )}
                   {otherTest.length > 0 && (
                     <table className="table table-bordered table-sm mb-3 mt-2">
-                      <thead style={{ backgroundColor: "#014d88", color: "#fff" }}>
+                      <thead
+                        style={{ backgroundColor: "#014d88", color: "#fff" }}
+                      >
                         <tr>
                           <th>S/N</th>
                           <th>Date</th>
@@ -2505,16 +2759,19 @@ const ClinicVisit = props => {
                       </thead>
                       <tbody>
                         {otherTest.map((entry, index) => {
-                          const testLabel = codeset?.PREP_OTHER_TEST?.find(
-                            v => v.code === entry.otherTestsDone
-                          )?.display || entry.otherTestsDone;
+                          const testLabel =
+                            codeset?.PREP_OTHER_TEST?.find(
+                              (v) => v.code === entry.otherTestsDone
+                            )?.display || entry.otherTestsDone;
                           return (
                             <tr key={entry.localId ?? index}>
                               <td>{index + 1}</td>
                               <td>{entry.testDate}</td>
                               <td>
                                 {testLabel}
-                                {entry.otherTestName ? ` (${entry.otherTestName})` : ""}
+                                {entry.otherTestName
+                                  ? ` (${entry.otherTestName})`
+                                  : ""}
                               </td>
                               <td>{entry.result}</td>
                               {!disabledField && (
@@ -2523,14 +2780,18 @@ const ClinicVisit = props => {
                                     type="button"
                                     className="btn btn-sm btn-primary"
                                     style={{ marginRight: "5px" }}
-                                    onClick={() => handleEditOtherTestEntry(index)}
+                                    onClick={() =>
+                                      handleEditOtherTestEntry(index)
+                                    }
                                   >
                                     Edit
                                   </button>
                                   <button
                                     type="button"
                                     className="btn btn-sm btn-danger"
-                                    onClick={() => handleDeleteOtherTestEntry(index)}
+                                    onClick={() =>
+                                      handleDeleteOtherTestEntry(index)
+                                    }
                                   >
                                     Delete
                                   </button>
@@ -2554,7 +2815,7 @@ const ClinicVisit = props => {
                         </FormLabelName>
                         <Input
                           type="date"
-                          onKeyDown={e => e.preventDefault()}
+                          onKeyDown={(e) => e.preventDefault()}
                           name="nextAppointment"
                           id="nextAppointment"
                           value={values.nextAppointment}
@@ -2574,7 +2835,10 @@ const ClinicVisit = props => {
                     {/* 23. Signature */}
                     <div className="mb-3 col-md-6">
                       <FormGroup>
-                        <FormLabelName>Healthcare Worker Signature <span style={{ color: "red" }}> *</span></FormLabelName>
+                        <FormLabelName>
+                          Healthcare Worker Signature{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </FormLabelName>
                         <Input
                           name="healthCareWorkerSignature"
                           id="healthCareWorkerSignature"
