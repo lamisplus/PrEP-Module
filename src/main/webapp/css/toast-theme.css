@@ -1,51 +1,28 @@
 /**
  * Notification theme for the HIV Prevention module.
  *
- * react-toastify ships green for success (#07bc0c) and a light blue for info
- * (#3498db). Both are replaced here with the LAMISPlus brand blue so every
- * non-failure notification reads as one voice. Error keeps toastify's red —
- * a failure must stay visually distinct from a confirmation.
+ * react-toastify ships green for success (#07bc0c). Success now uses the same
+ * blue the library already gives toast.info (#3498db), so every non-failure
+ * notification reads as one voice. Error keeps toastify's red — a failure must
+ * stay visually distinct from a confirmation.
  *
- * Selectors are scoped under .Toastify__toast-container (the element toastify
- * always renders as the toast's parent) so they beat the library's single-class
- * rules on specificity rather than on import order, which is not guaranteed
- * across the sixteen components that mount their own ToastContainer.
+ * Only the background needs overriding: toastify already styles typed toasts
+ * with white text, a white progress bar and a white close button, and those
+ * hold on this blue because it is the colour they were designed against.
+ *
+ * The selector is scoped under .Toastify__toast-container (the element toastify
+ * always renders as the toast's parent) so it beats the library's single-class
+ * rule on specificity rather than on import order, which is not guaranteed
+ * across the sixteen components that each mount their own ToastContainer.
  *
  * Import this AFTER 'react-toastify/dist/ReactToastify.css'.
  */
 
 :root {
-  /* The same blue the enrollment entry-point cards use. Change it here only. */
-  --prep-notify-blue: #014d88;
+  /* react-toastify's stock info blue. toast.info already uses it by default. */
+  --prep-notify-blue: #3498db;
 }
 
-.Toastify__toast-container .Toastify__toast--success,
-.Toastify__toast-container .Toastify__toast--info {
+.Toastify__toast-container .Toastify__toast--success {
   background: var(--prep-notify-blue);
-  color: #fff;
-}
-
-/* Body text and any icon markup inherit the white set above. */
-.Toastify__toast-container .Toastify__toast--success .Toastify__toast-body,
-.Toastify__toast-container .Toastify__toast--info .Toastify__toast-body {
-  color: #fff;
-}
-
-/* Visible on the blue ground; only shown where hideProgressBar is not set. */
-.Toastify__toast-container .Toastify__toast--success .Toastify__progress-bar,
-.Toastify__toast-container .Toastify__toast--info .Toastify__progress-bar {
-  background: rgba(255, 255, 255, 0.7);
-}
-
-.Toastify__toast-container .Toastify__toast--success .Toastify__close-button,
-.Toastify__toast-container .Toastify__toast--info .Toastify__close-button {
-  color: #fff;
-  opacity: 0.8;
-}
-
-.Toastify__toast-container .Toastify__toast--success .Toastify__close-button:hover,
-.Toastify__toast-container .Toastify__toast--success .Toastify__close-button:focus,
-.Toastify__toast-container .Toastify__toast--info .Toastify__close-button:hover,
-.Toastify__toast-container .Toastify__toast--info .Toastify__close-button:focus {
-  opacity: 1;
 }

@@ -94,10 +94,12 @@ const enrollSplitBtnStyle = {
 };
 
 /**
- * The enrollment prompt runs on one blue. BRAND_BLUE is the same value the
- * success/info toasts use (--prep-notify-blue in css/toast-theme.css); the two
- * arms are told apart by shade rather than by hue, so the prompt reads as a
- * single family. Red is still reserved for the blocked-enrollment state.
+ * The enrollment prompt runs on one blue, told apart by shade rather than hue
+ * so the dialog reads as a single family. This is the LAMISPlus deep blue used
+ * across the module, not the lighter toast blue (--prep-notify-blue in
+ * css/toast-theme.css) — a toast is a transient strip, the dialog header is a
+ * solid band behind white text and needs the stronger contrast.
+ * Red is still reserved for the blocked-enrollment state.
  */
 const BRAND_BLUE = "#014D88";
 const BRAND_BLUE_LIGHT = "#0A6FB8";
