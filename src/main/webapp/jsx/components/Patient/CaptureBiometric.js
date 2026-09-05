@@ -6,6 +6,7 @@ import {Modal,ModalHeader, ModalBody,Form,
 import { makeStyles } from "@material-ui/core/styles";
 import Select from "react-select";
 import "react-toastify/dist/ReactToastify.css";
+import "../../../css/toast-theme.css";
 import "react-widgets/dist/css/react-widgets.css";
 import SaveIcon from "@material-ui/icons/Save";
 import MatButton from "@material-ui/core/Button";

@@ -24,6 +24,7 @@ import SaveAlt from "@material-ui/icons/SaveAlt";
 import Search from "@material-ui/icons/Search";
 import ViewColumn from "@material-ui/icons/ViewColumn";
 import "react-toastify/dist/ReactToastify.css";
+import "../../../css/toast-theme.css";
 import "react-widgets/dist/css/react-widgets.css";
 import "@reach/menu-button/styles.css";
 import { Label } from "semantic-ui-react";
