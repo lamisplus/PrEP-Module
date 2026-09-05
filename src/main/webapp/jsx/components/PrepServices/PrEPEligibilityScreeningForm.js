@@ -9,7 +9,7 @@ import {
   makeStyles,
   Button as MatButton,
 } from "@material-ui/core";
-import { toast } from "react-toastify";
+import { formToast as toast } from "../../constants/formToast";
 import "react-widgets/dist/css/react-widgets.css";
 import { token, url as baseUrl } from "../../../api";
 import "react-phone-input-2/lib/style.css";

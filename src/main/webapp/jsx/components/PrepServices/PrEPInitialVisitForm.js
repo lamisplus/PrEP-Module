@@ -13,7 +13,7 @@ import {
 import MatButton from "@material-ui/core/Button";
 import SaveIcon from "@material-ui/icons/Save";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { formToast as toast } from "../../constants/formToast";
 import { url as baseUrl, token } from "../../../api";
 import "react-widgets/dist/css/react-widgets.css";
 import "react-dual-listbox/lib/react-dual-listbox.css";

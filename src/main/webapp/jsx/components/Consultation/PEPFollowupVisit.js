@@ -25,7 +25,7 @@ import SaveIcon from "@material-ui/icons/Save";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import moment from "moment";
-import { toast } from "react-toastify";
+import { formToast as toast } from "../../constants/formToast";
 import DualListBox from "react-dual-listbox";
 import "react-dual-listbox/lib/react-dual-listbox.css";
 import { useStyles } from "../../../hooks/styles/prepVisit/useStyle";
