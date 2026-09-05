@@ -28,6 +28,7 @@ import SaveAlt from "@material-ui/icons/SaveAlt";
 import Search from "@material-ui/icons/Search";
 import ViewColumn from "@material-ui/icons/ViewColumn";
 import "react-toastify/dist/ReactToastify.css";
+import "../../../css/toast-theme.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { makeStyles } from "@material-ui/core/styles";
 import MuiButton from "@material-ui/core/Button";
@@ -107,7 +108,8 @@ const ENTRY_POINTS = [
     title: "Post-Exposure Prophylaxis",
     description:
       "Enroll a client following a recent potential HIV exposure into the PEP service line.",
-    accent: "#992E62",
+    // Same brand blue as PrEP and as the success/info toasts (css/toast-theme.css).
+    accent: "#014D88",
   },
 ];
 

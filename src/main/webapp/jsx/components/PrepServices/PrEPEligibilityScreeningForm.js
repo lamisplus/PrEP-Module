@@ -20,6 +20,7 @@ import { isValidHtsEncounter, normalizeHtsObservation } from "../../../Utils/hts
 import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
+import "../../../css/toast-theme.css";
 import "react-widgets/dist/css/react-widgets.css";
 import * as moment from "moment";
 import SaveIcon from "@material-ui/icons/Save";
