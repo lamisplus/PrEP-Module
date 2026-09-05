@@ -93,6 +93,15 @@ const enrollSplitBtnStyle = {
   letterSpacing: "0.05em",
 };
 
+/**
+ * The enrollment prompt runs on one blue. BRAND_BLUE is the same value the
+ * success/info toasts use (--prep-notify-blue in css/toast-theme.css); the two
+ * arms are told apart by shade rather than by hue, so the prompt reads as a
+ * single family. Red is still reserved for the blocked-enrollment state.
+ */
+const BRAND_BLUE = "#014D88";
+const BRAND_BLUE_LIGHT = "#0A6FB8";
+
 const ENTRY_POINTS = [
   {
     code: ENROLLMENT_LABEL_PREP,
@@ -100,7 +109,7 @@ const ENTRY_POINTS = [
     title: "Pre-Exposure Prophylaxis",
     description:
       "Enroll a client at risk of HIV exposure into the PrEP service line.",
-    accent: "#014D88",
+    accent: BRAND_BLUE,
   },
   {
     code: ENROLLMENT_LABEL_PEP,
@@ -108,8 +117,7 @@ const ENTRY_POINTS = [
     title: "Post-Exposure Prophylaxis",
     description:
       "Enroll a client following a recent potential HIV exposure into the PEP service line.",
-    // Same brand blue as PrEP and as the success/info toasts (css/toast-theme.css).
-    accent: "#014D88",
+    accent: BRAND_BLUE_LIGHT,
   },
 ];
 
@@ -335,10 +343,10 @@ const EnrollPatientButton = ({ row }) => {
           style={{
             background:
               !activeStatus.loaded
-                ? "rgb(153, 46, 98)"
+                ? BRAND_BLUE
                 : blockedArm
                 ? "#F44336"
-                : "rgb(153, 46, 98)",
+                : BRAND_BLUE,
             color: "#fff",
             padding: "0.75rem 1rem",
             display: "flex",
