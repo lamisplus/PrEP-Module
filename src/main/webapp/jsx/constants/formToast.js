@@ -1,13 +1,13 @@
 import { toast } from "react-toastify";
 
-// Long data-entry forms are submitted from the bottom of a tall page. A toast
-// at the top of the viewport is easy to miss when the user's attention is on
-// the submit button they just pressed, and the default 3s close can fire
-// before they look up. Anchor these next to the action instead, and hold
-// them longer. Grids and history panes keep the container's top-center.
+// Long data-entry forms are submitted from the bottom of a tall page, where a
+// toast pinned to the top of the viewport is easy to miss. Anchor these next
+// to the action instead. Grids and history panes keep the container's
+// top-center.
 //
-// Per-call options passed by the caller still win over these defaults.
-const FORM_TOAST = { position: "bottom-center", autoClose: 5000 };
+// Position only — type, colour, duration and every other option are left to
+// the container and the call site.
+const FORM_TOAST = { position: "bottom-center" };
 
 const withDefaults = (options) => ({ ...FORM_TOAST, ...options });
 
