@@ -370,7 +370,7 @@ const PEPFollowupVisit = props => {
     if (editingHivTestIndex === null) {
       const isDuplicate = hivTestEntries.some(t => t.test === hivTestInput.test);
       if (isDuplicate) {
-        toast.error("This test has already been added. Please edit the existing entry instead.", { position: toast.POSITION.BOTTOM_CENTER });
+        toast.error("This test has already been added. Please edit the existing entry instead.");
         return;
       }
     }
@@ -654,7 +654,6 @@ const PEPFollowupVisit = props => {
   function handleError(error) {
     setSaving(false);
     toast.error(extractErrorMessage(error), {
-      position: toast.POSITION.BOTTOM_CENTER,
     });
   }
 
@@ -677,7 +676,7 @@ const PEPFollowupVisit = props => {
     // The 1st/2nd/3rd follow-up HIV results are auto-populated, not entered, so
     // there's no "at least one entry" requirement any more.
     if (manualErrors.length > 0) {
-      manualErrors.forEach(msg => toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER }));
+      manualErrors.forEach(msg => toast.error(msg));
       return;
     }
 
@@ -693,8 +692,7 @@ const PEPFollowupVisit = props => {
         toast.error(
           "The selected HTS result must be dated later than the PEP initiation. " +
             "A follow-up visit happens after initiation — please register a new HTS " +
-            "with a later date and select it.",
-          { position: toast.POSITION.BOTTOM_CENTER }
+            "with a later date and select it."
         );
         return;
       }
@@ -738,8 +736,7 @@ const PEPFollowupVisit = props => {
     if (!resolvedEnrollmentUuid) {
       setSaving(false);
       toast.error(
-        "No PEP enrollment found for this patient. Enroll the patient before recording a follow-up visit.",
-        { position: toast.POSITION.BOTTOM_CENTER }
+        "No PEP enrollment found for this patient. Enroll the patient before recording a follow-up visit."
       );
       return;
     }
@@ -757,7 +754,6 @@ const PEPFollowupVisit = props => {
         );
         setSaving(false);
         toast.success("PEP Follow-up visit updated successfully!", {
-          position: toast.POSITION.BOTTOM_CENTER,
         });
         // Refresh the dashboard's patientDetail so the STATUS chip reflects
         // the saved visit immediately (was stale until next grid visit).
@@ -778,7 +774,6 @@ const PEPFollowupVisit = props => {
         });
         setSaving(false);
         toast.success("PEP Follow-up visit saved successfully!", {
-          position: toast.POSITION.BOTTOM_CENTER,
         });
         if (props.PatientObject) await props.PatientObject();
         props.setActiveContent({

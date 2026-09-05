@@ -230,7 +230,7 @@ const CaptureBiometric = (props) => {
                                 </CardHeader> */}
                                     <CardBody>
                                     <Row form>
-                                    <ToastContainer />
+                                    <ToastContainer position="top-center" />
                                         <Col md={4}>
                                             <FormGroup>
                                                 <Label for='device'>Select Device </Label>

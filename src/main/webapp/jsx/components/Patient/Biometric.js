@@ -453,7 +453,7 @@ function Biometrics(props) {
 
                     <div style={{flex:"3",padding:'5px',marginLeft:'5px',border:'1px solid rgba(99, 99, 99, 0.2)',boxShadow: 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px'}}>
                         <div className="col-12">
-                            <ToastContainer />
+                            <ToastContainer position="top-center" />
                             <Col md={12}>
                                 <FormGroup>
                                     <Label for='device' style={{color:'#014d88',fontWeight:'bold',fontSize:'14px' }}>Select Device </Label>
@@ -603,7 +603,7 @@ function Biometrics(props) {
                                 </CardHeader>
                         <CardBody>
                             <Row form>
-                                <ToastContainer />
+                                <ToastContainer position="top-center" />
                                 <Col md={4}>
                                     <FormGroup>
                                         <Label for='device'>Select Device </Label>

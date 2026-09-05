@@ -748,7 +748,6 @@ const BasicInfo = props => {
             props.patientObj.hivresultAtVisit =
               hivTesting.hivTestResultAtvisit;
             toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} eligibility screening updated successfully! ✔`, {
-              position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
@@ -771,7 +770,6 @@ const BasicInfo = props => {
             props.patientObj.hivresultAtVisit =
               hivTesting.hivTestResultAtvisit;
             toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} eligibility screening saved successfully! ✔`, {
-              position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
@@ -818,7 +816,6 @@ const BasicInfo = props => {
         ? `Please fix: ${missing.join(", ")}`
         : "Please complete all required fields";
       toast.error(message, {
-        position: toast.POSITION.BOTTOM_CENTER,
       });
     }
   };
@@ -827,7 +824,7 @@ const BasicInfo = props => {
   // user-friendly string (e.g. "A PrEP/PEP eligibility screening has already
   // been recorded for this client on 13 May 2026.") via PrepErrors.
   const handleSaveError = error => {
-    toast.error(extractErrorMessage(error), { position: toast.POSITION.BOTTOM_CENTER });
+    toast.error(extractErrorMessage(error));
   };
 
   const isFemale = () => {

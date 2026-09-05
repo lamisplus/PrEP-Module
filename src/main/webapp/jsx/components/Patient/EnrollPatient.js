@@ -816,7 +816,6 @@ const UserRegistration = props => {
             ? error.response.data.apierror.message
             : 'An error occured while registering a patient !';
         toast.error(errorMessage, {
-          position: toast.POSITION.TOP_RIGHT,
         });
       }
     }
@@ -836,7 +835,7 @@ const UserRegistration = props => {
               </li>
             </ol>
           </div>
-          <ToastContainer autoClose={3000} hideProgressBar />
+          <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
           <Card className={classes.root}>
             <CardContent>
               <Link

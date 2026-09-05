@@ -847,7 +847,7 @@ const UserRegistration = props => {
 
   return (
     <>
-      <ToastContainer autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
       <Card className={classes.cardBottom}>
         <CardContent>
           <Link

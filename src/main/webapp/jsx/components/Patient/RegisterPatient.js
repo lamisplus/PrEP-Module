@@ -769,7 +769,7 @@ const UserRegistration = props => {
 
   return (
     <>
-      <ToastContainer autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
       <div
         className="row page-titles mx-0"
         style={{ marginTop: '0px', marginBottom: '-10px' }}
