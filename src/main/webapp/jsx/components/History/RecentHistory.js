@@ -8,7 +8,10 @@ import PerfectScrollbar from "react-perfect-scrollbar";
 import axios from "axios";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import { url as baseUrl, token } from "../../../api";
-import { ENROLLMENT_TYPE_PREP, ENROLLMENT_TYPE_PEP } from "../../constants/enrollmentType";
+import {
+  ENROLLMENT_TYPE_PREP,
+  ENROLLMENT_TYPE_PEP,
+} from "../../constants/enrollmentType";
 //import { Alert } from "react-bootstrap";
 import { Card, Accordion } from "react-bootstrap";
 import { Modal } from "react-bootstrap";
@@ -20,7 +23,7 @@ import { Button } from "semantic-ui-react";
 import { displayRegimen } from "../../../Utils/regimenDisplay";
 import useRegimenLookup from "../../../hooks/useRegimenLookup";
 
-const RecentHistory = props => {
+const RecentHistory = (props) => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [summary, setSummary] = useState(null);
   const [summarySource, setSummarySource] = useState(null); // "prep" or "pep"
@@ -49,10 +52,10 @@ const RecentHistory = props => {
         }?full=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      .then(response => {
+      .then((response) => {
         setRecentActivities(response.data);
       })
-      .catch(error => {
+      .catch((error) => {
         //console.log(error);
       });
   };
@@ -68,30 +71,62 @@ const RecentHistory = props => {
     // when no follow-up exists, and merging fields so a missing weight/regimen on
     // the latest follow-up is still served from the initiation.
     Promise.all([
-      axios.get(`${baseUrl}prep-followup-visit/person/${personUuid}?full=true`, { headers }).catch(() => ({ data: [] })),
-      axios.get(`${baseUrl}pep-followup-visit/person/${personUuid}?full=true`, { headers }).catch(() => ({ data: [] })),
-      axios.get(`${baseUrl}prep/initiation/latest/${personUuid}?enrollmentType=${ENROLLMENT_TYPE_PREP}`, { headers }).catch(() => ({ data: {} })),
-      axios.get(`${baseUrl}prep/initiation/latest/${personUuid}?enrollmentType=${ENROLLMENT_TYPE_PEP}`, { headers }).catch(() => ({ data: {} })),
+      axios
+        .get(`${baseUrl}prep-followup-visit/person/${personUuid}?full=true`, {
+          headers,
+        })
+        .catch(() => ({ data: [] })),
+      axios
+        .get(`${baseUrl}pep-followup-visit/person/${personUuid}?full=true`, {
+          headers,
+        })
+        .catch(() => ({ data: [] })),
+      axios
+        .get(
+          `${baseUrl}prep/initiation/latest/${personUuid}?enrollmentType=${ENROLLMENT_TYPE_PREP}`,
+          { headers }
+        )
+        .catch(() => ({ data: {} })),
+      axios
+        .get(
+          `${baseUrl}prep/initiation/latest/${personUuid}?enrollmentType=${ENROLLMENT_TYPE_PEP}`,
+          { headers }
+        )
+        .catch(() => ({ data: {} })),
     ]).then(([prepFollowupRes, pepFollowupRes, prepInitRes, pepInitRes]) => {
       const prepVisit = prepFollowupRes.data[0];
       const pepVisit = pepFollowupRes.data[0];
-      const prepInit = prepInitRes.data && prepInitRes.data.uuid ? prepInitRes.data : null;
-      const pepInit = pepInitRes.data && pepInitRes.data.uuid ? pepInitRes.data : null;
+      const prepInit =
+        prepInitRes.data && prepInitRes.data.uuid ? prepInitRes.data : null;
+      const pepInit =
+        pepInitRes.data && pepInitRes.data.uuid ? pepInitRes.data : null;
 
       // Fall back to initiation values for any field the follow-up didn't capture.
       const prepBlend = prepVisit
-        ? { ...(prepInit || {}), ...prepVisit, encounterDate: prepVisit.encounterDate }
+        ? {
+            ...(prepInit || {}),
+            ...prepVisit,
+            encounterDate: prepVisit.encounterDate,
+          }
         : prepInit
         ? { ...prepInit, encounterDate: prepInit.dateEnrolled }
         : null;
       const pepBlend = pepVisit
-        ? { ...(pepInit || {}), ...pepVisit, encounterDate: pepVisit.encounterDate }
+        ? {
+            ...(pepInit || {}),
+            ...pepVisit,
+            encounterDate: pepVisit.encounterDate,
+          }
         : pepInit
         ? { ...pepInit, encounterDate: pepInit.dateEnrolled }
         : null;
 
-      const prepDate = prepBlend?.encounterDate ? new Date(prepBlend.encounterDate) : null;
-      const pepDate = pepBlend?.encounterDate ? new Date(pepBlend.encounterDate) : null;
+      const prepDate = prepBlend?.encounterDate
+        ? new Date(prepBlend.encounterDate)
+        : null;
+      const pepDate = pepBlend?.encounterDate
+        ? new Date(pepBlend.encounterDate)
+        : null;
 
       if (prepBlend && pepBlend) {
         const pepIsNewer = pepDate > prepDate;
@@ -113,12 +148,16 @@ const RecentHistory = props => {
   function countPrepEligibility(data) {
     let count = 0;
     let relevantActivities = [
-      "Prep Commencement", "Prep Clinic", "PEP Clinic",
-      "PrEP Initiation", "PEP Initiation",
-      "PrEP Discontinuation/Interruption", "PEP Completion"
+      "Prep Commencement",
+      "Prep Clinic",
+      "PEP Clinic",
+      "PrEP Initiation",
+      "PEP Initiation",
+      "PrEP Discontinuation/Interruption",
+      "PEP Completion",
     ];
-    data.forEach(entry => {
-      entry?.activities?.forEach(activity => {
+    data.forEach((entry) => {
+      entry?.activities?.forEach((activity) => {
         if (relevantActivities.includes(activity?.name)) {
           count++;
         }
@@ -128,18 +167,26 @@ const RecentHistory = props => {
     return count;
   }
 
-  const ActivityName = name => {
+  const ActivityName = (name) => {
     if (name === "HIV Enrollment") {
       return "HE";
     } else if (name === "Prep Clinic") {
       return "PC";
     } else if (name === "PEP Clinic") {
       return "PPC";
-    } else if (name === "PrEP Initiation" || name === "Prep Enrollment" || name === "PrEP & PEP Initiation") {
+    } else if (
+      name === "PrEP Initiation" ||
+      name === "Prep Enrollment" ||
+      name === "PrEP & PEP Initiation"
+    ) {
       return "PI";
     } else if (name === "PEP Initiation") {
       return "PPI";
-    } else if (name === "PrEP Eligibility Screening" || name === "PEP Eligibility Screening" || name === "Prep Eligibility") {
+    } else if (
+      name === "PrEP Eligibility Screening" ||
+      name === "PEP Eligibility Screening" ||
+      name === "Prep Eligibility"
+    ) {
       return "PE";
     } else if (name === "ART Commencement" || name === "Prep Commencement") {
       return "AC";
@@ -167,7 +214,10 @@ const RecentHistory = props => {
         id: row.id,
         actionType: action,
       });
-    } else if (row.path === "prep-followup-visit" || row.path === "prep-commencement") {
+    } else if (
+      row.path === "prep-followup-visit" ||
+      row.path === "prep-commencement"
+    ) {
       // Legacy "PrEP Commencement" records live in the same prep_followup_visit
       // table as regular follow-up visits (the standalone commencement form was
       // removed). Route both to the consultation (PrEP follow-up) view so old
@@ -196,24 +246,24 @@ const RecentHistory = props => {
     } else {
     }
   };
-  const LoadModal = row => {
+  const LoadModal = (row) => {
     toggle();
     setRecord(row);
   };
-  const LoadDeletePage = row => {
+  const LoadDeletePage = (row) => {
     if (row.path === "prep-eligibility-screening") {
       setSaving(true);
       axios
         .delete(`${baseUrl}prep-eligibility-screening/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then(response => {
+        .then((response) => {
           setSaving(false);
           toast.success("Record Deleted Successfully");
           RecentActivities();
           toggle();
         })
-        .catch(error => {
+        .catch((error) => {
           setSaving(false);
           toast.error(extractErrorMessage(error));
         });
@@ -223,13 +273,13 @@ const RecentHistory = props => {
         .delete(`${baseUrl}prep-followup-visit/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then(response => {
+        .then((response) => {
           setSaving(false);
           toast.success("Record Deleted Successfully");
           RecentActivities();
           toggle();
         })
-        .catch(error => {
+        .catch((error) => {
           setSaving(false);
           toast.error(extractErrorMessage(error));
         });
@@ -239,13 +289,13 @@ const RecentHistory = props => {
         .delete(`${baseUrl}prep-pep-initiation/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then(response => {
+        .then((response) => {
           setSaving(false);
           toast.success("Record Deleted Successfully");
           RecentActivities();
           toggle();
         })
-        .catch(error => {
+        .catch((error) => {
           setSaving(false);
           toast.error(extractErrorMessage(error));
         });
@@ -255,13 +305,13 @@ const RecentHistory = props => {
         .delete(`${baseUrl}pep-followup-visit/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then(response => {
+        .then((response) => {
           setSaving(false);
           toast.success("Record Deleted Successfully");
           RecentActivities();
           toggle();
         })
-        .catch(error => {
+        .catch((error) => {
           setSaving(false);
           toast.error(extractErrorMessage(error));
         });
@@ -271,13 +321,13 @@ const RecentHistory = props => {
         .delete(`${baseUrl}prep-followup-visit/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then(response => {
+        .then((response) => {
           setSaving(false);
           toast.success("Record Deleted Successfully");
           RecentActivities();
           toggle();
         })
-        .catch(error => {
+        .catch((error) => {
           setSaving(false);
           toast.error(extractErrorMessage(error));
         });
@@ -288,13 +338,13 @@ const RecentHistory = props => {
         .delete(`${baseUrl}prep-completion/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then(response => {
+        .then((response) => {
           setSaving(false);
           toast.success("Record Deleted Successfully");
           RecentActivities();
           toggle();
         })
-        .catch(error => {
+        .catch((error) => {
           setSaving(false);
           toast.error(extractErrorMessage(error));
         });
@@ -534,10 +584,22 @@ const RecentHistory = props => {
                             </h4>
                             <h4 className="text-info ">
                               {summary
-                                ? displayRegimen(summary?.regimen, regimenById) ||
-                                  displayRegimen(summary?.pepRegimen, regimenById) ||
-                                  displayRegimen(summary?.prepRegimen, regimenById) ||
-                                  displayRegimen(summary?.regimenId, regimenById) ||
+                                ? displayRegimen(
+                                    summary?.regimen,
+                                    regimenById
+                                  ) ||
+                                  displayRegimen(
+                                    summary?.pepRegimen,
+                                    regimenById
+                                  ) ||
+                                  displayRegimen(
+                                    summary?.prepRegimen,
+                                    regimenById
+                                  ) ||
+                                  displayRegimen(
+                                    summary?.regimenId,
+                                    regimenById
+                                  ) ||
                                   "NIL"
                                 : "NIL"}
                             </h4>
@@ -562,11 +624,13 @@ const RecentHistory = props => {
                                       (Number(summary.height) / 100) ** 2
                                     ).toFixed(2)
                                   : "NIL"}{" "}
-                                {summary && summary.weight && summary.height && (
-                                  <>
-                                    kg/cm<sup>2</sup>
-                                  </>
-                                )}
+                                {summary &&
+                                  summary.weight &&
+                                  summary.height && (
+                                    <>
+                                      kg/cm<sup>2</sup>
+                                    </>
+                                  )}
                               </span>
                             </span>
                           </div>
