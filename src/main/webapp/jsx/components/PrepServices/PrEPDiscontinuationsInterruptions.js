@@ -4,7 +4,7 @@ import MatButton from "@material-ui/core/Button";
 import SaveIcon from "@material-ui/icons/Save";
 import CancelIcon from "@material-ui/icons/Cancel";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { formToast as toast } from "../../constants/formToast";
 import { url as baseUrl, token } from "../../../api";
 import { fetchDiscontinuationCodesets } from "../../../apiCalls/hivPreventionCodesets";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";

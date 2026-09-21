@@ -9,7 +9,7 @@ import {
   makeStyles,
   Button as MatButton,
 } from "@material-ui/core";
-import { toast } from "react-toastify";
+import { formToast as toast } from "../../constants/formToast";
 import "react-widgets/dist/css/react-widgets.css";
 import { token, url as baseUrl } from "../../../api";
 import "react-phone-input-2/lib/style.css";
@@ -20,6 +20,7 @@ import { isValidHtsEncounter, normalizeHtsObservation } from "../../../Utils/hts
 import HtsWarningModal from "../../../Reusables/HtsWarningModal";
 import { Message, Dropdown } from "semantic-ui-react";
 import "react-toastify/dist/ReactToastify.css";
+import "../../../css/toast-theme.css";
 import "react-widgets/dist/css/react-widgets.css";
 import * as moment from "moment";
 import SaveIcon from "@material-ui/icons/Save";
@@ -747,7 +748,6 @@ const BasicInfo = props => {
             props.patientObj.hivresultAtVisit =
               hivTesting.hivTestResultAtvisit;
             toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} eligibility screening updated successfully! ✔`, {
-              position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
@@ -770,7 +770,6 @@ const BasicInfo = props => {
             props.patientObj.hivresultAtVisit =
               hivTesting.hivTestResultAtvisit;
             toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} eligibility screening saved successfully! ✔`, {
-              position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
@@ -817,7 +816,6 @@ const BasicInfo = props => {
         ? `Please fix: ${missing.join(", ")}`
         : "Please complete all required fields";
       toast.error(message, {
-        position: toast.POSITION.BOTTOM_CENTER,
       });
     }
   };
@@ -826,7 +824,7 @@ const BasicInfo = props => {
   // user-friendly string (e.g. "A PrEP/PEP eligibility screening has already
   // been recorded for this client on 13 May 2026.") via PrepErrors.
   const handleSaveError = error => {
-    toast.error(extractErrorMessage(error), { position: toast.POSITION.BOTTOM_CENTER });
+    toast.error(extractErrorMessage(error));
   };
 
   const isFemale = () => {

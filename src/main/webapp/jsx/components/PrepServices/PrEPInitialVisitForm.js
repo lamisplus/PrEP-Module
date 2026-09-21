@@ -13,7 +13,7 @@ import {
 import MatButton from "@material-ui/core/Button";
 import SaveIcon from "@material-ui/icons/Save";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { formToast as toast } from "../../constants/formToast";
 import { url as baseUrl, token } from "../../../api";
 import "react-widgets/dist/css/react-widgets.css";
 import "react-dual-listbox/lib/react-dual-listbox.css";
@@ -412,7 +412,6 @@ const PrEPInitialVisitForm = props => {
           ? 'PrEP'
           : (screeningType === 'PEP' ? 'PEP' : 'PrEP');
       toast.error(`Client with Positive HIV result cannot be initiated on ${typeLabel}`, {
-        position: toast.POSITION.BOTTOM_CENTER,
       });
       return;
     }
@@ -436,7 +435,6 @@ const PrEPInitialVisitForm = props => {
             props.patientObj.prepCount = "1";
             if (props.PatientObject) await props.PatientObject();
             toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} initiation saved successfully!✔`, {
-              position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
@@ -445,7 +443,7 @@ const PrEPInitialVisitForm = props => {
           })
           .catch(error => {
             setSaving(false);
-            toast.error(extractErrorMessage(error), { position: toast.POSITION.BOTTOM_CENTER });
+            toast.error(extractErrorMessage(error));
           });
       } else {
         axios
@@ -459,7 +457,6 @@ const PrEPInitialVisitForm = props => {
               await props.PatientObject();
             }
             toast.success(`${screeningType === 'PEP' ? 'PEP' : 'PrEP'} initiation saved successfully!✔`, {
-              position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
@@ -468,7 +465,7 @@ const PrEPInitialVisitForm = props => {
           })
           .catch(error => {
             setSaving(false);
-            toast.error(extractErrorMessage(error), { position: toast.POSITION.BOTTOM_CENTER });
+            toast.error(extractErrorMessage(error));
           });
       }
     } else {
@@ -505,7 +502,6 @@ const PrEPInitialVisitForm = props => {
         ? `Please fix: ${missing.join(", ")}`
         : "Please complete all required fields";
       toast.error(message, {
-        position: toast.POSITION.BOTTOM_CENTER,
       });
     }
   };

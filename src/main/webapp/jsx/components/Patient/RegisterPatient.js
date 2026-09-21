@@ -19,6 +19,7 @@ import AddIcon from '@material-ui/icons/Add';
 import CancelIcon from '@material-ui/icons/Cancel';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import '../../../css/toast-theme.css';
 import 'react-widgets/dist/css/react-widgets.css';
 import { Link, useHistory, useLocation } from 'react-router-dom';
 import { TiArrowBack } from 'react-icons/ti';
@@ -768,7 +769,7 @@ const UserRegistration = props => {
 
   return (
     <>
-      <ToastContainer autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
       <div
         className="row page-titles mx-0"
         style={{ marginTop: '0px', marginBottom: '-10px' }}

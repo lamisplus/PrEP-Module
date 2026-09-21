@@ -28,6 +28,7 @@ import SaveAlt from "@material-ui/icons/SaveAlt";
 import Search from "@material-ui/icons/Search";
 import ViewColumn from "@material-ui/icons/ViewColumn";
 import "react-toastify/dist/ReactToastify.css";
+import "../../../css/toast-theme.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { makeStyles } from "@material-ui/core/styles";
 import MuiButton from "@material-ui/core/Button";
@@ -92,6 +93,17 @@ const enrollSplitBtnStyle = {
   letterSpacing: "0.05em",
 };
 
+/**
+ * The enrollment prompt runs on one blue, told apart by shade rather than hue
+ * so the dialog reads as a single family. This is the LAMISPlus deep blue used
+ * across the module, not the lighter toast blue (--prep-notify-blue in
+ * css/toast-theme.css) — a toast is a transient strip, the dialog header is a
+ * solid band behind white text and needs the stronger contrast.
+ * Red is still reserved for the blocked-enrollment state.
+ */
+const BRAND_BLUE = "#014D88";
+const BRAND_BLUE_LIGHT = "#0A6FB8";
+
 const ENTRY_POINTS = [
   {
     code: ENROLLMENT_LABEL_PREP,
@@ -99,7 +111,7 @@ const ENTRY_POINTS = [
     title: "Pre-Exposure Prophylaxis",
     description:
       "Enroll a client at risk of HIV exposure into the PrEP service line.",
-    accent: "#014D88",
+    accent: BRAND_BLUE,
   },
   {
     code: ENROLLMENT_LABEL_PEP,
@@ -107,7 +119,7 @@ const ENTRY_POINTS = [
     title: "Post-Exposure Prophylaxis",
     description:
       "Enroll a client following a recent potential HIV exposure into the PEP service line.",
-    accent: "#992E62",
+    accent: BRAND_BLUE_LIGHT,
   },
 ];
 
@@ -333,10 +345,10 @@ const EnrollPatientButton = ({ row }) => {
           style={{
             background:
               !activeStatus.loaded
-                ? "rgb(153, 46, 98)"
+                ? BRAND_BLUE
                 : blockedArm
                 ? "#F44336"
-                : "rgb(153, 46, 98)",
+                : BRAND_BLUE,
             color: "#fff",
             padding: "0.75rem 1rem",
             display: "flex",

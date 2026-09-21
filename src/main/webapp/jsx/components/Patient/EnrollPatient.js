@@ -19,6 +19,7 @@ import AddIcon from '@material-ui/icons/Add';
 import CancelIcon from '@material-ui/icons/Cancel';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import '../../../css/toast-theme.css';
 import 'react-widgets/dist/css/react-widgets.css';
 import { Link, useHistory, useLocation } from 'react-router-dom';
 import { TiArrowBack } from 'react-icons/ti';
@@ -815,7 +816,6 @@ const UserRegistration = props => {
             ? error.response.data.apierror.message
             : 'An error occured while registering a patient !';
         toast.error(errorMessage, {
-          position: toast.POSITION.TOP_RIGHT,
         });
       }
     }
@@ -835,7 +835,7 @@ const UserRegistration = props => {
               </li>
             </ol>
           </div>
-          <ToastContainer autoClose={3000} hideProgressBar />
+          <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
           <Card className={classes.root}>
             <CardContent>
               <Link

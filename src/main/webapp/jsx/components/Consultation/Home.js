@@ -27,7 +27,7 @@ import SaveIcon from "@material-ui/icons/Save";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import moment from "moment";
-import { toast } from "react-toastify";
+import { formToast as toast } from "../../constants/formToast";
 import Divider from "@mui/material/Divider";
 import { TiTrash } from "react-icons/ti";
 import DualListBox from "react-dual-listbox";
@@ -896,8 +896,7 @@ const ClinicVisit = (props) => {
       );
       if (isDuplicate) {
         toast.error(
-          "This test has already been added. Please edit the existing entry instead.",
-          { position: toast.POSITION.BOTTOM_CENTER }
+          "This test has already been added. Please edit the existing entry instead."
         );
         return;
       }
@@ -1257,7 +1256,6 @@ const ClinicVisit = (props) => {
   function handleError(error) {
     setSaving(false);
     toast.error(extractErrorMessage(error), {
-      position: toast.POSITION.BOTTOM_CENTER,
     });
   }
 
@@ -1313,7 +1311,7 @@ const ClinicVisit = (props) => {
     }
     if (manualErrors.length > 0) {
       manualErrors.forEach((msg) =>
-        toast.error(msg, { position: toast.POSITION.BOTTOM_CENTER })
+        toast.error(msg)
       );
       return;
     }
@@ -1352,8 +1350,7 @@ const ClinicVisit = (props) => {
     if (!resolvedEnrollmentUuid) {
       setSaving(false);
       toast.error(
-        "No PrEP enrollment found for this patient. Enroll the patient before recording a clinic visit.",
-        { position: toast.POSITION.BOTTOM_CENTER }
+        "No PrEP enrollment found for this patient. Enroll the patient before recording a clinic visit."
       );
       return;
     }
@@ -1382,7 +1379,6 @@ const ClinicVisit = (props) => {
         );
         setSaving(false);
         toast.success("PrEP Follow-up visit updated successfully!", {
-          position: toast.POSITION.BOTTOM_CENTER,
         });
         props.setActiveContent({
           ...props.activeContent,
@@ -1400,7 +1396,6 @@ const ClinicVisit = (props) => {
         });
         setSaving(false);
         toast.success("PrEP Follow-up visit saved successfully!", {
-          position: toast.POSITION.BOTTOM_CENTER,
         });
         props.setActiveContent({
           ...props.activeContent,

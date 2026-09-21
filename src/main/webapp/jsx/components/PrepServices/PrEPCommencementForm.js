@@ -13,7 +13,7 @@ import MatButton from "@material-ui/core/Button";
 import { makeStyles } from "@material-ui/core/styles";
 import SaveIcon from "@material-ui/icons/Save";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { formToast as toast } from "../../constants/formToast";
 import { url as baseUrl, token } from "../../../api";
 import { extractErrorMessage } from "../../../Utils/extractErrorMessage";
 import "react-widgets/dist/css/react-widgets.css";
@@ -277,7 +277,6 @@ const PrEPCommencementForm = props => {
             setSaving(false);
             patientObj.commencementCount = 1;
             toast.success("Record save successful", {
-              position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
@@ -287,7 +286,6 @@ const PrEPCommencementForm = props => {
           .catch(error => {
             setSaving(false);
             toast.error(extractErrorMessage(error), {
-              position: toast.POSITION.BOTTOM_CENTER,
             });
           });
       } else {
@@ -300,7 +298,6 @@ const PrEPCommencementForm = props => {
             patientObj.commencementCount = 1;
             props.PatientObject();
             toast.success("Record save successful", {
-              position: toast.POSITION.BOTTOM_CENTER,
             });
             props.setActiveContent({
               ...props.activeContent,
@@ -310,7 +307,6 @@ const PrEPCommencementForm = props => {
           .catch(error => {
             setSaving(false);
             toast.error(extractErrorMessage(error), {
-              position: toast.POSITION.BOTTOM_CENTER,
             });
           });
       }

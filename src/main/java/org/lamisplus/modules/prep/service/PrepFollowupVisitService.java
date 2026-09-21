@@ -336,7 +336,9 @@ public class PrepFollowupVisitService {
         dto.setHeight(entity.getHeight());
         dto.setHtsEncounterUuid(entity.getHtsEncounterUuid());
         if (last != null && last) {
-            dto.setVisitCount(prepFollowupVisitRepository.countAllByPersonUuid(entity.getPersonUuid()));
+            // Clinic visits only — a PrEP initiation is not a visit, so the legacy
+            // commencement row is excluded (see countClinicVisitsByPersonUuid).
+            dto.setVisitCount(prepFollowupVisitRepository.countClinicVisitsByPersonUuid(entity.getPersonUuid()));
         }
         dto.setVisitType(entity.getVisitType());
         dto.setProphylaxisInitiationUuid(entity.getProphylaxisInitiationUuid());
