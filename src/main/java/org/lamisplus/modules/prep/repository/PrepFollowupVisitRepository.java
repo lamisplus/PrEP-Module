@@ -74,6 +74,11 @@ public interface PrepFollowupVisitRepository extends JpaRepository<PrepFollowupV
 
     @Query(value = "SELECT COUNT(*) FROM prep_followup_visit pc " +
             "WHERE pc.person_uuid = ?1 AND pc.is_commencement = false " +
+            "AND CAST(pc.archived AS BOOLEAN) = false", nativeQuery = true)
+    Integer countClinicVisitsByPersonUuid(String personUuid);
+
+    @Query(value = "SELECT COUNT(*) FROM prep_followup_visit pc " +
+            "WHERE pc.person_uuid = ?1 AND pc.is_commencement = false " +
             "AND pc.encounter_date = (SELECT MAX(pc2.encounter_date) FROM prep_followup_visit pc2 " +
             "WHERE pc2.person_uuid = ?1 AND pc2.is_commencement = false)", nativeQuery = true)
     int countEligibleRecordsForUpdate(String personUuid);

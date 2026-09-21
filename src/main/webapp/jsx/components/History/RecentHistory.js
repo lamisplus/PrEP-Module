@@ -145,14 +145,13 @@ const RecentHistory = (props) => {
     });
   };
 
-  function countPrepEligibility(data) {
+  function countClinicVisits(data) {
     let count = 0;
     let relevantActivities = [
       "Prep Commencement",
+      "PEP Commencement",
       "Prep Clinic",
       "PEP Clinic",
-      "PrEP Initiation",
-      "PEP Initiation",
       "PrEP Discontinuation/Interruption",
       "PEP Completion",
     ];
@@ -533,7 +532,7 @@ const RecentHistory = (props) => {
                             <span className="s-icon">
                               <span style={{ fontSize: "16px" }}>
                                 Total Clinic Visit :{" "}
-                                {countPrepEligibility(recentActivities)}
+                                {countClinicVisits(recentActivities)}
                               </span>
                             </span>
                           </div>
